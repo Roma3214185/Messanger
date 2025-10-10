@@ -10,7 +10,6 @@ public:
 
     void open(const QUrl& url) {
         Q_UNUSED(url)
-        // Імітація відкриття
         Q_EMIT connected();
     }
 

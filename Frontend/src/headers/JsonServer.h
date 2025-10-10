@@ -53,6 +53,15 @@ std::shared_ptr<ChatBase> getChatFromJson(QJsonObject obj){
     return nullptr;
 }
 
+std::shared_ptr<ChatBase> getPrivateChatFromJson(QJsonObject obj){
+    auto newChat = std::make_shared<PrivateChat>();
+    newChat->userId = obj["user_id"].toInt();
+    newChat->chatId = obj["chat_id"].toInt();
+    newChat->title = obj["title"].toString();
+    newChat->avatarPath = obj["avatar"].toString();
+    return newChat;
+}
+
 } //namespace JsonServer
 
 #endif // JSONSERVER_H

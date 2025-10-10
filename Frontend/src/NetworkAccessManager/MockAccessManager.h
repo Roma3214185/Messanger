@@ -10,14 +10,12 @@ class MockNetworkAccessManager : public INetworkAccessManager
     QNetworkReply* reply = nullptr;
 public:
     QNetworkReply* post(const QNetworkRequest& req, const QByteArray& byteArray) override {
-        qDebug() << "post";
         Q_UNUSED(byteArray)
         lastRequest = req;
         return reply;
     }
 
     QNetworkReply* get(const QNetworkRequest& req) override{
-        qDebug() << "get";
         lastRequest = req;
         return reply;
     }

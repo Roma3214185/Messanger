@@ -23,9 +23,3 @@ int main(int argc, char *argv[]) {
 }
 
 
-
-//      websocat ws://localhost:8082/ws
-//      {"type": "init", "userId": 12}
-//      {"type": "send_message", "chatId": 123, "fromUser": 12, "text": "HI!"}
-
-

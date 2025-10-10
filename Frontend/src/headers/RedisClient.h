@@ -10,8 +10,8 @@ class RedisClient : public ICash
 public:
     RedisClient(std::string url) : redis(url) {}
 
-    std::optional<std::string> get(std::string token) override{
-        std::optional<std::string> takenOpt;
+    OptionalString get(const std::string& token) override{
+        OptionalString takenOpt;
         try {
             takenOpt = redis.get("TOKEN");
         } catch (const sw::redis::Error &e) {
@@ -21,11 +21,11 @@ public:
         return takenOpt;
     }
 
-    void saveToken(std::string tokenName, std::string token) override{
+    void saveToken(const std::string& tokenName, const std::string& token) override{
         redis.set(tokenName, token);
     }
 
-    void deleteToken(std::string tokenName) override{
+    void deleteToken(const std::string& tokenName) override{
         redis.del("TOKEN");
     }
 };

@@ -7,6 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui)
+#find_package(spdlog CONFIG REQUIRED)
 
 enable_testing()
 set(FRONTEND_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -37,13 +38,16 @@ add_executable(Frontend
    src/headers/INetworkAccessManager.h
    src/NetworkAccessManager/networkaccessmanager.h src/NetworkAccessManager/networkaccessmanager.cpp
    src/NetworkAccessManager/MockAccessManager.h
-   src/headers/DataInputService.h
    src/headers/ICash.h
    src/headers/RedisClient.h
    src/headers/MockCash.h
    src/UserModel/UserModel.cpp
    src/headers/MockReply.h
    src/headers/FakeSocket.h
+   src/headers/Message.h
+   src/DataInputService/datainputservice.h
+   src/DataInputService/datainputservice.cpp
+   src/headers/ChatBase.h
 )
 
 target_include_directories(Frontend PRIVATE
@@ -56,7 +60,7 @@ target_link_libraries(Frontend PRIVATE
    Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
    redis++
    #hiredis
-
+   #spdlog::spdlog
 )
 
 set_target_properties(Frontend PROPERTIES

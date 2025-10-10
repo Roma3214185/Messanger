@@ -3,115 +3,109 @@
 #include <headers/User.h>
 #include "MessageModel/messagemodel.h"
 
-
-Presenter::Presenter(IMainWindow* window, Model* manag)
-    : view(window)
-    , manager(manag)
+Presenter::Presenter(IMainWindow* window, Model* manager)
+    : view_(window)
+    , manager_(manager)
 {
     initialConnections();
-    view->setChatModel(manager->getChatModel());
-    view->setUserModel(manager->getUserModel());
-    manager->checkToken();
+    view_->setChatModel(manager->getChatModel());
+    view_->setUserModel(manager->getUserModel());
+    manager_->checkToken();
 }
 
-void Presenter::signIn(QString email, QString password){
-    qDebug() << "[Presenter] Sign_in_user" << email << password;
-    manager->signIn(email, password);
-
+void Presenter::signIn(const QString& email, const QString& password){
+    manager_->signIn(email, password);
 }
-void Presenter::signUp(SignUpRequest req){
-    qDebug() << "[Presenter]Sign_up_user" << req.email << " " << req.password << " " << req.name << " " << req.tag;
-    manager->signUp(req);
+
+void Presenter::signUp(const SignUpRequest& req){
+    manager_->signUp(req);
 }
 
 void Presenter::initialConnections(){
-    connect(manager, &Model::userCreated, this, &Presenter::setUser);
-    connect(manager, &Model::newMessage, this, &Presenter::newMessage);
-    connect(manager, &Model::chatAdded, this, [this](int chatId){
-        manager->fillChatHistory(chatId);
+    connect(manager_, &Model::userCreated, this, &Presenter::setUser);
+    connect(manager_, &Model::newMessage, this, &Presenter::newMessage);
+    connect(manager_, &Model::chatAdded, this, [this](int chatId){
+        manager_->fillChatHistory(chatId);
     });
 }
 
-void Presenter::setUser(User user, QString token){
-    view->setUser(user);
-    currentUserId = user.id;
-    manager->saveToken(token);
+void Presenter::setUser(const User& user, const QString& token){
+    view_->setUser(user);
+    currentUserId_ = user.id;
+    manager_->saveToken(token);
 
-    auto chats = manager->loadChats(); //maybe void beacause it yours history's chats
-
+    auto chats = manager_->loadChats(); //(?) void cause it your chats history
     qDebug() << "[INFO] Presenter loaded " << chats.size() << " chats";
 
-    for(auto chat: chats){
-        manager->addChat(chat);
+    for (const auto& chat : chats) {
+        manager_->addChat(chat);
     }
-    manager->connectSocket(user.id);
 
+    manager_->connectSocket(user.id);
 }
 
-void Presenter::on_chat_clicked(int chatId){
-    qDebug() << "[INFO] clicked on chat with id: " << chatId;
+void Presenter::on_chat_clicked(const int chatId){
     openChat(chatId);
 }
 
-void Presenter::newMessage(Message msg){
-    if(currentUserId == msg.senderId) {
+void Presenter::newMessage(const Message& msg){
+    if(currentUserId_ == msg.senderId) {
         qDebug() << "[INFO] It's your messaage" << msg.text; // впливає на те, як повідомлення розташоване, і чи оновлювати unread_message
     }
 
-    manager->addMessageToChat(msg.chatId, msg);
+    manager_->addMessageToChat(msg.chatId, msg);
 }
 
-void Presenter::findUserRequest(QString text){
+void Presenter::findUserRequest(const QString& text){
     if(text.isEmpty()) {
-        manager->getUserModel()->clear();
-        return;
+        manager_->getUserModel()->clear(); return;
     }
 
-    auto users = manager->findUsers(text); //parallel request finding users and groups
-    manager->getUserModel()->clear();
-    for(auto user: users){
-        if(currentUserId != user.id) manager->getUserModel()->addUser(user);
+    auto users = manager_->findUsers(text); //make parallel request finding users and groups
+    manager_->getUserModel()->clear();
+
+    for(const auto& user: users){
+        if(currentUserId_ != user.id) manager_->getUserModel()->addUser(user);
     }
 }
 
-void Presenter::openChat(int chatId){
-    view->setChatWindow(manager->getMessageModel(chatId));
-    currentChatId = chatId;
-
-    // int idx = manager->getCurrentOpenedChatIndex()
-    // view->setChatFocus(idx)
-    //make unread message = 0; (?)
+void Presenter::openChat(const int chatId){ // make unread message = 0; (?)
+    view_->setChatWindow(manager_->getMessageModel(chatId));
+    currentChatId_ = chatId;
 }
 
-void Presenter::on_user_clicked(int userId, bool isUser /*=true (yet) */){ // click on list of finded responces by tag
-    manager->getUserModel()->clear();
-    view->clearFindUserEdit();
+void Presenter::on_user_clicked(const int userId, const bool isUser /*=true (yet) */){
+    manager_->getUserModel()->clear();
+    view_->clearFindUserEdit();
 
-    if(isUser && currentUserId == userId) {
-        qDebug() << "[ERROR] Impossible to open chat with myself ";
+    if(isUser && currentUserId_ == userId) {
+        qDebug() << "[ERROR] Impossible to open chat with yourself";
         return;
     }
 
     if(isUser){
-        auto chat = manager->getPrivateChatWithUser(userId); //create if not exist
+        auto chat = manager_->getPrivateChatWithUser(userId);
+        if(!chat){
+            qDebug() << "[ERROR] Char is null in on_user_clicked";
+        }
         openChat(chat->chatId);
     }else{
         qDebug() << "[ERROR] Implement finding group request";
     }
 }
 
-void Presenter::sendButtonClicked(QString textToSend){
-    if(textToSend.isEmpty() || !currentChatId) {
-        if(textToSend.isEmpty()) qDebug() << "[INFO] Presenter receive to send empty text";
-        else qDebug() << "[INFO] Presenter doesn't have opened chat";
+void Presenter::sendButtonClicked(const QString& textToSend){
+    if(textToSend.isEmpty() || !currentChatId_) {
+        if(textToSend.isEmpty()) qDebug() << "[WARN] Presenter receive to send empty text";
+        else qDebug() << "[ERROR] Presenter doesn't have opened chat";
         return;
     }
 
-    manager->sendMessage(*currentChatId, *currentUserId, textToSend);
+    manager_->sendMessage(*currentChatId_, *currentUserId_, textToSend);
 }
 
 void Presenter::on_logOutButtonClicked(){
-    manager->logout();
+    manager_->logout();
 }
 
 

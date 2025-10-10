@@ -10,17 +10,23 @@
 #include <QModelIndex>
 #include <QStyleOptionViewItem>
 
-class MessageDelegate : public QStyledItemDelegate {
+class MessageDelegate : public QStyledItemDelegate
+{
     Q_OBJECT
 public:
+
     using QStyledItemDelegate::QStyledItemDelegate;
 
-    void paint(QPainter *painter, const QStyleOptionViewItem &option,
-               const QModelIndex &index) const override;
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
-    QSize sizeHint(const QStyleOptionViewItem &option,
-                   const QModelIndex &index) const override;
+private:
 
+    void drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option) const;
+    void drawAvatar(QPainter *painter, const QRect &rect, const QPixmap& avatar, const int senderId, const int receiverId) const;
+    void drawUsername(QPainter *painter, const QRect &rect, const QString &username) const;
+    void drawText(QPainter *painter, const QRect &rect, const QString &text) const;
+    void drawTimestamp(QPainter *painter, const QRect &rect, const QString &timestamp) const;
 };
 
 

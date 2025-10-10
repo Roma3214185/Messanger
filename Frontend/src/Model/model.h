@@ -1,87 +1,101 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include <headers/SignUpRequest.h>
-#include <QtNetwork/QNetworkAccessManager>
 #include <QObject>
-#include <headers/User.h>
+#include <QUrl>
 #include <QWebSocket>
-#include "ChatModel/chatmodel.h"
-#include <headers/User.h>
-#include "MessageModel/messagemodel.h"
+#include <unordered_map>
+#include <memory>
 
-#include "UserModel/UserModel.h"
+#include "headers/SignUpRequest.h"
+#include "headers/User.h"
 #include "headers/INetworkAccessManager.h"
 #include "headers/ICash.h"
 
-using ChatId = int;
-
+class ChatBase;
 class MessageModel;
+class ChatModel;
+class UserModel;
 class Message;
+class QNetworkReply;
+
+using ChatId = int;
+using std::optional;
+using std::shared_ptr;
+using std::unique_ptr;
+using std::string;
+using ChatPtr = std::shared_ptr<ChatBase>;
+using MessageModelPtr = std::shared_ptr<MessageModel>;
+using ChatMap = std::unordered_map<ChatId, ChatPtr>;
+using MessageModelMap = std::unordered_map<ChatId, MessageModelPtr>;
 
 class Model : public QObject
 {
     Q_OBJECT
 
-    INetworkAccessManager* netManager;
-    QString currentToken;
-    QUrl url_;
-    QWebSocket* socket;
-    ICash* cash;
-    std::unordered_map<ChatId, std::shared_ptr<ChatBase>> existingChats;
-    std::unordered_map<ChatId, std::shared_ptr<MessageModel>> idToMessageModel;
-    std::unique_ptr<ChatModel> chatModel;
-    std::unique_ptr<UserModel> userModel;
-
 public:
-    Model(QUrl url, INetworkAccessManager* netManager, ICash* cash, QWebSocket* socket);
+
+    Model(const QUrl& url, INetworkAccessManager* netManager, ICash* cash, QWebSocket* socket);
+
     ChatModel* getChatModel();
     UserModel* getUserModel();
-    std::shared_ptr<MessageModel> createMessageModel(int chatId);
-    MessageModel* getMessageModel(int chatId);
+    MessageModelPtr createMessageModel(const int chatId);
+    MessageModel* getMessageModel(const int chatId);
     void checkToken();
-    void signIn(QString email, QString password);
-    void signUp(SignUpRequest req);
-    void connectSocket(int id);
-    std::shared_ptr<ChatBase> loadChat(int chatId);
-    QList<User> findUsers(QString text);
-    std::optional<User> getUser(int userId);
-    std::shared_ptr<ChatBase> createPrivateChat(int userId);
-    QList<Message> getChatMessages(int chatId);
-    void sendMessage(int chatId, int sender_id, const QString& textToSend);
-    QList<std::shared_ptr<ChatBase>> loadChats();
-    void signMe(QString token);
-    void fillChatHistory(int chatId);
-    void addChat(std::shared_ptr<ChatBase> chat);
-    void addChatInFront(std::shared_ptr<ChatBase> chat);
-    void createChat(int chatId);
-    void addMessageToChat(int chatId, Message msg);
-    void deleteToken();
-    std::shared_ptr<ChatBase> getPrivateChatWithUser(int userId);
-    void saveToken(const QString& token);
+    void signIn(const QString& email, const QString& password);
+    void signUp(const SignUpRequest& req);
+    void connectSocket(const int id);
+    ChatPtr loadChat(const int chatId);
+    QList<User> findUsers(const QString& text);
+    optional<User> getUser(const int userId);
+    ChatPtr createPrivateChat(const int userId);
+    QList<Message> getChatMessages(const int chatId);
+    void sendMessage(const int chatId, const int senderId, const QString& textToSend);
+    QList<ChatPtr> loadChats();
+    void signMe(const QString& token);
+    void fillChatHistory(const int chatId);
+    void addChat(const ChatPtr& chat);
+    void addChatInFront(const ChatPtr& chat);
+    void createChat(const int chatId);
+    void addMessageToChat(const int chatId, const Message& msg);
+    void deleteToken() const;
+    ChatPtr getPrivateChatWithUser(const int userId);
+    void saveToken(const QString& token) const;
     void clearAllChats();
     void clearAllMessages();
     void logout();
-    int getNumberOfExistingChats();
+    int getNumberOfExistingChats() const;
+
+Q_SIGNALS:
+
+    void chatAdded(const int id);
+    void errorOccurred(const QString& error);
+    void userCreated(const User& user, const QString& token);
+    void newMessage(const Message& message);
+
 private:
+
     void onSignInFinished(QNetworkReply* reply);
     void onSignUpFinished(QNetworkReply* reply);
     void onMessageReceived(const QString& msg);
     void onSocketConnected(int id);
-    std::shared_ptr<ChatBase> onChatLoaded(QNetworkReply* reply);
+    ChatPtr onChatLoaded(QNetworkReply* reply);
     QList<User> onFindUsers(QNetworkReply* reply);
-    std::shared_ptr<ChatBase> onCreatePrivateChat(QNetworkReply* reply);
+    ChatPtr onCreatePrivateChat(QNetworkReply* reply);
     QList<Message> onGetChatMessages(QNetworkReply* reply);
-    QList<std::shared_ptr<ChatBase>> onLoadChats(QNetworkReply* reply);
+    QList<ChatPtr> onLoadChats(QNetworkReply* reply);
     void onSignMe(QNetworkReply* reply);
-    std::optional<User> onGetUser(QNetworkReply* reply);
+    optional<User> onGetUser(QNetworkReply* reply);
 
-Q_SIGNALS:
-    void chatAdded(int id);
-    void errorOccurred(QString error);
-    void userCreated(User user, QString token);
-    void newMessage(Message message);
-
+    QUrl url_;
+    INetworkAccessManager* netManager;
+    ICash* cash;
+    QWebSocket* socket;
+    QString currentToken;
+    unique_ptr<ChatModel> chatModel;
+    unique_ptr<UserModel> userModel;
+    ChatMap chatsById;
+    MessageModelMap messageModelsByChatId;
 };
 
 #endif // MODEL_H

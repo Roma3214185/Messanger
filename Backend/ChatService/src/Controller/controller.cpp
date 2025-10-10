@@ -112,13 +112,6 @@ CROW_ROUTE(app_, "/chats").methods(crow::HTTPMethod::GET)
                 }
             }
 
-            // if (auto lastMsg = db.getLastMessage(chat.id)) {
-            //     chatJson["last_message"] = lastMsg->text;
-            //     chatJson["timestamp"] = lastMsg->timestamp.toStdString();
-            // } else {
-            //     chatJson["last_message"] = "";
-            // }
-
             res["chats"][i++] = std::move(chatJson);
         }
 
@@ -177,19 +170,12 @@ CROW_ROUTE(app_, "/chats/<int>").methods(crow::HTTPMethod::GET)
             }
         }
 
-
-        // if (auto lastMsg = db.getLastMessage(chat.id)) {
-        //     chatJson["last_message"] = lastMsg->text;
-        //     chatJson["timestamp"] = lastMsg->timestamp.toStdString();
-        // }
-
         qDebug() << "[INFO] Returning chat JSON for" << chatId;
         return crow::response(200, chatJson);
     });
 }
 
 void Controller::handleGetAllChatsMembers(){
-
 CROW_ROUTE(app_, "/chats/<int>/members").methods(crow::HTTPMethod::GET)
     ([&](int chatId) {
         qDebug() << "[INFO] getMembersOfChat " << chatId << " id";

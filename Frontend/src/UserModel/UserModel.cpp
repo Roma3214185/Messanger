@@ -1,5 +1,16 @@
 #include "UserModel.h"
 
+UserModel::UserModel(QObject *parent)
+    : QAbstractListModel(parent)
+{
+
+}
+
+int UserModel::rowCount(const QModelIndex &parent) const{
+    Q_UNUSED(parent);
+    return m_users.size();
+}
+
 void UserModel::addUser(const User &user) {
     beginInsertRows(QModelIndex(), m_users.size(), m_users.size());
     m_users.push_back(user);
@@ -18,21 +29,22 @@ QVariant UserModel::data(const QModelIndex &index, int role) const {
 
     const auto &user = m_users[index.row()];
     switch (role) {
-    case UserIdRole: return user.id;
-    case NameRole: return user.name;
-    case TagRole: return user.tag;
-    case EmailTimeRole: return user.email;
-    case AvatarRole: return user.avatarPath;
-    default: return QVariant();
+        case UserIdRole: return user.id;
+        case NameRole: return user.name;
+        case TagRole: return user.tag;
+        case EmailTimeRole: return user.email;
+        case AvatarRole: return user.avatarPath;
+        default: return QVariant();
     }
 }
 
 QHash<int, QByteArray> UserModel::roleNames() const {
     return {
-        {UserIdRole, "chatId"},
+        {UserIdRole, "chat_id"},
         {NameRole, "name"},
         {TagRole, "tag"},
         {EmailTimeRole, "email"},
         {AvatarRole, "avatar"}
     };
 }
+
