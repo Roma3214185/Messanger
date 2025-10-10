@@ -1,3 +1,49 @@
 #include "userdelegate.h"
 
-//UserDelegate::UserDelegate() {}
+void UserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+            const QModelIndex &index) const
+{
+    painter->save();
+    QRect rect = option.rect;
+
+    QString name = index.data(UserModel::NameRole).toString();
+    QString avatarPath = index.data(UserModel::AvatarRole).toString();
+    QString tag = index.data(UserModel::TagRole).toString();
+    QPixmap avatar(avatarPath);
+
+    drawBackgroundState(painter, rect, option);
+    drawAvatar(painter, rect, avatar);
+    drawName(painter, rect, name);
+    drawTag(painter, rect, tag);
+
+    painter->restore();
+}
+
+QSize UserDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const{
+    Q_UNUSED(option);
+    Q_UNUSED(index);
+    return QSize(250, 60);
+}
+
+void UserDelegate::drawAvatar(QPainter *painter, const QRect &rect, const QPixmap &avatar) const{
+    QRect avatarRect(rect.left() + 5, rect.top() + 5, 40, 40);
+    painter->drawPixmap(avatarRect, avatar.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+}
+
+void UserDelegate::drawName(QPainter *painter, const QRect &rect, const QString &name) const{
+    painter->setFont(QFont("Arial", 10, QFont::Bold));
+    painter->drawText(rect.left() + 55, rect.top() + 20, name);
+}
+
+void UserDelegate::drawTag(QPainter *painter, const QRect &rect, const QString &tag) const{
+    painter->setFont(QFont("Arial", 9));
+    painter->drawText(rect.left() + 55, rect.top() + 40, tag);
+}
+
+void UserDelegate::drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option) const{
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(rect, QColor("#d0e7ff"));
+    } else if (option.state & QStyle::State_MouseOver) {
+        painter->fillRect(rect, QColor("#f5f5f5"));
+    }
+}

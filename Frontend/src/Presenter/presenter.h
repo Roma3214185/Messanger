@@ -1,39 +1,45 @@
 #ifndef PRESENTER_H
 #define PRESENTER_H
 
+#include <QObject>
+#include <optional>
 #include "headers/IMainWindow.h"
 #include "headers/SignUpRequest.h"
-#include <Model/model.h>
-#include <QObject>
+#include "Model/model.h"
 #include "ChatModel/chatmodel.h"
 #include "UserModel/UserModel.h"
 
-using ChatId = int;
-
+template<typename T>
+using Optional = std::optional<T>;
+using OptionalInt = Optional<int>;
 
 class Presenter : public QObject
 {
     Q_OBJECT
 
-    IMainWindow* view;
-    Model* manager;
-    std::optional<int> currentChatId;
-    std::optional<int> currentUserId;
-
 public:
+
     Presenter(IMainWindow* window, Model* manager);
-    void signIn(QString email, QString password);
-    void signUp(SignUpRequest req);
-    void on_chat_clicked(int chatId);
-    void findUserRequest(QString text);
-    void on_user_clicked(int userId, bool isUser = true);
-    void sendButtonClicked(QString textToSend);
+
+    void signIn(const QString& email, const QString& password);
+    void signUp(const SignUpRequest& req);
+    void on_chat_clicked(const int chatId);
+    void findUserRequest(const QString& text);
+    void on_user_clicked(const int userId, const bool isUser = true);
+    void sendButtonClicked(const QString& textToSend);
     void on_logOutButtonClicked();
-protected:
+
+private:
+
     void initialConnections();
-    void setUser(User user, QString);
-    void newMessage(Message message);
-    void openChat(int newChatId);
+    void setUser(const User& user, const QString& token);
+    void newMessage(const Message& message);
+    void openChat(const int chatId);
+
+    IMainWindow* view_;
+    Model* manager_;
+    OptionalInt currentChatId_;
+    OptionalInt currentUserId_;
 };
 
 #endif // PRESENTER_H

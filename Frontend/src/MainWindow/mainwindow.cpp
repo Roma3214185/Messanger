@@ -6,8 +6,9 @@
 #include "ChatItemDelegate/chatitemdelegate.h"
 #include "ChatModel/chatmodel.h"
 #include "UserDelegate/userdelegate.h"
-#include "headers/DataInputService.h"
+#include "DataInputService/datainputservice.h"
 #include <QMessageBox>
+#include "Presenter/presenter.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -15,34 +16,26 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    auto* chatDelegate = new ChatItemDelegate(this);
-    auto *messageDelegate = new MessageDelegate(this);
-    auto *userDelegate = new UserDelegate(this);
 
-    ui->chatListView->setItemDelegate(chatDelegate);
+    setDelegators();
     ui->chatListView->setMouseTracking(true);
-    ui->messageListView->setItemDelegate(messageDelegate);
-
-    ui->userListView->setItemDelegate(userDelegate);
 
     connect(ui->chatListView, &QListView::clicked, this, [=](const QModelIndex &index){
-        int chatId = index.data(ChatModel::ChatIdRole).toInt();
-        QString title = index.data(ChatModel::TitleRole).toString();
-        qDebug() << "Clicked chat:" << chatId << title;
+        auto chatId = index.data(ChatModel::ChatIdRole).toInt();
+        qDebug() << "Clicked chat:" << chatId;
         presenter->on_chat_clicked(chatId);
     });
 
     connect(ui->userListView, &QListView::clicked, this, [=](const QModelIndex &index){
-        int userId = index.data(UserModel::UserIdRole).toInt();
-        QString name = index.data(UserModel::NameRole).toString();
-        qDebug() << "Clicked on user:" << userId << name;
+        auto userId = index.data(UserModel::UserIdRole).toInt();
+        qDebug() << "Clicked on user:" << userId;
         presenter->on_user_clicked(userId);
     });
 
     connect(ui->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
     connect(ui->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
 
-    ui->mainStackedWidget->setCurrentIndex(0);
+    setSignInPage();
     ui->textEdit->setFixedHeight(35);
     ui->textEdit->setPlaceholderText("Type a message...");
 
@@ -53,8 +46,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->textEdit->setFrameStyle(QFrame::NoFrame);
 
     setSignInPage();
-    ui->messageListView->setFocusPolicy(Qt::NoFocus); //коли клікаєш, елемент не стає виділеним
-    ui->messageListView->setSelectionMode(QAbstractItemView::NoSelection); //забороняє виділення елементів взагалі.
+    ui->messageListView->setFocusPolicy(Qt::NoFocus);
+    ui->messageListView->setSelectionMode(QAbstractItemView::NoSelection);
+}
+
+void MainWindow::setDelegators(){
+    auto* chatDelegate = new ChatItemDelegate(this);
+    auto* messageDelegate = new MessageDelegate(this);
+    auto* userDelegate = new UserDelegate(this);
+
+    ui->chatListView->setItemDelegate(chatDelegate);
+    ui->messageListView->setItemDelegate(messageDelegate);
+    ui->userListView->setItemDelegate(userDelegate);
 }
 
 void MainWindow::setChatModel(ChatModel* model) {
