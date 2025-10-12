@@ -4,9 +4,9 @@
 #include <QObject>
 #include <QWebSocket>
 
-class FakeSocket : public QWebSocket {
+class FakeSocket : public QWebSocket{
+
 public:
-    int sendTextMessage_calls = 0;
 
     void open(const QUrl& url) {
         Q_UNUSED(url)
@@ -14,9 +14,11 @@ public:
     }
 
     void sendTextMessage(const QString& msg) {
-        qDebug() << "[FakeSocket] send: " << msg;
         ++sendTextMessage_calls;
     }
+
+
+    int sendTextMessage_calls = 0;
 };
 
 #endif // FAKESOCKET_H

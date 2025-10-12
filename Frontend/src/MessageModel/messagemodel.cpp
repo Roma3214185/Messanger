@@ -1,6 +1,6 @@
 #include "messagemodel.h"
 
-MessageModel::MessageModel(QObject *parent /*=nullptr*/)
+MessageModel::MessageModel(QObject *parent)
     : QAbstractListModel(parent)
 {
 
@@ -27,7 +27,7 @@ void MessageModel::addMessage(Message msg, const User& user) {
     auto it = usersByMessageId.find(msg.id);
 
     if(it != usersByMessageId.end()) {
-        // undelivered messages will not copy when i load all messages (fix updating unread); load ONLY readen by u (?)
+        // undelivered messages will not copy when i load all messages;
         qDebug() << "[WARN] Message with id " << msg.text << "(id = " << msg.id << ") already exist";
         return;
     }
@@ -39,8 +39,9 @@ void MessageModel::addMessage(Message msg, const User& user) {
 }
 
 void MessageModel::clear(){
-    if (messages_.isEmpty())
+    if (messages_.isEmpty()){
         return;
+    }
 
     beginRemoveRows(QModelIndex(), 0, messages_.size() - 1);
     messages_.clear();

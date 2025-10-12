@@ -1,19 +1,23 @@
 #ifndef REDISCLIENT_H
 #define REDISCLIENT_H
 
-#include "headers/ICash.h"
 #include <sw/redis++/redis++.h>
+#include <QDebug>
 
-class RedisClient : public ICash
+#include "headers/ICache.h"
+
+class RedisClient : public ICache
 {
     sw::redis::Redis redis;
+
 public:
+
     RedisClient(std::string url) : redis(url) {}
 
-    OptionalString get(const std::string& token) override{
-        OptionalString takenOpt;
+    OptionalToken get(const Key& key) override{
+        OptionalToken takenOpt;
         try {
-            takenOpt = redis.get("TOKEN");
+            takenOpt = redis.get(key);
         } catch (const sw::redis::Error &e) {
             qDebug() << "Redis error:" << e.what();
         }
@@ -21,12 +25,12 @@ public:
         return takenOpt;
     }
 
-    void saveToken(const std::string& tokenName, const std::string& token) override{
-        redis.set(tokenName, token);
+    void saveToken(const Key& key, const Token& token) override{
+        redis.set(key, token);
     }
 
-    void deleteToken(const std::string& tokenName) override{
-        redis.del("TOKEN");
+    void deleteToken(const Key& key) override{
+        redis.del(key);
     }
 };
 

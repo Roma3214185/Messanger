@@ -1,20 +1,18 @@
-#include "src/AuthController/authcontroller.h"
 #include "src/AuthManager/authmanager.h"
 #include "src/DataBase/database.h"
-#include <iostream>
+#include "Server/server.h"
+#include <QCoreApplication>
 
 const int AUTH_PORT = 8083;
 
-int main(){
-    DataBase bd("mydatabase.db");
-    UserRepository userRepo(bd);
-    AuthManager manager(userRepo);
-    crow::SimpleApp app;
-    //userRepo.clear();
+int main(int argc, char *argv[]) {
+    QCoreApplication a(argc, argv);
+    DataBase db;
+    AuthManager manager(db);
 
-    AuthController controller (app, &manager);
-    controller.initRoutes();
+    Server server(AUTH_PORT, &manager);
+    server.run();
 
-    app.port(AUTH_PORT).multithreaded().run();
     return 0;
 }
+

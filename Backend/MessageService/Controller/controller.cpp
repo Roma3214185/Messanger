@@ -49,7 +49,6 @@ CROW_ROUTE(app_, "/ws")
             userConnected(userId, &conn);
             qDebug() << "[INFO] Socket is registered for userId: " << userId;
         } else if (msg.has("type") && msg["type"].s() == "send_message") {
-
             int fromUser = msg["sender_id"].i();
             int chatId = msg["chat_id"].i();
             std::string text = msg["text"].s();
@@ -64,7 +63,8 @@ CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
         //make check if u have acess to ges these messagess
         qDebug() << "[INFO] get all messages from chat " << chatId;
 
-        // (?) another route to return messages only already readed by user (?) new messages he will receive from socket ???
+        // (?) another route to return messages only already readed by user
+        //(?) new messages he will receive from socket ???
 
         auto messages = db.getChatMessages(chatId);
         crow::json::wvalue res = crow::json::wvalue::list();

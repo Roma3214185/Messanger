@@ -1,17 +1,17 @@
 #include "proxyclient.h"
 
-ProxyClient::ProxyClient(const std::string &url) : baseUrl(url) {
-    // naive parse: remove scheme
+ProxyClient::ProxyClient(const std::string &url)
+    : baseUrl(url)
+{
     std::string host = url;
     if (host.rfind("http://", 0) == 0) host = host.substr(7);
     else if (host.rfind("https://", 0) == 0) host = host.substr(8);
-    // store hostWithPort
+
     hostWithPort = host;
     cli = std::make_unique<httplib::Client>(host.c_str());
     cli->set_read_timeout(5,0);
     cli->set_connection_timeout(5,0);
 }
-
 
 std::pair<int,std::string> ProxyClient::post_json(const std::string& path, const json& body, const std::vector<std::pair<std::string,std::string>>& headers) {
     auto s = body.dump();
@@ -28,7 +28,10 @@ std::pair<int, std::string> ProxyClient::forward(const crow::request& req, const
     for (auto &h : req.headers) {
         headers.emplace(h.first, h.second);
     }
-    for (auto &h : extra_headers) headers.emplace(h.first, h.second);
+
+    for (auto &h : extra_headers) {
+        headers.emplace(h.first, h.second);
+    }
 
     httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
 

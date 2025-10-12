@@ -9,6 +9,7 @@
 #include <QVariant>
 #include <QModelIndex>
 #include <QStyleOptionViewItem>
+#include "headers/DrawData.h"
 
 class MessageDelegate : public QStyledItemDelegate
 {
@@ -22,6 +23,8 @@ public:
 
 private:
 
+    void drawAll(QPainter *painter, const QStyleOptionViewItem &option, const MessageDrawData &msg) const;
+    MessageDrawData extractMessageData(const QModelIndex &index) const;
     void drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option) const;
     void drawAvatar(QPainter *painter, const QRect &rect, const QPixmap& avatar, const int senderId, const int receiverId) const;
     void drawUsername(QPainter *painter, const QRect &rect, const QString &username) const;

@@ -4,6 +4,7 @@
 #include "ChatModel/chatmodel.h"
 #include <QStyledItemDelegate>
 #include <QPainter>
+#include "headers/DrawData.h"
 
 class ChatItemDelegate : public QStyledItemDelegate
 {
@@ -17,6 +18,8 @@ public:
 
 private:
 
+    ChatDrawData extractChatData(const QModelIndex &index) const;
+    void drawAll(QPainter *painter, const QStyleOptionViewItem &option, const ChatDrawData &chat) const;
     QString refactorLastMessge(const QString& msg) const;
     void drawBackgroundState(QPainter* painter, const QRect& rect, const QStyleOptionViewItem& option) const;
     void drawAvatar(QPainter *painter, const QRect& rect, const QPixmap& avatar) const;

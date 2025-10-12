@@ -6,6 +6,8 @@
 #include <QVector>
 #include <QJsonDocument>
 
+using UserId = int;
+
 namespace NetworkManager {
 
 std::pair<int, std::string> forward(
@@ -15,15 +17,13 @@ std::pair<int, std::string> forward(
     const std::vector<std::pair<std::string, std::string>>& extra_headers = {})
 {
     httplib::Headers headers;
-
-    // Add any extra headers
     for (const auto& h : extra_headers) {
         headers.emplace(h.first, h.second);
     }
 
     const int CHAT_SERVICE = 8081;
     httplib::Client cli("localhost", CHAT_SERVICE);
-    cli.set_connection_timeout(5, 0);  // 5 seconds timeout
+    cli.set_connection_timeout(5, 0);
 
     httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
 
@@ -45,9 +45,8 @@ std::pair<int, std::string> forward(
 }
 
 
-QVector<int> getMembersOfChat(int chatId){
-
-    QVector<int> members;
+QVector<UserId> getMembersOfChat(int chatId){
+    QVector<UserId> members;
     std::string path = "/chats/" + std::to_string(chatId) + "/members";
 
     auto res = forward("", path, "GET");
@@ -56,22 +55,21 @@ QVector<int> getMembersOfChat(int chatId){
         return members;
     }
 
-    // Парсимо JSON-відповідь
-    QByteArray responseData = QByteArray::fromStdString(res.second);
-    QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
+    auto responseData = QByteArray::fromStdString(res.second);
+    auto jsonResponse = QJsonDocument::fromJson(responseData);
 
     if (!jsonResponse.isObject()) {
         qDebug() << "[ERROR] Invalid JSON format in getMembersOfChat";
         return members;
     }
 
-    QJsonObject obj = jsonResponse.object();
+    auto obj = jsonResponse.object();
     if (!obj.contains("members") || !obj["members"].isArray()) {
         qDebug() << "[WARN] getMembersOfChat: no 'members' field found";
         return members;
     }
 
-    QJsonArray arr = obj["members"].toArray();
+    auto arr = obj["members"].toArray();
     for (const auto& v : arr) {
         members.append(v.toInt());
     }

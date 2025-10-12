@@ -63,21 +63,26 @@ void ChatModel::updateChat(const int chatId, const QString& lastMessage, const Q
 void ChatModel::addChatInFront(const ChatPtr& chat){
     beginInsertRows(QModelIndex(), m_chats.size(), m_chats.size());
     m_chats.push_front(chat);
+    qDebug() << "[INFO] Add chat infront id = " << chat->chatId;
     endInsertRows();
 }
 
 void ChatModel::realocateChatInFront(const int chatId){
-    auto index = contains(chatId);
-    if (!index || *index == 0) return;
+    auto index = findIndexByChatId(chatId);
+    if (!index) return;
+
+    bool chatIsFirstInList = *index == 0;
+    if(chatIsFirstInList) return;
 
     beginMoveRows(QModelIndex(), *index, *index, QModelIndex(), 0);
     auto chat = m_chats.takeAt(*index);
     m_chats.prepend(chat);
+    qDebug() << "[INFO] Realocate chat infront id = " << chat->chatId;
     endMoveRows();
 }
 
-optional<int> ChatModel::contains(const int chatId){
-    for (int i = 0; i < m_chats.size(); ++i) {
+OptionalChatIndex ChatModel::findIndexByChatId(const int chatId){
+    for (size_t i = 0; i < m_chats.size(); ++i) {
         if (m_chats[i]->chatId == chatId) {
             return i;
         }

@@ -18,29 +18,48 @@ add_executable(Frontend
    src/MainWindow/mainwindow.cpp
    src/MainWindow/mainwindow.h
    src/MainWindow/mainwindow.ui
+
    src/headers/SignUpRequest.h
-   src/Presenter/presenter.h src/Presenter/presenter.cpp
+
+   src/Presenter/presenter.h
+   src/Presenter/presenter.cpp
+
    src/headers/IMainWindow.h
+
    src/Model/model.cpp
    src/Model/model.h
+
    src/headers/User.h
+
    src/MessageDelegate/messagedelegate.cpp
    src/MessageDelegate/messagedelegate.h
+
    src/MessageModel/messagemodel.cpp
    src/MessageModel/messagemodel.h
+
    src/ChatItemDelegate/chatitemdelegate.cpp
    src/ChatItemDelegate/chatitemdelegate.h
+
    src/ChatModel/chatmodel.cpp
    src/ChatModel/chatmodel.h
+
    src/headers/JsonServer.h
+
    src/UserModel/UserModel.h
-   src/UserDelegate/userdelegate.h src/UserDelegate/userdelegate.cpp
+
+   src/UserDelegate/userdelegate.h
+   src/UserDelegate/userdelegate.cpp
+
    src/headers/INetworkAccessManager.h
-   src/NetworkAccessManager/networkaccessmanager.h src/NetworkAccessManager/networkaccessmanager.cpp
+
+   src/NetworkAccessManager/networkaccessmanager.h
+   src/NetworkAccessManager/networkaccessmanager.cpp
    src/NetworkAccessManager/MockAccessManager.h
-   src/headers/ICash.h
+
+   src/headers/ICache.h
    src/headers/RedisClient.h
-   src/headers/MockCash.h
+   src/headers/MockCache.h
+
    src/UserModel/UserModel.cpp
    src/headers/MockReply.h
    src/headers/FakeSocket.h
@@ -48,6 +67,7 @@ add_executable(Frontend
    src/DataInputService/datainputservice.h
    src/DataInputService/datainputservice.cpp
    src/headers/ChatBase.h
+   src/headers/DrawData.h
 )
 
 target_include_directories(Frontend PRIVATE

@@ -15,7 +15,7 @@ add_library(FrontendServiceLib
     ../src/MessageModel/messagemodel.cpp
     ../src/MessageDelegate/messagedelegate.cpp
     ../src/ChatModel/chatmodel.cpp
-    ../src/headers/MockCash.h
+    ../src/headers/MockCache.h
     ../src/NetworkAccessManager/MockAccessManager.h
     ../src/Model/model.cpp
     ../src/UserModel/UserModel.cpp

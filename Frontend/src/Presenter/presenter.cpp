@@ -27,6 +27,11 @@ void Presenter::initialConnections(){
     connect(manager_, &Model::chatAdded, this, [this](int chatId){
         manager_->fillChatHistory(chatId);
     });
+    connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
+}
+
+void Presenter::onErrorOccurred(const QString& error){
+    view_->showError(error);
 }
 
 void Presenter::setUser(const User& user, const QString& token){
@@ -34,7 +39,7 @@ void Presenter::setUser(const User& user, const QString& token){
     currentUserId_ = user.id;
     manager_->saveToken(token);
 
-    auto chats = manager_->loadChats(); //(?) void cause it your chats history
+    auto chats = manager_->loadChats();
     qDebug() << "[INFO] Presenter loaded " << chats.size() << " chats";
 
     for (const auto& chat : chats) {
@@ -49,10 +54,6 @@ void Presenter::on_chat_clicked(const int chatId){
 }
 
 void Presenter::newMessage(const Message& msg){
-    if(currentUserId_ == msg.senderId) {
-        qDebug() << "[INFO] It's your messaage" << msg.text; // впливає на те, як повідомлення розташоване, і чи оновлювати unread_message
-    }
-
     manager_->addMessageToChat(msg.chatId, msg);
 }
 
@@ -61,7 +62,7 @@ void Presenter::findUserRequest(const QString& text){
         manager_->getUserModel()->clear(); return;
     }
 
-    auto users = manager_->findUsers(text); //make parallel request finding users and groups
+    auto users = manager_->findUsers(text);
     manager_->getUserModel()->clear();
 
     for(const auto& user: users){
@@ -74,21 +75,22 @@ void Presenter::openChat(const int chatId){ // make unread message = 0; (?)
     currentChatId_ = chatId;
 }
 
-void Presenter::on_user_clicked(const int userId, const bool isUser /*=true (yet) */){
+void Presenter::on_user_clicked(const int userId, const bool isUser){
     manager_->getUserModel()->clear();
     view_->clearFindUserEdit();
 
     if(isUser && currentUserId_ == userId) {
-        qDebug() << "[ERROR] Impossible to open chat with yourself";
+        onErrorOccurred("[ERROR] Impossible to open chat with yourself");
         return;
     }
 
     if(isUser){
         auto chat = manager_->getPrivateChatWithUser(userId);
         if(!chat){
-            qDebug() << "[ERROR] Char is null in on_user_clicked";
+            onErrorOccurred("Char is null in on_user_clicked");
+        }else{
+            openChat(chat->chatId);
         }
-        openChat(chat->chatId);
     }else{
         qDebug() << "[ERROR] Implement finding group request";
     }
@@ -97,7 +99,7 @@ void Presenter::on_user_clicked(const int userId, const bool isUser /*=true (yet
 void Presenter::sendButtonClicked(const QString& textToSend){
     if(textToSend.isEmpty() || !currentChatId_) {
         if(textToSend.isEmpty()) qDebug() << "[WARN] Presenter receive to send empty text";
-        else qDebug() << "[ERROR] Presenter doesn't have opened chat";
+        else onErrorOccurred("Presenter doesn't have opened chat");
         return;
     }
 
@@ -107,6 +109,3 @@ void Presenter::sendButtonClicked(const QString& textToSend){
 void Presenter::on_logOutButtonClicked(){
     manager_->logout();
 }
-
-
-

@@ -8,21 +8,29 @@
 #include <QDebug>
 #include "messagedatabase.h"
 
+using WebsocketPtr = crow::websocket::connection*;
+using UserId = int;
+using WebsocketByIdMap = std::unordered_map<UserId, WebsocketPtr>;
+
 class Controller
 {
-    crow::SimpleApp& app_;
-    DataBase& db;
+
 public:
+
     Controller(crow::SimpleApp& app, DataBase& dataBase);
     void handleRoutes();
+
 private:
+
     void handleGetMessagesFromChat();
     void handleSocket();
     void  userConnected(int userId, crow::websocket::connection* conn);
     void onSendMessage(int fromUser, int chatId, std::string text);
 
-    std::unordered_map<int, crow::websocket::connection*> userSockets;
+    WebsocketByIdMap userSockets;
     std::mutex socketMutex;
+    crow::SimpleApp& app_;
+    DataBase db;
 
 };
 

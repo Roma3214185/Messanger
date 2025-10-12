@@ -27,7 +27,7 @@ QVariant UserModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid() || index.row() >= m_users.size())
         return QVariant();
 
-    const auto &user = m_users[index.row()];
+    const User &user = m_users[index.row()];
     switch (role) {
         case UserIdRole: return user.id;
         case NameRole: return user.name;

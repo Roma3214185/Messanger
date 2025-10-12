@@ -10,7 +10,7 @@
 #include "headers/SignUpRequest.h"
 #include "headers/User.h"
 #include "headers/INetworkAccessManager.h"
-#include "headers/ICash.h"
+#include "headers/ICache.h"
 
 class ChatBase;
 class MessageModel;
@@ -35,7 +35,7 @@ class Model : public QObject
 
 public:
 
-    Model(const QUrl& url, INetworkAccessManager* netManager, ICash* cash, QWebSocket* socket);
+    Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, QWebSocket* socket);
 
     ChatModel* getChatModel();
     UserModel* getUserModel();
@@ -89,7 +89,7 @@ private:
 
     QUrl url_;
     INetworkAccessManager* netManager;
-    ICash* cash;
+    ICache* cash;
     QWebSocket* socket;
     QString currentToken;
     unique_ptr<ChatModel> chatModel;

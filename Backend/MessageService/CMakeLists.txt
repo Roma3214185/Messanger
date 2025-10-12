@@ -19,18 +19,16 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(httplib)
 
-
-# Потрібні Qt модулі
 find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
-
-# Якщо Crow і SQLite через CMake-пакети
-find_package(Crow REQUIRED) # якщо ти реально використовуєш Crow
+find_package(Crow REQUIRED)
 
 
 add_executable(MessageService
   main.cpp
   MessageDataBase/messagedatabase.cpp
   Controller/controller.cpp
+  Server/server.h Server/server.cpp
+  Headers/Message.h
 )
 
 target_link_libraries(MessageService PRIVATE

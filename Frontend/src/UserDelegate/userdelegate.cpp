@@ -4,18 +4,8 @@ void UserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
             const QModelIndex &index) const
 {
     painter->save();
-    QRect rect = option.rect;
-
-    QString name = index.data(UserModel::NameRole).toString();
-    QString avatarPath = index.data(UserModel::AvatarRole).toString();
-    QString tag = index.data(UserModel::TagRole).toString();
-    QPixmap avatar(avatarPath);
-
-    drawBackgroundState(painter, rect, option);
-    drawAvatar(painter, rect, avatar);
-    drawName(painter, rect, name);
-    drawTag(painter, rect, tag);
-
+    auto user = extractMessageData(index);
+    drawAll(painter, option, user);
     painter->restore();
 }
 
@@ -46,4 +36,21 @@ void UserDelegate::drawBackgroundState(QPainter *painter, const QRect &rect, con
     } else if (option.state & QStyle::State_MouseOver) {
         painter->fillRect(rect, QColor("#f5f5f5"));
     }
+}
+
+UserDrawData UserDelegate::extractMessageData(const QModelIndex &index) const {
+    UserDrawData data;
+    QString name = index.data(UserModel::NameRole).toString();
+    QString avatarPath = index.data(UserModel::AvatarRole).toString();
+    QString tag = index.data(UserModel::TagRole).toString();
+    return data;
+}
+
+void UserDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option,
+                              const UserDrawData &user) const {
+    QRect rect = option.rect.normalized();
+    drawBackgroundState(painter, rect, option);
+    drawAvatar(painter, rect, QPixmap(user.avatarPath));
+    drawName(painter, rect, user.name);
+    drawTag(painter, rect, user.tag);
 }

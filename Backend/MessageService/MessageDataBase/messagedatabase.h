@@ -1,33 +1,36 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <memory>
-#include <optional>
 #include <QList>
-#include <string>
-#include <iostream>
-#include <QDateTime>
+#include <optional>
+#include <QSqlQuery>
 
-struct Message{
-    int id;
-    int chatId;
-    int senderId;
-    std::string text;
-    int receiverId;
-    QString timestamp;
-};
+#include "Message.h"
 
-class DataBase
-{
+using MessageId = int;
+using OptinonalMessage = std::optional<Message>;
+using OptionalMessageId = std::optional<MessageId>;
+
+class QSqlDatabase;
+
+class DataBase{
+
 public:
+
     void clearDataBase();
-    std::optional<int> addMsgToDatabase(const std::string& messageText, int fromUserId, int chatId);
+    OptionalMessageId addMsgToDatabase(const std::string& messageText, int fromUserId, int chatId);
     bool initialDb();
     QList<Message> getUndeliveredMessages(int userId);
     void markDelivered(int msgId);
-    void saveMessage(int msgId, int fromUser, int toUser, const std::string& text, bool delivered);
+    void saveMessage(int msgId, int senderid, int receiverId, const std::string& text, bool delivered);
     QList<Message> getChatMessages(int chatId);
-    std::optional<Message> saveSendedMessage(int chatId, int sender_id, std::string text);
+    OptinonalMessage saveSendedMessage(int chatId, int senderId, std::string text);
+
+private:
+    QSqlDatabase getThreadDatabase();
+    Message getMessageFromQuery(const QSqlQuery& query);
+    template<typename... Args>
+    bool executeQuery(QSqlQuery& query, Args&&... args);
 };
 
 #endif // DATABASE_H

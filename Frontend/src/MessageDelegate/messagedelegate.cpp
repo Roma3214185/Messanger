@@ -2,30 +2,15 @@
 #include "MessageModel/messagemodel.h"
 
 void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-            const QModelIndex &index) const
-{
+            const QModelIndex &index) const{
     if (!painter || !painter->isActive()) {
         qWarning() << "[Error] Painter error!";
         return;
     }
 
     painter->save();
-
-    QRect rect = option.rect.normalized();
-
-    auto username = index.data(MessageModel::UsernameRole).toString();
-    auto text = index.data(MessageModel::TextRole).toString();
-    auto avatarPath = "/Users/roma/QtProjects/Chat/default_avatar.jpeg"; //fix
-    auto timestamp = index.data(MessageModel::TimestampRole).toDateTime().toString("hh:mm dd.MM");
-    auto senderId = index.data(MessageModel::SenderIdRole).toInt();
-    auto receiverId = index.data(MessageModel::ReceiverIdTole).toInt();
-    QPixmap avatar(avatarPath);
-
-    drawBackgroundState(painter, rect, option);
-    drawAvatar(painter, rect, avatar, senderId, receiverId);
-    drawUsername(painter, rect, username);
-    drawTimestamp(painter, rect, timestamp);
-    drawText(painter, rect, text);
+    auto msg = extractMessageData(index);
+    drawAll(painter, option, msg);
 
     painter->restore();
 }
@@ -65,4 +50,25 @@ void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const 
     painter->setFont(QFont("Arial", 8));
     QRect timeRect(rect.right() - 120, rect.bottom() - 20, 115, 15);
     painter->drawText(timeRect, Qt::AlignRight | Qt::AlignVCenter, timestamp);
+}
+
+MessageDrawData MessageDelegate::extractMessageData(const QModelIndex &index) const {
+    MessageDrawData data;
+    data.username = index.data(MessageModel::UsernameRole).toString();
+    data.text = index.data(MessageModel::TextRole).toString();
+    data.avatarPath = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
+    data.timestamp = index.data(MessageModel::TimestampRole).toDateTime().toString("hh:mm dd.MM");
+    data.senderId = index.data(MessageModel::SenderIdRole).toInt();
+    data.receiverId = index.data(MessageModel::ReceiverIdTole).toInt();
+    return data;
+}
+
+void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option,
+                              const MessageDrawData &msg) const {
+    QRect rect = option.rect.normalized();
+    drawBackgroundState(painter, rect, option);
+    drawAvatar(painter, rect, QPixmap(msg.avatarPath), msg.senderId, msg.receiverId);
+    drawUsername(painter, rect, msg.username);
+    drawTimestamp(painter, rect, msg.timestamp);
+    drawText(painter, rect, msg.text);
 }
