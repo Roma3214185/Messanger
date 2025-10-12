@@ -3,30 +3,44 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QStringList>
+#include <QVector>
 
-struct ChatBase {
-    int chatId;
+class ChatBase{
+
+public:
+
+    int chatId = 0;
     QString title;
     QString lastMessage;
     int unread = 0;
     QDateTime lastMessageTime;
     QString avatarPath;
+
     virtual ~ChatBase() = default;
     virtual bool isPrivate() const = 0;
 };
 
-struct PrivateChat : public ChatBase {
+class PrivateChat : public ChatBase{
+
+public:
+
     QString userTag;
-    int userId;
+    int userId = 0;
     QString status;
+
     bool isPrivate() const override { return true; }
 };
 
-struct GroupChat : public ChatBase {
+class GroupChat : public ChatBase{
+
+public:
+
     int memberCount = 0;
-    QVector<QString> memberTags;
+    QStringList memberTags;
     QVector<int> membersId;
-    QVector<QString> avatarPaths;
+    QStringList avatarPaths;
+
     bool isPrivate() const override { return false; }
 };
 

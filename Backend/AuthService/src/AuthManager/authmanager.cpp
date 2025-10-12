@@ -1,69 +1,67 @@
 #include "authmanager.h"
 #include "Headers/JwtUtils.h"
 #include <QDebug>
+#include <optional>
 
-AuthManager::AuthManager(UserRepository& repository)
-    : rep(repository) { }
+using std::string;
+using std::nullopt;
 
-std::optional<AuthResponce> AuthManager::getUser(std::string token){
-    qDebug() << "[INFO] Get user from token: " << token;
+AuthManager::AuthManager(DataBase& database)
+    : db(database)
+{
+
+}
+
+OptionalResponce AuthManager::getUser(const string& token){
     auto id = JwtUtils::verifyTokenAndGetUserId(token);
     if(!id) {
         qDebug() << "[ERROR] Server can't verify token: ";
-        return std::nullopt;
+        return nullopt;
     }
 
-    qDebug() << "[INFO] Server verified token; id = " << *id;
-
-    auto findedUser = rep.findById(*id);
+    auto findedUser = db.findById(*id);
     if(!findedUser) {
         qDebug() << "[ERROR] User with id not founded; id = " << *id;
-        return std::nullopt;
+        return nullopt;
     }
 
     qDebug() << "[INFO] User was founded; id = " << findedUser->name;
 
-    AuthResponce res{
+    return AuthResponce{
         .token = token,
         .user = findedUser
     };
-
-    return res;
 }
 
-std::optional<AuthResponce> AuthManager::loginUser(std::string email, std::string password){
-    auto findedUser = rep.findByEmail(email);
-    if(!findedUser) return std::nullopt;
+OptionalResponce AuthManager::loginUser(const string& email, const string& password){
+    auto findedUser = db.findByEmail(email);
+    if(!findedUser) return nullopt;
 
     auto token = JwtUtils::generateToken(findedUser->id);
-    //cash.createToken(token, user->id);
-    AuthResponce res{
+
+    return AuthResponce{
         .token = token,
         .user = findedUser
     };
-    return res;
 }
 
-std::optional<AuthResponce> AuthManager::registerUser(RegisterRequest req){
-    auto createdUser = rep.createUser(req);
-    if(!createdUser) return std::nullopt;
+OptionalResponce AuthManager::registerUser(const RegisterRequest& req){
+    auto createdUser = db.createUser(req);
+    if(!createdUser) return nullopt;
 
     auto token = JwtUtils::generateToken(createdUser->id);
 
-    //cash.createToken(token, user->id);
-    AuthResponce res{
+    return AuthResponce {
         .token = token,
         .user = createdUser
     };
-
-    return res;
 }
 
-QList<User> AuthManager::findUserByTag(std::string tag){
-    auto findedUsers = rep.findByTag(tag);
+QList<User> AuthManager::findUserByTag(const string& tag){
+    auto findedUsers = db.findByTag(tag);
     return findedUsers;
 }
 
-std::optional<User> AuthManager::findUserById(int userId){
-    return rep.findById(userId);
+OptionalUser AuthManager::findUserById(const int& userId){
+    return db.findById(userId);
 }

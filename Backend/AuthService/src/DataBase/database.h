@@ -1,17 +1,38 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <string>
-#include <sqlite3.h>
+#include <QList>
+
+#include "DataBase/database.h"
+#include "Headers/RegisterRequest.h"
+#include "Headers/User.h"
+#include <QtSql/QSqlDatabase>
+#include <QtSql/qsqlquery.h>
+
+using OptionalUser = std::optional<User>;
 
 class DataBase
 {
-private:
-    sqlite3* db;
+
 public:
-    DataBase(const std::string& filename);
-    ~DataBase() { sqlite3_close(db); }
-    sqlite3* getHandle() { return db; }
+
+    DataBase();
+
+    OptionalUser findById(int id);
+    OptionalUser findByEmail(std::string email);
+    OptionalUser createUser(RegisterRequest req);
+    QList<User> findByTag(std::string tag);
+    void clear();
+
+private:
+
+    void createUserDataBase();
+    QSqlDatabase getThreadDatabase();
+    User getUserFromQuery(const QSqlQuery& query);
+
+    template<typename... Args>
+    bool executeQuery(QSqlQuery& query, Args&&... args);
 };
+
 
 #endif // DATABASE_H

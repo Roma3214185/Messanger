@@ -10,7 +10,6 @@
 #include <QMessageBox>
 #include "Presenter/presenter.h"
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -18,36 +17,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     setDelegators();
-    ui->chatListView->setMouseTracking(true);
-
-    connect(ui->chatListView, &QListView::clicked, this, [=](const QModelIndex &index){
-        auto chatId = index.data(ChatModel::ChatIdRole).toInt();
-        qDebug() << "Clicked chat:" << chatId;
-        presenter->on_chat_clicked(chatId);
-    });
-
-    connect(ui->userListView, &QListView::clicked, this, [=](const QModelIndex &index){
-        auto userId = index.data(UserModel::UserIdRole).toInt();
-        qDebug() << "Clicked on user:" << userId;
-        presenter->on_user_clicked(userId);
-    });
-
-    connect(ui->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
-    connect(ui->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
-
-    setSignInPage();
-    ui->textEdit->setFixedHeight(35);
-    ui->textEdit->setPlaceholderText("Type a message...");
-
-    ui->chatListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    ui->userListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-    ui->messageWidget->setVisible(false);
-    ui->textEdit->setFrameStyle(QFrame::NoFrame);
-
-    setSignInPage();
-    ui->messageListView->setFocusPolicy(Qt::NoFocus);
-    ui->messageListView->setSelectionMode(QAbstractItemView::NoSelection);
+    seupConnections();
+    setupUI();
 }
 
 void MainWindow::setDelegators(){
@@ -87,35 +58,34 @@ void MainWindow::on_upSubmitButton_clicked()
     auto name = ui->upName->text();
 
     if(!DataInputService::emailValid(email)){
-        QMessageBox::warning(this, "Invalid email", "Email is invalid");
+        showError("Email is invalid");
         return;
     }
 
     if(!DataInputService::passwordValid(password)){
-        QMessageBox::warning(this, "Invalid password", "Password is invalid");
+        showError("Password is invalid");
         return;
     }
 
     if(!DataInputService::tagValid(tag)){
-        QMessageBox::warning(this, "Invalid tag", "Tag is invalid");
+        showError("Tag is invalid");
         return;
     }
 
     if(!DataInputService::nameValid(name)){
-        QMessageBox::warning(this, "Invalid name", "Name is invalid");
+        showError("Name is invalid");
         return;
     }
 
-    SignUpRequest req{
+    SignUpRequest request{
         .email = email,
         .password = password,
         .tag = tag,
         .name = name
     };
-    presenter->signUp(req);
+
+    presenter->signUp(request);
 }
-
-
 
 void MainWindow::on_inSubmitButton_clicked()
 {
@@ -123,12 +93,12 @@ void MainWindow::on_inSubmitButton_clicked()
     auto password = ui->inPassword->text();
 
     if(!DataInputService::emailValid(email)){
-        QMessageBox::warning(this, "Invalid email", "Email is invalid");
+        showError("Email is invalid");
         return;
     }
 
     if(!DataInputService::passwordValid(password)){
-        QMessageBox::warning(this, "Invalid password", "Password is invalid");
+        showError("Password is invalid");
         return;
     }
 
@@ -140,9 +110,12 @@ void MainWindow::setMainWindow(){
     ui->messageWidget->setVisible(false);
 }
 
-void MainWindow::setUser(User user){
+void MainWindow::setUser(const User& user){
     setMainWindow();
-    qDebug() << "[INFO] Hi user " << user.email << " " << user.name << " " << user.id << " " << user.tag;
+}
+
+void MainWindow::showError(const QString& error){
+    QMessageBox::warning(this, "ERROR", error);
 }
 
 void MainWindow::setUserModel(UserModel* userModel){
@@ -153,7 +126,6 @@ void MainWindow::on_userTextEdit_textChanged(const QString &text)
 {
     presenter->findUserRequest(text);
 }
-
 
 void MainWindow::on_textEdit_textChanged()
 {
@@ -204,3 +176,36 @@ void MainWindow::clearUpInput(){
     ui->upTag->clear();
 }
 
+void MainWindow::seupConnections(){
+    connect(ui->chatListView, &QListView::clicked, this, [=](const QModelIndex &index){
+        auto chatId = index.data(ChatModel::ChatIdRole).toInt();
+        qDebug() << "Clicked chat:" << chatId;
+        presenter->on_chat_clicked(chatId);
+    });
+
+    connect(ui->userListView, &QListView::clicked, this, [=](const QModelIndex &index){
+        auto userId = index.data(UserModel::UserIdRole).toInt();
+        qDebug() << "Clicked on user:" << userId;
+        presenter->on_user_clicked(userId);
+    });
+
+    connect(ui->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
+    connect(ui->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
+}
+
+void MainWindow::setupUI(){
+    ui->chatListView->setMouseTracking(true);
+
+    setSignInPage();
+    ui->textEdit->setFixedHeight(35);
+    ui->textEdit->setPlaceholderText("Type a message...");
+
+    ui->chatListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->userListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    ui->messageWidget->setVisible(false);
+    ui->textEdit->setFrameStyle(QFrame::NoFrame);
+
+    ui->messageListView->setFocusPolicy(Qt::NoFocus);
+    ui->messageListView->setSelectionMode(QAbstractItemView::NoSelection);
+}

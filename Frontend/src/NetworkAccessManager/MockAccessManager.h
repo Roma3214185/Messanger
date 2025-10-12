@@ -4,12 +4,11 @@
 #include "headers/INetworkAccessManager.h"
 #include "headers/MockReply.h"
 
-class MockNetworkAccessManager : public INetworkAccessManager
-{
-    QNetworkRequest lastRequest;
-    QNetworkReply* reply = nullptr;
+class MockNetworkAccessManager : public INetworkAccessManager{
+
 public:
-    QNetworkReply* post(const QNetworkRequest& req, const QByteArray& byteArray) override {
+
+    QNetworkReply* post(const QNetworkRequest& req, const QByteArray& byteArray) override{
         Q_UNUSED(byteArray)
         lastRequest = req;
         return reply;
@@ -20,7 +19,7 @@ public:
         return reply;
     }
 
-    QNetworkRequest getLastRequest() const{
+    auto getLastRequest() const -> QNetworkRequest{
         return lastRequest;
     }
 
@@ -28,6 +27,10 @@ public:
         this->reply = reply;
     }
 
+private:
+
+    QNetworkRequest lastRequest;
+    QNetworkReply* reply = nullptr;
 };
 
 #endif // MOCKACCESSMANAGER_H

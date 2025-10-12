@@ -9,10 +9,11 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 
 add_executable(AuthService
   main.cpp
+
   src/AuthController/authcontroller.h
   src/AuthController/authcontroller.cpp
 
@@ -24,18 +25,19 @@ add_executable(AuthService
   src/Headers/User.h
   src/Headers/JwtUtils.h
 
-  src/UserRepository/userrepository.cpp
-  src/UserRepository/userrepository.h
-
   src/DataBase/databace.cpp
   src/DataBase/database.h
+
+  src/Server/server.h
+  src/Server/server.cpp
 
 )
 
 target_link_libraries(AuthService PRIVATE
   Qt${QT_VERSION_MAJOR}::Core
+  Qt${QT_VERSION_MAJOR}::Sql
   Crow::Crow
-  SQLite::SQLite3   # <--- додано
+  SQLite::SQLite3
 )
 
 target_include_directories(AuthService PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

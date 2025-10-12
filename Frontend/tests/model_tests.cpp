@@ -5,7 +5,7 @@
 #include "../src/NetworkAccessManager/MockAccessManager.h"
 #include "../src/Model/model.h"
 #include "QUrl"
-#include "headers/MockCash.h"
+#include "headers/MockCache.h"
 #include <QCoreApplication>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
@@ -19,7 +19,7 @@ TEST_CASE("Test model", "[model]") {
     MockNetworkAccessManager netManager;
     FakeSocket socket;
     QUrl url("");
-    MockCash cash;
+    MockCache cash;
     Model model(url, &netManager, &cash, &socket);
 
     SECTION("GetTokenExpectedNotEmmittedUserCreated"){

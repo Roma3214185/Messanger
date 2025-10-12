@@ -4,9 +4,11 @@
 #include <QAbstractListModel>
 #include "headers/User.h"
 
-class UserModel : public QAbstractListModel {
+class UserModel : public QAbstractListModel
+{
     Q_OBJECT
 public:
+
     using ListOfUsers = QVector<User>;
 
     enum Roles {
@@ -18,6 +20,7 @@ public:
     };
 
     UserModel(QObject *parent = nullptr);
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
@@ -25,6 +28,7 @@ public:
     void clear();
 
 private:
+
     ListOfUsers m_users;
 };
 

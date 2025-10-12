@@ -4,39 +4,44 @@ void ChatItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
            const QModelIndex &index) const
 {
     painter->save();
-    QRect rect = option.rect;
-    const QWidget *widget = option.widget;
-
-    if (widget) {
-        int listWidth = widget->width();
-        rect.setWidth(listWidth);
-    }
-
-    auto title = index.data(ChatModel::TitleRole).toString();
-    auto lastMessage = index.data(ChatModel::LastMessageRole).toString();
-    auto avatarPath = index.data(ChatModel::AvatarRole).toString();
-    auto time = index.data(ChatModel::LastMessageTimeRole).toDateTime();
-    auto unread = index.data(ChatModel::UnreadRole).toInt();
-    QPixmap avatar(avatarPath);
-
-    auto refactoredLastMessage = refactorLastMessge(lastMessage);
-
-    drawBackgroundState(painter, rect, option);
-    drawAvatar(painter, rect, avatar);
-    drawNameOfChat(painter, rect, title);
-    drawLastMessage(painter,rect, refactoredLastMessage);
-    drawTimestamp(painter, rect, time);
-    drawUnread(painter, rect,  unread);
+    auto chat = extractChatData(index);
+    drawAll(painter, option, chat);
 
     painter->restore();
 }
 
 void ChatItemDelegate::drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option) const{
+    static const QColor BLUE(208, 231, 255);
+    static const QColor GRAY(245, 245, 245);
+
     if (option.state & QStyle::State_Selected) {
-        painter->fillRect(rect, QColor("#d0e7ff"));
+        painter->fillRect(rect, BLUE);
     } else if (option.state & QStyle::State_MouseOver) {
-        painter->fillRect(rect, QColor("#f5f5f5"));
+        painter->fillRect(rect, GRAY);
     }
+}
+
+ChatDrawData ChatItemDelegate::extractChatData(const QModelIndex &index) const {
+    ChatDrawData data;
+    data.title = index.data(ChatModel::TitleRole).toString();
+    data.lastMessage = index.data(ChatModel::LastMessageRole).toString();
+    data.avatarPath = index.data(ChatModel::AvatarRole).toString();
+    data.time = index.data(ChatModel::LastMessageTimeRole).toDateTime();
+    int unread = index.data(ChatModel::UnreadRole).toInt();
+    return data;
+}
+
+void ChatItemDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option,
+                           const ChatDrawData &chat) const {
+    QRect rect = option.rect.normalized();
+    QString refactoredLastMessage = refactorLastMessge(chat.lastMessage);
+
+    drawBackgroundState(painter, rect, option);
+    drawAvatar(painter, rect, QPixmap(chat.avatarPath));
+    drawNameOfChat(painter, rect, chat.title);
+    drawLastMessage(painter,rect, refactoredLastMessage);
+    drawTimestamp(painter, rect, chat.time);
+    //drawUnread(painter, rect,  chat.unread);
 }
 
 void ChatItemDelegate::drawAvatar(QPainter *painter, const QRect &rect, const QPixmap& avatar) const{
@@ -74,24 +79,20 @@ void ChatItemDelegate::drawUnread(QPainter *painter, const QRect &rect, const in
 }
 
 QString ChatItemDelegate::refactorLastMessge(const QString& msg) const{
-    if(msg == "") return "There is no messages";
+    if(msg.isEmpty()) return "There is no messages";
 
-    const int mxLenOfMessage = 25;
-    const int numsOfDots = 3;
+    constexpr int maxLen = 25;
+    constexpr int numDots = 3;
 
-    if(msg.length() >= mxLenOfMessage) {
-        std::string temp = msg.toStdString();
-        temp = temp.substr(0, mxLenOfMessage - numsOfDots);
-        temp += std::string(numsOfDots, '.');
-        return QString::fromStdString(temp);
+    if(msg.length() >= maxLen) {
+        return msg.left(maxLen - numDots) + QString(numDots, QChar('.'));
     }
 
     return msg;
 }
 
 QSize ChatItemDelegate::sizeHint(const QStyleOptionViewItem &option,
-               const QModelIndex &index) const
-{
+               const QModelIndex &index) const{
     Q_UNUSED(option);
     Q_UNUSED(index);
     return QSize(250, 60);

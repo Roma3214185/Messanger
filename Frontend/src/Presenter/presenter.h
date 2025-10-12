@@ -35,6 +35,7 @@ private:
     void setUser(const User& user, const QString& token);
     void newMessage(const Message& message);
     void openChat(const int chatId);
+    void onErrorOccurred(const QString& error);
 
     IMainWindow* view_;
     Model* manager_;

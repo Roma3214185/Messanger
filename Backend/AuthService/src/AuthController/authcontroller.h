@@ -6,17 +6,24 @@
 
 class AuthController
 {
-    crow::SimpleApp& app_;
-    AuthManager* service_;
+
 public:
+
     AuthController(crow::SimpleApp& app, AuthManager* service);
+
     void initRoutes();
+
 private:
+
     void handleRegister();
     void handleLogin();
     void handleMe();
     void handleFindByTag();
     void handleFindById();
+    std::optional<AuthResponce> verifyToken(const crow::request& req);
+
+    crow::SimpleApp& app_;
+    AuthManager* service_;
 };
 
 #endif // AUTHCONTROLLER_H

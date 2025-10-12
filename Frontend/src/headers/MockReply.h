@@ -2,9 +2,12 @@
 #define MOCKREPLY_H
 #include <QNetworkReply>
 
-class MockReply : public QNetworkReply {
+class MockReply : public QNetworkReply
+{
     Q_OBJECT
+
 public:
+
     MockReply(QObject* parent = nullptr) : QNetworkReply(parent) {
         open(ReadOnly | Unbuffered);
         setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -13,15 +16,14 @@ public:
         setUrl(QUrl("http://mock.url"));
     }
 
-    QByteArray data;
-
     void abort() override {  }
-
     void setData(const QByteArray& d) { data = d; }
-
     void emitFinished() { Q_EMIT finished(); }
 
+    QByteArray data;
+
 protected:
+
     qint64 readData(char* buffer, qint64 maxlen) override {
         qint64 len = std::min(maxlen, qint64(data.size()));
         memcpy(buffer, data.constData(), len);

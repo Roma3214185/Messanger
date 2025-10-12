@@ -1,0 +1,31 @@
+#ifndef DRAWDATA_H
+#define DRAWDATA_H
+
+#include <QRect>
+#include <QString>
+#include <QDateTime>
+
+struct MessageDrawData {
+    QString username;
+    QString text;
+    QString avatarPath;
+    QString timestamp;
+    int senderId;
+    int receiverId;
+};
+
+struct UserDrawData{
+    QString name;
+    QString avatarPath;
+    QString tag;
+};
+
+struct ChatDrawData{
+    QString title;
+    QString lastMessage;
+    QString avatarPath;
+    QDateTime time;
+    int unread;
+};
+
+#endif // DRAWDATA_H

@@ -5,41 +5,41 @@
 #include <vector>
 #include <QList>
 #include <QDateTime>
-
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
+#include <QtSql/QSqlDatabase>
 
-struct Chat{
-    int id;
-    bool isGroup;
-    std::string name;
-    std::string avatar;
-    QDateTime createdAt;
-};
+#include "headers/Chat.h"
 
-// struct Message{
-//     chatJson["last_message"] = lastMsg->text;
-//     chatJson["timestamp"] = lastMsg->timestamp.toStdString();
-// };
+using ChatId = int;
+using UserId = int;
+using OptionalChatId = std::optional<int>;
+using OptionalChat = std::optional<Chat>;
+using OptionalUserId = std::optional<UserId>;
 
 class DataBase
 {
 public:
-    //DataBase();
+
     void clearDataBase();
-    std::optional<int> createPrivateChat();
+    OptionalChatId createPrivateChat();
     bool addMembersToChat(int chatId, const std::vector<int>& membersId);
     bool initialDb();
-    //bool connectDb();
     bool deleteChat(int charId);
     bool deleteMembersFromChat(int chatId, const std::vector<int>& membersId);
     std::optional<QList<int>> getMembersOfChat(int chatId);
     QList<Chat> getChatsOfUser(int id);
     int getMembersCount(int chat_id);
-    //std::optional<Message> getLastMessage(int chat_id);
-    std::optional<int> getOtherMemberId(int chat_id, int userId);
-    std::optional<Chat> getChatById(int chatId);
+    OptionalUserId getOtherMemberId(int chat_id, int userId);
+    OptionalChat getChatById(int chatId);
+
+private:
+
+    QSqlDatabase getThreadDatabase();
+    template<typename... Args>
+    bool executeQuery(QSqlQuery& query, Args&&... args);
+    Chat getChatFromQuery(QSqlQuery& query, int chatId);
 };
 
 #endif // DATABASE_H

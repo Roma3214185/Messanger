@@ -1,5 +1,6 @@
 #ifndef REGISTERREQUEST_H
 #define REGISTERREQUEST_H
+
 #include <string>
 
 struct RegisterRequest{

@@ -12,7 +12,7 @@
 #include "MessageModel/messagemodel.h"
 #include "UserModel/UserModel.h"
 
-Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICash* cash, QWebSocket* socket)
+Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, QWebSocket* socket)
     : url_(url)
     , netManager(netManager)
     , cash(cash)
@@ -33,7 +33,7 @@ void Model::saveToken(const QString& token) const {
 }
 
 void Model::signIn(const QString& email, const QString& password){
-    auto endpoint = url_.resolved(QUrl("/auth/login"));
+    QUrl endpoint = url_.resolved(QUrl("/auth/login"));
     QNetworkRequest req(endpoint);
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -49,20 +49,21 @@ void Model::signIn(const QString& email, const QString& password){
 }
 
 void Model::onSignInFinished(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
         Q_EMIT errorOccurred(reply->errorString());
-    } else {
-        auto responseData = reply->readAll();
-        auto jsonResponse = QJsonDocument::fromJson(responseData);
-        auto responseObj = jsonResponse.object();
-
-        auto createdUser = JsonServer::getUserFromResponce(responseObj["user"].toObject());
-        currentToken = responseObj["token"].toString();
-
-        Q_EMIT userCreated(createdUser, currentToken);
+        return;
     }
 
-    reply->deleteLater();
+    auto responseData = reply->readAll();
+    auto jsonResponse = QJsonDocument::fromJson(responseData);
+    auto responseObj = jsonResponse.object();
+
+    auto createdUser = JsonServer::getUserFromResponse(responseObj["user"].toObject());
+    currentToken = responseObj["token"].toString();
+
+    Q_EMIT userCreated(createdUser, currentToken);
 }
 
 void Model::signUp(const SignUpRequest& signUprequest){
@@ -76,7 +77,7 @@ void Model::signUp(const SignUpRequest& signUprequest){
     body["name"] = signUprequest.name;
     body["tag"] = signUprequest.tag;
 
-    auto reply = netManager->post(request, QJsonDocument(body).toJson());
+    auto* reply = netManager->post(request, QJsonDocument(body).toJson());
 
     QObject::connect(reply, &QNetworkReply::finished, this,[this, reply](){
         onSignUpFinished(reply);
@@ -84,19 +85,22 @@ void Model::signUp(const SignUpRequest& signUprequest){
 }
 
 void Model::onSignUpFinished(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
         Q_EMIT errorOccurred(reply->errorString());
-    } else {
-        auto responseData = reply->readAll();
-        auto jsonResponse = QJsonDocument::fromJson(responseData);
-        auto responseObj = jsonResponse.object();
-
-        auto createdUser = JsonServer::getUserFromResponce(responseObj["user"].toObject()); // i have responseObj["user"]["tag"]
-        currentToken = responseObj["token"].toString();
-
-        Q_EMIT userCreated(createdUser, currentToken);
+        return;
     }
-    reply->deleteLater();
+
+    auto responseData = reply->readAll();
+    auto jsonResponse = QJsonDocument::fromJson(responseData);
+    auto responseObj = jsonResponse.object();
+
+    auto createdUser = JsonServer::getUserFromResponse(responseObj["user"].toObject()); // i have responseObj["user"]["tag"]
+    currentToken = responseObj["token"].toString();
+
+    Q_EMIT userCreated(createdUser, currentToken);
+
 }
 
 void Model::connectSocket(int id){
@@ -112,34 +116,33 @@ void Model::connectSocket(int id){
 }
 
 void Model::onSocketConnected(const int id){
-    QJsonObject json;
-    json["type"] = "init";
-    json["userId"] = id;
+    auto json = QJsonObject{
+        {"type", "init"},
+        {"userId", id}
+    };
 
-    QJsonDocument doc(json);
-    auto msg = QString::fromUtf8(doc.toJson(QJsonDocument::Compact));
+    const QString msg = QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact));
     socket->sendTextMessage(msg);
 }
 
 void Model::onMessageReceived(const QString& msg){
     QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(msg.toUtf8(), &parseError);
+    auto doc = QJsonDocument::fromJson(msg.toUtf8(), &parseError);
 
     if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
-        qDebug() << "[ERROR] Invalid JSON received:" << parseError.errorString();
+        Q_EMIT errorOccurred("Invalid JSON received:" + parseError.errorString());
         return;
     }
 
     auto obj = doc.object();
     auto newMsg = JsonServer::getMessageFromJson(obj);
-
     Q_EMIT newMessage(newMsg);
 }
 
 ChatPtr Model::loadChat(const int chatId){
     QUrl url("http://localhost:8081");
-    auto endpoint = url.resolved(QUrl(QString("/chats/%1").arg(chatId)));
-    QNetworkRequest request(endpoint);
+    QUrl endpoint = url.resolved(QUrl(QString("/chats/%1").arg(chatId)));
+    auto request = QNetworkRequest(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", currentToken.toUtf8());
 
@@ -154,9 +157,10 @@ ChatPtr Model::loadChat(const int chatId){
 }
 
 ChatPtr Model::onChatLoaded(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "[Network error] onChatLoaded" << reply->errorString();
-        reply->deleteLater();
+        Q_EMIT errorOccurred(reply->errorString());
         return nullptr;
     }
 
@@ -164,22 +168,20 @@ ChatPtr Model::onChatLoaded(QNetworkReply* reply){
     auto doc = QJsonDocument::fromJson(responseData);
 
     if (!doc.isObject()) {
-        qDebug() << "[ERROR] loadChat: Invalid JSON — expected single chat object";
-        reply->deleteLater();
+        Q_EMIT errorOccurred("loadChat: Invalid JSON — expected single chat object");
         return nullptr;
     }
 
     auto obj = doc.object();
     auto chat = JsonServer::getChatFromJson(obj);
 
-    reply->deleteLater();
     return chat;
 }
 
 
 QList<User> Model::findUsers(const QString& text) {
-    auto endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(text)));
-    QNetworkRequest request(endpoint);
+    QUrl endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(text)));
+    auto request = QNetworkRequest(endpoint);
 
     auto* reply = netManager->get(request);
 
@@ -192,16 +194,18 @@ QList<User> Model::findUsers(const QString& text) {
 }
 
 QList<User> Model::onFindUsers(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
-        qWarning() << "[network error] onFindUsers" << reply->errorString();
-        reply->deleteLater();
+        Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
         return {};
     }
+
     auto responseData = reply->readAll();
     auto doc = QJsonDocument::fromJson(responseData);
 
     if (!doc.isObject()) {
-        qWarning() << "[error] Invalid JSON: expected object at root";
+        Q_EMIT errorOccurred("Invalid JSON: expected object at root");
         return {};
     }
 
@@ -211,24 +215,23 @@ QList<User> Model::onFindUsers(QNetworkReply* reply){
     QList<User> users;
     for (const auto& value : arr) {
         auto obj = value.toObject();
-        auto user = JsonServer::getUserFromResponce(obj);
+        auto user = JsonServer::getUserFromResponse(obj);
         users.append(user);
     }
 
-    qDebug() << "[INFO] Users found:" << users.size();
-    reply->deleteLater();
     return users;
 }
 
 ChatPtr Model::createPrivateChat(int userId){
     QUrl url("http://localhost:8081");
     auto endpoint = url.resolved(QUrl("/chats/private"));
-    QNetworkRequest request(endpoint);
+    auto request = QNetworkRequest(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", currentToken.toUtf8());
 
-    QJsonObject body;
-    body["user_id"] = userId;
+    auto body = QJsonObject{
+         {"user_id", userId},
+    };
 
     auto reply = netManager->post(request, QJsonDocument(body).toJson());
 
@@ -241,59 +244,59 @@ ChatPtr Model::createPrivateChat(int userId){
 }
 
 ChatPtr Model::onCreatePrivateChat(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
-        qWarning() << "[network error] onCreatePrivateChat" << reply->errorString();
-        reply->deleteLater();
+        Q_EMIT errorOccurred("onCreatePrivateChat" + reply->errorString());
         return nullptr;
     }
 
     auto responseData = reply->readAll();
     auto doc = QJsonDocument::fromJson(responseData);
+
     if (!doc.isObject()) {
-        qWarning() << "[error] Invalid JSON: expected object at root";
-        reply->deleteLater();
+        Q_EMIT errorOccurred("Invalid JSON: expected object at root");
         return nullptr;
     }
 
     auto responseObj = doc.object();
 
     if(responseObj["chat_type"].toString() != "PRIVATE"){
-        qDebug() << "Error in model create private chat returned group chat";
-        reply->deleteLater();
+        Q_EMIT errorOccurred("Error in model create private chat returned group chat");
         return nullptr;
     }
 
     auto newChat = JsonServer::getPrivateChatFromJson(responseObj);
-
     qDebug() << "[INFO] Private chat created with id:" << newChat->chatId;
-    reply->deleteLater();
     return newChat;
 }
 
 QList<Message> Model::getChatMessages(int chatId){ //setToken and check if u can
     QUrl url("http://localhost:8082");
-    auto endpoint = url.resolved(QUrl(QString("/messages/%1").arg(chatId)));
-    QNetworkRequest request(endpoint);
+    QUrl endpoint = url.resolved(QUrl(QString("/messages/%1").arg(chatId)));
+    auto request = QNetworkRequest(endpoint);
     auto* reply = netManager->get(request);
 
     QEventLoop loop;
     QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 
-    auto messages = onGetChatMessages(reply); //std::move()?
-    return messages;
+    return onGetChatMessages(reply);
 }
 
  QList<Message> Model::onGetChatMessages(QNetworkReply* reply){
+     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
-        qWarning() << "[network error] onGetChatMessages" << reply->errorString();
+        Q_EMIT errorOccurred("[network error] onGetChatMessages" + reply->errorString());
         return {};
     }
+
     auto responseData = reply->readAll();
     auto doc = QJsonDocument::fromJson(responseData);
 
     if (!doc.isArray()) {
-        qWarning() << "[error] Invalid JSON: expected array at root";
+        Q_EMIT("Invalid JSON: expected array at root");
         return {};
     }
 
@@ -305,7 +308,6 @@ QList<Message> Model::getChatMessages(int chatId){ //setToken and check if u can
     }
 
     if(messages.size() > 0) qDebug() << "[INFO] found messages:" << messages.size() << " for chat " << messages.front().chatId;
-    reply->deleteLater();
     return messages;
 }
 
@@ -315,39 +317,40 @@ void Model::sendMessage(const int chatId, const int senderId, const QString& tex
         return;
     }
 
-    QJsonObject json;
-    json["type"] = "send_message";
-    json["sender_id"] = senderId;
-    json["chat_id"] = chatId;
-    json["text"] = textToSend;
-    json["timestamp"] = QDateTime::currentDateTime().toString();
+    auto json = QJsonObject{
+        {"type", "send_message"},
+        {"sender_id", senderId},
+        {"chat_id", chatId},
+        {"text", textToSend},
+        {"timestamp", QDateTime::currentDateTime().toString()},
+    };
 
-    QJsonDocument doc(json);
-    auto msg = QString::fromUtf8(doc.toJson(QJsonDocument::Compact));
-
+    const QString msg = QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact));
     socket->sendTextMessage(msg);
+    qDebug() << "[INFO] Sending message:" << msg;
 }
 
 QList<ChatPtr> Model::loadChats(){
     QUrl url("http://localhost:8081");
-    auto endpoint = url.resolved(QUrl(QString("/chats")));
-    QNetworkRequest request(endpoint);
+    QUrl endpoint = url.resolved(QUrl(QString("/chats")));
+    auto request = QNetworkRequest(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", currentToken.toUtf8());
-    QNetworkReply* reply = netManager->get(request);
+
+    auto* reply = netManager->get(request);
 
     QEventLoop loop;
     QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 
-    auto chats = onLoadChats(reply);
-    return chats;
+    return onLoadChats(reply);
 }
 
 QList<ChatPtr> Model::onLoadChats(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
     if (reply->error() != QNetworkReply::NoError) {
-        qWarning() << "[network error] onLoadChats" << reply->errorString();
+        Q_EMIT errorOccurred("onLoadChats" + reply->errorString());
         return {};
     }
 
@@ -355,13 +358,13 @@ QList<ChatPtr> Model::onLoadChats(QNetworkReply* reply){
     auto doc = QJsonDocument::fromJson(responseData);
 
     if (!doc.isObject()) {
-        qWarning() << "[error] loadChats: Invalid JSON: expected object with 'chats' field";
+        Q_EMIT errorOccurred("LoadChats: Invalid JSON: expected object with 'chats' field");
         return {};
     }
 
     auto root = doc.object();
     if (!root.contains("chats") || !root["chats"].isArray()) {
-        qWarning() << "[error] loadChats: missing or invalid 'chats' array";
+        Q_EMIT errorOccurred("LoadChats: Invalid JSON: expected object with 'chats' field");
         return {};
     }
 
@@ -369,20 +372,24 @@ QList<ChatPtr> Model::onLoadChats(QNetworkReply* reply){
     QList<ChatPtr> chats;
 
     for (const auto& value : chatArray) {
-        auto obj = value.toObject();
-        auto newChat = JsonServer::getChatFromJson(obj);
-        if(newChat) chats.append(newChat);
-        else qDebug() << "[ERROR] Chat is nullptr";
+        auto newChat = JsonServer::getChatFromJson(value.toObject());
+
+        if(newChat) {
+            chats.append(newChat);
+        }
+        else {
+            Q_EMIT errorOccurred("Chat is nullptr");
+            return {};
+        }
     }
 
     qDebug() << "[info] found chats:" << chats.size();
-    reply->deleteLater();
     return chats;
 }
 
 void Model::signMe(const QString& token){
     QUrl endpoint = url_.resolved(QUrl("/auth/me"));
-    QNetworkRequest request(endpoint);
+    auto request = QNetworkRequest(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", token.toUtf8());
 
@@ -394,10 +401,10 @@ void Model::signMe(const QString& token){
 }
 
 void Model::onSignMe(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "[ERROR] sign me failed";
-        reply->deleteLater();
-        Q_EMIT errorOccurred(reply->errorString());
+        qDebug() << "[WARN] Sign me failed reply->errorString())";
         return;
     }
 
@@ -405,17 +412,13 @@ void Model::onSignMe(QNetworkReply* reply){
     auto jsonResponse = QJsonDocument::fromJson(responseData);
     auto responseObj = jsonResponse.object();
 
-    auto createdUser = JsonServer::getUserFromResponce(responseObj["user"].toObject());
+    auto createdUser = JsonServer::getUserFromResponse(responseObj["user"].toObject());
     currentToken = responseObj["token"].toString();
-
     Q_EMIT userCreated(createdUser, currentToken);
 }
 
 void Model::fillChatHistory(const int chatId){
-    qDebug() << "[INFO] start to fillChatHistory id = " << chatId;
     auto messageHistory = getChatMessages(chatId);
-    qDebug() << "[INFO] fillChatHistory id = " << chatId << " messageHistory.size() = " << messageHistory.size();
-
     auto messageModel = std::make_shared<MessageModel>(this);
     messageModelsByChatId[chatId] = messageModel;
 
@@ -429,8 +432,7 @@ void Model::fillChatHistory(const int chatId){
 void Model::addChat(const ChatPtr& chat){
     chatsById[chat->chatId] = chat;
     chatModel->addChat(chat);
-    qDebug() << "chat wirh id was added" << chat->chatId;
-    Q_EMIT(chatAdded(chat->chatId));
+    Q_EMIT chatAdded(chat->chatId);
 }
 
 void Model::addChatInFront(const ChatPtr& chat){
@@ -463,7 +465,6 @@ void Model::createChat(const int chatId){
     auto chat = loadChat(chatId);
     fillChatHistory(chatId);
     chatModel->addChatInFront(chat);
-    qDebug() << "[INFO] Created new chat with id" << chatId;
 }
 
 void Model::addMessageToChat(const int chatId, const Message& msg){
@@ -478,11 +479,10 @@ void Model::addMessageToChat(const int chatId, const Message& msg){
     auto user = getUser(msg.senderId);
 
     if(!user) {
-        qDebug() << "[ERROR] I can't find info about user with id = " << msg.senderId;
+        Q_EMIT errorOccurred("Server doesn't return info about user id(" + msg.senderId);
         return;
     }
 
-    //if(msg->receiver_id = *currentUserId)
     messageModel->addMessage(msg, *user);
     chatModel->updateChat(chatId, msg.text, msg.timestamp);
     chatModel->realocateChatInFront(chatId);
@@ -490,6 +490,7 @@ void Model::addMessageToChat(const int chatId, const Message& msg){
 
 MessageModel* Model::getMessageModel(const int chatId){
     auto it = messageModelsByChatId.find(chatId);
+
     if(it == messageModelsByChatId.end()) createMessageModel(chatId);
     return messageModelsByChatId[chatId].get();
 }
@@ -516,8 +517,8 @@ ChatPtr Model::getPrivateChatWithUser(const int userId){
 
 optional<User> Model::getUser(const int userId) {
     QUrl url("http://localhost:8083");
-    auto endpoint = url.resolved(QUrl(QString("/users/%1").arg(userId)));
-    QNetworkRequest request(endpoint);
+    QUrl endpoint = url.resolved(QUrl(QString("/users/%1").arg(userId)));
+    auto request = QNetworkRequest(endpoint);
 
     auto* reply = netManager->get(request);
 
@@ -530,25 +531,22 @@ optional<User> Model::getUser(const int userId) {
 }
 
 optional<User> Model::onGetUser(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
     if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "[network error] onGetUser" << reply->errorString();
-        reply->deleteLater();
+        Q_EMIT errorOccurred("get user: " + reply->errorString());
         return std::nullopt;
     }
 
     auto responseData = reply->readAll();
     auto doc = QJsonDocument::fromJson(responseData);
-    optional<User> user;
 
     if (!doc.isObject()) {
-        qWarning() << "[error] Invalid JSON: expected object at root";
-    }else{
-        auto obj = doc.object();
-        user = JsonServer::getUserFromResponce(obj);
+        Q_EMIT errorOccurred("Invalid JSON: expected object at root");
+        return std::nullopt;
     }
 
-    reply->deleteLater();
-    return user;
+    return JsonServer::getUserFromResponse(doc.object());
 }
 
 void Model::clearAllChats(){

@@ -12,21 +12,31 @@ static constexpr int kMinLenOfName = 4;
 static constexpr int kMaxLenOfName = 20;
 static const QString kEmailDomain = "@gmail.com";
 
+namespace {
+
+bool firstElementIsLetterOrNumber(const QString& tag) {
+    return !tag.isEmpty() && tag.front().isLetterOrNumber();
+}
+
+bool hasConsecutiveUnderscores(QChar ch, QChar prev) {
+    return ch == '_' && prev != '_';
+}
+
+} // namespace
+
 bool nameValid(const QString& name) {
     return name.size() >= kMinLenOfName && name.size() <= kMaxLenOfName;
 }
 
 bool emailValid(const QString& login) {
-    if (!login.endsWith(kEmailDomain))
-        return false;
+    if (!login.endsWith(kEmailDomain)) return false;
 
     const QString beforeDomain = login.left(login.size() - kEmailDomain.size());
-    if (beforeDomain.isEmpty())
-        return false;
+    if (beforeDomain.isEmpty()) return false;
 
-    for (auto c : beforeDomain)
-        if (!c.isLetterOrNumber())
-            return false;
+    for (const QChar& ch : beforeDomain) {
+        if (!ch.isLetterOrNumber()) return false;
+    }
 
     return true;
 }
@@ -36,10 +46,11 @@ bool passwordValidLength(const QString& password) {
 }
 
 bool passwordValidCharacters(const QString& password) {
-    const QList<QChar> allowedSymbols = {'!', '$', '_', '+'};
-    for (auto c : password)
-        if (!c.isLetterOrNumber() && !allowedSymbols.contains(c))
-            return false;
+    const QList<QChar> allowedSymbols = { '!', '$', '_', '+' };
+
+    for (const QChar& ch : password) {
+        if (!ch.isLetterOrNumber() && !allowedSymbols.contains(ch)) return false;
+    }
 
     return true;
 }
@@ -49,26 +60,24 @@ bool passwordValid(const QString& password) {
 }
 
 bool tagValidCharacters(const QString& tag) {
-    if (tag.isEmpty() || !tag.front().isLetterOrNumber())
-        return false;
+    if (!firstElementIsLetterOrNumber(tag)) return false;
 
-    QChar prev = 'a';
-    for (auto c : tag) {
-        if (c.isPunct()) {
-            if (c != '_' || prev == '_')
-                return false;
-        } else if (!c.isLetterOrNumber()) {
+    QChar prevChar = QChar();
+    for (const QChar& ch : tag) {
+        if (ch.isLetterOrNumber() || (ch == '_' && !hasConsecutiveUnderscores(ch, prevChar))) {
+            prevChar = ch;
+        } else {
             return false;
         }
-        prev = c;
     }
+
     return true;
 }
 
 bool tagValid(const QString& tag) {
     return tagValidCharacters(tag)
-    && tag.size() >= kMinTagLength
-                        && tag.size() <= kMaxTagLength;
+            && tag.size() >= kMinTagLength
+                && tag.size() <= kMaxTagLength;
 }
 
 } // namespace DataInputService

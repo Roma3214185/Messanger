@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QListView>
+
 #include "headers/IMainWindow.h"
 
 QT_BEGIN_NAMESPACE
@@ -23,11 +24,12 @@ public:
     ~MainWindow();
 
     void setPresenter(Presenter* presenter);
-    void setUser(User user) override;
+    void setUser(const User& user) override;
     void setChatWindow(MessageModel* model) override;
     void setChatModel(ChatModel* model) override;
     void setUserModel(UserModel* userModel) override;
     void clearFindUserEdit() override;
+    void showError(const QString& error) override;
 
 private Q_SLOTS:
 
@@ -45,10 +47,11 @@ private:
     void setSignUpPage();
     void clearUpInput();
     void setDelegators();
+    void seupConnections();
+    void setupUI();
 
     Ui::MainWindow *ui;
     Presenter* presenter;
 };
-
 
 #endif // MAINWINDOW_H

@@ -10,6 +10,8 @@
 using ChatPtr = std::shared_ptr<ChatBase>;
 using ListOfChats = QList<ChatPtr>;
 using std::optional;
+using ChatIndex = size_t;
+using OptionalChatIndex = std::optional<ChatIndex>;
 
 class ChatModel : public QAbstractListModel
 {
@@ -39,7 +41,7 @@ public:
 
 private:
 
-    optional<int> contains(const int chatId);
+    OptionalChatIndex findIndexByChatId(const int chatId);
 
     ListOfChats m_chats;
 };
