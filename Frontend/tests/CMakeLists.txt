@@ -3,13 +3,9 @@ project(FrontendServiceTests)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 
-# Catch2
 find_package(Catch2 REQUIRED)
-
-# Qt (для QString, QObject, QNetworkRequest тощо)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network WebSockets Gui Test)
 
-# Бібліотека з твоїм кодом для тестів (без реального Model.cpp)
 add_library(FrontendServiceLib
     ../src/Presenter/presenter.cpp
     ../src/MessageModel/messagemodel.cpp
@@ -20,9 +16,9 @@ add_library(FrontendServiceLib
     ../src/Model/model.cpp
     ../src/UserModel/UserModel.cpp
     ../src/headers/MockReply.h
+    ../src/DataInputService/datainputservice.cpp
 )
 
-# Інклуди
 target_include_directories(FrontendServiceLib
     PUBLIC
         ../src
@@ -33,7 +29,6 @@ target_include_directories(FrontendServiceLib
         ${Qt6WebSockets_INCLUDE_DIRS}
 )
 
-# Лінкування Qt
 target_link_libraries(FrontendServiceLib
     PRIVATE
         Qt6::Core
@@ -45,20 +40,18 @@ target_link_libraries(FrontendServiceLib
     #hiredis
 )
 
-# Тестовий екзешник
 add_executable(FrontendServiceTests
     presenter_tests.cpp
-        model_tests.cpp
+    model_tests.cpp
+    DataInputService_tests.cpp
 )
 
-# Лінкування тестів з бібліотекою та Catch2
 target_link_libraries(FrontendServiceTests
     PRIVATE
         FrontendServiceLib
         Catch2::Catch2WithMain
 )
 
-# Реєстрація тестів
 include(CTest)
 include(Catch)
 catch_discover_tests(FrontendServiceTests)
