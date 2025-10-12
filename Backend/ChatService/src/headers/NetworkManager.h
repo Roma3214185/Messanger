@@ -33,15 +33,10 @@ std::pair<int, std::string> forward(
 
     httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
 
-    if (method == "GET") {
-        res = cli.Get(path.c_str(), headers);
-    } else if (method == "DELETE") {
-        res = cli.Delete(path.c_str(), headers);
-    } else if (method == "PUT") {
-        res = cli.Put(path.c_str(), headers, body, "application/json");
-    } else {
-        res = cli.Post(path.c_str(), headers, body, "application/json");
-    }
+    if (method == "GET") res = cli.Get(path.c_str(), headers);
+    else if (method == "DELETE") res = cli.Delete(path.c_str(), headers);
+    else if (method == "PUT") res = cli.Put(path.c_str(), headers, body, "application/json");
+    else res = cli.Post(path.c_str(), headers, body, "application/json");
 
     if (!res) {
         return {502, "Bad Gateway: downstream no response"};
@@ -60,15 +55,15 @@ std::optional<User> getUserById(int otherUserId){
         return std::nullopt;
     }
 
-    QByteArray responseData = QByteArray::fromStdString(res.second);
-    QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
+    auto responseData = QByteArray::fromStdString(res.second);
+    auto jsonResponse = QJsonDocument::fromJson(responseData);
 
     if (!jsonResponse.isObject()) {
         qDebug() << "[ERROR] Invalid JSON format in getUserById";
         return std::nullopt;
     }
 
-    QJsonObject obj = jsonResponse.object();
+    auto obj = jsonResponse.object();
 
     User findedUser{
         .id = obj["id"].toInt(),
