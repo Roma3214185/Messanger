@@ -11,7 +11,7 @@ crow::json::wvalue userToJson(const User& user, const std::string& token = "") {
     if(!token.empty()) res["token"] = token;
     res["user"]["id"] = user.id;
     res["user"]["email"] = user.email;
-    res["user"]["name"] = user.name;
+    res["user"]["name"] = user.username;
     res["user"]["tag"] = user.tag;
     return res;
 }

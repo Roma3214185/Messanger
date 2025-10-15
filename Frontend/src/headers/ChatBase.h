@@ -10,7 +10,7 @@ class ChatBase{
 
 public:
 
-    int chatId = 0;
+    int chatId;
     QString title;
     QString lastMessage;
     int unread = 0;
@@ -26,7 +26,7 @@ class PrivateChat : public ChatBase{
 public:
 
     QString userTag;
-    int userId = 0;
+    int userId;
     QString status;
 
     bool isPrivate() const override { return true; }

@@ -8,6 +8,9 @@
 #include "Headers/User.h"
 #include <QtSql/QSqlDatabase>
 #include <QtSql/qsqlquery.h>
+#include "Headers/User.h"
+
+class User;
 
 using OptionalUser = std::optional<User>;
 

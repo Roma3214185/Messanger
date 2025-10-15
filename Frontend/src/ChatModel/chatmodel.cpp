@@ -81,7 +81,7 @@ void ChatModel::realocateChatInFront(const int chatId){
     endMoveRows();
 }
 
-OptionalChatIndex ChatModel::findIndexByChatId(const int chatId){
+OptionalChatIndex ChatModel::findIndexByChatId(const int chatId) const{
     for (size_t i = 0; i < m_chats.size(); ++i) {
         if (m_chats[i]->chatId == chatId) {
             return i;

@@ -11,7 +11,7 @@
 
 using ChatPtr = std::shared_ptr<ChatBase>;
 
-namespace JsonServer {
+namespace JsonService {
 
 inline User getUserFromResponse(const QJsonObject& res) {
     return User{

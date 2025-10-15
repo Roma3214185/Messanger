@@ -73,18 +73,12 @@ CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
             qDebug() << "TIME: " << msg.timestamp;
             crow::json::wvalue m;
             m["message_id"] = msg.id;
-            m["chat_id"]    = msg.chatId;
-            m["sender_id"]  = msg.senderId;
+            m["chat_id"]    = msg.chat_id;
+            m["sender_id"]  = msg.sender_id;
             m["text"]       = msg.text;
+            m["timestamp"] = msg.timestamp.toString(Qt::ISODate).toStdString();
 
-            QDateTime dt = QDateTime::fromString(msg.timestamp, Qt::ISODate);
-            if (!dt.isValid()) {
-                qWarning() << "[WARN] Invalid timestamp:" << msg.timestamp;
-            }
-
-            m["timestamp"] = dt.toString(Qt::ISODate).toStdString();
-
-            qDebug() << "return id: " << msg.id << "; sender_id: " << msg.senderId << "; text = " << msg.text << "timestamp = " << dt.toString(Qt::ISODate).toStdString();
+            qDebug() << "return id: " << msg.id << "; sender_id: " << msg.sender_id << "; text = " << msg.text << "timestamp = " << msg.timestamp.toString(Qt::ISODate).toStdString();
             res[i++] = std::move(m);
         }
 

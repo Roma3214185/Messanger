@@ -29,6 +29,9 @@ add_executable(Chat
     media.qrc
     main.cpp
     .gitignore
+
+    Backend/RedisCashe/RedisCache.h
+    Backend/GenericRepository/GenericReposiroty.h
 )
 
 add_subdirectory(Backend/AuthService)

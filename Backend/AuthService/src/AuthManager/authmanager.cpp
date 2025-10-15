@@ -25,7 +25,7 @@ OptionalResponce AuthManager::getUser(const string& token){
         return nullopt;
     }
 
-    qDebug() << "[INFO] User was founded; id = " << findedUser->name;
+    qDebug() << "[INFO] User was founded; id = " << findedUser->username;
 
     return AuthResponce{
         .token = token,

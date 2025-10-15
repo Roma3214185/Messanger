@@ -43,7 +43,7 @@ add_executable(Frontend
    src/ChatModel/chatmodel.cpp
    src/ChatModel/chatmodel.h
 
-   src/headers/JsonServer.h
+   src/headers/JsonService.h
 
    src/UserModel/UserModel.h
 

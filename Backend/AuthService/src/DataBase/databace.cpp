@@ -60,15 +60,9 @@ QSqlDatabase DataBase::getThreadDatabase() {
 User DataBase::getUserFromQuery(const QSqlQuery& query) {
     User user;
     user.id = query.value("id").toInt();
-    user.name = query.value("name").toString().toStdString();
+    user.username = query.value("username").toString().toStdString();
     user.email = query.value("email").toString().toStdString();
     user.tag = query.value("tag").toString().toStdString();
-
-    int pwdIndex = query.record().indexOf("password");
-    if (pwdIndex != -1) {
-        user.password = query.value(pwdIndex).toString().toStdString();
-    }
-
     return user;
 }
 
@@ -81,7 +75,6 @@ void DataBase::createUserDataBase(){
             name TEXT NOT NULL,
             email TEXT NOT NULL,
             tag TEXT NOT NULL,
-            password TEXT NOT NULL
         );
     )");
 
@@ -99,10 +92,9 @@ OptionalUser DataBase::createUser(RegisterRequest req){
 
     int newId = query.lastInsertId().toInt();
     return User{
-        .name = req.name,
+        .username = req.name,
         .email = req.email,
-        .id = newId,
-        .password = req.password
+        .id = newId
     };
 }
 

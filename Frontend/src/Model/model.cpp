@@ -7,7 +7,7 @@
 #include <QtWebSockets/QWebSocket>
 #include <QEventLoop>
 #include <QJsonArray>
-#include "headers/JsonServer.h"
+#include "headers/JsonService.h"
 #include "ChatModel/chatmodel.h"
 #include "MessageModel/messagemodel.h"
 #include "UserModel/UserModel.h"
@@ -60,7 +60,7 @@ void Model::onSignInFinished(QNetworkReply* reply){
     auto jsonResponse = QJsonDocument::fromJson(responseData);
     auto responseObj = jsonResponse.object();
 
-    auto createdUser = JsonServer::getUserFromResponse(responseObj["user"].toObject());
+    auto createdUser = JsonService::getUserFromResponse(responseObj["user"].toObject());
     currentToken = responseObj["token"].toString();
 
     Q_EMIT userCreated(createdUser, currentToken);
@@ -96,7 +96,7 @@ void Model::onSignUpFinished(QNetworkReply* reply){
     auto jsonResponse = QJsonDocument::fromJson(responseData);
     auto responseObj = jsonResponse.object();
 
-    auto createdUser = JsonServer::getUserFromResponse(responseObj["user"].toObject()); // i have responseObj["user"]["tag"]
+    auto createdUser = JsonService::getUserFromResponse(responseObj["user"].toObject()); // i have responseObj["user"]["tag"]
     currentToken = responseObj["token"].toString();
 
     Q_EMIT userCreated(createdUser, currentToken);
@@ -135,7 +135,7 @@ void Model::onMessageReceived(const QString& msg){
     }
 
     auto obj = doc.object();
-    auto newMsg = JsonServer::getMessageFromJson(obj);
+    auto newMsg = JsonService::getMessageFromJson(obj);
     Q_EMIT newMessage(newMsg);
 }
 
@@ -173,7 +173,7 @@ ChatPtr Model::onChatLoaded(QNetworkReply* reply){
     }
 
     auto obj = doc.object();
-    auto chat = JsonServer::getChatFromJson(obj);
+    auto chat = JsonService::getChatFromJson(obj);
 
     return chat;
 }
@@ -215,7 +215,7 @@ QList<User> Model::onFindUsers(QNetworkReply* reply){
     QList<User> users;
     for (const auto& value : arr) {
         auto obj = value.toObject();
-        auto user = JsonServer::getUserFromResponse(obj);
+        auto user = JsonService::getUserFromResponse(obj);
         users.append(user);
     }
 
@@ -266,7 +266,7 @@ ChatPtr Model::onCreatePrivateChat(QNetworkReply* reply){
         return nullptr;
     }
 
-    auto newChat = JsonServer::getPrivateChatFromJson(responseObj);
+    auto newChat = JsonService::getPrivateChatFromJson(responseObj);
     qDebug() << "[INFO] Private chat created with id:" << newChat->chatId;
     return newChat;
 }
@@ -303,7 +303,7 @@ QList<Message> Model::getChatMessages(int chatId){ //setToken and check if u can
     QList<Message> messages;
     for (const auto& value : doc.array()) {
         auto obj = value.toObject();
-        auto msg = JsonServer::getMessageFromJson(obj);
+        auto msg = JsonService::getMessageFromJson(obj);
         messages.append(msg);
     }
 
@@ -372,7 +372,7 @@ QList<ChatPtr> Model::onLoadChats(QNetworkReply* reply){
     QList<ChatPtr> chats;
 
     for (const auto& value : chatArray) {
-        auto newChat = JsonServer::getChatFromJson(value.toObject());
+        auto newChat = JsonService::getChatFromJson(value.toObject());
 
         if(newChat) {
             chats.append(newChat);
@@ -412,7 +412,7 @@ void Model::onSignMe(QNetworkReply* reply){
     auto jsonResponse = QJsonDocument::fromJson(responseData);
     auto responseObj = jsonResponse.object();
 
-    auto createdUser = JsonServer::getUserFromResponse(responseObj["user"].toObject());
+    auto createdUser = JsonService::getUserFromResponse(responseObj["user"].toObject());
     currentToken = responseObj["token"].toString();
     Q_EMIT userCreated(createdUser, currentToken);
 }
@@ -546,7 +546,7 @@ optional<User> Model::onGetUser(QNetworkReply* reply){
         return std::nullopt;
     }
 
-    return JsonServer::getUserFromResponse(doc.object());
+    return JsonService::getUserFromResponse(doc.object());
 }
 
 void Model::clearAllChats(){

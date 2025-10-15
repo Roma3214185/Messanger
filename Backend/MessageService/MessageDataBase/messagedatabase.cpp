@@ -35,12 +35,11 @@ QSqlDatabase DataBase::getThreadDatabase() {
 Message DataBase::getMessageFromQuery(const QSqlQuery& query){
     Message msg;
     msg.id = query.value("id").toInt();
-    msg.chatId = query.value("chat_id").toInt();
-    msg.senderId = query.value("sender_id").toInt();
+    msg.chat_id = query.value("chat_id").toInt();
+    msg.sender_id = query.value("sender_id").toInt();
     msg.text = query.value("text").toString().toStdString();
     QDateTime dt = query.value("timestamp").toDateTime();
-    dt = dt.addSecs(3 * 3600);
-    msg.timestamp = dt.toString(Qt::ISODate);
+    msg.timestamp = dt.addSecs(3 * 3600);
     return msg;
 }
 
@@ -189,8 +188,8 @@ OptinonalMessage DataBase::saveSendedMessage(int chatId, int sender_id, std::str
 
     return Message{
         .id = msgId,
-        .senderId = sender_id,
-        .timestamp = QDateTime::currentDateTime().toString(Qt::ISODate),
+        .sender_id = sender_id,
+        .timestamp = QDateTime::currentDateTime(),
         .text = text
     };
 }
