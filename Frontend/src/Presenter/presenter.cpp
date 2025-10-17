@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <headers/User.h>
 #include "MessageModel/messagemodel.h"
+#include "../../DebugProfiling/Debug_profiling.h"
 
 Presenter::Presenter(IMainWindow* window, Model* manager)
     : view_(window)
@@ -35,12 +36,15 @@ void Presenter::onErrorOccurred(const QString& error){
 }
 
 void Presenter::setUser(const User& user, const QString& token){
+    PROFILE_SCOPE("Presenter::setUser");
+    LOG_INFO("Set user name: '{}' | email '{}' | tag '{}' id '{}'", user.name.toStdString(), user.email.toStdString(), user.tag.toStdString(), user.id);
+
     view_->setUser(user);
     currentUserId_ = user.id;
     manager_->saveToken(token);
 
     auto chats = manager_->loadChats();
-    qDebug() << "[INFO] Presenter loaded " << chats.size() << " chats";
+    LOG_INFO("In presenter loaded '{}' chats for user id '{}'", chats.size(), user.id);
 
     for (const auto& chat : chats) {
         manager_->addChat(chat);

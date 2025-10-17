@@ -16,7 +16,7 @@ struct MessageDrawData {
 
 struct UserDrawData{
     QString name;
-    QString avatarPath;
+    QPixmap avatar;
     QString tag;
 };
 

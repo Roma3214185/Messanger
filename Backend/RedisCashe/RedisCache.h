@@ -4,6 +4,8 @@
 #include <sw/redis++/redis++.h>
 #include <nlohmann/json.hpp>
 #include <QDebug>
+#include <iostream>
+#include "../../DebugProfiling/Debug_profiling.h"
 using namespace sw::redis;
 
 using namespace sw::redis;
@@ -20,10 +22,12 @@ public:
     void set(const std::string& key, const T& value, Duration ttl = std::chrono::hours(24)) {
         try {
             const std::string serialized = serialize(value);
+            LOG_INFO("set for key '{}' value: '{}'", key, serialized);
             const auto ttlSeconds = getTtlWithJitter(ttl);
 
-            redis->set(key, serialized);
-            redis->expire(key, std::chrono::seconds(ttlSeconds));
+            getRedis().set(key, serialized);
+            getRedis().expire(key, std::chrono::seconds(ttlSeconds));
+
         } catch (const std::exception& e) {
             logError("set", key, e);
         }
@@ -32,8 +36,11 @@ public:
     template<typename T>
     std::optional<T> get(const std::string& key) {
         try {
-            auto val = redis->get(key);
-            if (val) return deserialize<T>(*val);
+            auto val = getRedis().get(key);
+            if (val) {
+                LOG_INFO("For key '{}' finded cashe", key);
+                return deserialize<T>(*val);
+            }
         } catch (const std::exception& e) {
             logError("get", key, e);
         }
@@ -42,30 +49,34 @@ public:
 
     void remove(const std::string& key) {
         try {
-            redis->del(key);
+            LOG_INFO("Remove key '{}' from cashe", key);
+            getRedis().del(key);
         } catch (const std::exception& e) {
             logError("remove", key, e);
         }
     }
 
     void clearPrefix(const std::string& prefix) {
-        if (!redis) return;
+        LOG_INFO("clearPrefix prefix '{}' from cashe", prefix);
         std::vector<std::string> keys;
-        redis->keys(prefix + "*", std::back_inserter(keys));
+        getRedis().keys(prefix + "*", std::back_inserter(keys));
         for (const auto& key : keys)
-            redis->del(key);
+            getRedis().del(key);
     }
 
     bool exists(const std::string& key) {
-        if (!redis) return false;
-        return redis->exists(key);
+        bool exist = getRedis().exists(key);
+        LOG_INFO("For key '{}' value exist:", key, exist);
     }
+
 
 private:
     std::unique_ptr<Redis> redis;
     std::mutex initMutex;
 
-    RedisCache() = default;
+    RedisCache(){
+        init_logger("CASHE");
+    }
 
     Redis& getRedis() {
         if (!redis) {
@@ -109,12 +120,12 @@ private:
     template<typename Duration>
     int getTtlWithJitter(Duration ttl) {
         const int baseSeconds = std::chrono::duration_cast<std::chrono::seconds>(ttl).count();
-        const int jitter = (std::rand() % 61 - 30) * 60; // ±30 хвилин
+        const int jitter = (std::rand() % 61 - 30) * 60; //+-30 minutes
         return std::max(baseSeconds + jitter, 300);
     }
 
     void logError(const std::string& action, const std::string& key, const std::exception& e) {
-        qDebug() << "[RedisCache ERROR] " << action << "('" << key << "'): " << e.what();
+        LOG_ERROR("'{}' ( '{}' ): '{}'", action, key, e.what());
     }
 
     RedisCache(const RedisCache&) = delete;

@@ -7,7 +7,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui)
-#find_package(spdlog CONFIG REQUIRED)
+find_package(spdlog REQUIRED)
+#find_package(fmt REQUIRED)
 
 enable_testing()
 set(FRONTEND_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -80,8 +81,12 @@ target_link_libraries(Frontend PRIVATE
    Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
    redis++
    #hiredis
-   #spdlog::spdlog
+   spdlog::spdlog
+   #fmt::fmt
+   #TracyClient
 )
+
+target_compile_definitions(Frontend PRIVATE SPDLOG_HEADER_ONLY) #ENABLE_TRACY=1)
 
 set_target_properties(Frontend PROPERTIES
     BUILD_WITH_INSTALL_RPATH ON

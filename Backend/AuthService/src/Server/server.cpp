@@ -1,4 +1,5 @@
 #include "server.h"
+#include "../../../DebugProfiling/Debug_profiling.h"
 
 Server::Server(const int& port, AuthManager* mgr)
     : port_(port)
@@ -9,7 +10,7 @@ Server::Server(const int& port, AuthManager* mgr)
 }
 
 void Server::run() {
-    std::cout << "Starting Auth Server on port " << port_ << "\n";
+    LOG_INFO( "Starting Auth Server on port '{}'", port_);
     app.port(port_).multithreaded().run();
 }
 
