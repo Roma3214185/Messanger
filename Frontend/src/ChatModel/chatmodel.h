@@ -41,7 +41,7 @@ public:
 
 private:
 
-    OptionalChatIndex findIndexByChatId(const int chatId);
+    OptionalChatIndex findIndexByChatId(const int chatId) const;
 
     ListOfChats m_chats;
 };

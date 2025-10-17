@@ -6,7 +6,7 @@
 #include <mutex>
 #include <QtSql>
 #include <QDebug>
-#include "messagedatabase.h"
+#include "../MessageManager/MessageManager.h"
 
 using WebsocketPtr = crow::websocket::connection*;
 using UserId = int;
@@ -17,7 +17,7 @@ class Controller
 
 public:
 
-    Controller(crow::SimpleApp& app, DataBase& dataBase);
+    Controller(crow::SimpleApp& app, MessageManager& manager);
     void handleRoutes();
 
 private:
@@ -30,7 +30,7 @@ private:
     WebsocketByIdMap userSockets;
     std::mutex socketMutex;
     crow::SimpleApp& app_;
-    DataBase db;
+    MessageManager manager;
 
 };
 

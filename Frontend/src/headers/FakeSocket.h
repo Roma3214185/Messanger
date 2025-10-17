@@ -17,7 +17,6 @@ public:
         ++sendTextMessage_calls;
     }
 
-
     int sendTextMessage_calls = 0;
 };
 

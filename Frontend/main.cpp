@@ -5,9 +5,17 @@
 #include "src/Model/model.h"
 #include "NetworkAccessManager/networkaccessmanager.h"
 #include "headers/RedisClient.h"
+#include "../../DebugProfiling/Debug_profiling.h"
+
+// #ifdef ENABLE_TRACY
+//     #include "../external/tracy/public/tracy/Tracy.hpp"
+// #endif
 
 int main(int argc, char *argv[])
 {
+
+
+    init_logger("Frontend");
     RedisClient redis("tcp://127.0.0.1:6379");
     QWebSocket socket;
     QApplication a(argc, argv);

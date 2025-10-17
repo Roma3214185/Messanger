@@ -17,7 +17,7 @@ public:
     }
 
     void abort() override {  }
-    void setData(const QByteArray& d) { data = d; }
+    void setData(const QByteArray& data) { this->data = data; }
     void emitFinished() { Q_EMIT finished(); }
 
     QByteArray data;

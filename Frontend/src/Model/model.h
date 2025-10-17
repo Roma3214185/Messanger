@@ -39,8 +39,8 @@ public:
 
     ChatModel* getChatModel();
     UserModel* getUserModel();
-    MessageModelPtr createMessageModel(const int chatId);
-    MessageModel* getMessageModel(const int chatId);
+    MessageModelPtr createMessageModel(int chatId);
+    MessageModel* getMessageModel(int chatId);
     void checkToken();
     void signIn(const QString& email, const QString& password);
     void signUp(const SignUpRequest& req);
@@ -48,18 +48,18 @@ public:
     ChatPtr loadChat(const int chatId);
     QList<User> findUsers(const QString& text);
     optional<User> getUser(const int userId);
-    ChatPtr createPrivateChat(const int userId);
+    ChatPtr createPrivateChat(int userId);
     QList<Message> getChatMessages(const int chatId);
     void sendMessage(const int chatId, const int senderId, const QString& textToSend);
     QList<ChatPtr> loadChats();
     void signMe(const QString& token);
-    void fillChatHistory(const int chatId);
+    void fillChatHistory(int chatId);
     void addChat(const ChatPtr& chat);
     void addChatInFront(const ChatPtr& chat);
     void createChat(const int chatId);
-    void addMessageToChat(const int chatId, const Message& msg);
+    void addMessageToChat(int chatId, const Message& msg);
     void deleteToken() const;
-    ChatPtr getPrivateChatWithUser(const int userId);
+    ChatPtr getPrivateChatWithUser(int userId);
     void saveToken(const QString& token) const;
     void clearAllChats();
     void clearAllMessages();

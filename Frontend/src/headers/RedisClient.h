@@ -3,7 +3,7 @@
 
 #include <sw/redis++/redis++.h>
 #include <QDebug>
-
+#include "../../DebugProfiling/Debug_profiling.h"
 #include "headers/ICache.h"
 
 class RedisClient : public ICache
@@ -19,7 +19,7 @@ public:
         try {
             takenOpt = redis.get(key);
         } catch (const sw::redis::Error &e) {
-            qDebug() << "Redis error:" << e.what();
+            spdlog::error("Redis error: '{}'", e.what());
         }
 
         return takenOpt;

@@ -9,6 +9,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlDatabase>
+#include "../../GenericRepository/GenericReposiroty.h"
 
 #include "headers/Chat.h"
 

@@ -1,16 +1,34 @@
 #include "controller.h"
 #include <QDebug>
 #include "NetworkManager.h"
+#include "nlohmann/json.hpp"
 
-Controller::Controller(crow::SimpleApp& app, DataBase& dataBase)
+inline crow::json::wvalue to_crow_json(const Message& m) {
+    crow::json::wvalue j;
+    qDebug() << "[INFO] Message to crow id:" << m.id;
+    qDebug() << "[INFO] Message to crow chat_id:" << m.chat_id;
+    qDebug() << "[INFO] Message to crow sender_id:" << m.sender_id;
+    qDebug() << "[INFO] Message to crow text:" << m.text;
+    qDebug() << "[INFO] Message to crow timestamp:" << m.timestamp.toString(Qt::ISODate).toStdString();
+    j["id"] = m.id;
+    j["chat_id"] = m.chat_id;
+    j["sender_id"] = m.sender_id;
+    j["text"] = m.text;
+    j["timestamp"] = m.timestamp.toString(Qt::ISODate).toStdString(); // ✅ ISO 8601 string
+    return j;
+}
+
+
+
+Controller::Controller(crow::SimpleApp& app, MessageManager& manager)
     : app_(app)
-    , db(dataBase)
+    , manager(manager)
 {
-    auto initial = db.initialDb();
-    if(!initial) {
-        qDebug() << "[ERROR] bd isn't initial";
-        throw std::runtime_error("BD not initial");
-    }
+    // auto initial = db.initialDb();
+    // if(!initial) {
+    //     qDebug() << "[ERROR] bd isn't initial";
+    //     throw std::runtime_error("BD not initial");
+    // }
 }
 
 void Controller::handleRoutes(){
@@ -22,11 +40,10 @@ void Controller::handleSocket(){
 CROW_ROUTE(app_, "/ws")
     .websocket(&app_)
     .onopen([&](crow::websocket::connection& conn) {
-        qDebug() << "[INFO] WebSocket connected\n";
+        LOG_INFO("Websocket is connected");
     })
     .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
-        qDebug() << "[INFO] WebSocket disconnected: " << reason << " (code: " << code << ")\n";
-
+        LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason, code);
         std::lock_guard<std::mutex> lock(socketMutex);
         for (auto it = userSockets.begin(); it != userSockets.end(); ++it) {
             if (it->second == &conn) {
@@ -36,23 +53,24 @@ CROW_ROUTE(app_, "/ws")
         }
     })
     .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
-        qDebug() << "[INFO] Received message: " << data << "\n";
         auto msg = crow::json::load(data);
 
         if (!msg) {
-            qDebug() << "[ERROR] Failed in loading in MSG";
+            LOG_ERROR("[onMessage] Failed in loading message");
             return;
         }
 
         if (msg.has("type") && msg["type"].s() == "init") {
             int userId = msg["userId"].i();
             userConnected(userId, &conn);
-            qDebug() << "[INFO] Socket is registered for userId: " << userId;
+            LOG_INFO("[onMessage] Socket is registered for userId '{}'", userId);
         } else if (msg.has("type") && msg["type"].s() == "send_message") {
             int fromUser = msg["sender_id"].i();
             int chatId = msg["chat_id"].i();
             std::string text = msg["text"].s();
             onSendMessage(fromUser, chatId, text);
+        }else{
+            LOG_ERROR("[onMessage] Invalid type");
         }
     });
 }
@@ -60,31 +78,15 @@ CROW_ROUTE(app_, "/ws")
 void Controller::handleGetMessagesFromChat(){
 CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
     ([&](const crow::request& req, int chatId) {
+        PROFILE_SCOPE("/messages/id");
         //make check if u have acess to ges these messagess
-        qDebug() << "[INFO] get all messages from chat " << chatId;
 
-        // (?) another route to return messages only already readed by user
-        //(?) new messages he will receive from socket ???
-
-        auto messages = db.getChatMessages(chatId);
+        auto messages = manager.getChatMessages(chatId);
+        LOG_INFO("For chat '{}' finded '{}' messages", chatId, messages.size());
         crow::json::wvalue res = crow::json::wvalue::list();
         int i = 0;
         for (const auto& msg : messages) {
-            qDebug() << "TIME: " << msg.timestamp;
-            crow::json::wvalue m;
-            m["message_id"] = msg.id;
-            m["chat_id"]    = msg.chatId;
-            m["sender_id"]  = msg.senderId;
-            m["text"]       = msg.text;
-
-            QDateTime dt = QDateTime::fromString(msg.timestamp, Qt::ISODate);
-            if (!dt.isValid()) {
-                qWarning() << "[WARN] Invalid timestamp:" << msg.timestamp;
-            }
-
-            m["timestamp"] = dt.toString(Qt::ISODate).toStdString();
-
-            qDebug() << "return id: " << msg.id << "; sender_id: " << msg.senderId << "; text = " << msg.text << "timestamp = " << dt.toString(Qt::ISODate).toStdString();
+            auto m = to_crow_json(msg);
             res[i++] = std::move(m);
         }
 
@@ -93,50 +95,56 @@ CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
 }
 
 void Controller::userConnected(int userId, crow::websocket::connection* conn){
+    PROFILE_SCOPE("Controller::userConnected");
     userSockets[userId] = conn;
 
-    auto pendingMessages = db.getUndeliveredMessages(userId); //а якшо я загружаю всі повідомлення при вході, тоді undeliveredMessages повторюються???
-    qDebug() << "[INFO] UserId: " << userId << " has unreaden " << pendingMessages.size();
-    for (const auto& msg : pendingMessages) {
-        userSockets[userId]->send_text(msg.text);
-        db.markDelivered(msg.id);
+    auto pendingMessages = manager.getUndeliveredMessages(userId);
+    LOG_INFO(" UserId '{}' has unreaden '{}' messages", userId, pendingMessages.size());
+    for (auto& msgStatus : pendingMessages) {
+        auto msg = manager.getMessage(msgStatus.id);
+        if(msg) userSockets[userId]->send_text(msg->text);
+        else LOG_ERROR("Message not found for '{}'", msgStatus.id);
+        //manager.markDelivered(msg); // and not readen??
     }
 }
 
 void Controller::onSendMessage(int fromUser, int chatId, std::string text){
-    qDebug() << "[INFO] Send message from" << fromUser << "to chatId" << chatId << ": " << text;
+    PROFILE_SCOPE("Controller::onSendMessage");
+    LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')", fromUser, chatId, text);
+    Message msg{
+        .chat_id = chatId,
+        .sender_id = fromUser,
+        .text = text,
+        .timestamp = QDateTime::currentDateTime()
+    };
 
-    std::optional<int> id = db.addMsgToDatabase(text, fromUser, chatId);
-    if (!id) {
-        qDebug() << "[ERROR] Failed to save message to DB:" << text;
-        return;
-    }
+    //try catch
+    manager.saveMessage(msg); // messageStatus??
+    LOG_INFO("Message('{}') is saved with id '{}'", msg.text, msg.id);
 
-    qDebug() << "Message " << text << " has id: " << *id;
-
-    QVector<int> members_of_chat = NetworkManager::getMembersOfChat(chatId);
-
+    auto members_of_chat = NetworkManager::getMembersOfChat(chatId);
+    LOG_INFO("For chat id '{}' finded '{}' members", chatId, members_of_chat.size());
 
     for(auto toUser: members_of_chat){
-        qDebug() << "ID to send: " << toUser;
+        LOG_INFO("Chat id: '{}'; member is ", chatId, toUser);
         auto it = userSockets.find(toUser);
 
+        MessageStatus msgStatus{
+            .id = msg.id,
+            .receiver_id = toUser,
+            .is_read = false
+        };
+
+        manager.saveMessageStatus(msgStatus);
+
         if (it != userSockets.end()) {
-            db.saveMessage(*id, fromUser, toUser, text, true);
-            crow::json::wvalue forwardMsg;
+            //manager.markDelivered(msg);
+            auto forwardMsg = to_crow_json(msg);
             forwardMsg["type"] = "message";
-            forwardMsg["message_id"] = *id;
-            forwardMsg["chat_id"] = chatId;
-            forwardMsg["sender_id"] = fromUser;
-            forwardMsg["text"] = text;
-            forwardMsg["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate).toStdString();
-
-            it->second->send_text(forwardMsg.dump());
-            qDebug() << "[INFO] Forwarded message to user" << toUser;
+            it->second->send_text(forwardMsg.dump()); // don;t use dump??
+            LOG_INFO("Forward message to id '{}'", toUser);
         } else {
-            qDebug() << "[INFO] User" << toUser << "not connected. I will save your message.";
-
-            db.saveMessage(*id, fromUser, toUser, text, false);
+            LOG_INFO("User offline, Message is saved to id '{}'", toUser);
         }
     }
 }

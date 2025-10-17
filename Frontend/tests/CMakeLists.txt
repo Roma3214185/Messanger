@@ -5,6 +5,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Catch2 REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network WebSockets Gui Test)
+find_package(spdlog REQUIRED)
 
 add_library(FrontendServiceLib
     ../src/Presenter/presenter.cpp
@@ -37,6 +38,7 @@ target_link_libraries(FrontendServiceLib
         Qt6::Network
         Qt6::WebSockets
         Qt6::Test
+    spdlog::spdlog
     #hiredis
 )
 

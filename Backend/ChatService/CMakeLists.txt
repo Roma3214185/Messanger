@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(ChatService LANGUAGES CXX)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
+find_package(spdlog REQUIRED)
 
 include(FetchContent)
 
@@ -34,4 +35,6 @@ target_link_libraries(ChatService PRIVATE
     Qt${QT_VERSION_MAJOR}::Sql
     Crow::Crow
     jwt-cpp
+    spdlog::spdlog
+    TracyClient
 )

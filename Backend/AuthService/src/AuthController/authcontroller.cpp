@@ -1,6 +1,7 @@
 #include "authcontroller.h"
 #include <QDebug>
 #include <iostream>
+#include "../../../DebugProfiling/Debug_profiling.h"
 
 using std::string;
 
@@ -11,8 +12,11 @@ crow::json::wvalue userToJson(const User& user, const std::string& token = "") {
     if(!token.empty()) res["token"] = token;
     res["user"]["id"] = user.id;
     res["user"]["email"] = user.email;
-    res["user"]["name"] = user.name;
+    res["user"]["name"] = user.username;
     res["user"]["tag"] = user.tag;
+
+    LOG_INFO("[user][id] = '{}' | [email] = '{}' | "
+                 "[name] = '{}' | [tag] = '{}', token = '{}'", user.id, user.username, user.email, user.tag, token);
     return res;
 }
 
@@ -31,20 +35,30 @@ void AuthController::initRoutes(){
     handleMe();
     handleFindByTag();
     handleFindById();
+    spdlog::debug("[authcontroller] routes inited");
 }
 
 void AuthController::handleLogin(){
     CROW_ROUTE(app_, "/auth/login").methods("POST"_method)(
     [this](const crow::request& req){
+        PROFILE_SCOPE("/auth/login");
         auto body = crow::json::load(req.body);
-        if (!body) return crow::response(400, "Invalid JSON");
+        if (!body) {
+            LOG_ERROR("[Login] Invalid Json");
+            return crow::response(400, "Invalid JSON");
+        }
 
         string email = body["email"].s();
         string password = body["password"].s();
+        LOG_INFO("[login] user email: '{}' and user password '{}'", email, password);
 
         auto authRes = service_->loginUser(email, password);
-        if (!authRes) return crow::response(401, "Invalid credentials");
 
+        if (!authRes) {
+            LOG_ERROR("[login] invalid credentials");
+            return crow::response(401, "Invalid credentials");
+        }
+        LOG_ERROR("[login] successfull: name '{}' | id '{}' | tag '{}'", (*authRes->user).username, (*authRes->user).id, (*authRes->user).tag);
         return crow::response(userToJson(*authRes->user, authRes->token));
     });
 }
@@ -53,8 +67,12 @@ void AuthController::handleLogin(){
 void AuthController::handleMe(){
     CROW_ROUTE(app_, "/auth/me").methods("GET"_method)(
         [this](const crow::request& req){
+            PROFILE_SCOPE("/auth/me");
             auto authRes = verifyToken(req);
-            if (!authRes) return crow::response(401, "Invalid or expired token");
+            if (!authRes) {
+                LOG_ERROR("Ivalid or expired token");
+                return crow::response(401, "Invalid or expired token");
+            }
             return crow::response(userToJson(*authRes->user, authRes->token));
         });
 }
@@ -62,8 +80,12 @@ void AuthController::handleMe(){
 void AuthController::handleRegister(){
     CROW_ROUTE(app_, "/auth/register").methods(crow::HTTPMethod::Post)(
         [this](const crow::request& req){
+            PROFILE_SCOPE("/auth/register");
             auto body = crow::json::load(req.body);
-            if (!body) return crow::response(400, "Invalid JSON");
+            if (!body) {
+                LOG_ERROR("[register] invalid json");
+                return crow::response(400, "Invalid JSON");
+            }
 
             auto regReq = RegisterRequest{
                 .email = body["email"].s(),
@@ -74,10 +96,11 @@ void AuthController::handleRegister(){
 
             auto authRes = service_->registerUser(regReq);
             if (!authRes) {
+                LOG_ERROR("[register] User already exists");
                 return crow::response(409, "User already exists");
             }
 
-            std::cout << "[INFO]: I register user (id=" << authRes->user->id << ") " << std::endl;
+            LOG_INFO("[register] user (id='{}' ", authRes->user->id);
             return crow::response(userToJson(*authRes->user, authRes->token));
         }
     );
@@ -86,12 +109,16 @@ void AuthController::handleRegister(){
 void AuthController::handleFindByTag(){
     CROW_ROUTE(app_, "/users/search").methods(crow::HTTPMethod::GET)(
         [this](const crow::request& req) {
+            PROFILE_SCOPE("[/users/search]");
             auto tag = req.url_params.get("tag");
             if (!tag) {
+                LOG_ERROR("Missing tag parametr");
                 return crow::response(400, "Missing 'tag' parameter");
             }
 
             auto listOfUsers = service_->findUserByTag(tag);
+            LOG_INFO("With tag '{}' was finded '{}' users", tag, listOfUsers.size());
+
             crow::json::wvalue res;
             res["users"] = crow::json::wvalue::list();
 
@@ -109,12 +136,14 @@ void AuthController::handleFindByTag(){
 void AuthController::handleFindById(){
     CROW_ROUTE(app_, "/users/<int>").methods(crow::HTTPMethod::GET)(
         [this](const crow::request& req, int userId) {
+            PROFILE_SCOPE("/users/id");
             auto foundUser = service_->findUserById(userId);
             if(!foundUser) {
+                LOG_ERROR("[handleById] User not found with id '{}'", userId);
                 return crow::response{404, "Users not found"};
             }
 
-            std::cout << "[INFO] User found with id: " << userId << std::endl;
+            LOG_INFO("[handleById] User found with id '{}'", userId);
             auto userJson = userToJson(*foundUser);
             return crow::response(200, userJson["user"]);
         }
@@ -124,8 +153,9 @@ void AuthController::handleFindById(){
 std::optional<AuthResponce> AuthController::verifyToken(const crow::request& req) {
     auto token = req.get_header_value("Authorization");
     if(token.empty()) {
-        qDebug() << "Token empty";
+        LOG_ERROR("Token empty");
         return std::nullopt;
     }
+
     return service_->getUser(token);
 }

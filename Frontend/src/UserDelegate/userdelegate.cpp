@@ -15,7 +15,7 @@ QSize UserDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelInd
     return QSize(250, 60);
 }
 
-void UserDelegate::drawAvatar(QPainter *painter, const QRect &rect, const QPixmap &avatar) const{
+void UserDelegate::drawAvatar(QPainter *painter, const QRect &rect, const QPixmap& avatar) const{
     QRect avatarRect(rect.left() + 5, rect.top() + 5, 40, 40);
     painter->drawPixmap(avatarRect, avatar.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
@@ -40,9 +40,9 @@ void UserDelegate::drawBackgroundState(QPainter *painter, const QRect &rect, con
 
 UserDrawData UserDelegate::extractMessageData(const QModelIndex &index) const {
     UserDrawData data;
-    QString name = index.data(UserModel::NameRole).toString();
-    QString avatarPath = index.data(UserModel::AvatarRole).toString();
-    QString tag = index.data(UserModel::TagRole).toString();
+    data.name = index.data(UserModel::NameRole).toString();
+    data.avatar = QPixmap(index.data(UserModel::AvatarRole).toString());
+    data.tag = index.data(UserModel::TagRole).toString();
     return data;
 }
 
@@ -50,7 +50,7 @@ void UserDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option
                               const UserDrawData &user) const {
     QRect rect = option.rect.normalized();
     drawBackgroundState(painter, rect, option);
-    drawAvatar(painter, rect, QPixmap(user.avatarPath));
+    drawAvatar(painter, rect, user.avatar);
     drawName(painter, rect, user.name);
     drawTag(painter, rect, user.tag);
 }

@@ -6,7 +6,6 @@
 
 #include "Headers/AuthResponce.h"
 #include "Headers/RegisterRequest.h"
-#include "DataBase/database.h"
 
 using OptionalResponce = std::optional<AuthResponce>;
 using OptionalUser = std::optional<User>;
@@ -15,17 +14,18 @@ class AuthManager
 {
 public:
 
-    AuthManager(DataBase& repository);
+    AuthManager(GenericRepository& repository)
+        : rep(repository)
+    {}
 
     OptionalResponce getUser(const std::string& token);
     OptionalResponce loginUser(const std::string& email, const std::string& password);
     OptionalResponce registerUser(const RegisterRequest& req);
-    QList<User> findUserByTag(const std::string& tag);
+    std::vector<User> findUserByTag(const std::string& tag);
     OptionalUser findUserById(const int& userId);
 
 private:
-
-    DataBase& db;
+    GenericRepository rep;
 };
 
 #endif // AUTHSERVICE_H

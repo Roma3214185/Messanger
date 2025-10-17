@@ -21,14 +21,16 @@ FetchContent_MakeAvailable(httplib)
 
 find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
 find_package(Crow REQUIRED)
+find_package(spdlog REQUIRED)
 
 
 add_executable(MessageService
   main.cpp
-  MessageDataBase/messagedatabase.cpp
+
   Controller/controller.cpp
   Server/server.h Server/server.cpp
   Headers/Message.h
+  MessageManager/MessageManager.h
 )
 
 target_link_libraries(MessageService PRIVATE
@@ -36,6 +38,9 @@ target_link_libraries(MessageService PRIVATE
   Qt${QT_VERSION_MAJOR}::WebSockets
   Qt${QT_VERSION_MAJOR}::Sql
   Crow::Crow
+  redis++
+  spdlog::spdlog
+  TracyClient
 )
 
 include_directories(
@@ -50,4 +55,10 @@ include(GNUInstallDirs)
 install(TARGETS MessageService
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+set_target_properties(MessageService PROPERTIES
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
 )

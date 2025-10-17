@@ -7,29 +7,36 @@
 #include <QString>
 #include <QDateTime>
 #include <QJsonObject>
-#include <QDebug>
+#include "../../DebugProfiling/Debug_profiling.h"
 
 using ChatPtr = std::shared_ptr<ChatBase>;
 
-namespace JsonServer {
+namespace JsonService {
 
 inline User getUserFromResponse(const QJsonObject& res) {
-    return User{
+    User u{
         .email = res["email"].toString(),
         .tag = res["tag"].toString(),
         .name = res["name"].toString(),
         .id = res["id"].toInt()
     };
+    spdlog::info("[USER] id={} | name='{}' | tag='{}' | email='{}'",
+                 u.id, u.name.toStdString(), u.tag.toStdString(), u.email.toStdString());
+    return u;
 }
 
 inline Message getMessageFromJson(const QJsonObject& obj) {
-    return Message{
-        .id = obj["message_id"].toInt(),
+    Message msg{
+        .id = obj["id"].toInt(),
         .senderId = obj["sender_id"].toInt(),
         .chatId = obj["chat_id"].toInt(),
         .text = obj["text"].toString(),
         .timestamp = QDateTime::fromString(obj["timestamp"].toString(), Qt::ISODate)
     };
+
+    spdlog::info("[MESSAGE] id={} | senderId='{}' | chatId='{}' | text='{}' | timestamp='{}'",
+                 msg.id, msg.senderId, msg.chatId, msg.text.toStdString(), msg.timestamp.toString().toStdString());
+    return msg;
 }
 
 inline ChatPtr getChatFromJson(const QJsonObject& obj) {
