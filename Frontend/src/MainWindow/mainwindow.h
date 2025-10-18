@@ -25,11 +25,19 @@ public:
 
     void setPresenter(Presenter* presenter);
     void setUser(const User& user) override;
-    void setChatWindow(MessageModel* model) override;
+    void setChatWindow() override;
     void setChatModel(ChatModel* model) override;
     void setUserModel(UserModel* userModel) override;
     void clearFindUserEdit() override;
     void showError(const QString& error) override;
+
+    void setMessageListView(QListView* listView) override;
+    void setCurrentChatIndex(QModelIndex idx) override;
+
+    //int getMaximumMessageScrollBar() override;
+    //int getMessageScrollBarValue() override;
+    //void setMessageScrollBarValue(int value) override;
+    //void setChatInLow() override;
 
 private Q_SLOTS:
 

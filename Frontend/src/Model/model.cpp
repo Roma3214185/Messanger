@@ -558,17 +558,56 @@ void Model::signMe(const QString& token){
     request.setRawHeader("Authorization", token.toUtf8());
     auto* reply = netManager->get(request);
     QObject::connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        return onSignMe(reply); });
+    return onSignMe(reply); });
 }
-QList<User> Model::onFindUsers(QNetworkReply* reply){ QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply); if (reply->error() != QNetworkReply::NoError) { Q_EMIT errorOccurred("onFindUsers" + reply->errorString()); return {}; } auto responseData = reply->readAll(); auto doc = QJsonDocument::fromJson(responseData); if (!doc.isObject()) { Q_EMIT errorOccurred("Invalid JSON: expected object at root"); return {}; } auto rootObj = doc.object(); auto arr = rootObj["users"].toArray(); QList<User> users; for (const auto& value : arr) { auto obj = value.toObject(); auto user = JsonService::getUserFromResponse(obj); users.append(user); } return users; }
-void Model::addChat(const ChatPtr& chat){ PROFILE_SCOPE("Model::addChat"); chatsById[chat->chatId] = chat; chatModel->addChat(chat); Q_EMIT chatAdded(chat->chatId); }
-void Model::createChat(const int chatId){ PROFILE_SCOPE("Model::createChat"); auto it = chatsById.find(chatId); if(it != chatsById.end()){ qDebug() << "[INFO] Chat " << chatId << "already exist"; return; } auto chat = loadChat(chatId); fillChatHistory(chatId); chatModel->addChatInFront(chat); }
+
+QList<User> Model::onFindUsers(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+    if (reply->error() != QNetworkReply::NoError) {
+        Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
+        return {};
+    }
+    auto responseData = reply->readAll();
+    auto doc = QJsonDocument::fromJson(responseData);
+    if (!doc.isObject()) { Q_EMIT errorOccurred("Invalid JSON: expected object at root"); return {}; }
+    auto rootObj = doc.object(); auto arr = rootObj["users"].toArray();
+    QList<User> users;
+    for (const auto& value : arr) {
+        auto obj = value.toObject();
+        auto user = JsonService::getUserFromResponse(obj);
+        users.append(user);
+    }
+    return users;
+}
+
+void Model::addChat(const ChatPtr& chat){
+    PROFILE_SCOPE("Model::addChat");
+    chatsById[chat->chatId] = chat;
+    chatModel->addChat(chat);
+    Q_EMIT chatAdded(chat->chatId);
+}
+
+void Model::createChat(const int chatId){
+    PROFILE_SCOPE("Model::createChat");
+    auto it = chatsById.find(chatId);
+    if(it != chatsById.end()){
+        LOG_INFO("[Chat '{}' already exist", chatId);
+        return;
+    }
+    auto chat = loadChat(chatId);
+    fillChatHistory(chatId);
+    chatModel->addChatInFront(chat);
+}
+
 void Model::fillChatHistory(int chatId){
     PROFILE_SCOPE("Model::fillChatHistory");
     auto messageHistory = getChatMessages(chatId);
     LOG_INFO("[fillChatHistory] For chat '{}' loaded '{}' messages", chatId, messageHistory.size());
     auto messageModel = std::make_shared<MessageModel>(this);
     messageModelsByChatId[chatId] = messageModel;
+
+    if(messageHistory.empty()) return;
+    chatModel->updateChat(chatId, messageHistory.front().text, messageHistory.front().timestamp);
 
     for(auto message: messageHistory){
         auto user = getUser(message.senderId);

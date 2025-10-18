@@ -26,11 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::setDelegators(){
     auto* chatDelegate = new ChatItemDelegate(this);
-    auto* messageDelegate = new MessageDelegate(this);
     auto* userDelegate = new UserDelegate(this);
 
     ui->chatListView->setItemDelegate(chatDelegate);
-    ui->messageListView->setItemDelegate(messageDelegate);
     ui->userListView->setItemDelegate(userDelegate);
 }
 
@@ -38,10 +36,23 @@ void MainWindow::setChatModel(ChatModel* model) {
     ui->chatListView->setModel(model);
 }
 
-void MainWindow::setChatWindow(MessageModel* model){
+void MainWindow::setChatWindow(){
     ui->messageWidget->setVisible(true);
-    ui->messageListView->setModel(model);
 }
+
+void MainWindow::setMessageListView(QListView* listView) {
+    ui->messageListViewLayout->addWidget(listView);
+
+    auto* messageDelegate = new MessageDelegate(this);
+    listView->setItemDelegate(messageDelegate);
+}
+
+// void MainWindow::setChatInLow(){
+//     QTimer::singleShot(10, this, [this]() {
+//         auto* scrollbar = ui->messageListView->verticalScrollBar();
+//         scrollbar->setValue(scrollbar->maximum());
+//     });
+// }
 
 MainWindow::~MainWindow()
 {
@@ -194,6 +205,10 @@ void MainWindow::seupConnections(){
 
     connect(ui->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
     connect(ui->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
+
+    // connect(ui->messageListView->verticalScrollBar(), &QScrollBar::valueChanged, [=](int value){
+    //     presenter->onScroll(value);
+    // });
 }
 
 void MainWindow::setupUI(){
