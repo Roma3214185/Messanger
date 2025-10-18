@@ -5,17 +5,39 @@
 
 inline crow::json::wvalue to_crow_json(const Message& m) {
     crow::json::wvalue j;
-    qDebug() << "[INFO] Message to crow id:" << m.id;
-    qDebug() << "[INFO] Message to crow chat_id:" << m.chat_id;
-    qDebug() << "[INFO] Message to crow sender_id:" << m.sender_id;
-    qDebug() << "[INFO] Message to crow text:" << m.text;
-    qDebug() << "[INFO] Message to crow timestamp:" << m.timestamp.toString(Qt::ISODate).toStdString();
+    LOG_INFO("[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | timestamp '{}'", m.id, m.chat_id, m.sender_id, m.text, m.timestamp);
     j["id"] = m.id;
     j["chat_id"] = m.chat_id;
     j["sender_id"] = m.sender_id;
     j["text"] = m.text;
-    j["timestamp"] = m.timestamp.toString(Qt::ISODate).toStdString(); // ✅ ISO 8601 string
+    j["timestamp"] = QDateTime::fromSecsSinceEpoch(m.timestamp).toString(Qt::ISODate).toStdString();
+    LOG_INFO("Timestamp = ", QDateTime::fromSecsSinceEpoch(m.timestamp).toString(Qt::ISODate).toStdString());
     return j;
+}
+
+inline Message from_crow_json(const crow::json::rvalue& j) {
+    Message m;
+    if(j.count("id")) m.id = j["id"].i();
+    else m.id = 0;
+
+    m.chat_id = j["chat_id"].i();
+    m.sender_id = j["sender_id"].i();
+    m.text = j["text"].s();
+
+    if(j.count("timestamp")) {
+        QString ts = QString::fromStdString(j["timestamp"].s());
+        QDateTime dt = QDateTime::fromString(ts, Qt::ISODate);
+        if(!dt.isValid()) {
+            m.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
+        }else{
+            m.timestamp = dt.toSecsSinceEpoch();
+        }
+    } else {
+        m.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
+    }
+
+    LOG_INFO("[Message from json] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | timestamp '{}'", m.id, m.chat_id, m.sender_id, m.text, m.timestamp);
+    return m;
 }
 
 
@@ -65,10 +87,8 @@ CROW_ROUTE(app_, "/ws")
             userConnected(userId, &conn);
             LOG_INFO("[onMessage] Socket is registered for userId '{}'", userId);
         } else if (msg.has("type") && msg["type"].s() == "send_message") {
-            int fromUser = msg["sender_id"].i();
-            int chatId = msg["chat_id"].i();
-            std::string text = msg["text"].s();
-            onSendMessage(fromUser, chatId, text);
+            auto message = from_crow_json(msg);
+            onSendMessage(message);
         }else{
             LOG_ERROR("[onMessage] Invalid type");
         }
@@ -115,25 +135,19 @@ void Controller::userConnected(int userId, crow::websocket::connection* conn){
     }
 }
 
-void Controller::onSendMessage(int fromUser, int chatId, std::string text){
+void Controller::onSendMessage(Message msg){
     PROFILE_SCOPE("Controller::onSendMessage");
-    LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')", fromUser, chatId, text);
-    Message msg{
-        .chat_id = chatId,
-        .sender_id = fromUser,
-        .text = text,
-        .timestamp = QDateTime::currentDateTime()
-    };
+    LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')", msg.sender_id, msg.chat_id, msg.text);
 
     //try catch
-    manager.saveMessage(msg); // messageStatus??
+    manager.saveMessage(msg);
     LOG_INFO("Message('{}') is saved with id '{}'", msg.text, msg.id);
 
-    auto members_of_chat = NetworkManager::getMembersOfChat(chatId);
-    LOG_INFO("For chat id '{}' finded '{}' members", chatId, members_of_chat.size());
+    auto members_of_chat = NetworkManager::getMembersOfChat(msg.chat_id);
+    LOG_INFO("For chat id '{}' finded '{}' members", msg.chat_id, members_of_chat.size());
 
     for(auto toUser: members_of_chat){
-        LOG_INFO("Chat id: '{}'; member is ", chatId, toUser);
+        LOG_INFO("Chat id: '{}'; member is ", msg.chat_id, toUser);
         auto it = userSockets.find(toUser);
 
         MessageStatus msgStatus{
@@ -150,8 +164,11 @@ void Controller::onSendMessage(int fromUser, int chatId, std::string text){
             forwardMsg["type"] = "message";
             it->second->send_text(forwardMsg.dump()); // don;t use dump??
             LOG_INFO("Forward message to id '{}'", toUser);
+            msgStatus.is_read = true;
+            manager.saveMessageStatus(msgStatus);
         } else {
             LOG_INFO("User offline, Message is saved to id '{}'", toUser);
+            manager.saveMessageStatus(msgStatus);
         }
     }
 }

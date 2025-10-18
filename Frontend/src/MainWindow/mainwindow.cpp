@@ -9,6 +9,9 @@
 #include "DataInputService/datainputservice.h"
 #include <QMessageBox>
 #include "Presenter/presenter.h"
+//#include "../../DebugProfiling/Debug_profiling.h"
+#include <QScrollBar>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

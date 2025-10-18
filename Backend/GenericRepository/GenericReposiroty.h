@@ -388,9 +388,13 @@ private:
         if (f.type == typeid(std::string)) return QString::fromStdString(std::any_cast<std::string>(val));
         if (f.type == typeid(QDateTime)) {
             QDateTime dt = std::any_cast<QDateTime>(val);
-            return dt.isValid()
-                       ? QVariant(dt.toSecsSinceEpoch())
-                       : QVariant(QVariant::Int);
+
+            if (!dt.isValid()){
+                LOG_WARN("in to variant was invalid datetimp");
+                dt = QDateTime::currentDateTime();
+            }
+
+            return QVariant(dt.toSecsSinceEpoch()); // always valid qlonglong
         }
         return {};
     }

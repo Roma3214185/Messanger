@@ -76,7 +76,7 @@ private:
     std::mutex initMutex;
 
     RedisCache(){
-        init_logger("CASHE");
+
     }
 
     Redis& getRedis() {

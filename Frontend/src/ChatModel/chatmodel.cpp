@@ -46,18 +46,31 @@ void ChatModel::addChat(const ChatPtr& chat) {
     endInsertRows();
 }
 
+void ChatModel::sortChats(){
+    beginInsertRows(QModelIndex(), m_chats.size(), m_chats.size());
+    std::sort(m_chats.begin(), m_chats.end(), [&](const auto& chat1, const auto& chat2){
+        //if(Private) return for created time
+        // else retunr for joined time
+        return chat1->lastMessageTime > chat2->lastMessageTime;
+    });
+    endInsertRows();
+}
+
 void ChatModel::updateChat(const int chatId, const QString& lastMessage, const QDateTime& time /*, int unread = 0,*/) {
-    for (int i = 0; i < m_chats.size(); i++) {
+    int i = 0;
+    for (; i < m_chats.size(); i++) {
         if (m_chats[i]->chatId == chatId) {
             m_chats[i]->lastMessage = lastMessage;
             m_chats[i]->unread = 0; // unread++;
             m_chats[i]->lastMessageTime = time;
-            QModelIndex idx = index(i);
-            Q_EMIT dataChanged(idx, idx);
-            qDebug() << "[INFO] updatedChat id = " << chatId;
-            return;
+            break;
         }
     }
+    if(i == m_chats.size()) return;
+    sortChats(); //if delete was??? // what about focus???
+    QModelIndex idx = index(i);
+    Q_EMIT dataChanged(idx, idx);
+    Q_EMIT chatUpdated(chatId);
 }
 
 void ChatModel::addChatInFront(const ChatPtr& chat){
