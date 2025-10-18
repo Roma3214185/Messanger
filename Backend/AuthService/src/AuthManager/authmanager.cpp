@@ -11,10 +11,16 @@ using std::nullopt;
 OptionalResponce AuthManager::getUser(const string& token){
     PROFILE_SCOPE("[AuthManager::getUser");
     auto id = JwtUtils::verifyTokenAndGetUserId(token);
-    if(id || *id == 0) { //why *id == 0??
-        spdlog::error("[getUser] Server can't verify token");
+    if(!id) {
+        spdlog::error("[getUser] Server can't verify token (NULLPTR)");
         return nullopt;
     }
+
+    if(*id == 0) { //why *id == 0??
+        spdlog::error("[getUser] Server can't verify token (id is zero)");
+        return nullopt;
+    }
+
     LOG_INFO("[getUser] verified id = '{}'", *id);
 
     auto findedUser = rep.findOne<User>(*id);
