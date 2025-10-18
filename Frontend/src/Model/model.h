@@ -57,7 +57,7 @@ public:
     void addChat(const ChatPtr& chat);
     void addChatInFront(const ChatPtr& chat);
     void createChat(const int chatId);
-    void addMessageToChat(int chatId, const Message& msg);
+    void addMessageToChat(int chatId, const Message& msg, bool infront = true);
     void deleteToken() const;
     ChatPtr getPrivateChatWithUser(int userId);
     void saveToken(const QString& token) const;

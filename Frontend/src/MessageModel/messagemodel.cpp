@@ -1,4 +1,5 @@
 #include "messagemodel.h"
+#include "../../DebugProfiling/Debug_profiling.h"
 
 MessageModel::MessageModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -23,17 +24,41 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const {
     }
 }
 
-void MessageModel::addMessage(Message msg, const User& user) {
+std::optional<Message> MessageModel::getLastMessage(){
+    if(messages_.empty()) return std::nullopt;
+    return messages_.back();
+}
+
+std::optional<Message> MessageModel::getFirstMessage(){
+    if(messages_.empty()) return std::nullopt;
+    return messages_.front();
+}
+
+void MessageModel::addMessage(Message msg, const User& user) { //make with realocate
     auto it = usersByMessageId.find(msg.id);
 
     if(it != usersByMessageId.end()) {
         // undelivered messages will not copy when i load all messages;
-        qDebug() << "[WARN] Message with id " << msg.text << "(id = " << msg.id << ") already exist";
+        LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(), msg.id);
         return;
     }
 
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
     messages_.push_back(msg); //track receiver_id and check if sender_id == receiver_id???
+    usersByMessageId[msg.id] = user;
+    endInsertRows();
+}
+
+void MessageModel::addMessageInBack(Message msg, const User& user){
+    auto it = usersByMessageId.find(msg.id);
+
+    if(it != usersByMessageId.end()) {
+        LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(), msg.id);
+        return;
+    }
+
+    beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
+    messages_.push_front(msg); //track receiver_id and check if sender_id == receiver_id???
     usersByMessageId[msg.id] = user;
     endInsertRows();
 }

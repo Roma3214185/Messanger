@@ -24,6 +24,19 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, Q
     , userModel(std::make_unique<UserModel>())
 {
     LOG_INFO("[Model::Model] Initialized Model with URL: '{}'", url.toString().toStdString());
+
+    connect(chatModel.get(), &ChatModel::chatUpdated, this, [this](int chatId){
+        Q_EMIT chatUpdated(chatId);
+    });
+}
+
+QModelIndex Model::indexByChatId(int chatId) const {
+    std::optional<int> idx = chatModel->findIndexByChatId(chatId);
+    if (!idx.has_value()) {
+        LOG_ERROR("Model::indexByChatId — chatId '{}' not found", chatId);
+        return QModelIndex();
+    }
+    return chatModel->index(*idx);
 }
 
 void Model::checkToken() {
@@ -258,13 +271,11 @@ void Model::onSignMe(QNetworkReply* reply) {
     PROFILE_SCOPE("Model::onSignMe");
     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-    // Network error check
     if (reply->error() != QNetworkReply::NoError) {
         spdlog::warn("Sign me failed: '{}'", reply->errorString().toStdString());
         return;
     }
 
-    // Parse JSON
     auto responseData = reply->readAll();
     QJsonParseError parseError;
     auto jsonResponse = QJsonDocument::fromJson(responseData, &parseError);
@@ -410,7 +421,7 @@ MessageModelPtr Model::createMessageModel(int chatId){
     return msgModel;
 }
 
-void Model::addMessageToChat(int chatId, const Message& msg){
+void Model::addMessageToChat(int chatId, const Message& msg, bool infront){
     PROFILE_SCOPE("Model::addMessageToChat");
     auto it = chatsById.find(chatId);
     if(it == chatsById.end()) {
@@ -427,9 +438,12 @@ void Model::addMessageToChat(int chatId, const Message& msg){
         Q_EMIT errorOccurred("Server doesn't return info about user id(" + msg.senderId);
         return;
     }
-    messageModel->addMessage(msg, *user);
-    chatModel->updateChat(chatId, msg.text, msg.timestamp);
-    chatModel->realocateChatInFront(chatId);
+
+    if(infront) {
+        messageModel->addMessage(msg, *user);
+        chatModel->updateChat(chatId, msg.text, msg.timestamp);
+        //chatModel->realocateChatInFront(chatId);
+    } else messageModel->addMessageInBack(msg, *user);
 }
 
 void Model::addChatInFront(const ChatPtr& chat){
@@ -564,8 +578,7 @@ void Model::fillChatHistory(int chatId){
             LOG_INFO("[fillChatHistory] For message '{}' user is '{}'", message.id, user->id);
         }
 
-        messageModel->addMessage(message, *user);
-        chatModel->updateChat(chatId, message.text, message.timestamp);
+        messageModel->addMessageInBack(message, *user);
     }
 }
 

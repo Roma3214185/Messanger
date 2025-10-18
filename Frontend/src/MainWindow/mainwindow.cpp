@@ -205,7 +205,20 @@ void MainWindow::setupUI(){
 
     ui->messageWidget->setVisible(false);
     ui->textEdit->setFrameStyle(QFrame::NoFrame);
-
-    ui->messageListView->setFocusPolicy(Qt::NoFocus);
-    ui->messageListView->setSelectionMode(QAbstractItemView::NoSelection);
 }
+
+void MainWindow::setCurrentChatIndex(QModelIndex idx) {
+    ui->chatListView->setCurrentIndex(idx);
+}
+
+// int MainWindow::getMaximumMessageScrollBar(){//const
+//     return ui->messageListView->verticalScrollBar()->maximum();
+// }
+
+// int MainWindow::getMessageScrollBarValue(){ //const
+//     return ui->messageListView->verticalScrollBar()->value();
+// }
+// void MainWindow::setMessageScrollBarValue(int value) {
+//     ui->messageListView->verticalScrollBar()->setValue(value);
+
+// }

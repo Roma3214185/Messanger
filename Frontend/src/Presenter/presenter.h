@@ -8,6 +8,7 @@
 #include "Model/model.h"
 #include "ChatModel/chatmodel.h"
 #include "UserModel/UserModel.h"
+#include "headers/MessageListView.h"
 
 template<typename T>
 using Optional = std::optional<T>;
@@ -28,6 +29,7 @@ public:
     void on_user_clicked(const int userId, const bool isUser = true);
     void sendButtonClicked(const QString& textToSend);
     void on_logOutButtonClicked();
+    void onScroll(int value);
 
 private:
 
@@ -36,9 +38,11 @@ private:
     void newMessage(const Message& message);
     void openChat(const int chatId);
     void onErrorOccurred(const QString& error);
+    void onChatUpdated(int chatId);
 
     IMainWindow* view_;
     Model* manager_;
+    std::unique_ptr<MessageListView> messageListView;
     OptionalInt currentChatId_;
     OptionalInt currentUserId_;
 };

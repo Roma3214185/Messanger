@@ -142,7 +142,7 @@ void Controller::onSendMessage(int fromUser, int chatId, std::string text){
             .is_read = false
         };
 
-        manager.saveMessageStatus(msgStatus);
+
 
         if (it != userSockets.end()) {
             //manager.markDelivered(msg);
