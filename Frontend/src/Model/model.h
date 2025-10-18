@@ -66,6 +66,7 @@ public:
     void logout();
     int getNumberOfExistingChats() const;
     QModelIndex indexByChatId(int chatId) const;
+    void setCurrentId(int id);
 
 Q_SIGNALS:
 

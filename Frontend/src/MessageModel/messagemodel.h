@@ -35,10 +35,14 @@ public:
     void clear();
     std::optional<Message> getLastMessage();
     std::optional<Message> getFirstMessage();
+    static void setCurrentUserId(int id);
+    void resetCurrentUseId();
+
 
 private:
 
     ListOfMessages messages_;
     UsersByMessageId usersByMessageId;
+    static std::optional<int> currentUserId;
 };
 

@@ -1,6 +1,8 @@
 #include "messagemodel.h"
 #include "../../DebugProfiling/Debug_profiling.h"
 
+std::optional<int> MessageModel::currentUserId = std::nullopt;
+
 MessageModel::MessageModel(QObject *parent)
     : QAbstractListModel(parent)
 {
@@ -19,9 +21,17 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const {
         case AvatarRole: return usersByMessageId.at(msg.id).avatarPath;
         case TimestampRole: return msg.timestamp;
         case SenderIdRole: return msg.senderId;
-        case ReceiverIdTole: return usersByMessageId.at(msg.id).id;
+        case ReceiverIdTole: return *currentUserId;
         default: return QVariant();
     }
+}
+
+void MessageModel::setCurrentUserId(int id){
+    currentUserId = id;
+}
+
+void MessageModel::resetCurrentUseId(){
+    currentUserId = std::nullopt;
 }
 
 std::optional<Message> MessageModel::getLastMessage(){

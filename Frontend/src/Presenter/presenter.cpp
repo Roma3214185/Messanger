@@ -4,6 +4,7 @@
 #include "MessageModel/messagemodel.h"
 #include "../../DebugProfiling/Debug_profiling.h"
 #include <QTimer>
+#include <QtConcurrent/QtConcurrent>
 
 Presenter::Presenter(IMainWindow* window, Model* manager)
     : view_(window)
@@ -55,19 +56,21 @@ void Presenter::onChatUpdated(int chatId){
 
 void Presenter::onScroll(int value){
     if(value != 0) return;
+
     PROFILE_SCOPE("Presenter::onScroll");
     int chatId = *currentChatId_;
-    int oldScroll = messageListView->getMaximumMessageScrollBar() -
-                    messageListView->getMessageScrollBarValue();
 
     auto newMessages = manager_->getChatMessages(chatId, 20);
+    if (newMessages.empty()) return;
+
     for(auto newMsg: newMessages){
         manager_->addMessageToChat(chatId, newMsg, false);
     }
 
-    QTimer::singleShot(0, [this, oldScroll]() {
-        messageListView->setMessageScrollBarValue(messageListView->getMaximumMessageScrollBar() - oldScroll);
-    });
+    int scrollOffset = messageListView->verticalScrollBar()->value();
+    messageListView->verticalScrollBar()->setValue(
+        messageListView->verticalScrollBar()->value()
+        + messageListView->sizeHintForRow(0) * newMessages.size());
 }
 
 void Presenter::onErrorOccurred(const QString& error){
@@ -79,7 +82,7 @@ void Presenter::setUser(const User& user, const QString& token){
     LOG_INFO("Set user name: '{}' | email '{}' | tag '{}' id '{}'", user.name.toStdString(), user.email.toStdString(), user.tag.toStdString(), user.id);
 
     view_->setUser(user);
-    currentUserId_ = user.id;
+    setId(user.id);
     manager_->saveToken(token);
 
     auto chats = manager_->loadChats();
@@ -91,6 +94,16 @@ void Presenter::setUser(const User& user, const QString& token){
 
     manager_->connectSocket(user.id);
 }
+
+void Presenter::setId(int id){
+    currentUserId_ = id;
+    manager_->setCurrentId(id);
+}
+
+// void Presenter::resetId(){
+//     currentUserId_ = std::nullopt;
+//     manager->
+// }
 
 void Presenter::on_chat_clicked(const int chatId){
     openChat(chatId);

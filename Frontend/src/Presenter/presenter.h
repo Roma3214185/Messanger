@@ -30,6 +30,7 @@ public:
     void sendButtonClicked(const QString& textToSend);
     void on_logOutButtonClicked();
     void onScroll(int value);
+    void setId(int id);
 
 private:
 

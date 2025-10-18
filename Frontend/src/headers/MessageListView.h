@@ -15,13 +15,13 @@ public:
     {
         connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this, [=](int value){
             if(value == 0) {
-                qDebug() << "EMIT SCROLL CHANGED";
                 Q_EMIT scrollChanged(value);
             }
         });
 
         QListView::setFocusPolicy(Qt::NoFocus);
         QListView::setSelectionMode(QAbstractItemView::NoSelection);
+        this->setMinimumWidth(300);
     }
 
     void setMessageModel(MessageModel* model){

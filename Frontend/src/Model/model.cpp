@@ -60,6 +60,10 @@ void Model::deleteToken() const {
     LOG_INFO("[deleteToken] Token deleted");
 }
 
+void Model::setCurrentId(int id){
+    MessageModel::setCurrentUserId(id);
+}
+
 void Model::signIn(const QString& email, const QString& password) {
     PROFILE_SCOPE("Model::signIn");
     LOG_INFO("[signIn] Attempting login for email '{}'", email.toStdString());
