@@ -12,6 +12,7 @@
 #include "MessageModel/messagemodel.h"
 #include "UserModel/UserModel.h"
 #include "../../DebugProfiling/Debug_profiling.h"
+#include <QUrlQuery>
 
 
 Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, QWebSocket* socket)
@@ -23,6 +24,19 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, Q
     , userModel(std::make_unique<UserModel>())
 {
     LOG_INFO("[Model::Model] Initialized Model with URL: '{}'", url.toString().toStdString());
+
+    connect(chatModel.get(), &ChatModel::chatUpdated, this, [this](int chatId){
+        Q_EMIT chatUpdated(chatId);
+    });
+}
+
+QModelIndex Model::indexByChatId(int chatId) const {
+    std::optional<int> idx = chatModel->findIndexByChatId(chatId);
+    if (!idx.has_value()) {
+        LOG_ERROR("Model::indexByChatId — chatId '{}' not found", chatId);
+        return QModelIndex();
+    }
+    return chatModel->index(*idx);
 }
 
 void Model::checkToken() {
@@ -157,7 +171,8 @@ ChatPtr Model::loadChat(int chatId) {
     PROFILE_SCOPE("Model::loadChat");
     LOG_INFO("[loadChat] Loading chat id={}", chatId);
 
-    QUrl endpoint = url_.resolved(QUrl(QString("/chats/%1").arg(chatId)));
+    QUrl url("http://localhost:8081");
+    QUrl endpoint = url.resolved(QUrl(QString("/chats/%1").arg(chatId)));
     QNetworkRequest req(endpoint);
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     req.setRawHeader("Authorization", currentToken.toUtf8());
@@ -170,7 +185,6 @@ ChatPtr Model::loadChat(int chatId) {
     auto chat = onChatLoaded(reply);
     if(chat) LOG_INFO("[loadChat] Chat loaded id={}", chatId);
     else LOG_ERROR("[loadChat] Failed to load chat id={}", chatId);
-
     return chat;
 }
 
@@ -257,13 +271,11 @@ void Model::onSignMe(QNetworkReply* reply) {
     PROFILE_SCOPE("Model::onSignMe");
     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-    // Network error check
     if (reply->error() != QNetworkReply::NoError) {
         spdlog::warn("Sign me failed: '{}'", reply->errorString().toStdString());
         return;
     }
 
-    // Parse JSON
     auto responseData = reply->readAll();
     QJsonParseError parseError;
     auto jsonResponse = QJsonDocument::fromJson(responseData, &parseError);
@@ -338,12 +350,26 @@ QList<ChatPtr> Model::onLoadChats(QNetworkReply* reply) {
     return chats;
 }
 
-QList<Message> Model::getChatMessages(int chatId) {
+QList<Message> Model::getChatMessages(int chatId, int limit) {
     PROFILE_SCOPE("Model::getChatMessages");
-    LOG_INFO("[getChatMessages] Loading messages for chatId={}", chatId);
+    int beforeId = 0;
+    if(messageModelsByChatId.count(chatId)){
+        auto firstMessage = messageModelsByChatId[chatId]->getFirstMessage();
+        if(firstMessage) {
+            LOG_INFO("Last message with id '{}' and text '{}'", firstMessage->id, firstMessage->text.toStdString());
+            beforeId = firstMessage->id;
+        }
+    }
+    LOG_INFO("[getChatMessages] Loading messages for chatId={}, beforeId = '{}'", chatId, beforeId);
 
     QUrl url("http://localhost:8082");
     QUrl endpoint = url.resolved(QUrl(QString("/messages/%1").arg(chatId)));
+    LOG_INFO("For chatId '{}' limit is '{}' and beforeId '{}'", chatId, limit, beforeId);
+    QUrlQuery query;
+    query.addQueryItem("limit", QString::number(limit));
+    query.addQueryItem("beforeId", QString::number(beforeId));
+    endpoint.setQuery(query);
+
     QNetworkRequest req(endpoint);
     auto* reply = netManager->get(req);
 
@@ -395,7 +421,7 @@ MessageModelPtr Model::createMessageModel(int chatId){
     return msgModel;
 }
 
-void Model::addMessageToChat(int chatId, const Message& msg){
+void Model::addMessageToChat(int chatId, const Message& msg, bool infront){
     PROFILE_SCOPE("Model::addMessageToChat");
     auto it = chatsById.find(chatId);
     if(it == chatsById.end()) {
@@ -412,9 +438,12 @@ void Model::addMessageToChat(int chatId, const Message& msg){
         Q_EMIT errorOccurred("Server doesn't return info about user id(" + msg.senderId);
         return;
     }
-    messageModel->addMessage(msg, *user);
-    chatModel->updateChat(chatId, msg.text, msg.timestamp);
-    chatModel->realocateChatInFront(chatId);
+
+    if(infront) {
+        messageModel->addMessage(msg, *user);
+        chatModel->updateChat(chatId, msg.text, msg.timestamp);
+        //chatModel->realocateChatInFront(chatId);
+    } else messageModel->addMessageInBack(msg, *user);
 }
 
 void Model::addChatInFront(const ChatPtr& chat){
@@ -529,17 +558,56 @@ void Model::signMe(const QString& token){
     request.setRawHeader("Authorization", token.toUtf8());
     auto* reply = netManager->get(request);
     QObject::connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        return onSignMe(reply); });
+    return onSignMe(reply); });
 }
-QList<User> Model::onFindUsers(QNetworkReply* reply){ QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply); if (reply->error() != QNetworkReply::NoError) { Q_EMIT errorOccurred("onFindUsers" + reply->errorString()); return {}; } auto responseData = reply->readAll(); auto doc = QJsonDocument::fromJson(responseData); if (!doc.isObject()) { Q_EMIT errorOccurred("Invalid JSON: expected object at root"); return {}; } auto rootObj = doc.object(); auto arr = rootObj["users"].toArray(); QList<User> users; for (const auto& value : arr) { auto obj = value.toObject(); auto user = JsonService::getUserFromResponse(obj); users.append(user); } return users; }
-void Model::addChat(const ChatPtr& chat){ PROFILE_SCOPE("Model::addChat"); chatsById[chat->chatId] = chat; chatModel->addChat(chat); Q_EMIT chatAdded(chat->chatId); }
-void Model::createChat(const int chatId){ PROFILE_SCOPE("Model::createChat"); auto it = chatsById.find(chatId); if(it != chatsById.end()){ qDebug() << "[INFO] Chat " << chatId << "already exist"; return; } auto chat = loadChat(chatId); fillChatHistory(chatId); chatModel->addChatInFront(chat); }
+
+QList<User> Model::onFindUsers(QNetworkReply* reply){
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+    if (reply->error() != QNetworkReply::NoError) {
+        Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
+        return {};
+    }
+    auto responseData = reply->readAll();
+    auto doc = QJsonDocument::fromJson(responseData);
+    if (!doc.isObject()) { Q_EMIT errorOccurred("Invalid JSON: expected object at root"); return {}; }
+    auto rootObj = doc.object(); auto arr = rootObj["users"].toArray();
+    QList<User> users;
+    for (const auto& value : arr) {
+        auto obj = value.toObject();
+        auto user = JsonService::getUserFromResponse(obj);
+        users.append(user);
+    }
+    return users;
+}
+
+void Model::addChat(const ChatPtr& chat){
+    PROFILE_SCOPE("Model::addChat");
+    chatsById[chat->chatId] = chat;
+    chatModel->addChat(chat);
+    Q_EMIT chatAdded(chat->chatId);
+}
+
+void Model::createChat(const int chatId){
+    PROFILE_SCOPE("Model::createChat");
+    auto it = chatsById.find(chatId);
+    if(it != chatsById.end()){
+        LOG_INFO("[Chat '{}' already exist", chatId);
+        return;
+    }
+    auto chat = loadChat(chatId);
+    fillChatHistory(chatId);
+    chatModel->addChatInFront(chat);
+}
+
 void Model::fillChatHistory(int chatId){
     PROFILE_SCOPE("Model::fillChatHistory");
     auto messageHistory = getChatMessages(chatId);
     LOG_INFO("[fillChatHistory] For chat '{}' loaded '{}' messages", chatId, messageHistory.size());
     auto messageModel = std::make_shared<MessageModel>(this);
     messageModelsByChatId[chatId] = messageModel;
+
+    if(messageHistory.empty()) return;
+    chatModel->updateChat(chatId, messageHistory.front().text, messageHistory.front().timestamp);
 
     for(auto message: messageHistory){
         auto user = getUser(message.senderId);
@@ -549,8 +617,7 @@ void Model::fillChatHistory(int chatId){
             LOG_INFO("[fillChatHistory] For message '{}' user is '{}'", message.id, user->id);
         }
 
-        messageModel->addMessage(message, *user);
-        chatModel->updateChat(chatId, message.text, message.timestamp);
+        messageModel->addMessageInBack(message, *user);
     }
 }
 
@@ -560,3 +627,31 @@ ChatModel* Model::getChatModel(){
 UserModel* Model::getUserModel(){
     return userModel.get();
 }
+
+
+/*
+
+SELECT *
+FROM messages
+WHERE chat_id = 5
+ORDER BY id DESC
+LIMIT 20;
+This returns the 20 newest messages.
+
+b) Fetch messages older than a specific ID (beforeId)
+
+SELECT *
+FROM messages
+WHERE chat_id = 5 AND id < 105
+ORDER BY id DESC
+LIMIT 20;
+
+
+auto messages = orm->query<Message>()
+                    .filter("chatId = ?", chatId)
+                    .orderBy("id DESC")
+                    .limit(20)
+                    .execute();
+
+
+*/

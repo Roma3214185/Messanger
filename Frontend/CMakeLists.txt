@@ -69,6 +69,7 @@ add_executable(Frontend
    src/DataInputService/datainputservice.cpp
    src/headers/ChatBase.h
    src/headers/DrawData.h
+   src/headers/MessageListView.h
 )
 
 target_include_directories(Frontend PRIVATE

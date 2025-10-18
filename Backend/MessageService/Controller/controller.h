@@ -25,7 +25,7 @@ private:
     void handleGetMessagesFromChat();
     void handleSocket();
     void  userConnected(int userId, crow::websocket::connection* conn);
-    void onSendMessage(int fromUser, int chatId, std::string text);
+    void onSendMessage(Message message);
 
     WebsocketByIdMap userSockets;
     std::mutex socketMutex;

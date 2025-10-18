@@ -38,10 +38,13 @@ public:
     void addChatInFront(const ChatPtr &chat);
     void realocateChatInFront(const int chatId);
     void clear();
+    void sortChats();
+    OptionalChatIndex findIndexByChatId(const int chatId) const;
+
+Q_SIGNALS:
+    void chatUpdated(int chatId);
 
 private:
-
-    OptionalChatIndex findIndexByChatId(const int chatId) const;
 
     ListOfChats m_chats;
 };

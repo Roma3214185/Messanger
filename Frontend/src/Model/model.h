@@ -49,7 +49,7 @@ public:
     QList<User> findUsers(const QString& text);
     optional<User> getUser(const int userId);
     ChatPtr createPrivateChat(int userId);
-    QList<Message> getChatMessages(const int chatId);
+    QList<Message> getChatMessages(int chatId, int limit = 20);
     void sendMessage(const int chatId, const int senderId, const QString& textToSend);
     QList<ChatPtr> loadChats();
     void signMe(const QString& token);
@@ -57,7 +57,7 @@ public:
     void addChat(const ChatPtr& chat);
     void addChatInFront(const ChatPtr& chat);
     void createChat(const int chatId);
-    void addMessageToChat(int chatId, const Message& msg);
+    void addMessageToChat(int chatId, const Message& msg, bool infront = true);
     void deleteToken() const;
     ChatPtr getPrivateChatWithUser(int userId);
     void saveToken(const QString& token) const;
@@ -65,6 +65,7 @@ public:
     void clearAllMessages();
     void logout();
     int getNumberOfExistingChats() const;
+    QModelIndex indexByChatId(int chatId) const;
 
 Q_SIGNALS:
 
@@ -72,6 +73,7 @@ Q_SIGNALS:
     void errorOccurred(const QString& error);
     void userCreated(const User& user, const QString& token);
     void newMessage(const Message& message);
+    void chatUpdated(int chatId);
 
 private:
 

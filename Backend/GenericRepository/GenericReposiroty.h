@@ -7,11 +7,13 @@
 #include <qthread.h>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
-#include <QDateTime>
 #include <QDebug>
 #include <QtSql/qsqlquery.h>
 #include <iostream>
 #include "../../DebugProfiling/Debug_profiling.h"
+#include "Query.h"
+#include "Meta.h"
+#include <QDateTime>
 
 class IDataBase {
 public:
@@ -144,60 +146,8 @@ private:
     QString dbPath;
 };
 
-struct Field{
-    const char* name;
-    const std::type_info& type;
-    std::function<std::any(const void*)> get;
-    std::function<void(void*, const std::any&)> set;
-};
-
-struct Meta {
-    const char* name;
-    const char* tableName;
-    std::vector<Field> fields;
-
-    const Field* find(const std::string& n) const {
-        for (const auto& f : fields)
-            if (n == f.name) return &f;
-        return nullptr;
-    }
-};
-
-template <class T, class M>
-Field make_field(const char* name, M T::* member) {
-    return Field{
-        .name = name,
-        .type = typeid(M),
-        .get = [member](const void* obj) -> std::any {
-            const T* element = static_cast<const T*>(obj);
-            return element->*member;
-        },
-        .set = [member](void* obj, const std::any& val) {
-            T* element = static_cast<T*>(obj);
-
-            if constexpr (std::is_same_v<M, QDateTime>){
-                return element->*member; // just return QDateTime
-            } else {
-                if (!val.has_value()) return;
-                if constexpr (std::is_same_v<M, std::string>) {
-                    if (val.type() == typeid(const char*))
-                        (element->*member) = std::string(std::any_cast<const char*>(val));
-                    else
-                        (element->*member) = std::any_cast<M>(val);
-                } else {
-                    (element->*member) = std::any_cast<M>(val);
-                }
-            }
-        }
-    };
-}
-
-
 template<typename T>
-struct Reflection {
-    static Meta meta();
-};
-
+class Query;
 
 class GenericRepository {
     IDataBase& db;
@@ -229,18 +179,19 @@ public:
 
         if (isInsert) {
             auto [columns, placeholders] = buildInsertParts(meta, entity, values);
-            std::cerr << "builded insert parts : " << id << std::endl;
+            LOG_INFO("builded insert parts '{}'", id);
             sql = QString("INSERT INTO %1 (%2) VALUES (%3)")
                       .arg(QString::fromStdString(meta.tableName))
                       .arg(columns.join(", "))
                       .arg(placeholders.join(", "));
 
         } else {
+            LOG_INFO("Update");
             QStringList sets = buildUpdateParts(meta, entity, values);
             sql = QString("UPDATE %1 SET %2 WHERE id = ?")
                       .arg(QString::fromStdString(meta.tableName))
                       .arg(sets.join(", "));
-            values << id; // why???
+            values << id;
         }
         query.prepare(sql);
         LOG_INFO("[[repository] [save] values size is '{}'", values.size());
@@ -283,8 +234,13 @@ public:
                           .arg(QString::fromStdString(meta.tableName)));
         query.bindValue(0, id);
 
-        if (!query.exec() || !query.next()) {
-            LOG_ERROR("[repository] error select * from '{}', error: '{}'", meta.tableName, query.lastError().text().toStdString());
+        if (!query.exec()) {
+            LOG_ERROR("[repository] SQL error on '{}': {}", meta.tableName, query.lastError().text().toStdString());
+            return std::nullopt;
+        }
+
+        if (!query.next()) {
+            LOG_WARN("[repository] no rows found in '{}'", meta.tableName);
             return std::nullopt;
         }
 
@@ -378,6 +334,12 @@ public:
         cache.clearPrefix(meta.tableName + ":");
     }
 
+    template<typename T>
+    Query<T> query() {
+        auto meta = Reflection<T>::meta();
+        return Query<T>(db.getThreadDatabase(), meta.tableName);
+    }
+
 private:
 
     template<typename T>
@@ -426,9 +388,13 @@ private:
         if (f.type == typeid(std::string)) return QString::fromStdString(std::any_cast<std::string>(val));
         if (f.type == typeid(QDateTime)) {
             QDateTime dt = std::any_cast<QDateTime>(val);
-            return dt.isValid()
-                       ? QVariant(dt.toSecsSinceEpoch())
-                       : QVariant(QVariant::Int);
+
+            if (!dt.isValid()){
+                LOG_WARN("in to variant was invalid datetimp");
+                dt = QDateTime::currentDateTime();
+            }
+
+            return QVariant(dt.toSecsSinceEpoch()); // always valid qlonglong
         }
         return {};
     }

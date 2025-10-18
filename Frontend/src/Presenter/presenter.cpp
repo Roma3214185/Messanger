@@ -3,15 +3,20 @@
 #include <headers/User.h>
 #include "MessageModel/messagemodel.h"
 #include "../../DebugProfiling/Debug_profiling.h"
+#include <QTimer>
 
 Presenter::Presenter(IMainWindow* window, Model* manager)
     : view_(window)
     , manager_(manager)
 {
-    initialConnections();
     view_->setChatModel(manager->getChatModel());
     view_->setUserModel(manager->getUserModel());
     manager_->checkToken();
+
+    messageListView = std::make_unique<MessageListView>();
+    view_->setMessageListView(messageListView.get());
+
+    initialConnections();
 }
 
 void Presenter::signIn(const QString& email, const QString& password){
@@ -29,6 +34,40 @@ void Presenter::initialConnections(){
         manager_->fillChatHistory(chatId);
     });
     connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
+
+    if(!messageListView.get()){
+        LOG_ERROR("MessageListView is nullptr in initial connections");
+        throw std::runtime_error("Nullptr in Presenter::connections");
+    }
+
+    connect(messageListView.get(), &MessageListView::scrollChanged, this, &Presenter::onScroll);
+    connect(manager_, &Model::chatUpdated, this, &Presenter::onChatUpdated);
+}
+
+void Presenter::onChatUpdated(int chatId){
+    if(!currentChatId_) return;
+    QModelIndex idx = manager_->indexByChatId(chatId);
+    if (idx.isValid()) {
+        view_->setCurrentChatIndex(idx);
+        //ui->chatListView->scrollTo(idx, QAbstractItemView::PositionAtCenter);
+    }
+}
+
+void Presenter::onScroll(int value){
+    if(value != 0) return;
+    PROFILE_SCOPE("Presenter::onScroll");
+    int chatId = *currentChatId_;
+    int oldScroll = messageListView->getMaximumMessageScrollBar() -
+                    messageListView->getMessageScrollBarValue();
+
+    auto newMessages = manager_->getChatMessages(chatId, 20);
+    for(auto newMsg: newMessages){
+        manager_->addMessageToChat(chatId, newMsg, false);
+    }
+
+    QTimer::singleShot(0, [this, oldScroll]() {
+        messageListView->setMessageScrollBarValue(messageListView->getMaximumMessageScrollBar() - oldScroll);
+    });
 }
 
 void Presenter::onErrorOccurred(const QString& error){
@@ -58,7 +97,16 @@ void Presenter::on_chat_clicked(const int chatId){
 }
 
 void Presenter::newMessage(const Message& msg){
-    manager_->addMessageToChat(msg.chatId, msg);
+
+    if(currentChatId_.has_value() && currentChatId_ == msg.chatId){
+        int max = messageListView->getMaximumMessageScrollBar();
+        int value = messageListView->getMessageScrollBarValue();
+        manager_->addMessageToChat(msg.chatId, msg);
+        LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
+        if(max == value) messageListView->scrollToBottom();
+    }else{
+        manager_->addMessageToChat(msg.chatId, msg);
+    }
 }
 
 void Presenter::findUserRequest(const QString& text){
@@ -75,8 +123,11 @@ void Presenter::findUserRequest(const QString& text){
 }
 
 void Presenter::openChat(const int chatId){ // make unread message = 0; (?)
-    view_->setChatWindow(manager_->getMessageModel(chatId));
+    PROFILE_SCOPE("Presenter::openChat");
     currentChatId_ = chatId;
+    messageListView->setMessageModel(manager_->getMessageModel(chatId));
+    messageListView->scrollToBottom();
+    view_->setChatWindow();
 }
 
 void Presenter::on_user_clicked(const int userId, const bool isUser){

@@ -31,7 +31,10 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
     void addMessage(Message msg, const User& user);
+    void addMessageInBack(Message msg, const User& user);
     void clear();
+    std::optional<Message> getLastMessage();
+    std::optional<Message> getFirstMessage();
 
 private:
 
