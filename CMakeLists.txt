@@ -38,6 +38,9 @@ add_executable(Chat
     Backend/GenericRepository/GenericReposiroty.h
 
     DebugProfiling/Debug_profiling.h
+    Backend/GenericRepository/Query.h
+    Backend/GenericRepository/Query.cpp
+    Backend/GenericRepository/Meta.h
 )
 
 add_subdirectory(Backend/AuthService)

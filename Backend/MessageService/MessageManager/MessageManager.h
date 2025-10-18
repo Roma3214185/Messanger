@@ -23,8 +23,20 @@ public:
     //     //statusRepo.markDelivered(msg.id, msg.receiver_id);
     // }
 
-    std::vector<Message> getChatMessages(int chatId){
-        return msgRepo.findBy<Message>("chat_id", chatId);
+    std::vector<Message> getChatMessages(int chatId, int limit, int beforeId) const{
+        auto q = msgRepo.query<Message>()
+                    .filter("chat_id", chatId)
+                    .limit(limit)
+                    .orderBy("timestamp", "DESC");
+
+
+        if (beforeId > 0) {
+            q.filter("id", "<", beforeId); // add older messages filter
+        }
+
+        auto messages = q.execute();
+        //std::reverse(messages.begin(), messages.end());
+        return messages;
     }
 
     void saveMessageStatus(MessageStatus& status){
@@ -32,7 +44,13 @@ public:
     }
 
     std::vector<MessageStatus> getUndeliveredMessages(int userId){
-        return msgRepo.findBy<MessageStatus>("receiver_id", userId);
+        auto res = msgRepo.query<MessageStatus>()
+                .filter("receiver_id", userId)
+                     .filter("is_read", "0")
+                     .execute();
+
+        LOG_INFO("getUndeliveredMessages return '{}' messages for userId '{}'", res.size(), userId);
+        return res;
     }
 
 private:

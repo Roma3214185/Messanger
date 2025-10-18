@@ -49,7 +49,7 @@ public:
     QList<User> findUsers(const QString& text);
     optional<User> getUser(const int userId);
     ChatPtr createPrivateChat(int userId);
-    QList<Message> getChatMessages(const int chatId);
+    QList<Message> getChatMessages(int chatId, int limit = 20);
     void sendMessage(const int chatId, const int senderId, const QString& textToSend);
     QList<ChatPtr> loadChats();
     void signMe(const QString& token);

@@ -67,6 +67,7 @@ public:
     bool exists(const std::string& key) {
         bool exist = getRedis().exists(key);
         LOG_INFO("For key '{}' value exist:", key, exist);
+        return exist;
     }
 
 

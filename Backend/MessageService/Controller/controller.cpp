@@ -79,9 +79,16 @@ void Controller::handleGetMessagesFromChat(){
 CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
     ([&](const crow::request& req, int chatId) {
         PROFILE_SCOPE("/messages/id");
+
+        int limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : INT_MAX;
+        int beforeId = req.url_params.get("beforeId") ? std::stoi(req.url_params.get("beforeId")) : 0;
+
+        LOG_INFO("For id '{}' limit is '{}' and beforeId is '{}'", chatId, limit, beforeId);
+
         //make check if u have acess to ges these messagess
 
-        auto messages = manager.getChatMessages(chatId);
+        auto messages = manager.getChatMessages(chatId, limit, beforeId);
+
         LOG_INFO("For chat '{}' finded '{}' messages", chatId, messages.size());
         crow::json::wvalue res = crow::json::wvalue::list();
         int i = 0;

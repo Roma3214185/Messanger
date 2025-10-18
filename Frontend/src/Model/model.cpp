@@ -12,6 +12,7 @@
 #include "MessageModel/messagemodel.h"
 #include "UserModel/UserModel.h"
 #include "../../DebugProfiling/Debug_profiling.h"
+#include <QUrlQuery>
 
 
 Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, QWebSocket* socket)
@@ -157,7 +158,8 @@ ChatPtr Model::loadChat(int chatId) {
     PROFILE_SCOPE("Model::loadChat");
     LOG_INFO("[loadChat] Loading chat id={}", chatId);
 
-    QUrl endpoint = url_.resolved(QUrl(QString("/chats/%1").arg(chatId)));
+    QUrl url("http://localhost:8081");
+    QUrl endpoint = url.resolved(QUrl(QString("/chats/%1").arg(chatId)));
     QNetworkRequest req(endpoint);
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     req.setRawHeader("Authorization", currentToken.toUtf8());
@@ -170,7 +172,6 @@ ChatPtr Model::loadChat(int chatId) {
     auto chat = onChatLoaded(reply);
     if(chat) LOG_INFO("[loadChat] Chat loaded id={}", chatId);
     else LOG_ERROR("[loadChat] Failed to load chat id={}", chatId);
-
     return chat;
 }
 
@@ -338,12 +339,26 @@ QList<ChatPtr> Model::onLoadChats(QNetworkReply* reply) {
     return chats;
 }
 
-QList<Message> Model::getChatMessages(int chatId) {
+QList<Message> Model::getChatMessages(int chatId, int limit) {
     PROFILE_SCOPE("Model::getChatMessages");
-    LOG_INFO("[getChatMessages] Loading messages for chatId={}", chatId);
+    int beforeId = 0;
+    if(messageModelsByChatId.count(chatId)){
+        auto firstMessage = messageModelsByChatId[chatId]->getFirstMessage();
+        if(firstMessage) {
+            LOG_INFO("Last message with id '{}' and text '{}'", firstMessage->id, firstMessage->text.toStdString());
+            beforeId = firstMessage->id;
+        }
+    }
+    LOG_INFO("[getChatMessages] Loading messages for chatId={}, beforeId = '{}'", chatId, beforeId);
 
     QUrl url("http://localhost:8082");
     QUrl endpoint = url.resolved(QUrl(QString("/messages/%1").arg(chatId)));
+    LOG_INFO("For chatId '{}' limit is '{}' and beforeId '{}'", chatId, limit, beforeId);
+    QUrlQuery query;
+    query.addQueryItem("limit", QString::number(limit));
+    query.addQueryItem("beforeId", QString::number(beforeId));
+    endpoint.setQuery(query);
+
     QNetworkRequest req(endpoint);
     auto* reply = netManager->get(req);
 
@@ -560,3 +575,31 @@ ChatModel* Model::getChatModel(){
 UserModel* Model::getUserModel(){
     return userModel.get();
 }
+
+
+/*
+
+SELECT *
+FROM messages
+WHERE chat_id = 5
+ORDER BY id DESC
+LIMIT 20;
+This returns the 20 newest messages.
+
+b) Fetch messages older than a specific ID (beforeId)
+
+SELECT *
+FROM messages
+WHERE chat_id = 5 AND id < 105
+ORDER BY id DESC
+LIMIT 20;
+
+
+auto messages = orm->query<Message>()
+                    .filter("chatId = ?", chatId)
+                    .orderBy("id DESC")
+                    .limit(20)
+                    .execute();
+
+
+*/
