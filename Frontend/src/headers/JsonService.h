@@ -31,11 +31,18 @@ inline Message getMessageFromJson(const QJsonObject& obj) {
         .senderId = obj["sender_id"].toInt(),
         .chatId = obj["chat_id"].toInt(),
         .text = obj["text"].toString(),
-        .timestamp = QDateTime::fromString(obj["timestamp"].toString(), Qt::ISODate)
+        .timestamp = QDateTime::fromString(obj["timestamp"].toString(), Qt::ISODate),
+        .readed_by_me = obj["readed_by_me"].toBool(false)
     };
 
-    spdlog::info("[MESSAGE] id={} | senderId='{}' | chatId='{}' | text='{}' | timestamp='{}'",
-                 msg.id, msg.senderId, msg.chatId, msg.text.toStdString(), msg.timestamp.toString().toStdString());
+    spdlog::info("[MESSAGE] id={} | "
+                 "senderId='{}' | "
+                 "chatId='{}' | "
+                 "text='{}' | "
+                 "timestamp='{}' | readed_by_me = '{}'",
+                 msg.id, msg.senderId,
+                 msg.chatId, msg.text.toStdString(),
+                 msg.timestamp.toString().toStdString(), msg.readed_by_me);
     return msg;
 }
 

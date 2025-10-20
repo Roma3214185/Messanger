@@ -336,9 +336,18 @@ QList<ChatPtr> Model::onLoadChats(QNetworkReply* reply) {
         return {};
     }
 
-    auto doc = QJsonDocument::fromJson(reply->readAll());
+    QByteArray raw = reply->readAll();
+    spdlog::warn("[onLoadChats] RAW RESPONSE ({} bytes):\n{}", raw.size(), raw.toStdString());
+
+    auto doc = QJsonDocument::fromJson(raw);
     if(!doc.isObject() || !doc.object().contains("chats") || !doc.object()["chats"].isArray()) {
-        LOG_ERROR("[onLoadChats] Invalid JSON: missing 'chats' array");
+        if(!doc.isObject()) {
+            LOG_ERROR("[onLoadChats] !dog.isObject()");
+            if(doc.isArray()) LOG_ERROR("[onLoadChats] dog is array");
+            else if(doc.isNull()) LOG_ERROR("[onLoadChats] dog isNULL()");
+        }
+        else if(!doc.object().contains("chats")) LOG_ERROR("[onLoadChats] Invalid JSON: missing 'chats' array");
+        else LOG_ERROR("[onLoadChats] Chats not array");
         Q_EMIT errorOccurred("LoadChats: invalid JSON");
         return {};
     }
@@ -373,15 +382,21 @@ QList<Message> Model::getChatMessages(int chatId, int limit) {
     query.addQueryItem("limit", QString::number(limit));
     query.addQueryItem("beforeId", QString::number(beforeId));
     endpoint.setQuery(query);
-
-    QNetworkRequest req(endpoint);
-    auto* reply = netManager->get(req);
+    auto request = getRequestWithToken(endpoint);
+    auto* reply = netManager->get(request);
 
     QEventLoop loop;
     QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 
     return onGetChatMessages(reply);
+}
+
+QNetworkRequest Model::getRequestWithToken(QUrl endpoint){
+    auto request = QNetworkRequest(endpoint);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setRawHeader("Authorization", currentToken.toUtf8());
+    return request;
 }
 
 QList<Message> Model::onGetChatMessages(QNetworkReply* reply) {
@@ -402,7 +417,9 @@ QList<Message> Model::onGetChatMessages(QNetworkReply* reply) {
     }
 
     QList<Message> messages;
-    for(const auto& val : doc.array()) messages.append(JsonService::getMessageFromJson(val.toObject()));
+    for(const auto& val : doc.array()) {
+        messages.append(JsonService::getMessageFromJson(val.toObject()));
+    }
     LOG_INFO("[onGetChatMessages] Loaded {} messages", messages.size());
     return messages;
 }
@@ -628,34 +645,7 @@ void Model::fillChatHistory(int chatId){
 ChatModel* Model::getChatModel(){
     return chatModel.get();
 }
+
 UserModel* Model::getUserModel(){
     return userModel.get();
 }
-
-
-/*
-
-SELECT *
-FROM messages
-WHERE chat_id = 5
-ORDER BY id DESC
-LIMIT 20;
-This returns the 20 newest messages.
-
-b) Fetch messages older than a specific ID (beforeId)
-
-SELECT *
-FROM messages
-WHERE chat_id = 5 AND id < 105
-ORDER BY id DESC
-LIMIT 20;
-
-
-auto messages = orm->query<Message>()
-                    .filter("chatId = ?", chatId)
-                    .orderBy("id DESC")
-                    .limit(20)
-                    .execute();
-
-
-*/

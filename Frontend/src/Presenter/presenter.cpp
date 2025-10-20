@@ -109,7 +109,8 @@ void Presenter::on_chat_clicked(const int chatId){
     openChat(chatId);
 }
 
-void Presenter::newMessage(const Message& msg){
+void Presenter::newMessage(Message& msg){
+    if(msg.senderId == currentUserId_) msg.readed_by_me = true;
 
     if(currentChatId_.has_value() && currentChatId_ == msg.chatId){
         int max = messageListView->getMaximumMessageScrollBar();

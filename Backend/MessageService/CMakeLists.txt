@@ -23,6 +23,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
 find_package(Crow REQUIRED)
 find_package(spdlog REQUIRED)
 
+link_directories(/opt/homebrew/lib)
+
 
 add_executable(MessageService
   main.cpp
@@ -31,6 +33,11 @@ add_executable(MessageService
   Server/server.h Server/server.cpp
   Headers/Message.h
   MessageManager/MessageManager.h
+  RabbitMQClient/rabbitmqclient.h RabbitMQClient/rabbitmqclient.cpp
+  MessageWorker/messageworker.h MessageWorker/messageworker.cpp
+  NotificationManager/notificationmanager.cpp
+  NotificationManager/notificationmanager.h
+  Headers/NetworkManager.cpp
 )
 
 target_link_libraries(MessageService PRIVATE
@@ -40,7 +47,12 @@ target_link_libraries(MessageService PRIVATE
   Crow::Crow
   redis++
   spdlog::spdlog
-  TracyClient
+  #TracyClient
+  SimpleAmqpClient
+  rabbitmq
+  #boost_system
+  #boost_chrono
+  jwt-cpp
 )
 
 include_directories(

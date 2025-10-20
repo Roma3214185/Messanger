@@ -1,11 +1,10 @@
 #include "server.h"
 #include "controller.h"
 
-Server::Server(int port, MessageManager& m)
+Server::Server(int port, MessageManager& m, NotificationManager& notifManager)
     : port_(port)
-    , manager(m)
 {
-    controller = std::make_unique<Controller>(app, manager);
+    controller = std::make_unique<Controller>(app, m, notifManager);
     handleRountes();
 }
 

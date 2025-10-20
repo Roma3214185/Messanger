@@ -108,12 +108,21 @@ void Controller::handleGetAllChats(){
                 chatJson["member_count"] = db.getMembersCount(chat.id);
             } else {
                 auto otherUserId = db.getOtherMemberId(chat.id, *userId);
-                if (otherUserId) {
-                    auto user = NetworkManager::getUserById(*otherUserId);
-                    chatJson["user"]["id"] = user->id;
-                    chatJson["user"]["name"] = user->name;
-                    chatJson["user"]["avatar"] = user->avatar;
+                if(!otherUserId){
+                    LOG_ERROR("I can't get other member id");
+                    return crow::response(500);
                 }
+
+
+                auto user = NetworkManager::getUserById(*otherUserId);
+                if(!user){
+                    LOG_ERROR("I can't get user with id '{}'", *otherUserId);
+                    return crow::response(500);
+                }
+
+                chatJson["user"]["id"] = user->id;
+                chatJson["user"]["name"] = user->name;
+                chatJson["user"]["avatar"] = user->avatar;
             }
 
             res["chats"][i++] = std::move(chatJson);
