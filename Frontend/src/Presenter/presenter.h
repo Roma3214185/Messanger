@@ -30,12 +30,13 @@ public:
     void sendButtonClicked(const QString& textToSend);
     void on_logOutButtonClicked();
     void onScroll(int value);
+    void setId(int id);
 
 private:
 
     void initialConnections();
     void setUser(const User& user, const QString& token);
-    void newMessage(const Message& message);
+    void newMessage(Message& message);
     void openChat(const int chatId);
     void onErrorOccurred(const QString& error);
     void onChatUpdated(int chatId);

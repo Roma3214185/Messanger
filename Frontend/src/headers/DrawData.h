@@ -12,6 +12,7 @@ struct MessageDrawData {
     QString timestamp;
     int senderId;
     int receiverId;
+    bool isMine;
 };
 
 struct UserDrawData{

@@ -66,13 +66,14 @@ public:
     void logout();
     int getNumberOfExistingChats() const;
     QModelIndex indexByChatId(int chatId) const;
+    void setCurrentId(int id);
 
 Q_SIGNALS:
 
     void chatAdded(const int id);
     void errorOccurred(const QString& error);
     void userCreated(const User& user, const QString& token);
-    void newMessage(const Message& message);
+    void newMessage(Message& message);
     void chatUpdated(int chatId);
 
 private:
@@ -88,6 +89,7 @@ private:
     QList<ChatPtr> onLoadChats(QNetworkReply* reply);
     void onSignMe(QNetworkReply* reply);
     optional<User> onGetUser(QNetworkReply* reply);
+    QNetworkRequest getRequestWithToken(QUrl endpoint);
 
     QUrl url_;
     INetworkAccessManager* netManager;

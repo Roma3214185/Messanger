@@ -23,13 +23,13 @@ public:
 
 private:
 
-    void drawAll(QPainter *painter, const QStyleOptionViewItem &option, const MessageDrawData &msg) const;
+    void drawAll(QPainter *painter, const QStyleOptionViewItem &option, const MessageDrawData &msg, bool isMine) const;
     MessageDrawData extractMessageData(const QModelIndex &index) const;
-    void drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option) const;
-    void drawAvatar(QPainter *painter, const QRect &rect, const QPixmap& avatar, const int senderId, const int receiverId) const;
-    void drawUsername(QPainter *painter, const QRect &rect, const QString &username) const;
-    void drawText(QPainter *painter, const QRect &rect, const QString &text) const;
-    void drawTimestamp(QPainter *painter, const QRect &rect, const QString &timestamp) const;
+    void drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option, bool isMine) const;
+    void drawAvatar(QPainter *painter, const QRect &rect, const QPixmap& avatar, bool isMine) const;
+    void drawUsername(QPainter *painter, const QRect &rect, const QString &username, bool isMine) const;
+    void drawText(QPainter *painter, const QRect &rect, const QString &text, bool isMine) const;
+    void drawTimestamp(QPainter *painter, const QRect &rect, const QString &timestamp, bool isMine) const;
 };
 
 

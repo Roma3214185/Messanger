@@ -103,14 +103,13 @@ public:
 
         if(!query.exec(R"(
             CREATE TABLE IF NOT EXISTS messages_status (
-                id INTEGER,
+                id INT,
                 receiver_id INTEGER,
                 is_read BOOLEAN,
                 read_at INTEGER,
-                FOREIGN KEY(receiver_id) REFERENCES users(id),
                 PRIMARY KEY(id, receiver_id)
             );
-        )")){
+        )")){ //FOREIGN KEY(receiver_id) REFERENCES users(id),
             LOG_ERROR("Messages_status status isn't initialized: '{}'", query.lastError().text().toStdString());
         }
         LOG_INFO("Messages_status is initialized");
@@ -177,22 +176,14 @@ public:
         QString sql;
         QList<QVariant> values;
 
-        if (isInsert) {
-            auto [columns, placeholders] = buildInsertParts(meta, entity, values);
-            LOG_INFO("builded insert parts '{}'", id);
-            sql = QString("INSERT INTO %1 (%2) VALUES (%3)")
-                      .arg(QString::fromStdString(meta.tableName))
-                      .arg(columns.join(", "))
-                      .arg(placeholders.join(", "));
+        auto [columns, placeholders] = buildInsertParts(meta, entity, values);
+        LOG_INFO("builded insert parts '{}'", id);
 
-        } else {
-            LOG_INFO("Update");
-            QStringList sets = buildUpdateParts(meta, entity, values);
-            sql = QString("UPDATE %1 SET %2 WHERE id = ?")
-                      .arg(QString::fromStdString(meta.tableName))
-                      .arg(sets.join(", "));
-            values << id;
-        }
+        sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES (%3)")
+                  .arg(QString::fromStdString(meta.tableName))
+                  .arg(columns.join(", "))
+                  .arg(placeholders.join(", "));
+
         query.prepare(sql);
         LOG_INFO("[[repository] [save] values size is '{}'", values.size());
 
@@ -200,16 +191,17 @@ public:
             query.bindValue(i, values[i]);
 
         if (!query.exec()){
-            LOG_ERROR("[repository] Save failde: '{}'", query.lastError().text().toStdString());
+            LOG_ERROR("[repository] Save failed: '{}'", query.lastError().text().toStdString());
             throw std::runtime_error(("Save failed: " + query.lastError().text()).toStdString());
         }
+
         LOG_INFO("[repository] Save successed");
 
         if (isInsert) {
             QVariant newId = query.lastInsertId();
             if (newId.isValid()) {
-                LOG_INFO("id is valid: '{}'", newId.toLongLong() + 1);
-                idField->set(&entity, newId.toLongLong() + 1);
+                LOG_INFO("id is valid: '{}'", newId.toLongLong());
+                idField->set(&entity, newId.toLongLong());
             }else{
                 LOG_ERROR("[repository] id isn't valid:");
             }
@@ -359,7 +351,7 @@ private:
     QStringList buildUpdateParts(const Meta& meta, const T& entity, QList<QVariant>& values) {
         QStringList sets;
         for (const auto& f : meta.fields) {
-            if (std::string(f.name) == "id") continue;
+            if (std::string(f.name) == "id" && std::string(meta.tableName) != "messages_status") continue;
             sets << QString("%1 = ?").arg(f.name);
             values << toVariant(f, entity);
         }
@@ -370,7 +362,7 @@ private:
     std::pair<QStringList, QStringList> buildInsertParts(const Meta& meta, const T& entity, QList<QVariant>& values) {
         QStringList cols, ph;
         for (const auto& f : meta.fields) {
-            if (std::string(f.name) == "id") continue;
+            if (std::string(f.name) == "id" && std::string(meta.tableName) != "messages_status") continue;
             cols << f.name;
             ph << "?";
             values << toVariant<T>(f, entity);

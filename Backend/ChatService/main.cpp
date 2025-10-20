@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
     init_logger("ChatService");
     QCoreApplication a(argc, argv);
     DataBase db;
+    //db.clearDataBase();
     Server server(CHAT_SERVICE_PORT, db);
     spdlog::info("Chat service on port '{}'", CHAT_SERVICE_PORT);
     server.run();
