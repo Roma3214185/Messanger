@@ -7,20 +7,12 @@
 #include "../MessageManager/MessageManager.h"
 #include "../NotificationManager/notificationmanager.h"
 
-class MessageWorker {
+class MessageWorker
+{
 public:
-    MessageWorker(RabbitMQClient& mq, MessageManager& manager, NotificationManager& notifService)
-        : mq_(mq)
-        , msgManager(manager)
-        , notifService(notifService)
-    {
-        mq_.subscribe("message_events", [this](const std::string& msg){
-            handleEvent(msg);
-        });
-    }
+    MessageWorker(RabbitMQClient& mq, MessageManager& manager, NotificationManager& notifService);
 
     void handleEvent(const std::string& msg);
-
 
 private:
     RabbitMQClient& mq_;

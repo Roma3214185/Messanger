@@ -46,7 +46,7 @@ void Model::checkToken() {
         LOG_INFO("[checkToken] Token found: '{}'", *tokenOpt);
         signMe(QString::fromStdString(*tokenOpt));
     } else {
-        spdlog::warn("[checkToken] No token found");
+        LOG_WARN("[checkToken] No token found");
     }
 }
 

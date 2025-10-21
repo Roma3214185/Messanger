@@ -38,7 +38,7 @@ private:
     void  userConnected(int userId, crow::websocket::connection* conn);
     void onSendMessage(Message message);
     void onMarkReadMessage(Message message, int readBy);
-    std::string getToken(const crow::request& req); //remove from this class
+    std::string getToken(const crow::request& req);
 
 
     NotificationManager notifManager;

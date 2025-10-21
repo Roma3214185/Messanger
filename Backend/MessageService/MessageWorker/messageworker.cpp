@@ -1,6 +1,14 @@
 #include "messageworker.h"
 
-//MessageWorker::MessageWorker() {}
+MessageWorker::MessageWorker(RabbitMQClient& mq, MessageManager& manager, NotificationManager& notifService)
+    : mq_(mq)
+    , msgManager(manager)
+    , notifService(notifService)
+{
+    mq_.subscribe("message_events", [this](const std::string& msg){
+        handleEvent(msg);
+    });
+}
 
 void MessageWorker::handleEvent(const std::string& msg) {
     try {

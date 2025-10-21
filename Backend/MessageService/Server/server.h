@@ -1,15 +1,5 @@
 #ifndef SERVER_H
 #define SERVER_H
-// #ifdef signals
-// #undef signals
-// #endif
-// #ifdef slots
-// #undef slots
-// #endif
-// #ifdef emit
-// #undef emit
-// #endif
-// #define QT_NO_KEYWORDS
 #include <crow.h>
 
 #include "controller.h"
