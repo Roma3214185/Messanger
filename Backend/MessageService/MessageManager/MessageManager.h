@@ -14,6 +14,14 @@ public:
         msgRepo.save(msg);
     }
 
+    std::vector<MessageStatus> getMessageStatusDebug(){
+        auto res =  msgRepo.query<MessageStatus>()
+                       .filter("receiver_id", 3)
+                        .execute();
+        qDebug() << "[getMessageStatusDebug] return size = " << res.size();
+        return res;
+    }
+
     std::optional<Message> getMessage(int id){
         return msgRepo.findOne<Message>(id);
     }

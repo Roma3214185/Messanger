@@ -19,10 +19,6 @@
 #include "../MessageManager/MessageManager.h"
 #include "../NotificationManager/notificationmanager.h"
 
-// using WebsocketPtr = crow::websocket::connection*;
-// using UserId = int;
-// using WebsocketByIdMap = std::unordered_map<UserId, WebsocketPtr>;
-
 class Controller
 {
 
@@ -39,7 +35,6 @@ private:
     void onSendMessage(Message message);
     void onMarkReadMessage(Message message, int readBy);
     std::string getToken(const crow::request& req);
-
 
     NotificationManager notifManager;
     std::mutex socketMutex;

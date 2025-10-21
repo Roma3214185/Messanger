@@ -138,6 +138,11 @@ CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
 
         auto messages = manager.getChatMessages(chatId, limit, beforeId);
 
+        auto allMessagesStatus = manager.getMessageStatusDebug();
+        for(auto status: allMessagesStatus){
+            LOG_INFO("[STATUS] id = '{}' and receiver_id = '{}' and is-read = '{}'", status.id, status.receiver_id, status.is_read);
+        }
+
         LOG_INFO("For chat '{}' finded '{}' messages", chatId, messages.size());
         crow::json::wvalue res = crow::json::wvalue::list();
         int i = 0;

@@ -20,6 +20,7 @@ public:
         involvedTables.push_back(tableName);
     }
 
+
     Query& filter(const std::string& field, const QVariant& value) {
         filters.push_back(QString("%1 = ?").arg(QString::fromStdString(field)));
         values.push_back(value);
