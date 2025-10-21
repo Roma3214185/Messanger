@@ -205,10 +205,6 @@ void MainWindow::seupConnections(){
 
     connect(ui->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
     connect(ui->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
-
-    // connect(ui->messageListView->verticalScrollBar(), &QScrollBar::valueChanged, [=](int value){
-    //     presenter->onScroll(value);
-    // });
 }
 
 void MainWindow::setupUI(){
@@ -229,14 +225,3 @@ void MainWindow::setCurrentChatIndex(QModelIndex idx) {
     ui->chatListView->setCurrentIndex(idx);
 }
 
-// int MainWindow::getMaximumMessageScrollBar(){//const
-//     return ui->messageListView->verticalScrollBar()->maximum();
-// }
-
-// int MainWindow::getMessageScrollBarValue(){ //const
-//     return ui->messageListView->verticalScrollBar()->value();
-// }
-// void MainWindow::setMessageScrollBarValue(int value) {
-//     ui->messageListView->verticalScrollBar()->setValue(value);
-
-// }

@@ -33,6 +33,11 @@ public:
         }
     }
 
+    void incr(const std::string& key){
+        LOG_INFO("INCREMENT key: '{}'", key);
+        redis->incr(key);
+    }
+
     template<typename T>
     std::optional<T> get(const std::string& key) {
         try {

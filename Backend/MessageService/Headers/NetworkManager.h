@@ -18,7 +18,6 @@ std::pair<int, std::string> forward(
     const std::string& method,
     const std::vector<std::pair<std::string, std::string>>& extra_headers = {});
 
-
 QVector<UserId> getMembersOfChat(int chatId);
 
 } // namespace NetworkManager

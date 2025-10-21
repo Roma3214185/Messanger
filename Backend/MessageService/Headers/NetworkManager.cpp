@@ -1,4 +1,3 @@
-
 #include "NetworkManager.h"
 
 namespace NetworkManager {

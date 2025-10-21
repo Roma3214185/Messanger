@@ -64,7 +64,7 @@ inline void to_json(json& j, const Message& m) {
         {"chat_id", m.chat_id},
         {"sender_id", m.sender_id},
         {"text", m.text},
-        {"timestamp", m.timestamp} // ✅ serialize as string
+        {"timestamp", m.timestamp}
     };
 }
 
@@ -81,7 +81,7 @@ inline void to_json(json& j, const MessageStatus& m) {
         {"id", m.id},
         {"receiver_id", m.receiver_id},
         {"is_read", m.is_read},
-        {"read_at", m.read_at} // ✅ serialize as string
+        {"read_at", m.read_at}
     };
 }
 

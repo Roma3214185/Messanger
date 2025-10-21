@@ -12,7 +12,6 @@ inline crow::json::wvalue to_crow_json(const Message& m) {
     j["sender_id"] = m.sender_id;
     j["text"] = m.text;
     j["timestamp"] = QDateTime::fromSecsSinceEpoch(m.timestamp).toString(Qt::ISODate).toStdString();
-    LOG_INFO("Timestamp = ", QDateTime::fromSecsSinceEpoch(m.timestamp).toString(Qt::ISODate).toStdString());
     return j;
 }
 
@@ -102,7 +101,6 @@ CROW_ROUTE(app_, "/ws")
             return;
         }
 
-
         if(msg["type"].s() == "init") {
             int userId = msg["userId"].i();
             userConnected(userId, &conn);
@@ -126,6 +124,7 @@ CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
         PROFILE_SCOPE("/messages/id");
         std::string token = getToken(req);
         std::optional<int> myId = verifyTokenAndGetUserId(token);
+
         if(!myId){         //make check if u have acess to ges these messagess
             LOG_ERROR("Can't verify token");
             return crow::response(500);
@@ -148,13 +147,13 @@ CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
         crow::json::wvalue res = crow::json::wvalue::list();
         int i = 0;
         for (const auto& msg : messages) {
-            auto jsonObject = to_crow_json(msg);
             std::optional<MessageStatus> status_mine_message = manager.getMessageStatus(msg.id, *myId);
             LOG_INFO("Get message status for '{}' and receiver_id '{}'", msg.id, *myId);
             if(!status_mine_message) {
-                LOG_ERROR("status_mine_message = false");
+                LOG_ERROR("status_mine_message = false"); //if u delete message for yourself
                 continue;
             }
+            auto jsonObject = to_crow_json(msg);
             jsonObject["readed_by_me"] = status_mine_message->is_read;
 
             //listOfMessages = manager.getMessageStatus(msg.id)

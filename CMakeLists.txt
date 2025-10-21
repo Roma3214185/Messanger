@@ -41,6 +41,7 @@ add_executable(Chat
     Backend/GenericRepository/Query.h
     Backend/GenericRepository/Query.cpp
     Backend/GenericRepository/Meta.h
+    Backend/GenericRepository/SQLiteDataBase.h
 )
 
 add_subdirectory(Backend/AuthService)
