@@ -16,13 +16,20 @@
 #include <QDateTime>
 #include "SQLiteDataBase.h"
 #include "../MessageService/Headers/Message.h"
+#include "ThreadPool.h"
+
+template <typename T>
+using ResultList = std::vector<T>;
+template <typename T>
+using FutureResultList = std::future<std::vector<T>>;
 
 class GenericRepository {
     IDataBase& db;
     RedisCache& cache = RedisCache::instance();
+    ThreadPool* pool;
 
 public:
-    explicit GenericRepository(IDataBase& db) : db(db) {}
+    explicit GenericRepository(IDataBase& db, ThreadPool* pool = nullptr) : db(db), pool(pool) {}
 
     template<typename T>
     void save(T& entity) {
@@ -76,6 +83,19 @@ public:
         cache.remove(makeKey<T>(id));
         cache.incr(std::string("table_generation:") + meta.tableName);
     }
+
+    // template<typename T>
+    // void saveAsync(T& entity) {
+    //     if(!pool){
+    //         LOG_WARN("Pool isn't initialized");
+    //         save(entity);
+    //     }else{
+    //         LOG_INFO("Start save async");
+    //         pool->enqueue([this, entity]() { return this->save<T>(entity); });
+    //     }
+    // }
+
+
 
     template<typename T>
     std::optional<T> findOne(long long id) {

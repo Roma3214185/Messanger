@@ -30,6 +30,7 @@ add_executable(AuthService
   src/Server/server.cpp
 )
 
+
 target_link_libraries(AuthService PRIVATE
   Qt${QT_VERSION_MAJOR}::Core
   Qt${QT_VERSION_MAJOR}::Sql

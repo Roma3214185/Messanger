@@ -1,5 +1,9 @@
 #ifndef SERVER_H
 #define SERVER_H
+
+#ifdef signals
+#undef signals
+#endif
 #include <crow.h>
 
 #include "controller.h"

@@ -42,6 +42,7 @@ add_executable(Chat
     Backend/GenericRepository/Query.cpp
     Backend/GenericRepository/Meta.h
     Backend/GenericRepository/SQLiteDataBase.h
+    Backend/GenericRepository/ThreadPool.h
 )
 
 
@@ -69,7 +70,7 @@ target_link_libraries(Chat
 )
 
 
-target_link_libraries(AuthService PRIVATE  Qt6::Core jwt-cpp SQLite::SQLite3)
+target_link_libraries(AuthService PRIVATE  Qt6::Core jwt-cpp SQLite::SQLite3 Crow::Crow)
 target_link_libraries(ChatService PRIVATE )
 target_link_libraries(MessageService PRIVATE )
 target_link_libraries(Frontend PRIVATE TracyClient)
