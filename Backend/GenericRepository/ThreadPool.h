@@ -11,7 +11,7 @@
 
 class ThreadPool {
 public:
-    explicit ThreadPool(size_t numThreads){
+    explicit ThreadPool(size_t numThreads) {
         for (size_t i = 0; i < numThreads; ++i) {
             workers.emplace_back([this] {
                 while (true) {
@@ -28,7 +28,7 @@ public:
             });
         }
     }
-    ~ThreadPool(){
+    ~ThreadPool() {
         {
             std::unique_lock<std::mutex> lock(queueMutex);
             stop = true;
@@ -39,7 +39,7 @@ public:
     }
 
     template<class F, class... Args>
-    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type>{
+    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type> {
         using return_type = typename std::invoke_result<F, Args...>::type;
 
         auto task = std::make_shared<std::packaged_task<return_type()>>(

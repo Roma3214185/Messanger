@@ -2,15 +2,7 @@
 
 #include "DataInputService/datainputservice.h"
 
-namespace DataInputService {
-
-static constexpr int kMinPasswordLength = 8;
-static constexpr int kMaxPasswordLength = 22;
-static constexpr int kMinTagLength = 4;
-static constexpr int kMaxTagLength = 11;
-static constexpr int kMinLenOfName = 4;
-static constexpr int kMaxLenOfName = 20;
-static const QString kEmailDomain = "@gmail.com";
+using namespace DataInputService::detail;
 
 namespace {
 
@@ -24,6 +16,8 @@ bool hasConsecutiveUnderscores(QChar ch, QChar prev) {
 
 } // namespace
 
+namespace DataInputService {
+
 bool nameValid(const QString& name) {
     return name.size() >= kMinLenOfName && name.size() <= kMaxLenOfName;
 }
@@ -31,10 +25,10 @@ bool nameValid(const QString& name) {
 bool emailValid(const QString& login) {
     if (!login.endsWith(kEmailDomain)) return false;
 
-    const QString beforeDomain = login.left(login.size() - kEmailDomain.size());
-    if (beforeDomain.isEmpty()) return false;
+    const QString localPart = login.left(login.size() - kEmailDomain.size());
+    if(localPart.size() < kMinEmailLocalPartLength || localPart.size() > kMaxEmailLocalPartLength) return false;
 
-    for (const QChar& ch : beforeDomain) {
+    for (const QChar& ch : localPart) {
         if (!ch.isLetterOrNumber()) return false;
     }
 
@@ -62,6 +56,7 @@ bool passwordValid(const QString& password) {
 bool tagValidCharacters(const QString& tag) {
     if (!firstElementIsLetterOrNumber(tag)) return false;
 
+
     QChar prevChar = QChar();
     for (const QChar& ch : tag) {
         if (ch.isLetterOrNumber() || (ch == '_' && !hasConsecutiveUnderscores(ch, prevChar))) {
@@ -76,8 +71,8 @@ bool tagValidCharacters(const QString& tag) {
 
 bool tagValid(const QString& tag) {
     return tagValidCharacters(tag)
-            && tag.size() >= kMinTagLength
-                && tag.size() <= kMaxTagLength;
+    && tag.size() >= kMinTagLength
+                        && tag.size() <= kMaxTagLength;
 }
 
 } // namespace DataInputService
