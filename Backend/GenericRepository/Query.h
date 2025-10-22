@@ -86,6 +86,30 @@ public:
         return results;
     }
 
+    std::vector<T> executeWithoutCache() const {
+        QString sql = buildSelectQuery();
+        QSqlQuery query(db);
+        query.prepare(sql);
+        for (int i = 0; i < values.size(); ++i)
+            query.bindValue(i, values[i]);
+
+        if (!query.exec()) {
+            LOG_ERROR("Query error: {}", query.lastError().text().toStdString());
+            return {};
+        }
+
+        auto results = std::vector<T>{};
+        auto meta = Reflection<T>::meta();
+
+        while (query.next()){
+            T entity = buildEntity(query, meta);
+            results.push_back(entity);
+        }
+
+        LOG_INFO("Result size is '{}' is setted in cashe for key '{}'", results.size());
+        return results;
+    }
+
     bool deleteAll() const {
         QString sql = QString("DELETE FROM %1").arg(QString::fromStdString(tableName));
         if (!filters.empty())

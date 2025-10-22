@@ -15,6 +15,7 @@
 #include "Meta.h"
 #include <QDateTime>
 #include "SQLiteDataBase.h"
+#include "../MessageService/Headers/Message.h"
 
 class GenericRepository {
     IDataBase& db;
@@ -109,6 +110,30 @@ public:
     }
 
     template<typename T>
+    std::optional<T> findOneWithOutCache(long long id) {
+        const std::string key = makeKey<T>(id);
+        QSqlQuery query(db.getThreadDatabase());
+        auto meta = Reflection<T>::meta();
+        LOG_INFO("Database '{}'", meta.tableName);
+        query.prepare(QString("SELECT * FROM %1 WHERE id = ?")
+                          .arg(QString::fromStdString(meta.tableName)));
+        query.bindValue(0, id);
+
+        if (!query.exec()) {
+            LOG_ERROR("[repository] SQL error on '{}': {}", meta.tableName, query.lastError().text().toStdString());
+            return std::nullopt;
+        }
+
+        if (!query.next()) {
+            LOG_WARN("[repository] no rows found in '{}'", meta.tableName);
+            return std::nullopt;
+        }
+
+        T entity = buildEntity<T>(query, meta);
+        return entity;
+    }
+
+    template<typename T>
     void deleteEntity(T& entity) {
         deleteById(entity.id);
     }
@@ -186,8 +211,13 @@ public:
 private:
 
     template<typename T>
+    std::string makeKey(const T& entity) const{
+        return makeKey(entity.id);
+    }
+
+    template<typename T>
     std::string makeKey(long long id) const {
-        return std::string(Reflection<T>::meta().tableName) + ":" + std::to_string(id);
+        return "entity_cache:" + std::string(Reflection<T>::meta().tableName) + ":" + std::to_string(id);
     }
 
     template<typename T>
