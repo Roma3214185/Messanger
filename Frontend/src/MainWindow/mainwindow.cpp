@@ -66,10 +66,10 @@ void MainWindow::setPresenter(Presenter* presenter)
 
 void MainWindow::on_upSubmitButton_clicked()
 {
-    QString email = ui->upEmail->text().trimmed();
-    QString password = ui->upPassword->text().trimmed();
-    QString tag = ui->upTag->text().trimmed();
-    QString name = ui->upName->text().trimmed();
+    auto email = ui->upEmail->text();
+    auto password = ui->upPassword->text();
+    auto tag = ui->upTag->text();
+    auto name = ui->upName->text();
 
     if(!DataInputService::emailValid(email)){
         showError("Email is invalid");
@@ -103,8 +103,8 @@ void MainWindow::on_upSubmitButton_clicked()
 
 void MainWindow::on_inSubmitButton_clicked()
 {
-    QString email = ui->inEmail->text().trimmed();
-    QString password = ui->inPassword->text().trimmed();
+    auto email = ui->inEmail->text();
+    auto password = ui->inPassword->text();
 
     if(!DataInputService::emailValid(email)){
         showError("Email is invalid");

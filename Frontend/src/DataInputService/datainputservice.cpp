@@ -2,7 +2,15 @@
 
 #include "DataInputService/datainputservice.h"
 
-using namespace DataInputService::detail;
+namespace DataInputService {
+
+static constexpr int kMinPasswordLength = 8;
+static constexpr int kMaxPasswordLength = 22;
+static constexpr int kMinTagLength = 4;
+static constexpr int kMaxTagLength = 11;
+static constexpr int kMinLenOfName = 4;
+static constexpr int kMaxLenOfName = 20;
+static const QString kEmailDomain = "@gmail.com";
 
 namespace {
 
@@ -16,8 +24,6 @@ bool hasConsecutiveUnderscores(QChar ch, QChar prev) {
 
 } // namespace
 
-namespace DataInputService {
-
 bool nameValid(const QString& name) {
     return name.size() >= kMinLenOfName && name.size() <= kMaxLenOfName;
 }
@@ -25,10 +31,10 @@ bool nameValid(const QString& name) {
 bool emailValid(const QString& login) {
     if (!login.endsWith(kEmailDomain)) return false;
 
-    const QString localPart = login.left(login.size() - kEmailDomain.size());
-    if(localPart.size() < kMinEmailLocalPartLength || localPart.size() > kMaxEmailLocalPartLength) return false;
+    const QString beforeDomain = login.left(login.size() - kEmailDomain.size());
+    if (beforeDomain.isEmpty()) return false;
 
-    for (const QChar& ch : localPart) {
+    for (const QChar& ch : beforeDomain) {
         if (!ch.isLetterOrNumber()) return false;
     }
 
