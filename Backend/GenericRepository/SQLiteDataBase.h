@@ -50,7 +50,7 @@ public:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT UNIQUE NOT NULL,
                 tag TEXT NOT NULL,
-                username TEXT NOT NULL,
+                username TEXT NOT NULL
             );
         )")) {
             spdlog::warn("Failed to create users table:", query.lastError().text().toStdString());

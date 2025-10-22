@@ -3,7 +3,7 @@
 
 #include <sw/redis++/redis++.h>
 #include <nlohmann/json.hpp>
-#include <QDebug>
+//#include <QDebug>
 #include <iostream>
 #include "../../DebugProfiling/Debug_profiling.h"
 using namespace sw::redis;

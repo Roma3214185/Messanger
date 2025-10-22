@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.16...3.29)
 project(Chat LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
@@ -44,6 +44,8 @@ add_executable(Chat
     Backend/GenericRepository/SQLiteDataBase.h
 )
 
+
+
 add_subdirectory(Backend/AuthService)
 add_subdirectory(Backend/MessageService)
 add_subdirectory(Backend/ChatService)
@@ -52,6 +54,7 @@ add_subdirectory(Frontend)
 add_subdirectory(external/crow)
 add_subdirectory(external/jwt-cpp)
 add_subdirectory(external/tracy)
+add_subdirectory(Backend/GenericRepository/benchmarks)
 
 target_link_libraries(Chat
     Qt${QT_VERSION_MAJOR}::Core
@@ -75,6 +78,7 @@ target_include_directories(ChatService PRIVATE /usr/local/include /opt/homebrew/
 target_include_directories(AuthService PRIVATE /usr/local/include /opt/homebrew/include)
 target_include_directories(MessageService PRIVATE /usr/local/include /opt/homebrew/include)
 target_include_directories(Frontend PRIVATE /usr/local/include /opt/homebrew/include)
+target_include_directories(benchmarks PRIVATE /usr/local/include /opt/homebrew/include)
 
 target_compile_definitions(Frontend PRIVATE SPDLOG_HEADER_ONLY)
 target_compile_definitions(AuthService PRIVATE SPDLOG_HEADER_ONLY)
