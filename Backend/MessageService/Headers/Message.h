@@ -41,6 +41,37 @@ struct Reflection<Message>{
     }
 };
 
+// template<typename T>
+// struct Builder;
+
+// #define DEFINE_BUILDER(Entity, ...)                       \
+// template<>                                               \
+//     struct Builder<Entity> {                                 \
+//         static Entity build(QSqlQuery& query) {             \
+//             Entity e;                                       \
+//             int i = 0;                                      \
+//             ((__VA_ARGS__ = query.value(i++).toVariant()), ...); \
+//             return e;                                       \
+//     }                                                   \
+// };
+
+// Генерація Builder<Message>
+//DEFINE_BUILDER(Message, id, chat_id, sender_id, text, timestamp)
+
+
+// template<>
+// struct Builder<Message> {
+//     Message build(QSqlQuery& query) const {
+//         Message m;
+//         m.id        = query.value("id").toInt();
+//         m.chat_id   = query.value("chat_id").toInt();
+//         m.sender_id = query.value("sender_id").toInt();
+//         m.text      = query.value("text").toString();
+//         m.timestamp = query.value("timestamp").toInt();
+//         return m;
+//     }
+// };
+
 template <>
 struct Reflection<MessageStatus>{
     static Meta meta(){
@@ -56,6 +87,104 @@ struct Reflection<MessageStatus>{
         };
     }
 };
+
+template<>
+struct Builder<Message> {
+    static Message build(QSqlQuery& query) {
+        Message e;
+        int i = 0;
+
+        auto assign = [&](auto& field) {
+            using TField = std::decay_t<decltype(field)>;
+            QVariant value = query.value(i++);
+            if constexpr (std::is_same_v<TField, long long>)
+                field = value.toLongLong();
+            else if constexpr (std::is_same_v<TField, int>)
+                field = value.toInt();
+            else if constexpr (std::is_same_v<TField, std::string>)
+                field = value.toString().toStdString();
+            else if constexpr (std::is_same_v<TField, QString>)
+                field = value.toString();
+            else
+                field = value.value<TField>();
+        };
+
+        // assign(e.id);
+        // assign(e.chat_id);
+        // assign(e.sender_id);
+        // assign(e.text);
+        // assign(e.timestamp);
+
+        return e;
+    }
+};
+
+template<>
+struct Builder<MessageStatus> {
+    static MessageStatus build(QSqlQuery& query) {
+        MessageStatus e;
+        int i = 0;
+
+        auto assign = [&](auto& field) {
+            using TField = std::decay_t<decltype(field)>;
+            QVariant value = query.value(i++);
+            if constexpr (std::is_same_v<TField, long long>)
+                field = value.toLongLong();
+            else if constexpr (std::is_same_v<TField, int>)
+                field = value.toInt();
+            else if constexpr (std::is_same_v<TField, std::string>)
+                field = value.toString().toStdString();
+            else if constexpr (std::is_same_v<TField, QString>)
+                field = value.toString();
+            else
+                field = value.value<TField>();
+        };
+
+        // assign(e.id);
+        // assign(e.chat_id);
+        // assign(e.sender_id);
+        // assign(e.text);
+        // assign(e.timestamp);
+
+        return e;
+    }
+};
+
+inline constexpr auto MessageFields = std::make_tuple(
+    &Message::id,
+    &Message::chat_id,
+    &Message::sender_id,
+    &Message::text,
+    &Message::timestamp
+    );
+
+inline constexpr auto MessageStatusFields = std::make_tuple(
+    &MessageStatus::id,
+    &MessageStatus::receiver_id,
+    &MessageStatus::is_read,
+    &MessageStatus::read_at
+    );
+
+
+// inline constexpr std::array<MessageFields, 4> uFields = {{
+//     {"id", typeid(long long)},
+//     {"chat_id", typeid(long long)},
+//     {"sender_id", typeid(long long)},
+//     {"text", typeid(QDateTime)},
+//     {"timestamp", typeid(long long)}
+
+// }};
+
+template<>
+struct EntityFields<Message> {
+    static constexpr auto& fields = MessageFields;
+};
+
+template<>
+struct EntityFields<MessageStatus> {
+    static constexpr auto& fields = MessageStatusFields;
+};
+
 
 
 inline void to_json(json& j, const Message& m) {
@@ -91,6 +220,8 @@ inline void from_json(const json& j, MessageStatus& u) {
     j.at("is_read").get_to(u.is_read);
     j.at("read_at").get_to(u.read_at);
 }
+
+
 
 
 

@@ -18,10 +18,15 @@ add_compile_definitions(SPDLOG_HEADER_ONLY)
 include_directories(
     /usr/local/include
     /opt/homebrew/include
+    /opt/homebrew/opt/hiredis/lib
+    /opt/homebrew/opt/redis-plus-plus/lib
 )
+
 link_directories(
     /usr/local/lib
     /opt/homebrew/lib
+    /opt/homebrew/opt/hiredis/lib
+       /opt/homebrew/opt/redis-plus-plus/lib
 )
 
 find_package(Qt6 REQUIRED COMPONENTS Core Network)
@@ -43,6 +48,7 @@ add_executable(Chat
     Backend/GenericRepository/Meta.h
     Backend/GenericRepository/SQLiteDataBase.h
     Backend/GenericRepository/ThreadPool.h
+    Backend/GenericRepository/IEntityBuilder.h
 )
 
 
@@ -62,6 +68,7 @@ target_link_libraries(Chat
     Qt${QT_VERSION_MAJOR}::Network
     SQLite::SQLite3
     redis++
+    hiredis
     Crow::Crow
     jwt-cpp
     spdlog::spdlog
@@ -70,7 +77,9 @@ target_link_libraries(Chat
 )
 
 
-target_link_libraries(AuthService PRIVATE  Qt6::Core jwt-cpp SQLite::SQLite3 Crow::Crow)
+target_link_libraries(AuthService PRIVATE  Qt6::Core jwt-cpp SQLite::SQLite3 Crow::Crow redis++ hiredis)
+target_link_libraries(MessageService PRIVATE redis++ hiredis)
+target_link_libraries(ChatService PRIVATE redis++ hiredis)
 target_link_libraries(ChatService PRIVATE )
 target_link_libraries(MessageService PRIVATE )
 target_link_libraries(Frontend PRIVATE TracyClient)

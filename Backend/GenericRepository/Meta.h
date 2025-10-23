@@ -4,6 +4,9 @@
 #include <any>
 #include "../../DebugProfiling/Debug_profiling.h"
 #include <QDateTime>
+#include <QtSql/QSqlQuery>
+#include <tuple>
+#include <type_traits>
 
 struct Field{
     const char* name;
@@ -67,11 +70,46 @@ Field make_field(const char* name, M T::* member) {
     };
 }
 
+template<typename T, typename FieldTuple>
+struct FastBuilder {
+    static T build(QSqlQuery& query, const FieldTuple& fields) {
+        T entity;
+        int i = 0;
+
+        auto assign = [&](auto ptr) {
+            using MemberType = std::decay_t<decltype(entity.*ptr)>;
+            QVariant value = query.value(i++);
+            if constexpr (std::is_same_v<MemberType, long long>)
+                entity.*ptr = value.toLongLong();
+            else if constexpr (std::is_same_v<MemberType, int>)
+                entity.*ptr = value.toInt();
+            else if constexpr (std::is_same_v<MemberType, std::string>)
+                entity.*ptr = value.toString().toStdString();
+            else if constexpr (std::is_same_v<MemberType, QString>)
+                entity.*ptr = value.toString();
+            else
+                entity.*ptr = value.value<MemberType>();
+        };
+
+        std::apply([&](auto... ptrs){ (assign(ptrs), ...); }, fields);
+
+        return entity;
+    }
+};
+
 
 template<typename T>
 struct Reflection {
     static Meta meta();
 };
+
+template<typename T>
+struct Builder{
+    T build(QSqlQuery& query);
+};
+
+template<typename T>
+struct EntityFields;
 
 
 #endif // META_H

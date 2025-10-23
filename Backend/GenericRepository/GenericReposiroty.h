@@ -17,6 +17,7 @@
 #include "SQLiteDataBase.h"
 #include "../MessageService/Headers/Message.h"
 #include "ThreadPool.h"
+#include "IEntityBuilder.h"
 
 template <typename T>
 using ResultList = std::vector<T>;
@@ -27,7 +28,7 @@ class GenericRepository {
     IDataBase& db;
     RedisCache& cache = RedisCache::instance();
     ThreadPool* pool;
-
+    std::unordered_map<std::string, QSqlQuery> stmtCache; // static tread_local (?)
 public:
     explicit GenericRepository(IDataBase& db, ThreadPool* pool = nullptr) : db(db), pool(pool) {}
 
@@ -51,13 +52,13 @@ public:
         auto [columns, placeholders] = buildInsertParts(meta, entity, values);
 
         QSqlDatabase conn = db.getThreadDatabase();
-        QSqlQuery query(conn);
+        std::string stmtKey = meta.tableName + std::string(":save:") + std::to_string(columns.size());
         QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES (%3)")
                   .arg(QString::fromStdString(meta.tableName))
                   .arg(columns.join(", "))
                   .arg(placeholders.join(", "));
 
-        query.prepare(sql);
+        auto& query = getPreparedQuery(stmtKey, sql);
         LOG_INFO("[repository] [save] values to insert size is '{}'", values.size());
 
         for (int i = 0; i < values.size(); ++i)
@@ -84,18 +85,41 @@ public:
         cache.incr(std::string("table_generation:") + meta.tableName);
     }
 
-    // template<typename T>
-    // void saveAsync(T& entity) {
-    //     if(!pool){
-    //         LOG_WARN("Pool isn't initialized");
-    //         save(entity);
-    //     }else{
-    //         LOG_INFO("Start save async");
-    //         pool->enqueue([this, entity]() { return this->save<T>(entity); });
-    //     }
-    // }
+    template<typename T>
+    void saveAsync(T& entity) {
+        if(!pool){
+            LOG_WARN("Pool isn't initialized");
+            save(entity);
+        }else{
+            LOG_INFO("Start save async");
+            pool->enqueue([this, entity]() { return this->save<T>(entity); });
+        }
+    }
 
+    template<typename T>
+    std::future<std::optional<T>> findOneAsync(long long id) {
+        if(!pool){
+            LOG_WARN("Pool isn't initialized");
+            return std::async(std::launch::deferred, [this, id]() { return this->findOne<T>(id); });
+        }else{
+            LOG_INFO("Start save async");
+            return pool->enqueue([this, id]() { return this->findOne<T>(id); });
+        }
+    }
 
+    template<typename T>
+    std::future<std::optional<T>> findOneWithOutCacheAsync(long long id) {
+        if(!pool){
+            LOG_WARN("Pool isn't initialized");
+            return std::async(std::launch::async, [this, id]() {
+                return this->findOneWithOutCache<T>(id);
+            });
+        } else {
+            return pool->enqueue([this, id]() {
+                return this->findOneWithOutCache<T>(id);
+            });
+        }
+    }
 
     template<typename T>
     std::optional<T> findOne(long long id) {
@@ -105,13 +129,16 @@ public:
             LOG_INFO("[repository] [CACHE HIT] key = '{}'", key);
             return cached;
         }
-
         LOG_INFO("[repository] cashe not hit key = '{}'", key);
-        QSqlQuery query(db.getThreadDatabase());
+
+        QSqlDatabase threadDb = db.getThreadDatabase();
         auto meta = Reflection<T>::meta();
-        LOG_INFO("Database '{}'", meta.tableName);
-        query.prepare(QString("SELECT * FROM %1 WHERE id = ?")
-                          .arg(QString::fromStdString(meta.tableName)));
+
+        QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.tableName);
+        std::string stmtKey = std::string(meta.tableName) + ":findOne";
+
+        auto& query = getPreparedQuery(stmtKey, sql);
+
         query.bindValue(0, id);
 
         if (!query.exec()) {
@@ -124,19 +151,37 @@ public:
             return std::nullopt;
         }
 
-        T entity = buildEntity<T>(query, meta);
+        T entity = buildEntity<T>(query);
         cache.set(key, entity);
         return entity;
     }
 
+    QSqlQuery& getPreparedQuery(const std::string& stmtKey, const QString& sql) {
+        QSqlDatabase threadDb = db.getThreadDatabase();
+
+        auto it = stmtCache.find(stmtKey);
+        if (it == stmtCache.end()) {
+            QSqlQuery query(threadDb);
+            query.prepare(sql);
+            auto [insertIt, _] = stmtCache.emplace(stmtKey, std::move(query));
+            return insertIt->second;
+        } else {
+            it->second.clear();
+            return it->second;
+        }
+    }
+
+
     template<typename T>
     std::optional<T> findOneWithOutCache(long long id) {
         const std::string key = makeKey<T>(id);
-        QSqlQuery query(db.getThreadDatabase());
+        QSqlDatabase threadDb = db.getThreadDatabase();
         auto meta = Reflection<T>::meta();
-        LOG_INFO("Database '{}'", meta.tableName);
-        query.prepare(QString("SELECT * FROM %1 WHERE id = ?")
-                          .arg(QString::fromStdString(meta.tableName)));
+
+        std::string stmtKey = std::string(meta.tableName) + ":findOne";
+        QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.tableName);
+        auto& query = getPreparedQuery(stmtKey, sql);
+
         query.bindValue(0, id);
 
         if (!query.exec()) {
@@ -149,8 +194,7 @@ public:
             return std::nullopt;
         }
 
-        T entity = buildEntity<T>(query, meta);
-        return entity;
+        return buildEntity<T>(query);
     }
 
     template<typename T>
@@ -162,10 +206,12 @@ public:
     void deleteById(long long id) {
         PROFILE_SCOPE("[repository] DeleteById");
         auto meta = Reflection<T>::meta();
-        LOG_INFO("[repository] Databse: '{}'", meta.tableName);
-        QSqlQuery query(db.getThreadDatabase());
-        query.prepare(QString("DELETE FROM %1 WHERE id = ?")
-                          .arg(QString::fromStdString(meta.tableName)));
+        QString sql = QString("DELETE FROM %1 WHERE id = ?")
+                          .arg(QString::fromStdString(meta.tableName));
+
+        std::string stmKey = meta.tableName + std::string(":deleteById");
+        auto& query = getPreparedQuery(stmKey, sql);
+
         query.bindValue(0, id);
 
         if (!query.exec()){
@@ -197,9 +243,10 @@ public:
 
         auto meta = Reflection<T>::meta();
         LOG_INFO("[repository] CACHE not HIT in db '{}', key '{}'", meta.tableName, key);
-        QSqlQuery query(db.getThreadDatabase());
-        query.prepare(QString("SELECT COUNT(1) FROM %1 WHERE id = ?")
-                          .arg(QString::fromStdString(meta.tableName)));
+        QString sql = QString("SELECT COUNT(1) FROM %1 WHERE id = ?")
+                          .arg(QString::fromStdString(meta.tableName));
+        std::string stmKey = meta.tableName + std::string(":exists");
+        auto& query = getPreparedQuery(stmKey, sql);
         query.bindValue(0, id);
 
         if (!query.exec() || !query.next()) {
@@ -213,10 +260,11 @@ public:
 
     template<typename T>
     void truncate() {
-        auto meta = Reflection<T>::meta();
         LOG_INFO("[repository] Truncate db '{}'");
-        QSqlQuery query(db.getThreadDatabase());
-        QString sql = QString("DELETE FROM %1").arg(QString::fromStdString(meta.tableName)); // a очистити кеш?
+        auto meta = Reflection<T>::meta();
+        QString sql = QString("DELETE FROM %1").arg(QString::fromStdString(meta.tableName));
+        std::string stmKey = meta.tableName + std::string(":truncate");
+        auto& query = getPreparedQuery(stmKey, sql);
         if (!query.exec())
             throw std::runtime_error(("Truncate failed: " + query.lastError().text()).toStdString());
         cache.clearPrefix(meta.tableName + ":");
@@ -224,8 +272,13 @@ public:
 
     template<typename T>
     Query<T> query() {
-        auto meta = Reflection<T>::meta();
-        return Query<T>(db.getThreadDatabase());
+        return Query<T>(this->db);
+    }
+
+    template<typename T>
+    T buildEntity(QSqlQuery& query, BuilderType type = BuilderType::Fast) const {
+        auto builder = makeBuilder<T>(type);
+        return builder->build(query);
     }
 
 private:
@@ -290,22 +343,6 @@ private:
             return QVariant(dt.toSecsSinceEpoch());
         }
         return {};
-    }
-
-    template<typename T>
-    T buildEntity(QSqlQuery& query, const Meta& meta) const {
-        T entity;
-        for (const auto& f : meta.fields) {
-            QVariant v = query.value(f.name);
-            if (!v.isValid()) continue;
-
-            std::any val;
-            if (f.type == typeid(long long)) val = v.toLongLong();
-            else if (f.type == typeid(std::string)) val = v.toString().toStdString();
-            else if (f.type == typeid(QDateTime)) val = v.toDateTime();
-            f.set(&entity, val);
-        }
-        return entity;
     }
 };
 

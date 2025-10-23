@@ -36,6 +36,10 @@ target_link_libraries(ChatService PRIVATE
     Qt${QT_VERSION_MAJOR}::Sql
     Crow::Crow
     jwt-cpp
+    hiredis
     spdlog::spdlog
     TracyClient
 )
+
+include_directories(/opt/homebrew/include)
+link_directories(/opt/homebrew/lib)

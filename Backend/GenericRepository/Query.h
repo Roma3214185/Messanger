@@ -4,6 +4,8 @@
 #include "GenericReposiroty.h"
 #include "../GenericRepository/GenericReposiroty.h"
 #include "Meta.h"
+#include "ThreadPool.h"
+#include "SQLiteDataBase.h"
 
 struct Meta;
 
@@ -12,14 +14,15 @@ struct Reflection;
 
 template<typename T>
 class Query {
+    inline static ThreadPool pool{4};
+    IDataBase& db;
 public:
-    Query(QSqlDatabase db)
-        : db(std::move(db))
+    explicit Query(IDataBase& db)
+        : db(db)
     {
         tableName = Reflection<T>::meta().tableName;
         involvedTables.push_back(tableName);
     }
-
 
     Query& filter(const std::string& field, const QVariant& value) {
         filters.push_back(QString("%1 = ?").arg(QString::fromStdString(field)));
@@ -62,7 +65,8 @@ public:
 
         LOG_INFO("[QueryCache] NOT HITTED for key '{}'", cacheKey);
 
-        QSqlQuery query(db);
+        QSqlDatabase threadDb = db.getThreadDatabase(); // <-- use value, not ref
+        QSqlQuery query(threadDb);
         query.prepare(sql);
         for (int i = 0; i < values.size(); ++i)
             query.bindValue(i, values[i]);
@@ -78,17 +82,31 @@ public:
         while (query.next()){
             T entity = buildEntity(query, meta);
             results.push_back(entity);
-            saveEntityInCache(entity);
         }
+
+        cache.saveEntities(results, tableName); // 2x faster
 
         LOG_INFO("Result size is '{}' is setted in cashe for key '{}'", results.size(), cacheKey);
         cache.set(cacheKey, results, std::chrono::hours(24));
         return results;
     }
 
+    std::future<std::vector<T>> executeAsync() const {
+        return pool.enqueue([this]() {
+            return execute();
+        });
+    }
+
+    std::future<std::vector<T>> executeWithoutCacheAsync() const {
+        return pool.enqueue([this]() {
+            return executeWithoutCache(); // DB initialized in this thread
+        });
+    }
+
     std::vector<T> executeWithoutCache() const {
         QString sql = buildSelectQuery();
-        QSqlQuery query(db);
+        QSqlDatabase threadDb = db.getThreadDatabase(); // safe: value, thread-local initialized in current thread
+        QSqlQuery query(threadDb);
         query.prepare(sql);
         for (int i = 0; i < values.size(); ++i)
             query.bindValue(i, values[i]);
@@ -98,15 +116,13 @@ public:
             return {};
         }
 
-        auto results = std::vector<T>{};
+        std::vector<T> results;
         auto meta = Reflection<T>::meta();
-
-        while (query.next()){
-            T entity = buildEntity(query, meta);
-            results.push_back(entity);
+        while (query.next()) {
+            results.push_back(buildEntity(query, meta));
         }
 
-        LOG_INFO("Result size is '{}' is setted in cashe for key '{}'", results.size());
+        LOG_INFO("Result size is '{}'", results.size());
         return results;
     }
 
@@ -151,7 +167,7 @@ private:
         return entity;
     }
 
-    int getEntityId(T entity) const {
+    int getEntityId(const T& entity) const{
         return entity.id;
     }
 
@@ -205,7 +221,6 @@ private:
 private:
     RedisCache& cache = RedisCache::instance();
     std::vector<std::string> involvedTables;
-    QSqlDatabase db;
     QStringList filters;
     QVector<QVariant> values;
     QString order;
