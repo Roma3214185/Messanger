@@ -56,6 +56,7 @@ bool passwordValid(const QString& password) {
 bool tagValidCharacters(const QString& tag) {
     if (!firstElementIsLetterOrNumber(tag)) return false;
 
+
     QChar prevChar = QChar();
     for (const QChar& ch : tag) {
         if (ch.isLetterOrNumber() || (ch == '_' && !hasConsecutiveUnderscores(ch, prevChar))) {
@@ -70,8 +71,8 @@ bool tagValidCharacters(const QString& tag) {
 
 bool tagValid(const QString& tag) {
     return tagValidCharacters(tag)
-            && tag.size() >= kMinTagLength
-                && tag.size() <= kMaxTagLength;
+    && tag.size() >= kMinTagLength
+                        && tag.size() <= kMaxTagLength;
 }
 
 } // namespace DataInputService

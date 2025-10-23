@@ -18,6 +18,32 @@ public:
         return inst;
     }
 
+    template <typename T>
+    void saveEntities(const std::vector<T>& results, std::string tableName, std::chrono::minutes ttl = std::chrono::minutes(30)){
+        try {
+            auto pipe = redis->pipeline();
+
+            for (const auto& entity : results) {
+                std::string entityKey = buildEntityKey(entity, tableName);
+                auto value = serialize(entity);
+                redis->set(entityKey, value, ttl);
+            }
+
+            pipe.exec();
+            LOG_INFO("Saved {} entities in Redis pipeline", results.size());
+
+        } catch (const sw::redis::Error& e) {
+            LOG_ERROR("Redis pipeline failed: {}", e.what());
+        }
+    }
+
+    template <typename T>
+    void saveEntity(const T& entity, std::string tableName, std::chrono::minutes ttl = std::chrono::minutes(30)){
+        std::string entityKey = buildEntityKey(entity, tableName);
+        auto value = serialize(entity);
+        set(entityKey, value, ttl);
+    }
+
     template<typename T, typename Duration = std::chrono::hours>
     void set(const std::string& key, const T& value, Duration ttl = std::chrono::hours(24)) {
         try {
@@ -80,8 +106,16 @@ private:
     std::unique_ptr<Redis> redis;
     std::mutex initMutex;
 
-    RedisCache(){
+    RedisCache(){ }
 
+    template <typename T>
+    std::string buildEntityKey(const T& entity, std::string tableName) const {
+        return "entity_cache:" + tableName + ":" + std::to_string(getEntityId(entity));
+    }
+
+    template <typename T>
+    long long getEntityId(const T& entity) const {
+        return entity.id;
     }
 
     Redis& getRedis() {

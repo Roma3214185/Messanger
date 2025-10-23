@@ -5,8 +5,6 @@
 
 int main(int argc, char** argv) {
     QCoreApplication app(argc, argv);
-    // SQLiteDatabase db;
-    // globalDb = &db;
 
     auto null_logger = spdlog::stderr_color_mt("null");
     null_logger->set_level(spdlog::level::off);

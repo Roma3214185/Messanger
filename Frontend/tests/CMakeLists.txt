@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Catch2 REQUIRED)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network WebSockets Gui Test)
 find_package(spdlog REQUIRED)
 
@@ -18,6 +19,8 @@ add_library(FrontendServiceLib
     ../src/UserModel/UserModel.cpp
     ../src/headers/MockReply.h
     ../src/DataInputService/datainputservice.cpp
+
+    DataInputServices/README.md
 )
 
 target_include_directories(FrontendServiceLib
@@ -39,13 +42,12 @@ target_link_libraries(FrontendServiceLib
         Qt6::WebSockets
         Qt6::Test
     spdlog::spdlog
-    #hiredis
 )
 
 add_executable(FrontendServiceTests
     presenter_tests.cpp
     model_tests.cpp
-    DataInputService_tests.cpp
+    DataInputServices/DataInputServices_tests.cpp
 )
 
 target_link_libraries(FrontendServiceTests

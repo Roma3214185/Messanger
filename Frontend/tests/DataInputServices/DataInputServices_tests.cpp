@@ -11,13 +11,18 @@ TEST_CASE("Testing password checking in datainputservice", "[auth][password]") {
         REQUIRE(DataInputService::passwordValid(password) == true);
     }
 
-    SECTION("ShortPasswordExpectedFalse") {
-        QString password = "1234567";
-        REQUIRE(DataInputService::passwordValid(password) == false);
+    SECTION("ValidPasswordExpectedTrue") {
+        QString password = "123455760";
+        REQUIRE(DataInputService::passwordValid(password) == true);
     }
 
     SECTION("PasswordWithInvalidCharacterExpectedFalse") {
         QString password = "12345&6789";
+        REQUIRE(DataInputService::passwordValid(password) == false);
+    }
+
+    SECTION("PasswordWithTwoInvalidCharacterExpectedFalse") {
+        QString password = "12#345&6789";
         REQUIRE(DataInputService::passwordValid(password) == false);
     }
 
@@ -27,13 +32,23 @@ TEST_CASE("Testing password checking in datainputservice", "[auth][password]") {
     }
 
     SECTION("PasswordWithEmpyCharacterInfrontExpectedFalse") {
-        QString password = "12345&6789";
+        QString password = " 1234536789";
+        REQUIRE(DataInputService::passwordValid(password) == false);
+    }
+
+    SECTION("PasswordWithEmpyCharactersExpectedFalse") {
+        QString password = " 12345    367893";
+        REQUIRE(DataInputService::passwordValid(password) == false);
+    }
+
+    SECTION("PasswordWithNotPermittedCharacterExpectedFalse") {
+        QString password = "12345&36789";
         REQUIRE(DataInputService::passwordValid(password) == false);
     }
 
     SECTION("PasswordMoreThanMaxValidLengthCharactersExpectedFalse") {
         const int maxValidLength = DISC::kMaxPasswordLength;
-        QString password = QString(maxValidLength + 1, 'a');
+        QString password = QString(maxValidLength + 2, 'b');
 
         REQUIRE(DataInputService::passwordValid(password) == false);
     }
@@ -42,13 +57,13 @@ TEST_CASE("Testing password checking in datainputservice", "[auth][password]") {
 TEST_CASE("Testing tag in datainputservice", "[auth][tag]") {
 
     SECTION("TagEmptyExpectedFalse") {
-        QString tag;
+        QString tag = "";
         REQUIRE(DataInputService::tagValid(tag) == false);
     }
 
     SECTION("TagLessThanMinValidTagLenExpectedFalse") {
-        const int minValidTagLen = DISC::kMinPasswordLength;
-        QString tag = QString(minValidTagLen - 1, '.');
+        const int minValidTagLen = DISC::kMinTagLength;
+        QString tag = QString(minValidTagLen - 1, 'a');
         REQUIRE(DataInputService::tagValid(tag) == false);
     }
 
@@ -101,7 +116,7 @@ TEST_CASE("Testing email in datainputservice", "[auth][email]") {
         REQUIRE(DataInputService::emailValid(email) == false);
     }
 
-    SECTION("EmailIsMoreThanMaxValidLenExpectedFalse"){
+    SECTION("EmailIsMoreThanMaxValidLenExpectedFalse") {
         const int maxValidEmailLen = DISC::kMaxEmailLocalPartLength;
         QString email = QString(maxValidEmailLen + 1, 'a') + DISC::kEmailDomain;
 
@@ -138,5 +153,4 @@ TEST_CASE("Testing name in datainputservice", "[auth][name]") {
         REQUIRE(DataInputService::nameValid(name) == false);
     }
 }
-
 

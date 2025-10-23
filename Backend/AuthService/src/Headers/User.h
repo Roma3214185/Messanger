@@ -30,6 +30,49 @@ struct Reflection<User> {
     }
 };
 
+inline constexpr auto UserFields = std::make_tuple(
+    &User::id,
+    &User::email,
+    &User::tag,
+    &User::username
+    );
+
+template<>
+struct EntityFields<User> {
+    static constexpr auto& fields = UserFields;
+};
+
+
+
+
+
+template<>
+struct Builder<User> {
+    static User build(QSqlQuery& query) {
+        User e;
+        int i = 0;
+
+        auto assign = [&](auto& field) {
+            using TField = std::decay_t<decltype(field)>;
+            QVariant value = query.value(i++);
+            if constexpr (std::is_same_v<TField, long long>)
+                field = value.toLongLong();
+            else if constexpr (std::is_same_v<TField, int>)
+                field = value.toInt();
+            else if constexpr (std::is_same_v<TField, std::string>)
+                field = value.toString().toStdString();
+            else if constexpr (std::is_same_v<TField, QString>)
+                field = value.toString();
+            else
+                field = value.value<TField>();
+        };
+
+        return e;
+    }
+};
+
+
+
 inline void to_json(json& j, const User& u) {
     j = json{
         {"id", u.id},
