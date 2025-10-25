@@ -63,60 +63,69 @@ inline Message from_crow_json(const crow::json::rvalue& j) {
     return m;
 }
 
-
-
-Controller::Controller(crow::SimpleApp& app, MessageManager& manager, NotificationManager& notifManager)
+Controller::Controller(crow::SimpleApp& app, RabbitMQClient& mq, MessageManager& manager)
     : app_(app)
     , manager(manager)
-    , notifManager(notifManager)
+    , mq(mq)
 {
+    mq.subscribe("message_service.in", [this, &mq, &manager](const std::string& body) {
+        auto jsonMsg = json::parse(body);
+        if (jsonMsg["event"] == "message_to_save") {
+            Message message;
+            from_json(jsonMsg, message);
+            LOG_INFO("Message to save id = '{}' | text '{}'", message.id, message.text);
+            manager.saveMessage(message);
 
+            //msg["event"] = "message.saved";
+            //msg["status"] = "ok";
+        }
+    });
 }
 
 void Controller::handleRoutes(){
     handleGetMessagesFromChat();
-    handleSocket();
+    //handleSocket();
 }
 
-void Controller::handleSocket(){
-CROW_ROUTE(app_, "/ws")
-    .websocket(&app_)
-    .onopen([&](crow::websocket::connection& conn) {
-        LOG_INFO("Websocket is connected");
-    })
-    .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
-        LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason, code);
-        notifManager.deleteConnections(&conn);
-    })
-    .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
-        auto msg = crow::json::load(data);
+// void Controller::handleSocket(){
+// CROW_ROUTE(app_, "/ws")
+//     .websocket(&app_)
+//     .onopen([&](crow::websocket::connection& conn) {
+//         LOG_INFO("Websocket is connected");
+//     })
+//     .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
+//         LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason, code);
+//         //notifManager.deleteConnections(&conn);
+//     })
+//     .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
+//         auto msg = crow::json::load(data);
 
-        if (!msg) {
-            LOG_ERROR("[onMessage] Failed in loading message");
-            return;
-        }
+//         if (!msg) {
+//             LOG_ERROR("[onMessage] Failed in loading message");
+//             return;
+//         }
 
-        if (!msg.has("type")){
-            LOG_ERROR("[onMessage] No type");
-            return;
-        }
+//         if (!msg.has("type")){
+//             LOG_ERROR("[onMessage] No type");
+//             return;
+//         }
 
-        if(msg["type"].s() == "init") {
-            int userId = msg["userId"].i();
-            userConnected(userId, &conn);
-            LOG_INFO("[onMessage] Socket is registered for userId '{}'", userId);
-        } else if (msg["type"].s() == "send_message") {
-            auto message = from_crow_json(msg);
-            onSendMessage(message);
-        }else if(msg["type"].s() == "mark_read"){
-            auto message = from_crow_json(msg);
-            int readBy = msg["receiver_id"].i();
-            onMarkReadMessage(message, readBy);
-        }else{
-            LOG_ERROR("[onMessage] Invalid type");
-        }
-    });
-}
+//         if(msg["type"].s() == "init") {
+//             int userId = msg["userId"].i();
+//             userConnected(userId, &conn);
+//             LOG_INFO("[onMessage] Socket is registered for userId '{}'", userId);
+//         } else if (msg["type"].s() == "send_message") {
+//             auto message = from_crow_json(msg);
+//             onSendMessage(message);
+//         }else if(msg["type"].s() == "mark_read"){
+//             auto message = from_crow_json(msg);
+//             int readBy = msg["receiver_id"].i();
+//             onMarkReadMessage(message, readBy);
+//         }else{
+//             LOG_ERROR("[onMessage] Invalid type");
+//         }
+//     });
+// }
 
 void Controller::handleGetMessagesFromChat(){
 CROW_ROUTE(app_, "/messages/<int>").methods(crow::HTTPMethod::GET)
@@ -171,45 +180,45 @@ std::string Controller::getToken(const crow::request& req){
     return req.get_header_value("Authorization");
 }
 
-void Controller::userConnected(int userId, crow::websocket::connection* conn){
-    notifManager.saveConnections(userId, conn);
-    // notify users who communicate with this user
-}
+// void Controller::userConnected(int userId, crow::websocket::connection* conn){
+//     //notifManager.saveConnections(userId, conn);
+//     // notify users who communicate with this user
+// }
 
-void Controller::onMarkReadMessage(Message message, int readBy){
-    MessageStatus status{
-        .id = message.id,
-        .receiver_id = readBy,
-        .is_read = true,
-        .read_at = QDateTime::currentDateTime().toSecsSinceEpoch()
-    };
-    manager.saveMessageStatus(status);
-    notifManager.notifyMessageRead(message.id, status);
-}
+// void Controller::onMarkReadMessage(Message message, int readBy){
+//     MessageStatus status{
+//         .id = message.id,
+//         .receiver_id = readBy,
+//         .is_read = true,
+//         .read_at = QDateTime::currentDateTime().toSecsSinceEpoch()
+//     };
+//     manager.saveMessageStatus(status);
+//     notifManager.notifyMessageRead(message.id, status);
+// }
 
 void Controller::onSendMessage(Message msg){
     PROFILE_SCOPE("Controller::onSendMessage");
     LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')", msg.sender_id, msg.chat_id, msg.text);
 
-    //try catch
+
     manager.saveMessage(msg);
-    LOG_INFO("Message('{}') is saved with id '{}'", msg.text, msg.id);
+
+    // auto members_of_chat = NetworkManager::getMembersOfChat(msg.chat_id);
+
+    // LOG_INFO("Message('{}') is saved with id '{}'", msg.text, msg.id);
+    // qDebug() << "Chat members is " << members_of_chat.size();
+    // LOG_INFO("For chat id '{}' finded '{}' members", msg.chat_id, members_of_chat.size());
 
 
-    auto members_of_chat = NetworkManager::getMembersOfChat(msg.chat_id);
-    qDebug() << "Chat members is " << members_of_chat.size();
-    LOG_INFO("For chat id '{}' finded '{}' members", msg.chat_id, members_of_chat.size());
+    // for(auto toUser: members_of_chat){
+    //     LOG_INFO("Chat id: '{}'; member is ", msg.chat_id, toUser);
 
-
-    for(auto toUser: members_of_chat){
-        LOG_INFO("Chat id: '{}'; member is ", msg.chat_id, toUser);
-
-        MessageStatus msgStatus{
-            .id = msg.id,
-            .receiver_id = toUser,
-            .is_read = false
-        };
-        manager.saveMessageStatus(msgStatus);
-        notifManager.notifyNewMessages(msg, toUser);
-    }
+    //     MessageStatus msgStatus{
+    //         .id = msg.id,
+    //         .receiver_id = toUser,
+    //         .is_read = false
+    //     };
+    //     manager.saveMessageStatus(msgStatus);
+    //     notifManager.notifyNewMessages(msg, toUser);
+    // }
 }
