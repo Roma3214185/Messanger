@@ -15,7 +15,7 @@ FetchContent_MakeAvailable(httplib)
 
 # Додаємо шляхи до своїх заголовків
 include_directories(
-    ${httplib_SOURCE_DIR}          # httplib
+    ${httplib_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataBase
     ${CMAKE_CURRENT_SOURCE_DIR}/src/headers
@@ -43,3 +43,15 @@ target_link_libraries(ChatService PRIVATE
 
 include_directories(/opt/homebrew/include)
 link_directories(/opt/homebrew/lib)
+
+include(GNUInstallDirs)
+install(TARGETS ChatService
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+set_target_properties(ChatService PROPERTIES
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)

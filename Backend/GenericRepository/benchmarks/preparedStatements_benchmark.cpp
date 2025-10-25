@@ -24,8 +24,8 @@ static void PrepareQueryWithCache(benchmark::State& state) {
     }
 }
 
-BENCHMARK(PrepareQuery);
-BENCHMARK(PrepareQueryWithCache);
+BENCHMARK(PrepareQuery)->Iterations(100);
+BENCHMARK(PrepareQueryWithCache)->Iterations(100);
 
 //cmake .. -DCMAKE_BUILD_TYPE=Release
 //cmake --build . --target benchmarks

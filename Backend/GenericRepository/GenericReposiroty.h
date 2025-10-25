@@ -18,6 +18,7 @@
 #include "../MessageService/Headers/Message.h"
 #include "ThreadPool.h"
 #include "IEntityBuilder.h"
+#include <QtSql/QSqlDriver>
 
 template <typename T>
 using ResultList = std::vector<T>;
@@ -31,6 +32,15 @@ class GenericRepository {
     std::unordered_map<std::string, QSqlQuery> stmtCache; // static tread_local (?)
 public:
     explicit GenericRepository(IDataBase& db, ThreadPool* pool = nullptr) : db(db), pool(pool) {}
+
+    QSqlDatabase& getThreadDatabase() {
+        return db.getThreadDatabase();
+    }
+
+    void clearCache(){
+        cache.clearCache();
+    }
+
 
     template<typename T>
     void save(T& entity) {
@@ -58,7 +68,9 @@ public:
                   .arg(columns.join(", "))
                   .arg(placeholders.join(", "));
 
-        auto& query = getPreparedQuery(stmtKey, sql);
+        //auto& query = getPreparedQuery(stmtKey, sql);
+        QSqlQuery query(conn);
+        query.prepare(sql);
         LOG_INFO("[repository] [save] values to insert size is '{}'", values.size());
 
         for (int i = 0; i < values.size(); ++i)
@@ -82,6 +94,81 @@ public:
         }
 
         cache.remove(makeKey<T>(id));
+        cache.incr(std::string("table_generation:") + meta.tableName);
+    }
+
+    template<typename T>
+    void save(std::vector<T>& entities) {
+        if (entities.empty()) return;
+
+        PROFILE_SCOPE("[repository] Save batch");
+        auto meta = Reflection<T>::meta();
+        LOG_INFO("Save batch in db: '{}', count: {}", meta.tableName, entities.size());
+
+        const Field* idField = meta.find("id");
+        if (!idField) {
+            LOG_ERROR("[save] Missing id field in meta");
+            throw std::runtime_error("Missing 'id' field in meta");
+        }
+
+        QSqlDatabase& conn = db.getThreadDatabase();
+
+        // Prepare SQL for batch insert
+        QStringList allColumns;
+        std::vector<QList<QVariant>> allValues;
+
+        for (auto& entity : entities) {
+            auto values = QList<QVariant>{};
+            auto [columns, placeholders] = buildInsertParts(meta, entity, values);
+
+            if (allColumns.empty()) {
+                allColumns = QStringList();
+                for (const auto& c : columns) allColumns << c;
+            }
+
+            allValues.push_back(values);
+        }
+
+        QStringList placeholdersList;
+        for (size_t i = 0; i < allValues.size(); ++i) {
+            QStringList ph;
+            for (int j = 0; j < allValues[i].size(); ++j)
+                ph << "?";
+            placeholdersList << "(" + ph.join(", ") + ")";
+        }
+
+        QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES %3")
+                          .arg(QString::fromStdString(meta.tableName))
+                          .arg(allColumns.join(", "))
+                          .arg(placeholdersList.join(", "));
+
+        QSqlQuery query(conn);
+        query.prepare(sql);
+
+        // Bind all values
+        int paramIndex = 0;
+        for (auto& values : allValues) {
+            for (auto& v : values) {
+                query.bindValue(paramIndex++, v);
+            }
+        }
+
+        if (!query.exec()) {
+            LOG_ERROR("[repository] Save batch failed: '{}'", query.lastError().text().toStdString());
+            throw std::runtime_error(("Save batch failed: " + query.lastError().text()).toStdString());
+        }
+
+        LOG_INFO("[repository] Save batch successed, {} rows", entities.size());
+
+        // Update IDs for inserted entities
+        QVariant lastId = query.lastInsertId();
+        for (auto& entity : entities) {
+            if (lastId.isValid()) {
+                idField->set(&entity, lastId.toLongLong()); // simple decrement to assign unique IDs
+            }
+            cache.remove(makeKey<T>(std::any_cast<long long>(idField->get(&entity))));
+        }
+
         cache.incr(std::string("table_generation:") + meta.tableName);
     }
 
@@ -156,6 +243,77 @@ public:
         return entity;
     }
 
+    // template<typename T>
+    // void saveAsync(T& entity) {
+    //     if(!pool){
+    //         LOG_WARN("Pool isn't initialized");
+    //         save(entity);
+    //     }else{
+    //         LOG_INFO("Start save async");
+    //         pool->enqueue([this, entity]() { return this->save<T>(entity); });
+    //     }
+    // }
+
+    // template<typename T>
+    // std::future<std::optional<T>> findOneAsync(long long id) {
+    //     if(!pool){
+    //         LOG_WARN("Pool isn't initialized");
+    //         return std::async(std::launch::deferred, [this, id]() { return this->findOne<T>(id); });
+    //     }else{
+    //         LOG_INFO("Start save async");
+    //         return pool->enqueue([this, id]() { return this->findOne<T>(id); });
+    //     }
+    // }
+
+    // template<typename T>
+    // std::future<std::optional<T>> findOneWithOutCacheAsync(long long id) {
+    //     if(!pool){
+    //         LOG_WARN("Pool isn't initialized");
+    //         return std::async(std::launch::async, [this, id]() {
+    //             return this->findOneWithOutCache<T>(id);
+    //         });
+    //     } else {
+    //         return pool->enqueue([this, id]() {
+    //             return this->findOneWithOutCache<T>(id);
+    //         });
+    //     }
+    // }
+
+    // template<typename T>
+    // std::optional<T> findOne(long long id) {
+    //     PROFILE_SCOPE("[repository] FindOne");
+    //     const std::string key = makeKey<T>(id);
+    //     if (auto cached = cache.get<T>(key)) {
+    //         LOG_INFO("[repository] [CACHE HIT] key = '{}'", key);
+    //         return cached;
+    //     }
+    //     LOG_INFO("[repository] cashe not hit key = '{}'", key);
+
+    //     QSqlDatabase threadDb = db.getThreadDatabase();
+    //     auto meta = Reflection<T>::meta();
+
+    //     QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.tableName);
+    //     std::string stmtKey = std::string(meta.tableName) + ":findOne";
+
+    //     auto& query = getPreparedQuery(stmtKey, sql);
+
+    //     query.bindValue(0, id);
+
+    //     if (!query.exec()) {
+    //         LOG_ERROR("[repository] SQL error on '{}': {}", meta.tableName, query.lastError().text().toStdString());
+    //         return std::nullopt;
+    //     }
+
+    //     if (!query.next()) {
+    //         LOG_WARN("[repository] no rows found in '{}'", meta.tableName);
+    //         return std::nullopt;
+    //     }
+
+    //     T entity = buildEntity<T>(query);
+    //     cache.set(key, entity);
+    //     return entity;
+    // }
+
     QSqlQuery& getPreparedQuery(const std::string& stmtKey, const QString& sql) {
         QSqlDatabase threadDb = db.getThreadDatabase();
 
@@ -166,6 +324,7 @@ public:
             auto [insertIt, _] = stmtCache.emplace(stmtKey, std::move(query));
             return insertIt->second;
         } else {
+            it->second.finish();
             it->second.clear();
             return it->second;
         }
@@ -199,7 +358,7 @@ public:
 
     template<typename T>
     void deleteEntity(T& entity) {
-        deleteById(entity.id);
+        deleteById<T>(entity.id);
     }
 
     template<typename T>
@@ -210,7 +369,9 @@ public:
                           .arg(QString::fromStdString(meta.tableName));
 
         std::string stmKey = meta.tableName + std::string(":deleteById");
-        auto& query = getPreparedQuery(stmKey, sql);
+        //auto& query = getPreparedQuery(stmKey, sql);
+        QSqlQuery query(db.getThreadDatabase());
+        query.prepare(sql);
 
         query.bindValue(0, id);
 
@@ -218,9 +379,69 @@ public:
             LOG_ERROR("[repository] Delete failed: '{}'", query.lastError().text().toStdString());
             throw std::runtime_error("Delete failed: " + query.lastError().text().toStdString());
         }
-        cache.incr("table_generation:" + meta.tableName);
+        cache.incr(std::string("table_generation:") + meta.tableName);
         cache.remove(makeKey<T>(id));
     }
+
+    template <typename T>
+    void deleteBatch(const std::vector<T>& batch) {
+        PROFILE_SCOPE("[repository] DeleteBatch");
+        if (batch.empty()) return;
+
+        auto meta = Reflection<T>::meta();
+        QString tableName = QString::fromStdString(meta.tableName);
+
+        std::vector<long long> ids;
+        ids.reserve(batch.size());
+        for (const auto& item : batch)
+            ids.push_back(item.id);
+
+
+        QString placeholders;
+        for (size_t i = 0; i < ids.size(); ++i) {
+            if (i > 0) placeholders += ",";
+            placeholders += "?";
+        }
+
+
+
+        QString sql = QString("DELETE FROM %1 WHERE id IN (%2)")
+                          .arg(tableName)
+                          .arg(placeholders);
+
+        std::string stmKey = meta.tableName + std::string(":deleteBatch");
+        //auto& query = getPreparedQuery(stmKey, sql);
+        QSqlQuery query(db.getThreadDatabase());
+        query.prepare(sql);
+
+
+        //query.clear();
+        for (size_t i = 0; i < ids.size(); ++i)
+            query.bindValue(static_cast<int>(i), ids[i]);
+
+        // 4️⃣ Wrap in transaction for safety and speed
+        // //QSqlDatabase db = db.getThreadDatabase();
+        // if (!db.transaction()) {
+        //     LOG_ERROR("[repository] Failed to start transaction: '{}'", query.lastError().text().toStdString());
+        //     throw std::runtime_error("Transaction start failed");
+        // }
+
+        if (!query.exec()) {
+            LOG_ERROR("[repository] Delete batch failed: '{}'", query.lastError().text().toStdString());
+            throw std::runtime_error("Delete batch failed: " + query.lastError().text().toStdString());
+        }
+
+        // if (!query.commit()) {
+        //     LOG_ERROR("[repository] Commit failed: '{}'", query.lastError().text().toStdString());
+        //     throw std::runtime_error("Commit failed: " + query.lastError().text().toStdString());
+        // }
+
+        // 5️⃣ Update cache
+        cache.incr(std::string("table_generation:") + meta.tableName);
+        for (auto id : ids) //make deelete
+            cache.remove(makeKey<T>(id));
+    }
+
 
     template<typename T>
     std::vector<T> findBy(const std::string& field, const std::string& value) {
@@ -345,5 +566,229 @@ private:
         return {};
     }
 };
+
+#include <QTimer>
+#include <QObject>
+
+template <typename T>
+class SaverBatcher {
+private:
+    std::vector<T> batcher;
+    std::mutex mtx;
+    std::condition_variable cv;
+    GenericRepository& rep;
+    ThreadPool pool;
+    const int batchSize;
+    const std::chrono::milliseconds flushInterval;
+
+    std::atomic<bool> running{true};
+    std::thread flushThread;
+
+public:
+    SaverBatcher(GenericRepository& repository,
+                 int batchSize = 500,
+                 std::chrono::milliseconds interval = std::chrono::milliseconds(100),
+                 int threadPoolSize = 4)
+        : rep(repository), pool(threadPoolSize), batchSize(batchSize), flushInterval(interval)
+    {
+        flushThread = std::thread([this]() { flushLoop(); });
+    }
+
+    ~SaverBatcher() {
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            running.store(false);
+        }
+        cv.notify_one();  // wake flush thread immediately
+        if (flushThread.joinable())
+            flushThread.join();
+
+        flush(); // flush remaining items
+        LOG_INFO("~SaverBatcher()");
+    }
+
+    void saveEntity(T entity) {
+        PROFILE_SCOPE("Batcher::SaveEntity");
+        std::vector<T> localBatch;
+        LOG_INFO("I in saving entity");
+
+        {
+            LOG_INFO("Mutex to lock:");
+            std::unique_lock<std::mutex> lock(mtx);
+            LOG_INFO("Mutex is locked:");
+            batcher.emplace_back(std::move(entity));
+
+            if (batcher.size() >= batchSize) {
+                localBatch = std::move(batcher);
+                batcher.clear();
+            }
+        }
+
+        if (!localBatch.empty()) {
+            pool.enqueue([this, localBatch = std::move(localBatch)]() mutable {
+                try {
+                    rep.save(localBatch);
+                } catch (...) {
+                    LOG_ERROR("Error saving batch");
+                    // Optional: log or handle exceptions
+                }
+            });
+        }
+    }
+
+    void flush() {
+        std::vector<T> localBatch;
+        {
+            std::unique_lock<std::mutex> lock(mtx);
+            if (batcher.empty()) return;
+
+            localBatch = std::move(batcher);
+            batcher.clear();
+        }
+
+        pool.enqueue([this, localBatch = std::move(localBatch)]() mutable {
+            try {
+                rep.save(localBatch);
+            } catch (...) {
+                LOG_ERROR("Error saving batch");
+                // Optional: log or handle exceptions
+            }
+        });
+    }
+
+private:
+    void flushLoop() {
+        std::unique_lock<std::mutex> lock(mtx);
+        while (running.load()) {
+            cv.wait_for(lock, flushInterval, [this]() { return !running.load(); });
+            lock.unlock();
+            flush();
+            lock.lock();
+        }
+    }
+
+    SaverBatcher(const SaverBatcher&) = delete;
+    SaverBatcher& operator=(const SaverBatcher&) = delete;
+};
+
+
+template <typename T>
+class DeleterBatcher {
+private:
+    std::vector<T> batcher;
+    std::mutex mtx;
+    std::condition_variable cv;
+    GenericRepository& rep;
+    ThreadPool pool;
+    const int batchSize;
+    const std::chrono::milliseconds flushInterval;
+
+    std::atomic<bool> running{true};
+    std::thread flushThread;
+
+public:
+    DeleterBatcher(GenericRepository& repository, //set here a callback (saveBanch)
+                   int batchSize = 500,
+                   std::chrono::milliseconds interval = std::chrono::milliseconds(100),
+                   int threadPoolSize = 4)
+        : rep(repository), pool(threadPoolSize), batchSize(batchSize), flushInterval(interval)
+    {
+        flushThread = std::thread([this]() { flushLoop(); });
+    }
+
+    ~DeleterBatcher() {
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            running.store(false);
+        }
+        cv.notify_one();  // wake up flush thread immediately
+        if (flushThread.joinable())
+            flushThread.join();
+
+        flush(); // flush remaining items
+        LOG_INFO("~DeleterBatcher()");
+    }
+
+    void deleteEntity(const T& entity) {
+        std::vector<T> localBatch;
+
+        {
+            std::unique_lock<std::mutex> lock(mtx);
+            batcher.emplace_back(entity);
+
+            if (batcher.size() >= batchSize) {
+                localBatch = std::move(batcher);
+                batcher.clear();
+            }
+        }
+
+        if (!localBatch.empty()) {
+            pool.enqueue([this, localBatch = std::move(localBatch)]() mutable {
+                rep.deleteBatch(localBatch);
+            });
+        }
+    }
+
+    void flush() {
+        std::vector<T> localBatch;
+        {
+            std::unique_lock<std::mutex> lock(mtx);
+            if (batcher.empty()) return;
+
+            localBatch = std::move(batcher);
+            batcher.clear();
+        }
+
+        pool.enqueue([this, localBatch = std::move(localBatch)]() mutable {
+            try {
+                rep.deleteBatch(localBatch);
+            } catch (...) {
+                LOG_ERROR("Error deleting banch");
+                //throw std::runtime_eror("Error deleting banch");
+            }
+        });
+    }
+
+private:
+    void flushLoop() {
+        std::unique_lock<std::mutex> lock(mtx);
+        while (running.load()) {
+            cv.wait_for(lock, flushInterval, [this]() { return !running.load(); });
+            lock.unlock();
+            flush();
+            lock.lock();
+        }
+    }
+
+    DeleterBatcher(const DeleterBatcher&) = delete;
+    DeleterBatcher& operator=(const DeleterBatcher&) = delete;
+};
+
+template <typename T>
+class Batcher{
+    SaverBatcher<T>& saverBatcher;
+    DeleterBatcher<T>& deleterBatcher;
+public:
+    Batcher(SaverBatcher<T>& saverBatcher, DeleterBatcher<T>& deleterBatcher)
+        : saverBatcher(saverBatcher)
+        , deleterBatcher(deleterBatcher)
+    {
+
+    }
+
+    ~Batcher(){
+        LOG_INFO("~Batcher()");
+    }
+
+    void save(T& entity){
+        PROFILE_SCOPE("Batcher::save");
+        saverBatcher.saveEntity(entity);
+    }
+
+    void deleteEntity(T& entity){
+        deleterBatcher.deleteEntity(entity);
+    }
+};
+
 
 #endif // GENERICREPOSIROTY_H

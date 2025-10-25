@@ -39,7 +39,7 @@ private:
     NotificationManager notifManager;
     std::mutex socketMutex;
     crow::SimpleApp& app_;
-    MessageManager manager;
+    MessageManager& manager;
 
 };
 

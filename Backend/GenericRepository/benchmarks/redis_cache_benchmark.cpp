@@ -20,8 +20,6 @@ static void BM_SaveEntityIndividually(benchmark::State& state) {
         }
     }
 }
-BENCHMARK(BM_SaveEntityIndividually)->Arg(10)->Arg(100)->Arg(1000);
-
 
 static void BM_SaveEntityPipeline(benchmark::State& state) {
     RedisCache& cache = RedisCache::instance();
@@ -39,4 +37,6 @@ static void BM_SaveEntityPipeline(benchmark::State& state) {
         cache.saveEntities(entities, "messages");
     }
 }
+
+BENCHMARK(BM_SaveEntityIndividually)->Arg(10)->Arg(100)->Arg(1000);
 BENCHMARK(BM_SaveEntityPipeline)->Arg(10)->Arg(100)->Arg(1000);

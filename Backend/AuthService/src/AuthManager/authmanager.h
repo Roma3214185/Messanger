@@ -6,6 +6,7 @@
 
 #include "Headers/AuthResponce.h"
 #include "Headers/RegisterRequest.h"
+#include "../../GenericRepository/GenericReposiroty.h"
 
 using OptionalResponce = std::optional<AuthResponce>;
 using OptionalUser = std::optional<User>;

@@ -19,15 +19,28 @@ public:
                     {
                         std::unique_lock<std::mutex> lock(queueMutex);
                         condition.wait(lock, [this] { return stop || !tasks.empty(); });
-                        if (stop && tasks.empty()) return;
+
+                        if (stop && tasks.empty())
+                            return;
+
                         task = std::move(tasks.front());
                         tasks.pop();
+                        ++activeTasks;
                     }
+
                     task();
+
+                    {
+                        std::unique_lock<std::mutex> lock(queueMutex);
+                        --activeTasks;
+                        if (tasks.empty() && activeTasks == 0)
+                            doneCondition.notify_all();
+                    }
                 }
             });
         }
     }
+
     ~ThreadPool() {
         {
             std::unique_lock<std::mutex> lock(queueMutex);
@@ -39,20 +52,30 @@ public:
     }
 
     template<class F, class... Args>
-    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type> {
+    auto enqueue(F&& f, Args&&... args)
+        -> std::future<typename std::invoke_result<F, Args...>::type>
+    {
         using return_type = typename std::invoke_result<F, Args...>::type;
 
         auto task = std::make_shared<std::packaged_task<return_type()>>(
             std::bind(std::forward<F>(f), std::forward<Args>(args)...)
             );
 
-        std::future<return_type> res = task->get_future();
         {
             std::unique_lock<std::mutex> lock(queueMutex);
+            if (stop)
+                throw std::runtime_error("enqueue on stopped ThreadPool");
             tasks.emplace([task]() { (*task)(); });
         }
         condition.notify_one();
-        return res;
+        return task->get_future();
+    }
+
+    void waitAll() {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        doneCondition.wait(lock, [this] {
+            return tasks.empty() && activeTasks == 0;
+        });
     }
 
 private:
@@ -61,7 +84,9 @@ private:
 
     std::mutex queueMutex;
     std::condition_variable condition;
+    std::condition_variable doneCondition;
     bool stop = false;
+    size_t activeTasks = 0;
 };
 
 #endif // THREADPOOL_H

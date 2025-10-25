@@ -5,13 +5,32 @@
 #include "../Headers/Message.h"
 #include "../../GenericRepository/GenericReposiroty.h"
 
-class MessageManager {
+class MessageManager
+{
+    GenericRepository& msgRepo;
+    SaverBatcher<Message> saverBatcherMessages;
+    SaverBatcher<MessageStatus> saverBatcherMessagesStatus;
+    DeleterBatcher<Message> deleterBatcherMessages;
+    DeleterBatcher<MessageStatus> deleterBatcherMessagesStatus;
+
+    std::unique_ptr<Batcher<Message>> messagesBatcher;
+    std::unique_ptr<Batcher<MessageStatus>> messagesStatusBatcher;
 public:
-    MessageManager(GenericRepository& msgRepo)
-        : msgRepo(msgRepo) {}
+    MessageManager(GenericRepository& rep)
+        : msgRepo(rep)
+        , saverBatcherMessages(rep)
+        , saverBatcherMessagesStatus(rep)
+        , deleterBatcherMessages(rep)
+        , deleterBatcherMessagesStatus(rep)
+    {
+        messagesBatcher = std::make_unique<Batcher<Message>>(saverBatcherMessages, deleterBatcherMessages);
+        messagesStatusBatcher = std::make_unique<Batcher<MessageStatus>>(saverBatcherMessagesStatus, deleterBatcherMessagesStatus);
+    }
 
     void saveMessage(Message& msg) {
-        msgRepo.save(msg);
+        PROFILE_SCOPE("MessageManager::saveMessage");
+        messagesBatcher->save(msg);
+        //msgRepo.save(msg);
     }
 
     std::vector<MessageStatus> getMessageStatusDebug(){
@@ -61,7 +80,8 @@ public:
 
     void saveMessageStatus(MessageStatus& status){
         qDebug() << "[saveMessageStatus] messageId = " << status.id << " and receiverId = " << status.receiver_id;
-        msgRepo.save(status);
+        //msgRepo.save(status);
+        messagesStatusBatcher->save(status);
     }
 
     std::vector<MessageStatus> getUndeliveredMessages(int userId){
@@ -73,9 +93,6 @@ public:
         LOG_INFO("getUndeliveredMessages return '{}' messages for userId '{}'", res.size(), userId);
         return res;
     }
-
-private:
-    GenericRepository& msgRepo;
 };
 
 #endif // MESSAGEMANAGER_H

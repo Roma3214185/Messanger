@@ -18,6 +18,10 @@ public:
         return inst;
     }
 
+    void clearCache(){
+        redis->flushdb();
+    }
+
     template <typename T>
     void saveEntities(const std::vector<T>& results, std::string tableName, std::chrono::minutes ttl = std::chrono::minutes(30)){
         try {
