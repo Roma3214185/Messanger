@@ -41,21 +41,19 @@ target_link_libraries(NotificationService PRIVATE
   Crow::Crow
   redis++
   spdlog::spdlog
-  #TracyClient
-  #SimpleAmqpClient
-  #rabbitmq
-  #boost_system
-  #boost_chrono
   jwt-cpp
 )
 
 include_directories(
     ${httplib_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/MessageDataBase
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controller
+    ${CMAKE_CURRENT_SOURCE_DIR}/SocketManager
     ${CMAKE_CURRENT_SOURCE_DIR}/Headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/NetworkManager
+    ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationManager
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
+    ${CMAKE_CURRENT_SOURCE_DIR}/Server
 )
-
 
 include(GNUInstallDirs)
 install(TARGETS NotificationService
