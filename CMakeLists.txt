@@ -94,6 +94,12 @@ target_compile_definitions(Frontend PRIVATE SPDLOG_HEADER_ONLY)
 target_compile_definitions(AuthService PRIVATE SPDLOG_HEADER_ONLY)
 target_compile_definitions(MessageService PRIVATE SPDLOG_HEADER_ONLY)
 target_compile_definitions(ChatService PRIVATE SPDLOG_HEADER_ONLY)
+target_compile_definitions(NotificationService PRIVATE SPDLOG_HEADER_ONLY)
+
+include_directories(
+    ${RABBITMQC_DIR}/include
+    ${SIMPLE_AMQP_CLIENT_DIR}/include
+)
 
 include(GNUInstallDirs)
 install(TARGETS Chat

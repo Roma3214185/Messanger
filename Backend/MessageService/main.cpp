@@ -13,12 +13,13 @@ int main(int argc, char *argv[]) {
     init_logger("MessageService");
     QCoreApplication a(argc, argv);
     SQLiteDatabase bd;
+    RabbitMQClient mq("localhost", "guest", "guest");
 
     GenericRepository genRep(bd);
     MessageManager manager(genRep);
-    NotificationManager notifManager(manager);
+    //NotificationManager notifManager(manager);
 
-    Server server(MESSAGE_PORT, manager, notifManager);
+    Server server(MESSAGE_PORT, manager, mq);
     server.run();
     return a.exec();
 }

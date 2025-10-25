@@ -143,7 +143,7 @@ void Model::connectSocket(int id) {
     PROFILE_SCOPE("Model::connectSocket");
     connect(socket, &QWebSocket::connected, [=]() { onSocketConnected(id); });
     connect(socket, &QWebSocket::textMessageReceived, this, &Model::onMessageReceived);
-    socket->open(QUrl("ws://localhost:8082/ws"));
+    socket->open(QUrl("ws://localhost:8086/ws"));
     LOG_INFO("[connectSocket] Connecting WebSocket for userId={}", id);
 }
 

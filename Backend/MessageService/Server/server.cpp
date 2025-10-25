@@ -1,10 +1,11 @@
 #include "server.h"
 #include "controller.h"
+#include "../../RabbitMQClient/rabbitmqclient.h"
 
-Server::Server(int port, MessageManager& m, NotificationManager& notifManager)
+Server::Server(int port, MessageManager& m, RabbitMQClient& mq)
     : port_(port)
 {
-    controller = std::make_unique<Controller>(app, m, notifManager);
+    controller = std::make_unique<Controller>(app, mq, m);
     handleRountes();
 }
 
