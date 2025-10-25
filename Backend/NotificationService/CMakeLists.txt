@@ -31,7 +31,9 @@ add_executable(NotificationService
   Headers/Message.h
   NotificationManager/notificationmanager.h NotificationManager/notificationmanager.cpp
   NetworkManager/networkmanager.h NetworkManager/networkmanager.cpp
-
+  SocketManager/SocketManager.h
+  Headers/MessageStatus.h
+  Server/server.h Server/server.cpp
 )
 
 target_link_libraries(NotificationService PRIVATE
