@@ -1,7 +1,5 @@
 #include "notificationmanager.h"
 
-//NotificationService::NotificationService() {}
-
 inline crow::json::wvalue to_crow_json(const Message& m) {
     crow::json::wvalue j;
     LOG_INFO("[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | timestamp '{}'", m.id, m.chat_id, m.sender_id, m.text, m.timestamp);
@@ -12,7 +10,6 @@ inline crow::json::wvalue to_crow_json(const Message& m) {
     j["timestamp"] = QDateTime::fromSecsSinceEpoch(m.timestamp).toString(Qt::ISODate).toStdString();
     return j;
 }
-
 
 void NotificationManager::notifyMessageRead(int chatId, const MessageStatus& status) {
     auto members = NetworkManager::getMembersOfChat(chatId);

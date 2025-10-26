@@ -1,101 +1,104 @@
 #include "messagemodel.h"
-#include "../../DebugProfiling/Debug_profiling.h"
+
+#include <QDateTime>
+#include <QPixmap>
+
+#include "Debug_profiling.h"
 
 std::optional<int> MessageModel::currentUserId = std::nullopt;
 
-MessageModel::MessageModel(QObject *parent)
-    : QAbstractListModel(parent)
-{
+MessageModel::MessageModel(QObject* parent) : QAbstractListModel(parent) {}
+MessageModel::MessageModel() : MessageModel(nullptr) {}
 
+QVariant MessageModel::data(const QModelIndex& index, int role) const {
+  if (!index.isValid() || index.row() >= messages_.size()) return QVariant();
+
+  const auto& msg = messages_[index.row()];
+
+  switch (role) {
+    case UsernameRole:
+      return usersByMessageId.at(msg.id).name;
+    case TextRole:
+      return msg.text;
+    case AvatarRole:
+      return usersByMessageId.at(msg.id).avatarPath;
+    case TimestampRole:
+      return msg.timestamp;
+    case SenderIdRole:
+      return msg.senderId;
+    case ReceiverIdTole:
+      return *currentUserId;
+    default:
+      return QVariant();
+  }
 }
 
-QVariant MessageModel::data(const QModelIndex &index, int role) const {
-    if (!index.isValid() || index.row() >= messages_.size())
-        return QVariant();
+void MessageModel::setCurrentUserId(int user_id) { currentUserId = user_id; }
 
-    const auto &msg = messages_[index.row()];
+void MessageModel::resetCurrentUseId() { currentUserId = std::nullopt; }
 
-    switch (role) {
-        case UsernameRole: return usersByMessageId.at(msg.id).name;
-        case TextRole: return msg.text;
-        case AvatarRole: return usersByMessageId.at(msg.id).avatarPath;
-        case TimestampRole: return msg.timestamp;
-        case SenderIdRole: return msg.senderId;
-        case ReceiverIdTole: return *currentUserId;
-        default: return QVariant();
-    }
+std::optional<Message> MessageModel::getLastMessage() {
+  if (messages_.empty()) return std::nullopt;
+  return messages_.back();
 }
 
-void MessageModel::setCurrentUserId(int id){
-    currentUserId = id;
+std::optional<Message> MessageModel::getFirstMessage() {
+  if (messages_.empty()) return std::nullopt;
+  return messages_.front();
 }
 
-void MessageModel::resetCurrentUseId(){
-    currentUserId = std::nullopt;
+void MessageModel::addMessage(Message msg,
+                              const User& user) {  // make with realocate
+  auto it = usersByMessageId.find(msg.id);
+
+  if (it != usersByMessageId.end()) {
+    // undelivered messages will not copy when i load all messages;
+    LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(),
+             msg.id);
+    return;
+  }
+
+  beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
+  messages_.push_back(
+      msg);  // track receiver_id and check if sender_id == receiver_id???
+  usersByMessageId[msg.id] = user;
+  endInsertRows();
 }
 
-std::optional<Message> MessageModel::getLastMessage(){
-    if(messages_.empty()) return std::nullopt;
-    return messages_.back();
+void MessageModel::addMessageInBack(Message msg, const User& user) {
+  auto it = usersByMessageId.find(msg.id);
+
+  if (it != usersByMessageId.end()) {
+    LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(),
+             msg.id);
+    return;
+  }
+
+  beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
+  messages_.push_front(
+      msg);  // track receiver_id and check if sender_id == receiver_id???
+  usersByMessageId[msg.id] = user;
+  endInsertRows();
 }
 
-std::optional<Message> MessageModel::getFirstMessage(){
-    if(messages_.empty()) return std::nullopt;
-    return messages_.front();
+void MessageModel::clear() {
+  if (messages_.isEmpty()) {
+    return;
+  }
+
+  beginRemoveRows(QModelIndex(), 0, messages_.size() - 1);
+  messages_.clear();
+  usersByMessageId.clear();
+  endRemoveRows();
 }
 
-void MessageModel::addMessage(Message msg, const User& user) { //make with realocate
-    auto it = usersByMessageId.find(msg.id);
-
-    if(it != usersByMessageId.end()) {
-        // undelivered messages will not copy when i load all messages;
-        LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(), msg.id);
-        return;
-    }
-
-    beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-    messages_.push_back(msg); //track receiver_id and check if sender_id == receiver_id???
-    usersByMessageId[msg.id] = user;
-    endInsertRows();
+QHash<int, QByteArray> MessageModel::roleNames() const {
+  return {{UsernameRole, "username"},      {TextRole, "text"},
+          {AvatarRole, "avatar"},          {TimestampRole, "timestamp"},
+          {ReceiverIdTole, "receiver_id"}, {SenderIdRole, "sender_id"}};
 }
 
-void MessageModel::addMessageInBack(Message msg, const User& user){
-    auto it = usersByMessageId.find(msg.id);
-
-    if(it != usersByMessageId.end()) {
-        LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(), msg.id);
-        return;
-    }
-
-    beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-    messages_.push_front(msg); //track receiver_id and check if sender_id == receiver_id???
-    usersByMessageId[msg.id] = user;
-    endInsertRows();
-}
-
-void MessageModel::clear(){
-    if (messages_.isEmpty()){
-        return;
-    }
-
-    beginRemoveRows(QModelIndex(), 0, messages_.size() - 1);
-    messages_.clear();
-    usersByMessageId.clear();
-    endRemoveRows();
-}
-
-QHash<int, QByteArray> MessageModel::roleNames() const{
-    return {
-        {UsernameRole, "username"},
-        {TextRole, "text"},
-        {AvatarRole, "avatar"},
-        {TimestampRole, "timestamp"},
-        {ReceiverIdTole, "receiver_id"},
-        {SenderIdRole, "sender_id"}
-    };
-}
-
-int MessageModel::rowCount(const QModelIndex &parent) const {
-    Q_UNUSED(parent);
-    return messages_.size();
+int MessageModel::rowCount(const QModelIndex& parent) const {
+  Q_UNUSED(parent);
+  return messages_.size();
 }

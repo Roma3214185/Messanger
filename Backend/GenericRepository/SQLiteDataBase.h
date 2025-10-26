@@ -2,11 +2,12 @@
 #define SQLITEDATABASE_H
 
 #include <QString>
-#include <QtSql/QSqlDatabase>
-#include "../../DebugProfiling/Debug_profiling.h"
-#include "QtSql/qsqlquery.h"
-#include "qthread.h"
 #include "QtSql/QSqlError"
+#include <QtSql/qsqlquery.h>
+#include <QtSql/QSqlDatabase>
+#include <qthread.h>
+
+#include "Debug_profiling.h"
 
 class IDataBase {
 public:

@@ -1,5 +1,5 @@
 #include "NetworkManager.h"
-#include "httplib.h"
+#include <httplib.h>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>

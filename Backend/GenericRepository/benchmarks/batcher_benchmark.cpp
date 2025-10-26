@@ -1,16 +1,6 @@
-#include "../GenericReposiroty.h"
-#include "../ThreadPool.h"
-#include <unordered_map>
-#include <typeindex>
-#include <vector>
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-#include <chrono>
-#include <memory>
-#include <iostream>
 #include "benchmark/benchmark.h"
-#include <vector>
+#include "GenericReposiroty.h"
+#include "ThreadPool.h"
 
 static void individualSaving(benchmark::State& state) {
     SQLiteDatabase db;

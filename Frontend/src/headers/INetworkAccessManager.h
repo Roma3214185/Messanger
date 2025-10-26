@@ -3,11 +3,10 @@
 
 #include <QNetworkReply>
 
-class INetworkAccessManager
-{
-public:
-    virtual QNetworkReply* post(const QNetworkRequest&, const QByteArray&) = 0;
-    virtual QNetworkReply* get(const QNetworkRequest&) = 0;
+class INetworkAccessManager {
+ public:
+  virtual auto post(const QNetworkRequest&, const QByteArray&) -> QNetworkReply* = 0;
+  virtual auto get(const QNetworkRequest&) -> QNetworkReply* = 0;
 };
 
-#endif // INETWORKACCESSMANAGER_H
+#endif  // INETWORKACCESSMANAGER_H

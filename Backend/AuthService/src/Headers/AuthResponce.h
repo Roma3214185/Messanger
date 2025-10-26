@@ -1,7 +1,10 @@
 #ifndef AUTHRESPONCE_H
 #define AUTHRESPONCE_H
 
-#include "Headers/User.h"
+#include <string>
+#include <optional>
+
+#include "User.h"
 
 struct AuthResponce{
     std::string token;

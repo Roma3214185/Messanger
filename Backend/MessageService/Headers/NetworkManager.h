@@ -2,11 +2,7 @@
 #define NETWORKMANAGER_H
 
 #include <string>
-#include "httplib.h"
 #include <QVector>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 
 using UserId = int;
 

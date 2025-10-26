@@ -1,20 +1,13 @@
 #ifndef NOTIFICATIONMANAGER_H
 #define NOTIFICATIONMANAGER_H
-#ifdef signals
-#undef signals
-#endif
-#ifdef slots
-#undef slots
-#endif
-#ifdef emit
-#undef emit
-#endif
-#include <crow.h>
 
 #include <unordered_map>
-#include "../Headers/Message.h"
-#include <NetworkManager.h>
-#include "../MessageManager/MessageManager.h"
+
+#include <crow.h>
+
+#include "Message.h"
+#include "MessageManager.h"
+#include "NetworkManager.h"
 
 using WebsocketPtr = crow::websocket::connection*;
 using UserId = int;

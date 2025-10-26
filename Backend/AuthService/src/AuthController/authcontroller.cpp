@@ -1,7 +1,5 @@
 #include "authcontroller.h"
-#include <QDebug>
-#include <iostream>
-#include "../../../DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 
 using std::string;
 

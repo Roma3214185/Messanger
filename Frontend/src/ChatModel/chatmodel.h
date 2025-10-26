@@ -13,41 +13,38 @@ using std::optional;
 using ChatIndex = size_t;
 using OptionalChatIndex = std::optional<ChatIndex>;
 
-class ChatModel : public QAbstractListModel
-{
-    Q_OBJECT
+class ChatModel : public QAbstractListModel {
+  Q_OBJECT
 
-public:
+ public:
+  enum Roles {
+    ChatIdRole = Qt::UserRole + 1,
+    TitleRole,
+    LastMessageRole,
+    UnreadRole,
+    LastMessageTimeRole,
+    AvatarRole
+  };
 
-    enum Roles {
-        ChatIdRole = Qt::UserRole + 1,
-        TitleRole,
-        LastMessageRole,
-        UnreadRole,
-        LastMessageTimeRole,
-        AvatarRole
-    };
+  explicit ChatModel(QObject* parent = nullptr);
 
-    ChatModel(QObject *parent = nullptr);
+  [[nodiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
+  [[nodiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
+  [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override;
+  void addChat(const ChatPtr& chat);
+  void updateChat(int chatId, const QString& lastMessage,
+                  const QDateTime& time /*, int unread = 0,*/);
+  void addChatInFront(ChatPtr& chat);
+  void realocateChatInFront(int chatId);
+  void clear();
+  void sortChats();
+  [[nodiscard]] auto findIndexByChatId(int chatId) const -> OptionalChatIndex;
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
-    QHash<int, QByteArray> roleNames() const override;
-    void addChat(const ChatPtr& chat);
-    void updateChat(const int chatId, const QString& lastMessage, const QDateTime& time /*, int unread = 0,*/);
-    void addChatInFront(const ChatPtr &chat);
-    void realocateChatInFront(const int chatId);
-    void clear();
-    void sortChats();
-    OptionalChatIndex findIndexByChatId(const int chatId) const;
+ Q_SIGNALS:
+  void chatUpdated(int chatId);
 
-Q_SIGNALS:
-    void chatUpdated(int chatId);
-
-private:
-
-    ListOfChats m_chats;
+ private:
+  ListOfChats m_chats;
 };
 
-
-#endif // CHATMODEL_H
+#endif  // CHATMODEL_H

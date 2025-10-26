@@ -1,4 +1,4 @@
-#include "src/GateWayServer/gatewayserver.h"
+#include "GateWayServer/gatewayserver.h"
 
 int main() {
     const int port = std::stoi(std::getenv("PORT") ? std::getenv("PORT") : "8084");

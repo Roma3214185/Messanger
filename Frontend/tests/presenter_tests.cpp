@@ -12,10 +12,10 @@
 // {
 // public:
 //     void setUser(User user) override { setUser_calls++; }
-//     void setChatWindow(MessageModel* model) override { setChatWindow_calls++; }
-//     void setChatModel(ChatModel* model) override { setChatModel_calls++; }
-//     void setUserModel(UserModel* userModel) override { setUserModel_calls++; }
-//     void clearFindUserEdit() override { clearFindUserEdit_calls++; }
+//     void setChatWindow(MessageModel* model) override { setChatWindow_calls++;
+//     } void setChatModel(ChatModel* model) override { setChatModel_calls++; }
+//     void setUserModel(UserModel* userModel) override { setUserModel_calls++;
+//     } void clearFindUserEdit() override { clearFindUserEdit_calls++; }
 
 //     int setUser_calls = 0;
 //     int setChatWindow_calls = 0;

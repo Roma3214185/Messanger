@@ -1,5 +1,11 @@
 #include "NetworkManager.h"
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+#include <httplib.h>
+
 namespace NetworkManager {
 
 std::pair<int, std::string> forward(

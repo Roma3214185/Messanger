@@ -1,11 +1,10 @@
 #pragma once
+
 #include <spdlog/spdlog.h>
-//#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <chrono>
 #include <functional>
-//#include <sqlite3.h
 #include <iostream>
 
 #ifdef ENABLE_TRACY
@@ -20,7 +19,6 @@
 #define LOG_ERROR(...) spdlog::error(__VA_ARGS__)
 #define LOG_DEBUG(...) spdlog::debug(__VA_ARGS__)
 
-// --------------------- Timer / Scoped profiler ---------------------
 class ScopedTimer {
     const char* name;
     std::chrono::high_resolution_clock::time_point start;

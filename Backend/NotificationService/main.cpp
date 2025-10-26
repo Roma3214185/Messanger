@@ -1,18 +1,13 @@
 #include <QCoreApplication>
-#include <QDebug>
-#include <event2/event.h>
 #include <crow.h>
-#include "../../DebugProfiling/Debug_profiling.h"
-#include <crow/crow.h>
-#include <QDateTime>
-#include "../RabbitMQClient/rabbitmqclient.h"
-#include "nlohmann/json.hpp"
-#include "Headers/Message.h"
-#include "NotificationManager/notificationmanager.h"
-#include "../NetworkManager/networkmanager.h"
+
+#include "Debug_profiling.h"
+#include "notificationmanager.h"
+#include "networkmanager.h"
+#include "rabbitmqclient.h"
+#include "server.h"
 
 const int NOTIFICATION_PORT = 8086;
-
 
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);

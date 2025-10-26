@@ -1,14 +1,13 @@
 #ifndef RABBITMQCLIENT_H
 #define RABBITMQCLIENT_H
 
-#include <SimpleAmqpClient/SimpleAmqpClient.h>
-#include <nlohmann/json.hpp>
-#include <functional>
-#include <string>
+#include <atomic>
 #include <string>
 #include <functional>
 #include <thread>
-#include <atomic>
+
+#include <nlohmann/json.hpp>
+#include <SimpleAmqpClient/SimpleAmqpClient.h>
 
 class RabbitMQClient {
 public:

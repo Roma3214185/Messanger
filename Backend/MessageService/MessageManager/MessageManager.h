@@ -1,9 +1,9 @@
 #ifndef MESSAGEMANAGER_H
 #define MESSAGEMANAGER_H
 
-#include "../../GenericRepository/GenericReposiroty.h"
-#include "../Headers/Message.h"
-#include "../../GenericRepository/GenericReposiroty.h"
+#include "GenericReposiroty.h"
+#include "Message.h"
+#include "GenericReposiroty.h"
 
 class MessageManager
 {

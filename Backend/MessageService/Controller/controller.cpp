@@ -1,8 +1,9 @@
 #include "controller.h"
-#include <QDebug>
+
+#include <nlohmann/json.hpp>
+#include <jwt-cpp/jwt.h>
+
 #include "NetworkManager.h"
-#include "nlohmann/json.hpp"
-#include "jwt-cpp/jwt.h"
 
 inline crow::json::wvalue to_crow_json(const Message& m) {
     crow::json::wvalue j;

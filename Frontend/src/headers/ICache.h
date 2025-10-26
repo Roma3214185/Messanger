@@ -2,19 +2,28 @@
 #define ICACHE_H
 
 #include <string>
+#include <optional>
 
 using Key = std::string;
 using Token = std::string;
 using OptionalToken = std::optional<Token>;
 
-class ICache
-{
-public:
-    virtual ~ICache() = default;
+class ICache {
+ public:
+  ICache() = default;
+  ICache(const ICache&) = delete;
+  ICache& operator=(const ICache&) = delete;
+  ICache(ICache&&) = default;
+  ICache& operator=(ICache&&) = default;
 
-    virtual OptionalToken get(const Key& key) = 0;
-    virtual void saveToken(const Key& key, const Token& token) = 0;
-    virtual void deleteToken(const Key& key) = 0;
+  virtual ~ICache() = 0;
+
+  [[nondiscard]]
+  virtual auto get(const Key& key) -> OptionalToken = 0;
+  virtual void saveToken(const Key& key, const Token& token) = 0;
+  virtual void deleteToken(const Key& key) = 0;
 };
 
-#endif // ICACHE_H
+inline ICache::~ICache() = default;
+
+#endif  // ICACHE_H

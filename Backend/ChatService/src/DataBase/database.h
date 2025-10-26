@@ -4,14 +4,9 @@
 #include <string>
 #include <vector>
 #include <QList>
-#include <QDateTime>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlError>
-#include <QtSql/QSqlDatabase>
-#include "../../GenericRepository/GenericReposiroty.h"
 
 #include "headers/Chat.h"
+#include "GenericReposiroty.h"
 
 using ChatId = int;
 using UserId = int;
@@ -19,10 +14,8 @@ using OptionalChatId = std::optional<int>;
 using OptionalChat = std::optional<Chat>;
 using OptionalUserId = std::optional<UserId>;
 
-class DataBase
-{
+class DataBase {
 public:
-
     void clearDataBase();
     OptionalChatId createPrivateChat();
     bool addMembersToChat(int chatId, const std::vector<int>& membersId);
@@ -36,7 +29,6 @@ public:
     OptionalChat getChatById(int chatId);
 
 private:
-
     QSqlDatabase getThreadDatabase();
     template<typename... Args>
     bool executeQuery(QSqlQuery& query, Args&&... args);

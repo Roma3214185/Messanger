@@ -1,11 +1,10 @@
 #include <QCoreApplication>
 
-#include "Server/server.h"
+#include "Debug_profiling.h"
+#include "GenericReposiroty.h"
 #include "MessageManager/MessageManager.h"
-#include "../GenericRepository/GenericReposiroty.h"
-#include "../../DebugProfiling/Debug_profiling.h"
 #include "NotificationManager/notificationmanager.h"
-
+#include "Server/server.h"
 
 const int MESSAGE_PORT = 8082;
 

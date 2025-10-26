@@ -1,0 +1,4 @@
+/Users/roma/QtProjects/Chat/Frontend/src/Model/model.cpp:461:22: warning: use a trailing return type for this function [modernize-use-trailing-return-type]
+  461 | MessageModel* Model::getMessageModel(int chatId) {
+      | ~~~~~~~~~~~~~        ^
+      | auto                                             -> MessageModel*

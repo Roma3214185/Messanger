@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+
 #include "user.h"
 
 namespace NetworkManager {

@@ -1,11 +1,13 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include <string>
-#include "nlohmann/json.hpp"
 #include <QDateTime>
+#include <string>
+
 #include <crow/crow.h>
-#include "../../../DebugProfiling/Debug_profiling.h"
+#include "nlohmann/json.hpp"
+
+#include "Debug_profiling.h"
 
 struct Message{
     long long id;
@@ -13,13 +15,6 @@ struct Message{
     long long sender_id;
     std::string text;
     long long timestamp;
-};
-
-struct MessageStatus {
-    long long id;
-    long long receiver_id;
-    bool is_read = false;
-    long long read_at = QDateTime::currentDateTime().toSecsSinceEpoch();
 };
 
 inline void to_json(nlohmann::json& j, const Message& m) {
@@ -38,22 +33,6 @@ inline void from_json(const nlohmann::json& j, Message& u) {
     j.at("sender_id").get_to(u.sender_id);
     j.at("text").get_to(u.text);
     j.at("timestamp").get_to(u.timestamp);
-}
-
-inline void to_json(nlohmann::json& j, const MessageStatus& m) {
-    j = nlohmann::json{
-        {"id", m.id},
-        {"receiver_id", m.receiver_id},
-        {"is_read", m.is_read},
-        {"read_at", m.read_at}
-    };
-}
-
-inline void from_json(const nlohmann::json& j, MessageStatus& u) {
-    j.at("id").get_to(u.id);
-    j.at("receiver_id").get_to(u.receiver_id);
-    j.at("is_read").get_to(u.is_read);
-    j.at("read_at").get_to(u.read_at);
 }
 
 inline crow::json::wvalue to_crow_json(const Message& m) {

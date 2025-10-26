@@ -1,8 +1,8 @@
 #ifndef CHAT_H
 #define CHAT_H
 
-#include <string>
 #include <QDateTime>
+#include <string>
 
 struct Chat{
     int id;

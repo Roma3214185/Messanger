@@ -1,9 +1,10 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "DataBase/database.h" // or class DataBase
 #include <crow/crow.h>
+
 #include "Controller/controller.h"
+#include "DataBase/database.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
 

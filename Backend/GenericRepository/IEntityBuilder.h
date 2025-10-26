@@ -3,8 +3,9 @@
 
 #include <QtSql/qsqlquery.h>
 #include <unordered_map>
-#include "Meta.h"
 #include <memory>
+
+#include "Meta.h"
 
 template<typename T>
 class IEntityBuilder {

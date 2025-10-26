@@ -3,12 +3,9 @@
 
 #include <sw/redis++/redis++.h>
 #include <nlohmann/json.hpp>
-//#include <QDebug>
-#include <iostream>
-#include "../../DebugProfiling/Debug_profiling.h"
-using namespace sw::redis;
 
-using namespace sw::redis;
+#include "Debug_profiling.h"
+
 using json = nlohmann::json;
 
 class RedisCache {
@@ -107,7 +104,7 @@ public:
 
 
 private:
-    std::unique_ptr<Redis> redis;
+    std::unique_ptr<sw::redis::Redis> redis;
     std::mutex initMutex;
 
     RedisCache(){ }
@@ -122,12 +119,12 @@ private:
         return entity.id;
     }
 
-    Redis& getRedis() {
+    sw::redis::Redis& getRedis() {
         if (!redis) {
             std::scoped_lock lock(initMutex);
             if (!redis) {
                 try {
-                    redis = std::make_unique<Redis>("tcp://127.0.0.1:6379");
+                    redis = std::make_unique<sw::redis::Redis>("tcp://127.0.0.1:6379");
                 } catch (const std::exception& e) {
                     throw std::runtime_error(std::string("Redis init failed: ") + e.what());
                 }

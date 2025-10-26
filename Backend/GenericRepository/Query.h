@@ -1,11 +1,13 @@
 #ifndef QUERY_H
 #define QUERY_H
+
 #include <QtSql/QSqlDatabase>
+
 #include "GenericReposiroty.h"
-#include "../GenericRepository/GenericReposiroty.h"
+#include "RedisCache/RedisCache.h"
 #include "Meta.h"
-#include "ThreadPool.h"
 #include "SQLiteDataBase.h"
+#include "ThreadPool.h"
 
 struct Meta;
 

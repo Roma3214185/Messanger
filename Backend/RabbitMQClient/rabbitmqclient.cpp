@@ -1,14 +1,13 @@
 #include "RabbitMQClient.h"
-#include <iostream>
+#include "Debug_profiling.h"
 
 RabbitMQClient::RabbitMQClient(const std::string& host,
                                const std::string& user,
                                const std::string& password,
                                const std::string& vhost,
                                int port)
-{
-    channel_ = AmqpClient::Channel::Create(host, port, user, password, vhost);
-    std::cout << "[RabbitMQClient] Connected to " << host << ":" << port << std::endl;
+    : channel_(AmqpClient::Channel::Create(host, port, user, password, vhost)) {
+    LOG_INFO("[RabbitMQClient] Connected to '{}': '{}'",host, port);
 }
 
 RabbitMQClient::~RabbitMQClient() {

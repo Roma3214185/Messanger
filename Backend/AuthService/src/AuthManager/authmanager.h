@@ -4,9 +4,9 @@
 #include <string>
 #include <optional>
 
-#include "Headers/AuthResponce.h"
-#include "Headers/RegisterRequest.h"
-#include "../../GenericRepository/GenericReposiroty.h"
+#include "AuthResponce.h"
+#include "RegisterRequest.h"
+#include "GenericReposiroty.h"
 
 using OptionalResponce = std::optional<AuthResponce>;
 using OptionalUser = std::optional<User>;

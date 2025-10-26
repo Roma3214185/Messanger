@@ -3,11 +3,22 @@
 
 #include <QString>
 
-struct SignUpRequest{
-    QString email;
-    QString password;
-    QString tag;
-    QString name;
+struct SignUpRequest {
+  QString email{};
+  QString password{};
+  QString tag{};
+  QString name{};
 };
 
-#endif // SIGNUPREQUEST_H
+struct LogInRequest {
+  QString email{};
+  QString password{};
+};
+
+struct MessageInfo {
+  int chatId;
+  int senderId;
+  QString text;
+};
+
+#endif  // SIGNUPREQUEST_H

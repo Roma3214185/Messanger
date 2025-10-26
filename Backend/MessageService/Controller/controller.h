@@ -1,24 +1,15 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#ifdef signals
-#undef signals
-#endif
-#ifdef slots
-#undef slots
-#endif
-#ifdef emit
-#undef emit
-#endif
+#include <mutex>
+#include <unordered_map>
+#include <QtSql>
+
 #include <crow.h>
 
-#include <unordered_map>
-#include <mutex>
-#include <QtSql>
-#include <QDebug>
-#include "../NotificationManager/notificationmanager.h"
-#include "../Headers/Message.h"
-#include "../../RabbitMQClient/rabbitmqclient.h"
+#include "Message.h"
+#include "notificationmanager.h"
+#include "rabbitmqclient.h"
 
 class Controller
 {

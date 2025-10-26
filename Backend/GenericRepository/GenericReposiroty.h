@@ -3,22 +3,20 @@
 
 #include <vector>
 #include <functional>
-#include "../RedisCashe/RedisCache.h"
-#include <qthread.h>
+#include <QtSql/QSqlDriver>
+#include <QDateTime>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
-#include <QDebug>
 #include <QtSql/qsqlquery.h>
-#include <iostream>
-#include "../../DebugProfiling/Debug_profiling.h"
-#include "Query.h"
-#include "Meta.h"
-#include <QDateTime>
-#include "SQLiteDataBase.h"
-#include "../MessageService/Headers/Message.h"
-#include "ThreadPool.h"
+
+#include "Debug_profiling.h"
 #include "IEntityBuilder.h"
-#include <QtSql/QSqlDriver>
+#include "Meta.h"
+#include "MessageService/Headers/Message.h"
+#include "Query.h"
+#include "RedisCache/RedisCache.h"
+#include "SQLiteDataBase.h"
+#include "ThreadPool.h"
 
 template <typename T>
 using ResultList = std::vector<T>;

@@ -6,7 +6,6 @@
 #include <numeric>
 #include "../GenericReposiroty.h"
 
-// ---------------- Message Pool ----------------
 class MessagePool {
 public:
     Message* acquire() {
@@ -81,7 +80,7 @@ int main(int argc, char** argv) {
             //pool.release(msg);
         });
 
-        //fut.get(); // wait for completion
+        fut.get();
     }, iterations);
 
     return 0;

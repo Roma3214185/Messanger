@@ -1,11 +1,11 @@
 #ifndef MESSAGEWORKER_H
 #define MESSAGEWORKER_H
 
-#include "../../RabbitMQClient/rabbitmqclient.h"
-#include "../../GenericRepository/GenericReposiroty.h"
-#include "../Headers/Message.h"
-#include "../MessageManager/MessageManager.h"
-#include "../NotificationManager/notificationmanager.h"
+#include "rabbitmqclient.h"
+#include "GenericReposiroty.h"
+#include "Message.h"
+#include "MessageManager.h"
+#include "notificationmanager.h"
 
 // class MessageWorker
 // {

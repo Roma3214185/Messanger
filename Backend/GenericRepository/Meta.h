@@ -1,12 +1,14 @@
 #ifndef META_H
 #define META_H
-#include <functional>
+
 #include <any>
-#include "../../DebugProfiling/Debug_profiling.h"
+#include <functional>
 #include <QDateTime>
 #include <QtSql/QSqlQuery>
 #include <tuple>
 #include <type_traits>
+
+#include "Debug_profiling.h"
 
 struct Field{
     const char* name;

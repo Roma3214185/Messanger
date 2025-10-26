@@ -6,8 +6,10 @@
 #include <functional>
 #include <any>
 #include <QDateTime>
-#include "../../GenericRepository/GenericReposiroty.h"
-#include "../../RedisCashe/RedisCache.h"
+
+#include <nlohmann/json.hpp>
+
+#include "GenericReposiroty.h"
 
 struct Message{
     long long id;
@@ -165,7 +167,6 @@ inline constexpr auto MessageStatusFields = std::make_tuple(
     &MessageStatus::read_at
     );
 
-
 // inline constexpr std::array<MessageFields, 4> uFields = {{
 //     {"id", typeid(long long)},
 //     {"chat_id", typeid(long long)},
@@ -185,10 +186,8 @@ struct EntityFields<MessageStatus> {
     static constexpr auto& fields = MessageStatusFields;
 };
 
-
-
-inline void to_json(json& j, const Message& m) {
-    j = json{
+inline void to_json(nlohmann::json& j, const Message& m) {
+    j = nlohmann::json{
         {"id", m.id},
         {"chat_id", m.chat_id},
         {"sender_id", m.sender_id},
@@ -197,7 +196,7 @@ inline void to_json(json& j, const Message& m) {
     };
 }
 
-inline void from_json(const json& j, Message& u) {
+inline void from_json(const nlohmann::json& j, Message& u) {
     j.at("id").get_to(u.id);
     j.at("chat_id").get_to(u.chat_id);
     j.at("sender_id").get_to(u.sender_id);
@@ -205,8 +204,8 @@ inline void from_json(const json& j, Message& u) {
     j.at("timestamp").get_to(u.timestamp);
 }
 
-inline void to_json(json& j, const MessageStatus& m) {
-    j = json{
+inline void to_json(nlohmann::json& j, const MessageStatus& m) {
+    j = nlohmann::json{
         {"id", m.id},
         {"receiver_id", m.receiver_id},
         {"is_read", m.is_read},
@@ -214,7 +213,7 @@ inline void to_json(json& j, const MessageStatus& m) {
     };
 }
 
-inline void from_json(const json& j, MessageStatus& u) {
+inline void from_json(const nlohmann::json& j, MessageStatus& u) {
     j.at("id").get_to(u.id);
     j.at("receiver_id").get_to(u.receiver_id);
     j.at("is_read").get_to(u.is_read);

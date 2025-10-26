@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(benchmarks LANGUAGES CXX)
+project(benchmarks_sub LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,6 +22,7 @@ set(REDIS_PLUS_PLUS_ROOT "/opt/homebrew/opt/redis-plus-plus")
 include_directories(
     ${HIREDIS_ROOT}/include
     ${REDIS_PLUS_PLUS_ROOT}/include
+    ${CMAKE_SOURCE_DIR}/Backend
 )
 
 link_directories(
@@ -35,53 +36,39 @@ add_executable(benchmarks
     main.cpp
     redis_cache_benchmark.cpp
     build_entity.cpp
-    ../SQLiteDataBase.h
-    ../GenericReposiroty.h
-    ../../RedisCashe/RedisCache.h
-    ../IEntityBuilder.h
-    README.md
     preparedStatements_benchmark.cpp
     batcher_benchmark.cpp
     thread_pool_benchmark.cpp
 )
 
 add_executable(latencies
-     benchmark_latency.cpp
-     ../SQLiteDataBase.h
-     ../GenericReposiroty.h
-     ../../RedisCashe/RedisCache.h
-     ../IEntityBuilder.h
+    benchmark_latency.cpp
 )
 
-target_link_libraries(latencies
-    PRIVATE
-        Qt6::Core
-        Qt6::Network
-        Qt6::Sql
-        spdlog::spdlog
-        redis++
-        hiredis
+target_include_directories(benchmarks PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Backend)
+target_include_directories(latencies PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Backend)
+
+target_link_libraries(benchmarks PRIVATE
+    RedisCache
+    GenericRepository
+    RabbitMQClient
+    benchmark::benchmark
+    Qt6::Core
+    Qt6::Network
+    Qt6::Sql
+    spdlog::spdlog
+    redis++
+    hiredis
 )
 
-target_link_libraries(benchmarks
-    PRIVATE
-        benchmark::benchmark
-        Qt6::Core
-        Qt6::Network
-        Qt6::Sql
-        spdlog::spdlog
-        redis++
-        hiredis
-)
-
-set_target_properties(latencies PROPERTIES
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib"
-    INSTALL_RPATH_USE_LINK_PATH TRUE
-)
-
-set_target_properties(benchmarks PROPERTIES
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib"
-    INSTALL_RPATH_USE_LINK_PATH TRUE
+target_link_libraries(latencies PRIVATE
+    RedisCache
+    GenericRepository
+    RabbitMQClient
+    Qt6::Core
+    Qt6::Network
+    Qt6::Sql
+    spdlog::spdlog
+    redis++
+    hiredis
 )

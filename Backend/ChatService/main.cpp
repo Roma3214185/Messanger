@@ -1,9 +1,10 @@
 #include <crow.h>
-#include "src/DataBase/database.h"
-#include "src/Controller/controller.h"
 #include <QCoreApplication>
+
+#include "Controller/controller.h"
+#include "DataBase/database.h"
+#include "Debug_profiling.h"
 #include "Server/server.h"
-#include "../../DebugProfiling/Debug_profiling.h"
 
 const int CHAT_SERVICE_PORT = 8081;
 

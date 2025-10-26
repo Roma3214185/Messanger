@@ -2,9 +2,11 @@
 #define USER_H
 
 #include <string>
+
 #include <nlohmann/json.hpp>
-#include "../../GenericRepository/GenericReposiroty.h"
-#include "../../RedisCashe/RedisCache.h"
+
+#include "GenericReposiroty.h"
+#include "RedisCache.h"
 
 struct User
 {
@@ -82,34 +84,5 @@ inline void from_json(const json& j, User& u) {
     j.at("tag").get_to(u.tag);
     j.at("username").get_to(u.username);
 }
-
-// inline constexpr auto UserFields = std::make_tuple(
-//     &User::id,
-//     &User::email,
-//     &User::tag,
-//     &User::username
-//     );
-
-
-
-// inline constexpr std::array<MessageFields, 4> uFields = {{
-//     {"id", typeid(long long)},
-//     {"chat_id", typeid(long long)},
-//     {"sender_id", typeid(long long)},
-//     {"text", typeid(QDateTime)},
-//     {"timestamp", typeid(long long)}
-
-// }};
-
-// template<>
-// struct EntityFields<User> {
-//     static constexpr auto& fields = UserFields;
-// };
-
-
-
-
-
-
 
 #endif // USER_H

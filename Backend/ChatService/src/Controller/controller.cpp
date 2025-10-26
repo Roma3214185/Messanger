@@ -1,5 +1,4 @@
 #include "controller.h"
-#include <QDebug>
 #include "headers/TokenService.h"
 #include "headers/NetworkManager.h"
 

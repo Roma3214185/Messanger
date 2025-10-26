@@ -1,14 +1,12 @@
 #include <QtSql/QSqlDatabase>
-#include "../GenericReposiroty.h"
-#include "../Meta.h"
-#include "benchmark/benchmark.h"
-
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
-#include "../GenericReposiroty.h"
-#include "../Meta.h"
-#include "../../MessageService/Headers/Message.h"
-#include "../IEntityBuilder.h"
+
+#include "benchmark/benchmark.h"
+#include "GenericReposiroty.h"
+#include "Meta.h"
+#include "MessageService/Headers/Message.h"
+#include "IEntityBuilder.h"
 
 QSqlDatabase getBenchmarkDb() {
     static bool initialized = false;

@@ -1,7 +1,8 @@
-#include "benchmark/benchmark.h"
-#include "../../GenericRepository/GenericReposiroty.h"
-#include "../../GenericRepository/Query.h"
 #include <QCoreApplication>
+
+#include "benchmark/benchmark.h"
+#include "GenericReposiroty.h"
+#include "Query.h"
 
 static void QueryWithoutCache(benchmark::State& state) {
     SQLiteDatabase db;

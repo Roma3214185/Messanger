@@ -2,11 +2,10 @@
 #define AUTHCONTROLLER_H
 
 #include <crow/crow.h>
-#include "AuthManager/authmanager.h"
 
-class AuthController
-{
+#include "authmanager.h"
 
+class AuthController {
 public:
 
     AuthController(crow::SimpleApp& app, AuthManager* service);

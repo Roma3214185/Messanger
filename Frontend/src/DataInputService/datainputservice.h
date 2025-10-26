@@ -14,7 +14,7 @@ inline constexpr int kMaxLenOfName = 20;
 inline constexpr int kMinEmailLocalPartLength = 4;
 inline constexpr int kMaxEmailLocalPartLength = 26;
 inline const QString kEmailDomain = "@gmail.com";
-}
+}  // namespace detail
 
 bool emailValid(const QString& login);
 
@@ -27,6 +27,6 @@ bool tagValidCharacters(const QString& tag);
 
 bool nameValid(const QString& name);
 
-} // namespace DataInputService
+}  // namespace DataInputService
 
-#endif // DATAINPUTSERVICE_H
+#endif  // DATAINPUTSERVICE_H

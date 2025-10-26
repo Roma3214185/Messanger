@@ -1,8 +1,9 @@
 #include "benchmark/benchmark.h"
-#include "../../GenericRepository/GenericReposiroty.h"
-#include "../../GenericRepository/Query.h"
 #include <QCoreApplication>
-#include "../ThreadPool.h"
+
+#include "GenericReposiroty.h"
+#include "Query.h"
+#include "ThreadPool.h"
 
 static void EntityWithoutCache(benchmark::State& state) {
     SQLiteDatabase db;

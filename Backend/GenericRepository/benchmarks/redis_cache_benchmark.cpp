@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
-#include "../../RedisCashe/RedisCache.h"
-#include "../../MessageService/Headers/Message.h"
+#include "RedisCache.h"
+#include "MessageService/Headers/Message.h"
 
 static void BM_SaveEntityIndividually(benchmark::State& state) {
     RedisCache& cache = RedisCache::instance();

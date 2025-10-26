@@ -1,5 +1,5 @@
 #include "server.h"
-#include "../../../DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 
 Server::Server(const int& port, AuthManager* mgr)
     : port_(port)

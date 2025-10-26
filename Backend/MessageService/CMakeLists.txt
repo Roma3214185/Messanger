@@ -20,7 +20,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(httplib)
 
 find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
-find_package(Crow REQUIRED)
 find_package(spdlog REQUIRED)
 
 link_directories(/opt/homebrew/lib)
@@ -47,19 +46,26 @@ target_link_libraries(MessageService PRIVATE
   Crow::Crow
   redis++
   spdlog::spdlog
-  #TracyClient
-  #SimpleAmqpClient
-  #rabbitmq
-  #boost_system
-  #boost_chrono
   jwt-cpp
+  RedisCache
+  GenericRepository
 )
 
 include_directories(
     ${httplib_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/MessageDataBase
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controller
+    ${CMAKE_CURRENT_SOURCE_DIR}/MessageManager
     ${CMAKE_CURRENT_SOURCE_DIR}/Headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationManager
+    ${CMAKE_CURRENT_SOURCE_DIR}/MessageDataBase
+    ${CMAKE_CURRENT_SOURCE_DIR}/Server
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controller
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
+    ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../GenericRepository
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../GenericRepository
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../RedisCache
 )
 
 

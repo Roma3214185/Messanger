@@ -1,15 +1,16 @@
 #include "benchmark/benchmark.h"
-#include "../GenericReposiroty.h"
-#include "../Meta.h"
 #include <atomic>
 #include <mutex>
 #include <vector>
 #include <algorithm>
 
+#include "Meta.h"
+#include "GenericReposiroty.h"
+
 
 static void BM_FindWithCachePercHit(benchmark::State& state) {
     int totalOps = state.range(0);
-    int percHit = state.range(1); // % of cache hits desired
+    int percHit = state.range(1);
     std::atomic<int> id{0};
 
 
@@ -18,7 +19,6 @@ static void BM_FindWithCachePercHit(benchmark::State& state) {
         GenericRepository rep(db);
         rep.clearCache();
 
-        // Prefill cache according to percHit
         for (int i = 1; i <= totalOps; i++) {
             if ((i * 100 / totalOps) <= percHit) {
                 rep.findOne<Message>(i);
@@ -37,16 +37,14 @@ static void BM_FindWithCachePercHit(benchmark::State& state) {
 
 static void BM_FindWithCachePercHitAsync(benchmark::State& state) {
     int totalOps = state.range(0);
-    int percHit = state.range(1); // % of cache hits desired
+    int percHit = state.range(1);
 
     for (auto _ : state) {
-        // Precompute which IDs will be cache hits
         std::vector<int> ids(totalOps);
         for (int i = 0; i < totalOps; ++i) {
             ids[i] = i;
         }
 
-        // Prefill cache (optional)
         {
             SQLiteDatabase db;
             GenericRepository rep(db);
@@ -61,7 +59,7 @@ static void BM_FindWithCachePercHitAsync(benchmark::State& state) {
         ThreadPool pool{4};
 
         for (int i = 0; i < totalOps; ++i) {
-            pool.enqueue([id = ids[i]] { // capture ID by value
+            pool.enqueue([id = ids[i]] {
                 SQLiteDatabase db;
                 GenericRepository rep(db);
                 auto result = rep.findOne<Message>(id);

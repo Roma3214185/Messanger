@@ -1,12 +1,10 @@
 #include "authmanager.h"
-#include "Headers/JwtUtils.h"
-#include <QDebug>
 #include <optional>
-#include "../../../DebugProfiling/Debug_profiling.h"
+#include <JwtUtils.h>
+#include "Debug_profiling.h"
 
 using std::string;
 using std::nullopt;
-
 
 OptionalResponce AuthManager::getUser(const string& token){
     PROFILE_SCOPE("[AuthManager::getUser");
@@ -16,7 +14,7 @@ OptionalResponce AuthManager::getUser(const string& token){
         return nullopt;
     }
 
-    if(*id == 0) { //why *id == 0??
+    if(*id == 0) {
         spdlog::error("[getUser] Server can't verify token (id is zero)");
         return nullopt;
     }
