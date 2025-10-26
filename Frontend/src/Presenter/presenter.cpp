@@ -63,11 +63,11 @@ void Presenter::onScroll(int value){
     auto newMessages = manager_->getChatMessages(chatId, 20);
     if (newMessages.empty()) return;
 
-    for(auto newMsg: newMessages){
+    for(const auto& newMsg: newMessages){
         manager_->addMessageToChat(chatId, newMsg, false);
     }
 
-    int scrollOffset = messageListView->verticalScrollBar()->value();
+    //int scrollOffset = messageListView->verticalScrollBar()->value();
     messageListView->verticalScrollBar()->setValue(
         messageListView->verticalScrollBar()->value()
         + messageListView->sizeHintForRow(0) * newMessages.size());
