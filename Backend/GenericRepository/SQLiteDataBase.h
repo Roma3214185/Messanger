@@ -24,6 +24,13 @@ public:
         initializeSchema(db);
     }
 
+    ~SQLiteDatabase() {
+        // auto connectionNames = QSqlDatabase::connectionNames();
+        // for (const auto& name : connectionNames) {
+        //     QSqlDatabase::removeDatabase(name);
+        // }
+    }
+
     // QSqlDatabase getThreadDatabase() {
     //     QString connectionName = QString("conn_%1_%2")
     //     .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()))
@@ -48,11 +55,16 @@ public:
     // }
 
     QSqlDatabase& getThreadDatabase() override {
+        PROFILE_SCOPE("QSqlDatabase::getThreadDatabase");
         thread_local QSqlDatabase db;
         thread_local bool initialized = false;
 
         if (!initialized) {
-            QString connectionName = QString("conn_%1").arg(reinterpret_cast<quintptr>(QThread::currentThreadId()));
+            static std::atomic<int> connCounter{0};
+
+            QString connectionName = QString("conn_%1_%2")
+                                         .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()))
+                                         .arg(connCounter++);
 
             db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
             db.setDatabaseName(dbPath);
@@ -60,6 +72,14 @@ public:
             if (!db.open()) {
                 throw std::runtime_error("Cannot open database for this thread");
             }
+
+            QObject::connect(
+                QThread::currentThread(),
+                &QThread::finished,
+                [connectionName]() {
+                    QSqlDatabase::removeDatabase(connectionName);
+                }
+                );
 
             initialized = true;
         }

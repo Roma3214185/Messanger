@@ -41,6 +41,26 @@ add_executable(benchmarks
     ../IEntityBuilder.h
     README.md
     preparedStatements_benchmark.cpp
+    batcher_benchmark.cpp
+    thread_pool_benchmark.cpp
+)
+
+add_executable(latencies
+     benchmark_latency.cpp
+     ../SQLiteDataBase.h
+     ../GenericReposiroty.h
+     ../../RedisCashe/RedisCache.h
+     ../IEntityBuilder.h
+)
+
+target_link_libraries(latencies
+    PRIVATE
+        Qt6::Core
+        Qt6::Network
+        Qt6::Sql
+        spdlog::spdlog
+        redis++
+        hiredis
 )
 
 target_link_libraries(benchmarks
@@ -52,6 +72,12 @@ target_link_libraries(benchmarks
         spdlog::spdlog
         redis++
         hiredis
+)
+
+set_target_properties(latencies PROPERTIES
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
 set_target_properties(benchmarks PROPERTIES

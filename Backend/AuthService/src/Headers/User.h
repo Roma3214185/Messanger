@@ -42,10 +42,6 @@ struct EntityFields<User> {
     static constexpr auto& fields = UserFields;
 };
 
-
-
-
-
 template<>
 struct Builder<User> {
     static User build(QSqlQuery& query) {
@@ -71,8 +67,6 @@ struct Builder<User> {
     }
 };
 
-
-
 inline void to_json(json& j, const User& u) {
     j = json{
         {"id", u.id},
@@ -88,6 +82,34 @@ inline void from_json(const json& j, User& u) {
     j.at("tag").get_to(u.tag);
     j.at("username").get_to(u.username);
 }
+
+// inline constexpr auto UserFields = std::make_tuple(
+//     &User::id,
+//     &User::email,
+//     &User::tag,
+//     &User::username
+//     );
+
+
+
+// inline constexpr std::array<MessageFields, 4> uFields = {{
+//     {"id", typeid(long long)},
+//     {"chat_id", typeid(long long)},
+//     {"sender_id", typeid(long long)},
+//     {"text", typeid(QDateTime)},
+//     {"timestamp", typeid(long long)}
+
+// }};
+
+// template<>
+// struct EntityFields<User> {
+//     static constexpr auto& fields = UserFields;
+// };
+
+
+
+
+
 
 
 #endif // USER_H

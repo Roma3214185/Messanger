@@ -16,7 +16,7 @@ class Server
 
 public:
 
-    Server(int port, MessageManager& manager, NotificationManager& notifManager);
+    Server(int port, MessageManager& manager, RabbitMQClient& mq);
 
     void run();
 

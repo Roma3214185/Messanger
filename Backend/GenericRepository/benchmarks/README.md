@@ -13,6 +13,7 @@ The goal of this project is to measure performance benefits of different data ac
 - **Async / Thread Pool** — running database queries asynchronously.
 - **Redis pipeline** — bulk saving entities to Redis efficiently.
 - **Entity Build** — constructing entities from database rows.
+- **Prepared Query Cache** — reusing `QSqlQuery` objects to avoid repeated preparation.
 
 Benchmarks are implemented using **Google Benchmark** and **spdlog** for logging.
 
@@ -73,6 +74,13 @@ All `spdlog` output during benchmarks is either disabled or redirected to a file
 | BM_BuildEntity_Fast    | 15,642  | 15,267  | 48,653 |
 | BM_GenericBuildEntity_Fast | 159,064 | 158,904 | 4,540 |
 
+### Query Preparation Benchmarks
+
+| Benchmark                  | Time (ns) | Iterations |
+|----------------------------|-----------|------------|
+| PrepareQuery               | 4,532–5,076 | 160,170    |
+| PrepareQueryWithCache      | 345–378    | 2,030,575  |
+
 ## Analysis
 
 ### Cache Effectiveness
@@ -108,6 +116,11 @@ All `spdlog` output during benchmarks is either disabled or redirected to a file
 - For cached operations, `Time ≈ CPU` → cache removes most I/O overhead.  
 - Redis pipeline reduces network I/O, so `CPU < Time` is improved.
 
+### Query Preparation
+- `PrepareQuery`: every iteration constructs a new `QSqlQuery` and calls `prepare()`.  
+- `PrepareQueryWithCache`: caches prepared statements per-thread. Once prepared, the query is reused, resulting in **~12× faster execution**.  
+
+
 ## Relative Speedup (vs No Cache Sync)
 
 | Operation                       | Speedup × |
@@ -125,27 +138,6 @@ All `spdlog` output during benchmarks is either disabled or redirected to a file
 - **Cache** provides the largest speedup (up to 6× for queries).  
 - **Async/thread pool** alone helps moderately for uncached operations (2–1.5×).  
 - **Cache + Async** is slightly slower than synchronous cache due to thread scheduling overhead.
-
-
-## Analysis
-
-### Cache Effectiveness
-- **Query:** ~6× faster with cache  
-- **Entity:** ~4× faster with cache  
-- Entity caching significantly reduces database access time, especially on repeated accesses.
-
-### Thread Pool / Async Effects
-- Async/thread pool can **reduce blocking on slow queries**.  
-- For small, cached queries, async **adds overhead**, so wall time increases compared to synchronous cache access.  
-- Combining **cache + thread pool** shows intermediate performance: caching reduces I/O, but thread scheduling overhead still adds wall time.
-
-### Query vs Entity
-- Direct lookup by ID (`Entity`) is faster than `QueryWithoutCache` because queries involve parsing and filtering.  
-- With cache, both Queries and Entities become **very fast and close in performance**.
-
-### CPU vs Time
-- For uncached queries, `Time` >> `CPU` → shows I/O and query parsing overhead.  
-- For cached queries, `Time ≈ CPU` → cache removes most I/O overhead.
 
 ---
 
@@ -179,6 +171,12 @@ BM_BuildEntity_Static: ██████████████ 239,487 ns
 BM_BuildEntity_Fast: █ 15,642 ns
 BM_GenericBuildEntity_Fast: ██████ 191,064 ns
 ```
+**Query Preparation**
+```
+PrepareQuery:           █████████████████████████████████████████████████████████  4,532 ns  
+PrepareQueryWithCache:  ███  345 ns
+```
+
 
 **Legend / Insights:**  
 - **Shorter bars → faster execution**.  
@@ -192,6 +190,8 @@ BM_GenericBuildEntity_Fast: ██████ 191,064 ns
 - **Hand-written fast build** is ~45× faster than dynamic.  
 - **Generic FastBuilder** is ~3–4× faster than dynamic but slower than hand-written fast.  
 - **Takeaway:** Fast inlined entity builders drastically reduce construction time.
+- **PrepareQuery:** Every call creates a new QSqlQuery and calls .prepare() again.
+- **PrepareQueryWithCache:** Reuses an existing prepared query stored in a map, avoiding re-preparation.
 
 ## Usage
 
@@ -217,4 +217,5 @@ For debugging, logging can be enabled via spdlog::set_level(spdlog::level::debug
 - **Thread pool / Async** is useful only for expensive DB queries; adds overhead for fast cached operations.  
 - **Redis Pipeline** is highly beneficial for bulk inserts (~30–50% faster than individual SETs).  
 - **Best performance**: combine **cache + pipeline** for high-throughput inserts; use **cache without async** for frequent small reads.
--- **Entity Build**: hand-written / inlined builders are ~50× faster than dynamic, tuple-based generic builders are ~3–4× faster than dynamic.
+- **Entity Build**: hand-written / inlined builders are ~50× faster than dynamic, tuple-based generic builders are ~3–4× faster than dynamic.
+- **PrepareQueryWithCache**: Query preparation became ~12–15× faster.
