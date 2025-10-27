@@ -18,7 +18,7 @@ class ICache {
 
   virtual ~ICache() = 0;
 
-  [[nondiscard]]
+  [[nodiscard]]
   virtual auto get(const Key& key) -> OptionalToken = 0;
   virtual void saveToken(const Key& key, const Token& token) = 0;
   virtual void deleteToken(const Key& key) = 0;

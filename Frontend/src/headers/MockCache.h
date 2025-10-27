@@ -10,19 +10,19 @@ using CacheMap = std::unordered_map<Key, Token>;
 class MockCache : public ICache {
  public:
   OptionalToken get(const Key& key) override {
-    auto it = cache.find(key);
-    if (it != cache.end()) return it->second;
+    auto iter = cache_.find(key);
+    if (iter != cache_.end()) return it->second;
     return std::nullopt;
   }
 
   void saveToken(const Key& key, const Token& token) override {
-    cache[key] = token;
+    cache_[key] = token;
   }
 
-  void deleteToken(const Key& key) override { cache.erase(key); }
+  void deleteToken(const Key& key) override { cache_.erase(key); }
 
  private:
-  CacheMap cache;
+  CacheMap cache_;
 };
 
 #endif  // MOCKCACHE_H

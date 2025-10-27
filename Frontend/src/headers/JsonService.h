@@ -51,21 +51,21 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
   if (type == "private") {
     const auto userObj = obj["user"].toObject();
     auto chat = std::make_shared<PrivateChat>();
-    chat->chatId = obj["id"].toInt();
+    chat->chat_id = obj["id"].toInt();
     chat->title = userObj["name"].toString();
-    chat->avatarPath = userObj["avatar"].toString();
-    chat->userId = userObj["id"].toInt();
-    qDebug() << "[INFO] Load private chat:" << chat->title
-             << "id:" << chat->chatId;
+    chat->avatar_path = userObj["avatar"].toString();
+    chat->user_id = userObj["id"].toInt();
+    LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(),
+             chat->chat_id);
     return chat;
   } else if(type == "group"){
     auto chat = std::make_shared<GroupChat>();
-    chat->chatId = obj["id"].toInt();
+    chat->chat_id = obj["id"].toInt();
     chat->title = obj["name"].toString();
-    chat->avatarPath = obj["avatar"].toString();
-    chat->memberCount = obj["member_count"].toInt();
-    qDebug() << "[INFO] Load group chat:" << chat->title
-             << "id:" << chat->chatId;
+    chat->avatar_path = obj["avatar"].toString();
+    chat->member_count = obj["member_count"].toInt();
+    LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(),
+            chat->chat_id);
     return chat;
   }
   return nullptr;
@@ -73,10 +73,10 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
 
 inline auto getPrivateChatFromJson(const QJsonObject& obj) -> ChatPtr {
   auto chat = std::make_shared<PrivateChat>();
-  chat->chatId = obj["chat_id"].toInt();
-  chat->userId = obj["user_id"].toInt();
+  chat->chat_id = obj["chat_id"].toInt();
+  chat->user_id = obj["user_id"].toInt();
   chat->title = obj["title"].toString();
-  chat->avatarPath = obj["avatar"].toString();
+  chat->avatar_path = obj["avatar"].toString();
   return chat;
 }
 

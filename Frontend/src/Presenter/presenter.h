@@ -4,12 +4,15 @@
 #include <QObject>
 #include <optional>
 
-#include "ChatModel/chatmodel.h"
-#include "Model/model.h"
-#include "UserModel/UserModel.h"
-#include "headers/IMainWindow.h"
 #include "headers/MessageListView.h"
-#include "headers/SignUpRequest.h"
+
+class ChatModel;
+class IMainWindow;
+class Model;
+class Message;
+class SignUpRequest;
+class UserModel;
+class User;
 
 template <typename T>
 using Optional = std::optional<T>;
@@ -17,17 +20,16 @@ using OptionalInt = Optional<int>;
 
 class Presenter : public QObject {
   Q_OBJECT
-
  public:
   Presenter(IMainWindow* window, Model* manager);
 
   void signIn(const QString& email, const QString& password);
   void signUp(const SignUpRequest& req);
-  void on_chat_clicked(const int chatId);
+  void onChatClicked(const int chat_id);
   void findUserRequest(const QString& text);
-  void on_user_clicked(const int userId, const bool isUser = true);
-  void sendButtonClicked(const QString& textToSend);
-  void on_logOutButtonClicked();
+  void onUserClicked(const int user_id, const bool is_user = true);
+  void sendButtonClicked(const QString& text_to_send);
+  void onLogOutButtonClicked();
   void onScroll(int value);
   void setId(int id);
 
@@ -35,15 +37,15 @@ class Presenter : public QObject {
   void initialConnections();
   void setUser(const User& user, const QString& token);
   void newMessage(Message& message);
-  void openChat(const int chatId);
+  void openChat(int chat_id);
   void onErrorOccurred(const QString& error);
-  void onChatUpdated(int chatId);
+  void onChatUpdated(int chat_id);
 
   IMainWindow* view_;
   Model* manager_;
-  std::unique_ptr<MessageListView> messageListView;
-  OptionalInt currentChatId_;
-  OptionalInt currentUserId_;
+  std::unique_ptr<MessageListView> message_list_view_;
+  OptionalInt current_chat_id_;
+  OptionalInt current_user_id_;
 };
 
 #endif  // PRESENTER_H

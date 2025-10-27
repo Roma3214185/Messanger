@@ -12,25 +12,30 @@ QSize UserDelegate::sizeHint(const QStyleOptionViewItem& option,
                              const QModelIndex& index) const {
   Q_UNUSED(option);
   Q_UNUSED(index);
-  return QSize(250, 60);
+  constexpr int kWidth = 250;
+  constexpr int kHeight = 250;
+  return QSize(kWidth, kHeight);
 }
 
 void UserDelegate::drawAvatar(QPainter* painter, const QRect& rect,
                               const QPixmap& avatar) const {
-  QRect avatarRect(rect.left() + 5, rect.top() + 5, 40, 40);
-  painter->drawPixmap(avatarRect, avatar.scaled(40, 40, Qt::KeepAspectRatio,
+  constexpr int kAvatarSize = 40;
+  QRect avatarRect(rect.left() + 5, rect.top() + 5, kAvatarSize, kAvatarSize);
+  painter->drawPixmap(avatarRect, avatar.scaled(kAvatarSize, kAvatarSize, Qt::KeepAspectRatio,
                                                 Qt::SmoothTransformation));
 }
 
 void UserDelegate::drawName(QPainter* painter, const QRect& rect,
                             const QString& name) const {
-  painter->setFont(QFont("Arial", 10, QFont::Bold));
+  constexpr int kNameFont = 10;
+  painter->setFont(QFont("Arial", kNameFont, QFont::Bold));
   painter->drawText(rect.left() + 55, rect.top() + 20, name);
 }
 
 void UserDelegate::drawTag(QPainter* painter, const QRect& rect,
                            const QString& tag) const {
-  painter->setFont(QFont("Arial", 9));
+  constexpr int kTagFont = 9;
+  painter->setFont(QFont("Arial", kTagFont));
   painter->drawText(rect.left() + 55, rect.top() + 40, tag);
 }
 

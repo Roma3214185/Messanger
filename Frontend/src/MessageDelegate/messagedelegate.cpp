@@ -14,35 +14,36 @@ void MessageDelegate::paint(QPainter* painter,
 
   painter->save();
   auto msg = extractMessageData(index);
-  bool isMine = msg.sender_id == msg.receiver_id;
-  drawAll(painter, option, msg, isMine);
+  bool is_mine = msg.sender_id == msg.receiver_id;
+  drawAll(painter, option, msg, is_mine);
   painter->restore();
 }
 
 QSize MessageDelegate::sizeHint(const QStyleOptionViewItem& option,
                                 const QModelIndex& index) const {
   QString text = index.data(MessageModel::TextRole).toString();
-  QFont font("Arial", 12);
+  constexpr int kTextFont = 12;
+  QFont font("Arial", kTextFont);
   QFontMetrics fm(font);
 
-  int minBubbleWidth = 80;
-  int maxBubbleWidth = option.rect.width() - 10;  // залежить від вікна
+  constexpr int kMinBubbleWidth = 80;
+  constexpr int kAdditionalBubbleSpace = 10;
+  int maxBubbleWidth = option.rect.width() - kAdditionalBubbleSpace;
 
-  int bubbleWidth = qMax(minBubbleWidth, maxBubbleWidth);
+  int bubbleWidth = qMax(kMinBubbleWidth, maxBubbleWidth);
 
-  int avatarWidth = 30;
-  int padding = 10;
-  int paddingLeft = avatarWidth + padding;
-  int paddingRight = padding;
+  constexpr int kAvatarWidth = 30;
+  constexpr int kPadding = 10;
+  constexpr int kPaddingLeft = kAvatarWidth + kPadding;
+  constexpr int kPaddingRight = kPadding;
+  constexpr int kMinTextWidth = 20;
+  constexpr int kAdditionalSpace = 50;
 
-  // Текст повинен вміщатися всередині бульбашки
-  int textWidth = bubbleWidth - paddingLeft - paddingRight;
-  if (textWidth < 20) textWidth = 20;  // мінімальна ширина тексту
+  int textWidth = bubbleWidth - kPaddingLeft - kPaddingRight;
+  if (textWidth < kMinTextWidth) textWidth = kMinTextWidth;
 
   QRect textRect = fm.boundingRect(0, 0, textWidth, 0, Qt::TextWordWrap, text);
-
-  int height = textRect.height() + 50;  // враховує username, padding, аватар
-
+  int height = textRect.height() + kAdditionalSpace;
   return QSize(bubbleWidth, height);
 }
 
@@ -62,42 +63,47 @@ void MessageDelegate::drawBackgroundState(QPainter* painter, const QRect& rect,
 }
 
 void MessageDelegate::drawAvatar(QPainter* painter, const QRect& rect,
-                                 const QPixmap& avatar, bool isMine) const {
+                                 const QPixmap& avatar, bool is_mine) const {
   QRect avatarRect;
+  constexpr int kAvatarSize = 30;
 
-  if (isMine)
-    avatarRect = QRect(rect.right() - 35, rect.top() + 5, 30, 30);
-  else
-    avatarRect = QRect(rect.left() + 5, rect.top() + 5, 30, 30);
+  if (is_mine) {
+    avatarRect = QRect(rect.right() - 35, rect.top() + 5, kAvatarSize, kAvatarSize);
+  } else {
+    avatarRect = QRect(rect.left() + 5, rect.top() + 5, kAvatarSize, kAvatarSize);
+  }
 
   painter->drawPixmap(avatarRect, avatar.scaled(30, 30, Qt::KeepAspectRatio,
                                                 Qt::SmoothTransformation));
 }
 
 void MessageDelegate::drawUsername(QPainter* painter, const QRect& rect,
-                                   const QString& username, bool isMine) const {
+                                   const QString& username, bool is_mine) const {
   painter->save();
-
-  QFont font("Arial", 12, QFont::Bold);
+  constexpr int kUsernameFont = 12;
+  QFont font("Arial", kUsernameFont, QFont::Bold);
   painter->setFont(font);
 
-  QColor nameColor = isMine ? QColor("#0b8043") : QColor("#202124");
+  QColor nameColor = is_mine ? QColor("#0b8043") : QColor("#202124");
   painter->setPen(nameColor);
+  constexpr int kSizeOffset = 55;
+  constexpr int kTopOffset = 20;
 
-  int x = isMine ? rect.right() - 55 -
+  int x = is_mine ? rect.right() - kSizeOffset -
                        painter->fontMetrics().horizontalAdvance(username)
-                 : rect.left() + 55;
+                 : rect.left() + kSizeOffset;
 
-  painter->drawText(x, rect.top() + 20, username);
+  painter->drawText(x, rect.top() + kTopOffset, username);
   painter->restore();
 }
 
 void MessageDelegate::drawText(QPainter* painter, const QRect& rect,
-                               const QString& text, bool isMine) const {
-  painter->setFont(QFont("Arial", 12));
+                               const QString& text, bool is_mine) const {
+  constexpr int kTextFont = 12;
+  painter->setFont(QFont("Arial", kTextFont));
 
   QRect textRect;
-  if (isMine)
+  if (is_mine)
     textRect = QRect(rect.left() + 20, rect.top() + 40, rect.width() - 90,
                      rect.height() - 40);
   else
@@ -105,24 +111,24 @@ void MessageDelegate::drawText(QPainter* painter, const QRect& rect,
                      rect.height() - 40);
 
   painter->drawText(
-      textRect, (isMine ? Qt::AlignRight : Qt::AlignLeft) | Qt::TextWordWrap,
+      textRect, (is_mine ? Qt::AlignRight : Qt::AlignLeft) | Qt::TextWordWrap,
       text);
 }
 
 void MessageDelegate::drawTimestamp(QPainter* painter, const QRect& rect,
                                     const QString& timestamp,
-                                    bool isMine) const {
+                                    bool is_mine) const {
   painter->setFont(QFont("Arial", 7));
   QRect timeRect;
 
-  if (isMine)
+  if (is_mine)
     timeRect =
         QRect(rect.left() + 10, rect.bottom() - 12, rect.width() - 15, 15);
   else
     timeRect = QRect(rect.right() - 120, rect.bottom() - 20, 115, 15);
 
   painter->drawText(timeRect,
-                    isMine ? Qt::AlignRight | Qt::AlignVCenter
+                    is_mine ? Qt::AlignRight | Qt::AlignVCenter
                            : Qt::AlignLeft | Qt::AlignVCenter,
                     timestamp);
 }

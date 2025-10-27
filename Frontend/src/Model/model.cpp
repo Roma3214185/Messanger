@@ -1,16 +1,18 @@
-#include "model.h"
+#include "Model/model.h"
+
+#include <memory>
+#include <optional>
 
 #include <QEventLoop>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QObject>
 #include <QString>
 #include <QUrlQuery>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include <QtWebSockets/QWebSocket>
-#include <memory>
-#include <optional>
 
 #include "ChatModel/chatmodel.h"
 #include "headers/INetworkAccessManager.h"
@@ -25,64 +27,68 @@
 Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
              QWebSocket* socket)
     : url_(url),
-      netManager(netManager),
-      cash(cash),
-      socket(socket),
-      chatModel(std::make_unique<ChatModel>()),
-      userModel(std::make_unique<UserModel>()),
-      currentToken(""),
-      chatsById(),
-      messageModelsByChatId() {
+      net_manager_(netManager),
+      cache_(cash),
+      socket_(socket),
+      chat_model_(std::make_unique<ChatModel>()),
+      user_model_(std::make_unique<UserModel>()),
+      current_token_(""),
+      chats_by_id_(),
+      message_models_by_chat_id_() {
 
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'",
           url.toString().toStdString());
 
-  connect(chatModel.get(), &ChatModel::chatUpdated, this,
+  connect(chat_model_.get(), &ChatModel::chatUpdated, this,
           [this](int chatId) -> void { Q_EMIT chatUpdated(chatId); });
 }
 
 auto Model::indexByChatId(int chat_id) -> QModelIndex {
-  std::optional<int> idx = chatModel->findIndexByChatId(chat_id);
+  std::optional<int> idx = chat_model_->findIndexByChatId(chat_id);
   if (!idx.has_value()) {
     LOG_ERROR("Model::indexByChatId — chatId '{}' not found", chat_id);
     return {};
   }
-  return chatModel->index(*idx);
+  return chat_model_->index(*idx);
 }
 
 void Model::checkToken() {
   PROFILE_SCOPE("Model::checkToken");
-  auto tokenOpt = cash->get("TOKEN");
+  auto tokenOpt = cache_->get("TOKEN");
   if (tokenOpt) {
     LOG_INFO("[checkToken] Token found: '{}'", *tokenOpt);
-    signMe(QString::fromStdString(*tokenOpt));
+    authenticateWithToken(QString::fromStdString(*tokenOpt));
   } else {
     LOG_WARN("[checkToken] No token found");
   }
 }
 
 void Model::saveToken(const QString& token) const {
-  cash->saveToken("TOKEN", token.toStdString());
+  cache_->saveToken("TOKEN", token.toStdString());
   LOG_INFO("[saveToken] Token saved");
 }
 
 void Model::deleteToken() const {
-  cash->deleteToken("TOKEN");
+  cache_->deleteToken("TOKEN");
   LOG_INFO("[deleteToken] Token deleted");
 }
 
-void Model::setCurrentId(int current_id) { MessageModel::setCurrentUserId(current_id); }
+void Model::setCurrentId(int current_id) {
+  MessageModel::setCurrentUserId(current_id);
+}
 
 void Model::signIn(const LogInRequest& login_request) {
   PROFILE_SCOPE("Model::signIn");
-  LOG_INFO("[signIn] Attempting login for email '{}'", login_request.email.toStdString());
+  LOG_INFO("[signIn] Attempting login for email '{}'",
+          login_request.email.toStdString());
 
   QUrl endpoint = url_.resolved(QUrl("/auth/login"));
   QNetworkRequest req(endpoint);
   req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-  QJsonObject body{{"email", login_request.email}, {"password", login_request.password}};
-  auto reply = netManager->post(req, QJsonDocument(body).toJson());
+  QJsonObject body{{"email", login_request.email},
+                   {"password", login_request.password}};
+  auto reply = net_manager_->post(req, QJsonDocument(body).toJson());
 
   connect(reply, &QNetworkReply::finished, this,
           [this, reply]() -> void { onSignInFinished(reply); });
@@ -103,11 +109,11 @@ void Model::onSignInFinished(QNetworkReply* reply) {
   auto responseObj = jsonResponse.object();
   auto createdUser =
       JsonService::getUserFromResponse(responseObj["user"].toObject());
-  currentToken = responseObj["token"].toString();
+  current_token_ = responseObj["token"].toString();
 
   LOG_INFO("[onSignInFinished] Login success. User: '{}', Token: '{}'",
-           createdUser.name.toStdString(), currentToken.toStdString());
-  Q_EMIT userCreated(createdUser, currentToken);
+           createdUser.name.toStdString(), current_token_.toStdString());
+  Q_EMIT userCreated(createdUser, current_token_);
 }
 
 void Model::signUp(const SignUpRequest& request) {
@@ -122,7 +128,7 @@ void Model::signUp(const SignUpRequest& request) {
                    {"password", request.password},
                    {"name", request.name},
                    {"tag", request.tag}};
-  auto reply = netManager->post(req, QJsonDocument(body).toJson());
+  auto reply = net_manager_->post(req, QJsonDocument(body).toJson());
 
   connect(reply, &QNetworkReply::finished, this,
           [this, reply]() -> void { onSignUpFinished(reply); });
@@ -143,29 +149,30 @@ void Model::onSignUpFinished(QNetworkReply* reply) {
   auto responseObj = jsonResponse.object();
   auto createdUser =
       JsonService::getUserFromResponse(responseObj["user"].toObject());
-  currentToken = responseObj["token"].toString();
+  current_token_ = responseObj["token"].toString();
 
   LOG_INFO("[onSignUpFinished] Registration success. User: '{}', Token: '{}'",
-           createdUser.name.toStdString(), currentToken.toStdString());
-  Q_EMIT userCreated(createdUser, currentToken);
+           createdUser.name.toStdString(), current_token_.toStdString());
+  Q_EMIT userCreated(createdUser, current_token_);
 }
 
 void Model::connectSocket(int user_id) {
   PROFILE_SCOPE("Model::connectSocket");
-  connect(socket, &QWebSocket::connected, [this, user_id]() -> void { onSocketConnected(user_id); });
-  connect(socket, &QWebSocket::textMessageReceived, this,
+  connect(socket_, &QWebSocket::connected,
+          [this, user_id]() -> void { onSocketConnected(user_id); });
+  connect(socket_, &QWebSocket::textMessageReceived, this,
           &Model::onMessageReceived);
-  socket->open(QUrl("ws://localhost:8086/ws"));
+  socket_->open(QUrl("ws://localhost:8086/ws"));
   LOG_INFO("[connectSocket] Connecting WebSocket for userId={}", user_id);
 }
 
-void Model::onSocketConnected(int id) {
+void Model::onSocketConnected(int user_id) {
   PROFILE_SCOPE("Model::onSocketConnected");
-  QJsonObject json{{"type", "init"}, {"userId", id}};
-  QString msg =
+  QJsonObject json{{"type", "init"}, {"userId", user_id}};
+  const QString msg =
       QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact));
-  socket->sendTextMessage(msg);
-  LOG_INFO("[onSocketConnected] WebSocket initialized for userId={}", id);
+  socket_->sendTextMessage(msg);
+  LOG_INFO("[onSocketConnected] WebSocket initialized for userId={}", user_id);
 }
 
 void Model::onMessageReceived(const QString& msg) {
@@ -194,9 +201,9 @@ auto Model::loadChat(int chatId) -> ChatPtr {
   QUrl endpoint = url.resolved(QUrl(QString("/chats/%1").arg(chatId)));
   QNetworkRequest req(endpoint);
   req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  req.setRawHeader("Authorization", currentToken.toUtf8());
+  req.setRawHeader("Authorization", current_token_.toUtf8());
 
-  auto* reply = netManager->get(req);
+  auto* reply = net_manager_->get(req);
   QEventLoop loop;
   QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
   loop.exec();
@@ -204,7 +211,7 @@ auto Model::loadChat(int chatId) -> ChatPtr {
   auto chat = onChatLoaded(reply);
   if (chat) {
     LOG_INFO("[loadChat] Chat loaded id={}", chatId);
-  }else {
+  } else {
     LOG_ERROR("[loadChat] Failed to load chat id={}", chatId);
   }
   return chat;
@@ -232,36 +239,36 @@ auto Model::onChatLoaded(QNetworkReply* reply) -> ChatPtr {
   return chat;
 }
 
-auto Model::getPrivateChatWithUser(int userId) -> ChatPtr {
+auto Model::getPrivateChatWithUser(int user_id) -> ChatPtr {
   PROFILE_SCOPE("Model::getPrivateChatWithUser");
-  for (auto [chatId, chat] : chatsById) {
+  for (auto [_, chat] : chats_by_id_) {
     if (chat->isPrivate()) {
       auto* pchat = static_cast<PrivateChat*>(chat.get());
-      if (pchat->userId == userId) {
+      if (pchat->user_id == user_id) {
         LOG_INFO("Found private chat for this user '{}' and id '{}'",
-                 pchat->title.toStdString(), pchat->chatId);
+                 pchat->title.toStdString(), pchat->chat_id);
         return chat;
       }
     }
   }
-  LOG_INFO("Private chat for this user '{}' not found", userId);
-  auto chat = createPrivateChat(userId);
-  LOG_INFO("Private chat for this user '{}' is created, id '{}'", chat->chatId);
+  LOG_INFO("Private chat for this user '{}' not found", user_id);
+  auto chat = createPrivateChat(user_id);
+  LOG_INFO("Private chat for this user '{}' is created, id '{}'", chat->chat_id);
   addChatInFront(chat);  // (!) emit chatAdded -> load chat history if exist
   return chat;
 }
 
-auto Model::createPrivateChat(int userId) -> ChatPtr {
+auto Model::createPrivateChat(int user_id) -> ChatPtr {
   PROFILE_SCOPE("Model::createPrivateChat");
   QUrl url("http://localhost:8081");
   auto endpoint = url.resolved(QUrl("/chats/private"));
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  request.setRawHeader("Authorization", currentToken.toUtf8());
+  request.setRawHeader("Authorization", current_token_.toUtf8());
   auto body = QJsonObject{
-      {"user_id", userId},
+      {"user_id", user_id},
   };
-  auto reply = netManager->post(request, QJsonDocument(body).toJson());
+  auto reply = net_manager_->post(request, QJsonDocument(body).toJson());
   QEventLoop loop;
   QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
   loop.exec();
@@ -292,51 +299,51 @@ auto Model::onCreatePrivateChat(QNetworkReply* reply) -> ChatPtr {
         "Error in model create private chat returned group chat");
     return nullptr;
   }
-  auto newChat = JsonService::getPrivateChatFromJson(responseObj);
-  LOG_INFO("Private chat created with id '{}' ", newChat->chatId);
-  return newChat;
+  auto new_chat = JsonService::getPrivateChatFromJson(responseObj);
+  LOG_INFO("Private chat created with id '{}' ", new_chat->chat_id);
+  return new_chat;
 }
 
-void Model::onSignMe(QNetworkReply* reply) {
-  PROFILE_SCOPE("Model::onSignMe");
+void Model::onAuthenticate(QNetworkReply* reply) {
+  PROFILE_SCOPE("Model::onAuthenticate");
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
   if (reply->error() != QNetworkReply::NoError) {
-    spdlog::warn("Sign me failed: '{}'", reply->errorString().toStdString());
+    spdlog::warn("OnAuthenticate failed: '{}'", reply->errorString().toStdString());
     return;
   }
 
-  auto responseData = reply->readAll();
-  QJsonParseError parseError;
-  auto jsonResponse = QJsonDocument::fromJson(responseData, &parseError);
-  if (parseError.error != QJsonParseError::NoError ||
-      !jsonResponse.isObject()) {
+  auto response_data = reply->readAll();
+  QJsonParseError parse_error;
+  auto json_response = QJsonDocument::fromJson(response_data, &parse_error);
+  if (parse_error.error != QJsonParseError::NoError ||
+      !json_response.isObject()) {
     LOG_ERROR("Sign me failed: invalid JSON - '{}'",
-              parseError.errorString().toStdString());
+              parse_error.errorString().toStdString());
     return;
   }
 
-  auto responseObj = jsonResponse.object();
+  auto response_obj = json_response.object();
 
-  if (!responseObj.contains("user") || !responseObj["user"].isObject()) {
+  if (!response_obj.contains("user") || !response_obj["user"].isObject()) {
     LOG_ERROR("Sign me failed: JSON does not contain 'user' object");
     return;
   }
 
-  auto createdUser =
-      JsonService::getUserFromResponse(responseObj["user"].toObject());
+  auto created_user =
+      JsonService::getUserFromResponse(response_obj["user"].toObject());
 
-  if (!responseObj.contains("token") || !responseObj["token"].isString()) {
+  if (!response_obj.contains("token") || !response_obj["token"].isString()) {
     spdlog::warn("Sign me succeeded but no token returned for user '{}'",
-                 createdUser.name.toStdString());
-    currentToken.clear();
+                 created_user.name.toStdString());
+    current_token_.clear();
   } else {
-    currentToken = responseObj["token"].toString();
+    current_token_ = response_obj["token"].toString();
     LOG_INFO("Sign me success: user '{}' with token '{}'",
-             createdUser.name.toStdString(), currentToken.toStdString());
+             created_user.name.toStdString(), current_token_.toStdString());
   }
 
-  Q_EMIT userCreated(createdUser, currentToken);
+  Q_EMIT userCreated(created_user, current_token_);
 }
 
 auto Model::loadChats() -> QList<ChatPtr> {
@@ -347,9 +354,9 @@ auto Model::loadChats() -> QList<ChatPtr> {
   QUrl endpoint = url.resolved(QUrl("/chats"));
   QNetworkRequest req(endpoint);
   req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  req.setRawHeader("Authorization", currentToken.toUtf8());
+  req.setRawHeader("Authorization", current_token_.toUtf8());
 
-  auto* reply = netManager->get(req);
+  auto* reply = net_manager_->get(req);
   QEventLoop loop;
   QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
   loop.exec();
@@ -401,8 +408,8 @@ auto Model::getChatMessages(int chatId) -> QList<Message> {
 auto Model::getChatMessages(int chatId, int limit) -> QList<Message> {
   PROFILE_SCOPE("Model::getChatMessages");
   int beforeId = 0;
-  if (messageModelsByChatId.count(chatId)) {
-    auto firstMessage = messageModelsByChatId[chatId]->getFirstMessage();
+  if (message_models_by_chat_id_.count(chatId)) {
+    auto firstMessage = message_models_by_chat_id_[chatId]->getFirstMessage();
     if (firstMessage) {
       LOG_INFO("Last message with id '{}' and text '{}'", firstMessage->id,
                firstMessage->text.toStdString());
@@ -421,7 +428,7 @@ auto Model::getChatMessages(int chatId, int limit) -> QList<Message> {
   query.addQueryItem("beforeId", QString::number(beforeId));
   endpoint.setQuery(query);
   auto request = getRequestWithToken(endpoint);
-  auto* reply = netManager->get(request);
+  auto* reply = net_manager_->get(request);
 
   QEventLoop loop;
   QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
@@ -433,7 +440,7 @@ auto Model::getChatMessages(int chatId, int limit) -> QList<Message> {
 auto Model::getRequestWithToken(QUrl endpoint) -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  request.setRawHeader("Authorization", currentToken.toUtf8());
+  request.setRawHeader("Authorization", current_token_.toUtf8());
   return request;
 }
 
@@ -463,39 +470,35 @@ auto Model::onGetChatMessages(QNetworkReply* reply) -> QList<Message> {
   return messages;
 }
 
-auto Model::getMessageModel(int chatId) -> MessageModel* {
+MessageModel* Model::getMessageModel(int chat_id) {
   PROFILE_SCOPE("Model::getMessageModel");
-  auto chatIter = messageModelsByChatId.find(chatId);
-  if (chatIter == messageModelsByChatId.end()) {
-    LOG_INFO("Chat with id '{}' isn't exist", chatId);
-    createMessageModel(chatId);
+  auto chat_iter = message_models_by_chat_id_.find(chat_id);
+  if (chat_iter == message_models_by_chat_id_.end()) {
+    LOG_INFO("Chat with id '{}' isn't exist", chat_id);
+    createMessageModel(chat_id);
   }
-  return messageModelsByChatId[chatId].get();
+  return message_models_by_chat_id_[chat_id].get();
 }
 
-auto Model::createMessageModel(int chatId) -> MessageModelPtr {
+MessageModelPtr Model::createMessageModel(int chat_id) {
   PROFILE_SCOPE("Model::createMessageModel");
   auto msgModel = std::make_shared<MessageModel>();
-  messageModelsByChatId[chatId] = msgModel;
+  message_models_by_chat_id_[chat_id] = msgModel;
   return msgModel;
 }
 
-void Model::addMessageToChat(int chatId, const Message& msg){
-  addMessageToChat(chatId, msg, true);
-}
-
-void Model::addMessageToChat(int chatId, const Message& msg, bool infront) {
+void Model::addMessageToChat(int chat_id, const Message& msg, bool infront) {
   PROFILE_SCOPE("Model::addMessageToChat");
-  auto chatIter = chatsById.find(chatId);
-  if (chatIter == chatsById.end()) {
-    LOG_INFO("Chat with id '{}' isn't exist", chatId);
+  auto chatIter = chats_by_id_.find(chat_id);
+  if (chatIter == chats_by_id_.end()) {
+    LOG_INFO("Chat with id '{}' isn't exist", chat_id);
     auto chat =
         loadChat(msg.chatId);  // u can receive new message from group/user if u
                                // delete for youtself and from newUser
     addChatInFront(chat);
   }
 
-  auto messageModel = messageModelsByChatId[chatId];
+  auto messageModel = message_models_by_chat_id_[chat_id];
   auto user = getUser(msg.senderId);
 
   if (!user) {
@@ -507,17 +510,17 @@ void Model::addMessageToChat(int chatId, const Message& msg, bool infront) {
 
   if (infront) {
     messageModel->addMessage(msg, *user);
-    chatModel->updateChat(chatId, msg.text, msg.timestamp);
-    // chatModel->realocateChatInFront(chatId);
+    chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
+    // chat_model_->realocateChatInFront(chatId);
   } else {
-    messageModel->addMessageInBack(msg, *user);
+    messageModel->addMessage(msg, *user, false);
   }
 }
 
 void Model::addChatInFront(const ChatPtr& chat) {
   PROFILE_SCOPE("Model::addChatInFront");
   addChat(chat);
-  chatModel->realocateChatInFront(chat->chatId);
+  chat_model_->realocateChatInFront(chat->chat_id);
 }
 
 void Model::sendMessage(const MessageInfo& msg) {
@@ -537,10 +540,10 @@ void Model::sendMessage(const MessageInfo& msg) {
       {"timestamp", QDateTime::currentDateTime().toString()},
   };
 
-  socket->sendTextMessage(
+  socket_->sendTextMessage(
       QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact)));
-  LOG_INFO("[sendMessage] Sent message to chatId={} from user {}: '{}'", msg.chatId,
-           msg.senderId, msg.text.toStdString());
+  LOG_INFO("[sendMessage] Sent message to chatId={} from user {}: '{}'",
+          msg.chatId, msg.senderId, msg.text.toStdString());
 }
 
 auto Model::getUser(int userId) -> optional<User> {
@@ -549,7 +552,7 @@ auto Model::getUser(int userId) -> optional<User> {
 
   QUrl endpoint = url_.resolved(QUrl(QString("/users/%1").arg(userId)));
   QNetworkRequest req(endpoint);
-  auto* reply = netManager->get(req);
+  auto* reply = net_manager_->get(req);
 
   QEventLoop loop;
   QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
@@ -560,7 +563,8 @@ auto Model::getUser(int userId) -> optional<User> {
 
 auto Model::onGetUser(QNetworkReply* reply) -> optional<User> {
   PROFILE_SCOPE("Model::onGetUser");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater>
+      guard(reply);
 
   if (reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onGetUser] Network error: '{}'",
@@ -582,34 +586,34 @@ auto Model::onGetUser(QNetworkReply* reply) -> optional<User> {
 }
 
 auto Model::getNumberOfExistingChats() const -> int {
-  LOG_INFO("[getNumberOfExistingChats] Number of chats={}", chatsById.size());
-  return chatsById.size();
+  LOG_INFO("[getNumberOfExistingChats] Number of chats={}", chats_by_id_.size());
+  return chats_by_id_.size();
 }
 
 void Model::logout() {
   PROFILE_SCOPE("Model::logout");
   LOG_INFO("[logout] Logging out user");
 
-  if (socket) {
-    socket->disconnect();
-    socket->close();
+  if (socket_) {
+    socket_->disconnect();
+    socket_->close();
   }
 
   clearAllChats();
   clearAllMessages();
   deleteToken();
-  currentToken.clear();
-  chatModel->clear();
+  current_token_.clear();
+  chat_model_->clear();
   LOG_INFO("[logout] Logout complete");
 }
 
 void Model::clearAllChats() {
-  chatsById.clear();
+  chats_by_id_.clear();
   LOG_INFO("[clearAllChats] clearAllChats complete");
 }
 
 void Model::clearAllMessages() {
-  messageModelsByChatId.clear();
+  message_models_by_chat_id_.clear();
   LOG_INFO("[clearAllMessages] clearAllMessages complete");
 }
 
@@ -617,7 +621,7 @@ auto Model::findUsers(const QString& text) -> QList<User> {
   QUrl endpoint =
       url_.resolved(QUrl(QString("/users/search?tag=%1").arg(text)));
   auto request = QNetworkRequest(endpoint);
-  auto* reply = netManager->get(request);
+  auto* reply = net_manager_->get(request);
   QEventLoop loop;
   QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
   loop.exec();
@@ -625,15 +629,15 @@ auto Model::findUsers(const QString& text) -> QList<User> {
   return users;
 }
 
-void Model::signMe(const QString& token) {
+void Model::authenticateWithToken(const QString& token) {
   QUrl url("http://localhost:8083");
   QUrl endpoint = url.resolved(QUrl("/auth/me"));
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", token.toUtf8());
-  auto* reply = netManager->get(request);
+  auto* reply = net_manager_->get(request);
   QObject::connect(reply, &QNetworkReply::finished, this,
-                   [this, reply]() -> void { onSignMe(reply); });
+                   [this, reply]() -> void { onAuthenticate(reply); });
 }
 
 auto Model::onFindUsers(QNetworkReply* reply) -> QList<User> {
@@ -651,7 +655,7 @@ auto Model::onFindUsers(QNetworkReply* reply) -> QList<User> {
   auto rootObj = doc.object();
   auto arr = rootObj["users"].toArray();
   QList<User> users;
-  for (const auto& value : arr) {
+  for (const auto& value : std::as_const(arr)) {
     auto obj = value.toObject();
     auto user = JsonService::getUserFromResponse(obj);
     users.append(user);
@@ -661,52 +665,52 @@ auto Model::onFindUsers(QNetworkReply* reply) -> QList<User> {
 
 void Model::addChat(const ChatPtr& chat) {
   PROFILE_SCOPE("Model::addChat");
-  chatsById[chat->chatId] = chat;
-  chatModel->addChat(chat);
-  Q_EMIT chatAdded(chat->chatId);
+  chats_by_id_[chat->chat_id] = chat;
+  chat_model_->addChat(chat);
+  Q_EMIT chatAdded(chat->chat_id);
 }
 
-void Model::createChat(int chatId) {
+void Model::createChat(int chat_id) {
   PROFILE_SCOPE("Model::createChat");
-  auto chatIterator = chatsById.find(chatId);
-  if (chatIterator != chatsById.end()) {
-    LOG_INFO("[Chat '{}' already exist", chatId);
+  auto chatIterator = chats_by_id_.find(chat_id);
+  if (chatIterator != chats_by_id_.end()) {
+    LOG_INFO("[Chat '{}' already exist", chat_id);
     return;
   }
-  auto chat = loadChat(chatId);
-  fillChatHistory(chatId);
-  chatModel->addChatInFront(chat);
+  auto chat = loadChat(chat_id);
+  fillChatHistory(chat_id);
+  chat_model_->addChatInFront(chat);
 }
 
-void Model::fillChatHistory(int chatId) {
+void Model::fillChatHistory(int chat_id) {
   PROFILE_SCOPE("Model::fillChatHistory");
-  auto messageHistory = getChatMessages(chatId);
-  LOG_INFO("[fillChatHistory] For chat '{}' loaded '{}' messages", chatId,
+  auto messageHistory = getChatMessages(chat_id);
+  LOG_INFO("[fillChatHistory] For chat '{}' loaded '{}' messages", chat_id,
            messageHistory.size());
   auto messageModel = std::make_shared<MessageModel>(this);
-  messageModelsByChatId[chatId] = messageModel;
+  message_models_by_chat_id_[chat_id] = messageModel;
 
   if (messageHistory.empty()) {
     return;
   }
 
-  chatModel->updateChat(chatId, messageHistory.front().text,
+  chat_model_->updateChat(chat_id, messageHistory.front().text,
                         messageHistory.front().timestamp);
 
-  for (auto message : messageHistory) {
+  for (auto message : std::as_const(messageHistory)) {
     auto user = getUser(message.senderId);
     if (!user) {
       LOG_ERROR("[fillChatHistory] getUser failed for message '{}'",
                 message.id);
-    }else {
+    } else {
       LOG_INFO("[fillChatHistory] For message '{}' user is '{}'", message.id,
                user->id);
     }
 
-    messageModel->addMessageInBack(message, *user);
+    messageModel->addMessage(message, *user, false);
   }
 }
 
-auto Model::getChatModel() -> ChatModel* { return chatModel.get(); }
+auto Model::getChatModel() const -> ChatModel* { return chat_model_.get(); }
 
-auto Model::getUserModel() -> UserModel* { return userModel.get(); }
+auto Model::getUserModel() const -> UserModel* { return user_model_.get(); }

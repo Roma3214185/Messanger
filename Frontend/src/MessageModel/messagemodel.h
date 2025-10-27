@@ -24,24 +24,22 @@ class MessageModel : public QAbstractListModel {
     SenderIdRole
   };
 
-  explicit MessageModel(QObject* parent);
-  MessageModel();
+  explicit MessageModel(QObject* parent = nullptr);
 
-  [[nondiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
-  [[nondiscard]] auto rowCount() const -> int {return rowCount(QModelIndex()); }
-  [[nondiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
-  [[nondiscard]] auto roleNames() const -> QHash<int, QByteArray> override;
-  void addMessage(Message msg, const User& user);
-  void addMessageInBack(Message msg, const User& user);
+  [[nodiscard]] int rowCount(const QModelIndex& parent) const override;
+  [[nodiscard]] int rowCount() const {return rowCount(QModelIndex()); }
+  [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
+  [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+  void addMessage(Message msg, const User& user, bool in_front = true);
   void clear();
-  [[nondiscard]] auto getLastMessage() -> std::optional<Message>;
-  [[nondiscard]] auto getFirstMessage() -> std::optional<Message>;
+  [[nodiscard]] std::optional<Message> getLastMessage();
+  [[nodiscard]] std::optional<Message> getFirstMessage();
   static void setCurrentUserId(int user_id);
   void resetCurrentUseId();
 
  private:
   ListOfMessages messages_;
-  UsersByMessageId usersByMessageId;
+  UsersByMessageId users_by_message_id_;
   static std::optional<int> currentUserId;
 };
 

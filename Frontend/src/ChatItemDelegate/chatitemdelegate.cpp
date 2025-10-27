@@ -48,30 +48,32 @@ void ChatItemDelegate::drawAll(QPainter* painter,
 
 void ChatItemDelegate::drawAvatar(QPainter* painter, const QRect& rect,
                                   const QPixmap& avatar) const {
-  constexpr int k_avatar_size = 40;
-  QRect avatar_rect(rect.left() + 5, rect.top() + 5, k_avatar_size,
-                    k_avatar_size);
-  painter->drawPixmap(avatar_rect, avatar.scaled(k_avatar_size, k_avatar_size,
+  constexpr int kAvataSize = 40;
+  QRect avatar_rect(rect.left() + 5, rect.top() + 5, kAvataSize,
+                    kAvataSize);
+  painter->drawPixmap(avatar_rect, avatar.scaled(kAvataSize, kAvataSize,
                                                  Qt::KeepAspectRatio,
                                                  Qt::SmoothTransformation));
 }
 
 void ChatItemDelegate::drawNameOfChat(QPainter* painter, const QRect& rect,
                                       const QString& username) const {
-  painter->setFont(QFont("Arial", 12, QFont::Bold));
+  constexpr int kNameFont = 12;
+  painter->setFont(QFont("Arial", kNameFont, QFont::Bold));
   painter->drawText(rect.left() + 55, rect.top() + 20, username);
 }
 
 void ChatItemDelegate::drawLastMessage(QPainter* painter, const QRect& rect,
                                        const QString& text) const {
-  painter->setFont(QFont("Arial", 9));
+  constexpr int kLastMessageFont = 9;
+  painter->setFont(QFont("Arial", kLastMessageFont));
   painter->drawText(rect.left() + 55, rect.top() + 40, text);
 }
 
 void ChatItemDelegate::drawTimestamp(QPainter* painter, const QRect& rect,
                                      const QDateTime& timestamp) const {
-  constexpr int k_timestamp_font = 8;
-  painter->setFont(QFont("Arial", k_timestamp_font));
+  constexpr int kTimestampFont = 8;
+  painter->setFont(QFont("Arial", kTimestampFont));
   QString time_str = timestamp.toString("hh:mm");
   painter->drawText(rect.right() - 50, rect.top() + 20, time_str);
 }
@@ -80,16 +82,16 @@ void ChatItemDelegate::drawUnread(QPainter* painter, const QRect& rect,
                                   const int unread) const {
   if (unread <= 0) return;
 
-  constexpr int k_unread_label_size = 20;
-  constexpr int k_unread_label_font = 8;
+  constexpr int kUnreadLabelSize = 20;
+  constexpr int kUnreadLabelFont = 8;
 
   QRect circle_rect(rect.right() - 25, rect.center().y() - 10,
-                    k_unread_label_size, k_unread_label_size);
+                    kUnreadLabelSize, kUnreadLabelSize);
   painter->setBrush(Qt::red);
   painter->setPen(Qt::NoPen);
   painter->drawEllipse(circle_rect);
   painter->setPen(Qt::white);
-  painter->setFont(QFont("Arial", k_unread_label_font, QFont::Bold));
+  painter->setFont(QFont("Arial", kUnreadLabelFont, QFont::Bold));
   painter->drawText(circle_rect, Qt::AlignCenter, QString::number(unread));
 }
 
@@ -99,11 +101,11 @@ QString ChatItemDelegate::refactorLastMessage(const QString& msg) const {
     return "There is no messages";
   }
 
-  constexpr int max_len = 25;
-  constexpr int num_dots = 3;
+  constexpr int kMaxMessageLen = 25;
+  constexpr int kNumDots = 3;
 
-  if (msg.length() >= max_len) {
-    return msg.left(max_len - num_dots) + QString(num_dots, QChar('.'));
+  if (msg.length() >= kMaxMessageLen) {
+    return msg.left(kMaxMessageLen - kNumDots) + QString(kNumDots, QChar('.'));
   }
 
   return msg;
@@ -113,7 +115,7 @@ QSize ChatItemDelegate::sizeHint(const QStyleOptionViewItem& option,
                                  const QModelIndex& index) const {
   Q_UNUSED(option);
   Q_UNUSED(index);
-  constexpr int width = 250;
-  constexpr int height = 60;
-  return QSize(width, height);
+  constexpr int kChatItemWidth = 250;
+  constexpr int kChatItemHeight = 60;
+  return QSize(kChatItemWidth, kChatItemHeight);
 }

@@ -23,19 +23,19 @@ class MessageDelegate : public QStyledItemDelegate {
 
  private:
   void drawAll(QPainter* painter, const QStyleOptionViewItem& option,
-               const MessageDrawData& msg, bool isMine) const;
+               const MessageDrawData& msg, bool is_mine) const;
   MessageDrawData extractMessageData(const QModelIndex& index) const;
   void drawBackgroundState(QPainter* painter, const QRect& rect,
                            const QStyleOptionViewItem& option,
-                           bool isMine) const;
+                           bool is_mine) const;
   void drawAvatar(QPainter* painter, const QRect& rect, const QPixmap& avatar,
-                  bool isMine) const;
+                  bool is_mine) const;
   void drawUsername(QPainter* painter, const QRect& rect,
-                    const QString& username, bool isMine) const;
+                    const QString& username, bool is_mine) const;
   void drawText(QPainter* painter, const QRect& rect, const QString& text,
-                bool isMine) const;
+                bool is_mine) const;
   void drawTimestamp(QPainter* painter, const QRect& rect,
-                     const QString& timestamp, bool isMine) const;
+                     const QString& timestamp, bool is_mine) const;
 };
 
 #endif  // CHATDELEGATE_H

@@ -1,32 +1,31 @@
 #include "UserModel.h"
 
+#include "DebugProfiling/Debug_profiling.h"
+
 UserModel::UserModel(QObject* parent) : QAbstractListModel(parent) {}
-UserModel::UserModel() : UserModel(nullptr) {}
 
 int UserModel::rowCount(const QModelIndex& parent) const {
   Q_UNUSED(parent);
-  return m_users.size();
+  return users_.size();
 }
 
-int UserModel::rowCount() const { return rowCount(QModelIndex()); }
-
 void UserModel::addUser(const User& user) {
-  beginInsertRows(QModelIndex(), m_users.size(), m_users.size());
-  qDebug() << "User model add user " << user.name << " email: " << user.email;
-  m_users.push_back(user);
+  beginInsertRows(QModelIndex(), users_.size(), users_.size());
+  LOG_INFO("User model add user ({}) with email: {}", user.name.toStdString(), user.email.toStdString());
+  users_.push_back(user);
   endInsertRows();
 }
 
 void UserModel::clear() {
   beginResetModel();
-  m_users.clear();
+  users_.clear();
   endResetModel();
 }
 
 QVariant UserModel::data(const QModelIndex& index, int role) const {
-  if (!index.isValid() || index.row() >= m_users.size()) return QVariant();
+  if (!index.isValid() || index.row() >= users_.size()) return QVariant();
 
-  const User& user = m_users[index.row()];
+  const User& user = users_[index.row()];
   switch (role) {
     case UserModel::Roles::UserIdRole:
       return user.id;

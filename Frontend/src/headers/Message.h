@@ -13,8 +13,7 @@ struct Message {
   bool readed_by_me;
   bool liked_by_me;
   int read_counter = 0;
-  int liked_counter =
-      0;  // if less than 3 -> get this id's and get these avatars
+  int liked_counter = 0;
 };
 
 #endif  // MESSAGE_H

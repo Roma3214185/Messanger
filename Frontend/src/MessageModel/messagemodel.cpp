@@ -8,7 +8,6 @@
 std::optional<int> MessageModel::currentUserId = std::nullopt;
 
 MessageModel::MessageModel(QObject* parent) : QAbstractListModel(parent) {}
-MessageModel::MessageModel() : MessageModel(nullptr) {}
 
 QVariant MessageModel::data(const QModelIndex& index, int role) const {
   if (!index.isValid() || index.row() >= messages_.size()) return QVariant();
@@ -17,11 +16,11 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
 
   switch (role) {
     case UsernameRole:
-      return usersByMessageId.at(msg.id).name;
+      return users_by_message_id_.at(msg.id).name;
     case TextRole:
       return msg.text;
     case AvatarRole:
-      return usersByMessageId.at(msg.id).avatarPath;
+      return users_by_message_id_.at(msg.id).avatarPath;
     case TimestampRole:
       return msg.timestamp;
     case SenderIdRole:
@@ -48,10 +47,10 @@ std::optional<Message> MessageModel::getFirstMessage() {
 }
 
 void MessageModel::addMessage(Message msg,
-                              const User& user) {  // make with realocate
-  auto it = usersByMessageId.find(msg.id);
+                              const User& user, bool in_front) {  // make with realocate
+  auto it = users_by_message_id_.find(msg.id);
 
-  if (it != usersByMessageId.end()) {
+  if (it != users_by_message_id_.end()) {
     // undelivered messages will not copy when i load all messages;
     LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(),
              msg.id);
@@ -59,25 +58,12 @@ void MessageModel::addMessage(Message msg,
   }
 
   beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-  messages_.push_back(
-      msg);  // track receiver_id and check if sender_id == receiver_id???
-  usersByMessageId[msg.id] = user;
-  endInsertRows();
-}
-
-void MessageModel::addMessageInBack(Message msg, const User& user) {
-  auto it = usersByMessageId.find(msg.id);
-
-  if (it != usersByMessageId.end()) {
-    LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(),
-             msg.id);
-    return;
+  if (in_front) {
+    messages_.push_back(msg);
+  } else {
+    messages_.push_front(msg);
   }
-
-  beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-  messages_.push_front(
-      msg);  // track receiver_id and check if sender_id == receiver_id???
-  usersByMessageId[msg.id] = user;
+  users_by_message_id_[msg.id] = user;
   endInsertRows();
 }
 
@@ -88,7 +74,7 @@ void MessageModel::clear() {
 
   beginRemoveRows(QModelIndex(), 0, messages_.size() - 1);
   messages_.clear();
-  usersByMessageId.clear();
+  users_by_message_id_.clear();
   endRemoveRows();
 }
 

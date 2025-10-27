@@ -86,6 +86,10 @@ target_link_libraries(Chat PRIVATE
     GenericRepository
 )
 
+include_directories(Chat PUBLIC
+    ${CMAKE_SOURCE_DIR}
+)
+
 target_include_directories(Chat PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${DEBUG_PROFILING_DIR}

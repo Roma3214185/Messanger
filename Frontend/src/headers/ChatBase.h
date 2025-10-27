@@ -7,32 +7,32 @@
 #include <QVector>
 
 struct ChatBase {
-  int chatId;
+  int chat_id;
   QString title;
-  QString lastMessage;
+  QString last_message;
   int unread = 0;
-  QDateTime lastMessageTime;
-  QString avatarPath;
+  QDateTime last_message_time;
+  QString avatar_path;
 
   virtual ~ChatBase() = 0;
-  [[nondiscard]] virtual auto isPrivate() const -> bool = 0;
+  [[nodiscard]] virtual auto isPrivate() const -> bool = 0;
 };
 
 struct PrivateChat : public ChatBase {
-  QString userTag;
-  int userId;
+  QString user_tag;
+  int user_id;
   QString status;
 
-  [[nondiscard]] auto isPrivate() const -> bool override { return true; }
+  [[nodiscard]] auto isPrivate() const -> bool override { return true; }
 };
 
 struct GroupChat : public ChatBase {
-  int memberCount = 0;
-  QStringList memberTags;
-  QVector<int> membersId;
-  QStringList avatarPaths;
+  int member_count = 0;
+  QStringList member_tags;
+  QVector<int> members_id;
+  QStringList avatar_paths;
 
-  [[nondiscard]] auto isPrivate() const -> bool override { return false; }
+  [[nodiscard]] auto isPrivate() const -> bool override { return false; }
 };
 
 inline ChatBase::~ChatBase() = default;

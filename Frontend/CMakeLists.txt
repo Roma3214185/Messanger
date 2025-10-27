@@ -36,6 +36,10 @@ target_include_directories(FrontendLib PUBLIC
     /opt/homebrew/include
 )
 
+include_directories(FrontendLib PUBLIC
+    ${CMAKE_SOURCE_DIR}
+)
+
 target_link_libraries(FrontendLib PUBLIC
     Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
     spdlog::spdlog

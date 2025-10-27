@@ -18,18 +18,15 @@ class UserModel : public QAbstractListModel {
     AvatarRole
   };
 
-  explicit UserModel(QObject* parent);
-  UserModel();
-
-  [[nondiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
-  [[nondiscard]] auto rowCount() const -> int;
-  [[nondiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
-  [[nondiscard]]auto roleNames() const ->  QHash<int, QByteArray> override;
+  explicit UserModel(QObject* parent = nullptr);
+  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+  QVariant data(const QModelIndex& index, int role) const override;
+  QHash<int, QByteArray> roleNames() const override;
   void addUser(const User& user);
   void clear();
 
  private:
-  ListOfUsers m_users;
+  ListOfUsers users_;
 };
 
 #endif  // USERMODEL_H

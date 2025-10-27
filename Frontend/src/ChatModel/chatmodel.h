@@ -28,23 +28,23 @@ class ChatModel : public QAbstractListModel {
 
   explicit ChatModel(QObject* parent = nullptr);
 
-  [[nodiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
-  [[nodiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
-  [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override;
+  int rowCount(const QModelIndex& parent) const override;
+  QVariant data(const QModelIndex& index, int role) const override;
+  QHash<int, QByteArray> roleNames() const override;
   void addChat(const ChatPtr& chat);
-  void updateChat(int chatId, const QString& lastMessage,
-                  const QDateTime& time /*, int unread = 0,*/);
+  void updateChat(int chat_id, const QString& last_message,
+                  const QDateTime& time);
   void addChatInFront(ChatPtr& chat);
-  void realocateChatInFront(int chatId);
+  void realocateChatInFront(int chat_id);
   void clear();
   void sortChats();
-  [[nodiscard]] auto findIndexByChatId(int chatId) const -> OptionalChatIndex;
+  [[nodiscard]] OptionalChatIndex findIndexByChatId(int chat_id) const;
 
  Q_SIGNALS:
-  void chatUpdated(int chatId);
+  void chatUpdated(int chat_id);
 
  private:
-  ListOfChats m_chats;
+  ListOfChats chats_;
 };
 
 #endif  // CHATMODEL_H

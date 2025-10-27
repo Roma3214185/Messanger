@@ -1,11 +1,14 @@
 #include "presenter.h"
 
-#include <QTimer>
 #include <QtConcurrent/QtConcurrent>
 
 #include "Debug_profiling.h"
 #include "MessageModel/messagemodel.h"
 #include "headers/User.h"
+#include "headers/IMainWindow.h"
+#include "headers/SignUpRequest.h"
+#include "headers/MessageListView.h"
+#include "Model/model.h"
 
 Presenter::Presenter(IMainWindow* window, Model* manager)
     : view_(window), manager_(manager) {
@@ -13,8 +16,8 @@ Presenter::Presenter(IMainWindow* window, Model* manager)
   view_->setUserModel(manager->getUserModel());
   manager_->checkToken();
 
-  messageListView = std::make_unique<MessageListView>();
-  view_->setMessageListView(messageListView.get());
+  message_list_view_ = std::make_unique<MessageListView>();
+  view_->setMessageListView(message_list_view_.get());
 
   initialConnections();
 }
@@ -33,18 +36,18 @@ void Presenter::initialConnections() {
           [this](int chatId) { manager_->fillChatHistory(chatId); });
   connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
 
-  if (!messageListView.get()) {
+  if (!message_list_view_.get()) {
     LOG_ERROR("MessageListView is nullptr in initial connections");
     throw std::runtime_error("Nullptr in Presenter::connections");
   }
 
-  connect(messageListView.get(), &MessageListView::scrollChanged, this,
+  connect(message_list_view_.get(), &MessageListView::scrollChanged, this,
           &Presenter::onScroll);
   connect(manager_, &Model::chatUpdated, this, &Presenter::onChatUpdated);
 }
 
 void Presenter::onChatUpdated(int chatId) {
-  if (!currentChatId_) return;
+  if (!current_chat_id_) return;
   QModelIndex idx = manager_->indexByChatId(chatId);
   if (idx.isValid()) {
     view_->setCurrentChatIndex(idx);
@@ -56,7 +59,7 @@ void Presenter::onScroll(int value) {
   if (value != 0) return;
 
   PROFILE_SCOPE("Presenter::onScroll");
-  int chatId = *currentChatId_;
+  int chatId = *current_chat_id_;
 
   auto newMessages = manager_->getChatMessages(chatId, 20);
   if (newMessages.empty()) return;
@@ -65,10 +68,9 @@ void Presenter::onScroll(int value) {
     manager_->addMessageToChat(chatId, newMsg, false);
   }
 
-  // int scrollOffset = messageListView->verticalScrollBar()->value();
-  messageListView->verticalScrollBar()->setValue(
-      messageListView->verticalScrollBar()->value() +
-      messageListView->sizeHintForRow(0) * newMessages.size());
+  message_list_view_->verticalScrollBar()->setValue(
+      message_list_view_->verticalScrollBar()->value() +
+      message_list_view_->sizeHintForRow(0) * newMessages.size());
 }
 
 void Presenter::onErrorOccurred(const QString& error) {
@@ -96,27 +98,22 @@ void Presenter::setUser(const User& user, const QString& token) {
   manager_->connectSocket(user.id);
 }
 
-void Presenter::setId(int id) {
-  currentUserId_ = id;
-  manager_->setCurrentId(id);
+void Presenter::setId(int user_id) {
+  current_user_id_ = user_id;
+  manager_->setCurrentId(user_id);
 }
 
-// void Presenter::resetId(){
-//     currentUserId_ = std::nullopt;
-//     manager->
-// }
-
-void Presenter::on_chat_clicked(const int chatId) { openChat(chatId); }
+void Presenter::onChatClicked(int chat_id) { openChat(chat_id); }
 
 void Presenter::newMessage(Message& msg) {
-  if (msg.senderId == currentUserId_) msg.readed_by_me = true;
+  if (msg.senderId == current_user_id_) msg.readed_by_me = true;
 
-  if (currentChatId_.has_value() && currentChatId_ == msg.chatId) {
-    int max = messageListView->getMaximumMessageScrollBar();
-    int value = messageListView->getMessageScrollBarValue();
+  if (current_user_id_.has_value() && current_user_id_ == msg.chatId) {
+    int max = message_list_view_->getMaximumMessageScrollBar();
+    int value = message_list_view_->getMessageScrollBarValue();
     manager_->addMessageToChat(msg.chatId, msg);
     LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
-    if (max == value) messageListView->scrollToBottom();
+    if (max == value) message_list_view_->scrollToBottom();
   } else {
     manager_->addMessageToChat(msg.chatId, msg);
   }
@@ -132,49 +129,49 @@ void Presenter::findUserRequest(const QString& text) {
   manager_->getUserModel()->clear();
 
   for (const auto& user : users) {
-    if (currentUserId_ != user.id) manager_->getUserModel()->addUser(user);
+    if (current_user_id_ != user.id) manager_->getUserModel()->addUser(user);
   }
 }
 
-void Presenter::openChat(const int chatId) {  // make unread message = 0; (?)
+void Presenter::openChat(int chatId) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
-  currentChatId_ = chatId;
-  messageListView->setMessageModel(manager_->getMessageModel(chatId));
-  messageListView->scrollToBottom();
+  current_chat_id_ = chatId;
+  message_list_view_->setMessageModel(manager_->getMessageModel(chatId));
+  message_list_view_->scrollToBottom();
   view_->setChatWindow();
 }
 
-void Presenter::on_user_clicked(const int userId, const bool isUser) {
+void Presenter::onUserClicked(int user_id, bool is_user) {
   manager_->getUserModel()->clear();
   view_->clearFindUserEdit();
 
-  if (isUser && currentUserId_ == userId) {
+  if (is_user && current_user_id_ == user_id) {
     onErrorOccurred("[ERROR] Impossible to open chat with yourself");
     return;
   }
 
-  if (isUser) {
-    auto chat = manager_->getPrivateChatWithUser(userId);
+  if (is_user) {
+    auto chat = manager_->getPrivateChatWithUser(user_id);
     if (!chat) {
       onErrorOccurred("Char is null in on_user_clicked");
     } else {
-      openChat(chat->chatId);
+      openChat(chat->chat_id);
     }
   } else {
     qDebug() << "[ERROR] Implement finding group request";
   }
 }
 
-void Presenter::sendButtonClicked(const QString& textToSend) {
-  if (textToSend.isEmpty() || !currentChatId_) {
-    if (textToSend.isEmpty())
-      qDebug() << "[WARN] Presenter receive to send empty text";
+void Presenter::sendButtonClicked(const QString& text_to_send) {
+  if (text_to_send.isEmpty() || !current_chat_id_) {
+    if (text_to_send.isEmpty())
+      LOG_WARN("Presenter receive to send empty text");
     else
       onErrorOccurred("Presenter doesn't have opened chat");
     return;
   }
-  MessageInfo message_to_send{.chatId = *currentChatId_, .senderId = *currentUserId_, .text = textToSend };
+  MessageInfo message_to_send{.chatId = *current_chat_id_, .senderId = *current_user_id_, .text = text_to_send };
   manager_->sendMessage(message_to_send);
 }
 
-void Presenter::on_logOutButtonClicked() { manager_->logout(); }
+void Presenter::onLogOutButtonClicked() { manager_->logout(); }

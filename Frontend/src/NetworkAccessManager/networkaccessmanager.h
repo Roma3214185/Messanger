@@ -6,7 +6,7 @@
 #include "headers/INetworkAccessManager.h"
 
 class NetworkAccessManager : public INetworkAccessManager {
-  QNetworkAccessManager netManager;
+  QNetworkAccessManager net_manager_;
 
  public:
   QNetworkReply* post(const QNetworkRequest& req,

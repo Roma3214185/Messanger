@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include <QFrame>
 #include <QMessageBox>
 #include <QScrollBar>
 #include <QTimer>
@@ -16,8 +17,8 @@
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
-  ui->setupUi(this);
+    : QMainWindow(parent), ui_(new Ui::MainWindow) {
+  ui_->setupUi(this);
 
   setDelegators();
   seupConnections();
@@ -28,41 +29,34 @@ void MainWindow::setDelegators() {
   auto* chatDelegate = new ChatItemDelegate(this);
   auto* userDelegate = new UserDelegate(this);
 
-  ui->chatListView->setItemDelegate(chatDelegate);
-  ui->userListView->setItemDelegate(userDelegate);
+  ui_->chatListView->setItemDelegate(chatDelegate);
+  ui_->userListView->setItemDelegate(userDelegate);
 }
 
 void MainWindow::setChatModel(ChatModel* model) {
-  ui->chatListView->setModel(model);
+  ui_->chatListView->setModel(model);
 }
 
-void MainWindow::setChatWindow() { ui->messageWidget->setVisible(true); }
+void MainWindow::setChatWindow() { ui_->messageWidget->setVisible(true); }
 
-void MainWindow::setMessageListView(QListView* listView) {
-  ui->messageListViewLayout->addWidget(listView);
+void MainWindow::setMessageListView(QListView* list_view) {
+  ui_->messageListViewLayout->addWidget(list_view);
 
-  auto* messageDelegate = new MessageDelegate(this);
-  listView->setItemDelegate(messageDelegate);
+  auto* message_delegate = new MessageDelegate(this);
+  list_view->setItemDelegate(message_delegate);
 }
 
-// void MainWindow::setChatInLow(){
-//     QTimer::singleShot(10, this, [this]() {
-//         auto* scrollbar = ui->messageListView->verticalScrollBar();
-//         scrollbar->setValue(scrollbar->maximum());
-//     });
-// }
-
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow() { delete ui_; }
 
 void MainWindow::setPresenter(Presenter* presenter) {
-  this->presenter = presenter;
+  this->presenter_ = presenter;
 }
 
 void MainWindow::on_upSubmitButton_clicked() {
-  auto email = ui->upEmail->text().trimmed();
-  auto password = ui->upPassword->text().trimmed();
-  auto tag = ui->upTag->text().trimmed();
-  auto name = ui->upName->text().trimmed();
+  auto email = ui_->upEmail->text().trimmed();
+  auto password = ui_->upPassword->text().trimmed();
+  auto tag = ui_->upTag->text().trimmed();
+  auto name = ui_->upName->text().trimmed();
 
   if (!DataInputService::emailValid(email)) {
     showError("Email is invalid");
@@ -87,12 +81,12 @@ void MainWindow::on_upSubmitButton_clicked() {
   SignUpRequest request{
       .email = email, .password = password, .tag = tag, .name = name};
 
-  presenter->signUp(request);
+  presenter_->signUp(request);
 }
 
 void MainWindow::on_inSubmitButton_clicked() {
-  auto email = ui->inEmail->text().trimmed();
-  auto password = ui->inPassword->text().trimmed();
+  auto email = ui_->inEmail->text().trimmed();
+  auto password = ui_->inPassword->text().trimmed();
 
   if (!DataInputService::emailValid(email)) {
     showError("Email is invalid");
@@ -104,12 +98,12 @@ void MainWindow::on_inSubmitButton_clicked() {
     return;
   }
 
-  presenter->signIn(email, password);
+  presenter_->signIn(email, password);
 }
 
 void MainWindow::setMainWindow() {
-  ui->mainStackedWidget->setCurrentIndex(1);
-  ui->messageWidget->setVisible(false);
+  ui_->mainStackedWidget->setCurrentIndex(1);
+  ui_->messageWidget->setVisible(false);
 }
 
 void MainWindow::setUser(const User& user) { setMainWindow(); }
@@ -118,93 +112,93 @@ void MainWindow::showError(const QString& error) {
   QMessageBox::warning(this, "ERROR", error);
 }
 
-void MainWindow::setUserModel(UserModel* userModel) {
-  ui->userListView->setModel(userModel);
+void MainWindow::setUserModel(UserModel* user_model) {
+  ui_->userListView->setModel(user_model);
 }
 
 void MainWindow::on_userTextEdit_textChanged(const QString& text) {
-  presenter->findUserRequest(text);
+  presenter_->findUserRequest(text);
 }
 
 void MainWindow::on_textEdit_textChanged() {
-  auto docHeight = ui->textEdit->document()->size().height();
-  int newHeight = qMin(200, static_cast<int>(docHeight + 10));
-  ui->textEdit->setFixedHeight(newHeight);
+  constexpr int kMinTextEditHeight = 200;
+  constexpr int kAdditionalSpace = 10;
+  int docHeight = static_cast<int>(ui_->textEdit->document()->size().height());
+  int newHeight = qMin(kMinTextEditHeight, docHeight + kAdditionalSpace);
+  ui_->textEdit->setFixedHeight(newHeight);
 }
 
 void MainWindow::on_sendButton_clicked() {
-  auto textToSend = ui->textEdit->toPlainText();
+  auto text_to_send = ui_->textEdit->toPlainText();
 
-  ui->textEdit->clear();
-  presenter->sendButtonClicked(textToSend);
+  ui_->textEdit->clear();
+  presenter_->sendButtonClicked(text_to_send);
 }
 
-void MainWindow::clearFindUserEdit() { ui->userTextEdit->clear(); }
+void MainWindow::clearFindUserEdit() { ui_->userTextEdit->clear(); }
 
 void MainWindow::on_logoutButton_clicked() {
-  presenter->on_logOutButtonClicked();
+  presenter_->onLogOutButtonClicked();
   setSignInPage();
 }
 
 void MainWindow::setSignInPage() {
-  ui->mainStackedWidget->setCurrentIndex(0);
-  ui->SignInUpWidget->setCurrentIndex(0);
-  ui->SignInButton->setEnabled(false);
-  ui->signUpButton->setEnabled(true);
-  ui->inEmail->clear();
-  ui->inPassword->clear();
+  ui_->mainStackedWidget->setCurrentIndex(0);
+  ui_->SignInUpWidget->setCurrentIndex(0);
+  ui_->SignInButton->setEnabled(false);
+  ui_->signUpButton->setEnabled(true);
+  ui_->inEmail->clear();
+  ui_->inPassword->clear();
 }
 
 void MainWindow::setSignUpPage() {
-  ui->mainStackedWidget->setCurrentIndex(0);
-  ui->SignInUpWidget->setCurrentIndex(1);
-  ui->SignInButton->setEnabled(true);
-  ui->signUpButton->setEnabled(false);
+  ui_->mainStackedWidget->setCurrentIndex(0);
+  ui_->SignInUpWidget->setCurrentIndex(1);
+  ui_->SignInButton->setEnabled(true);
+  ui_->signUpButton->setEnabled(false);
   clearUpInput();
 }
 
 void MainWindow::clearUpInput() {
-  ui->upEmail->clear();
-  ui->upName->clear();
-  ui->upPassword->clear();
-  ui->upTag->clear();
+  ui_->upEmail->clear();
+  ui_->upName->clear();
+  ui_->upPassword->clear();
+  ui_->upTag->clear();
 }
 
 void MainWindow::seupConnections() {
-  connect(ui->chatListView, &QListView::clicked, this,
-          [=](const QModelIndex& index) {
-            auto chatId = index.data(ChatModel::ChatIdRole).toInt();
-            qDebug() << "Clicked chat:" << chatId;
-            presenter->on_chat_clicked(chatId);
+  connect(ui_->chatListView, &QListView::clicked, this,
+          [=](const QModelIndex& index) -> void {
+            auto chat_id = index.data(ChatModel::ChatIdRole).toInt();
+            presenter_->onChatClicked(chat_id);
           });
 
-  connect(ui->userListView, &QListView::clicked, this,
-          [=](const QModelIndex& index) {
-            auto userId = index.data(UserModel::UserIdRole).toInt();
-            qDebug() << "Clicked on user:" << userId;
-            presenter->on_user_clicked(userId);
+  connect(ui_->userListView, &QListView::clicked, this,
+          [=](const QModelIndex& index) -> void {
+            auto user_id = index.data(UserModel::UserIdRole).toInt();
+            presenter_->onUserClicked(user_id);
           });
 
-  connect(ui->SignInButton, &QPushButton::clicked, this,
+  connect(ui_->SignInButton, &QPushButton::clicked, this,
           &MainWindow::setSignInPage);
-  connect(ui->signUpButton, &QPushButton::clicked, this,
+  connect(ui_->signUpButton, &QPushButton::clicked, this,
           &MainWindow::setSignUpPage);
 }
 
 void MainWindow::setupUI() {
-  ui->chatListView->setMouseTracking(true);
-
+  ui_->chatListView->setMouseTracking(true);
+  constexpr int kHeightTextEdit = 35;
   setSignInPage();
-  ui->textEdit->setFixedHeight(35);
-  ui->textEdit->setPlaceholderText("Type a message...");
+  ui_->textEdit->setFixedHeight(kHeightTextEdit);
+  ui_->textEdit->setPlaceholderText("Type a message...");
 
-  ui->chatListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  ui->userListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  ui_->chatListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  ui_->userListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-  ui->messageWidget->setVisible(false);
-  ui->textEdit->setFrameStyle(QFrame::NoFrame);
+  ui_->messageWidget->setVisible(false);
+  ui_->textEdit->setFrameStyle(QFrame::NoFrame);
 }
 
-void MainWindow::setCurrentChatIndex(QModelIndex idx) {
-  ui->chatListView->setCurrentIndex(idx);
+void MainWindow::setCurrentChatIndex(QModelIndex chat_idx) {
+  ui_->chatListView->setCurrentIndex(chat_idx);
 }
