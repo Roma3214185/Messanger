@@ -16,7 +16,7 @@ set(RABBITMQC_DIR ${CMAKE_SOURCE_DIR}/external/rabbitmq-c)
 set(SIMPLE_AMQP_CLIENT_DIR ${CMAKE_SOURCE_DIR}/external/SimpleAmqpClient)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets WebSockets Gui)
+find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets WebSockets Gui Sql)
 find_package(SQLite3 REQUIRED)
 find_package(spdlog REQUIRED)
 
@@ -52,7 +52,7 @@ target_link_libraries(RedisCache PUBLIC redis++ hiredis)
 
 add_library(GenericRepository STATIC Backend/GenericRepository/GenericRepository.cpp)
 target_include_directories(GenericRepository PUBLIC Backend/GenericRepository ${CMAKE_SOURCE_DIR}/Backend)
-target_link_libraries(GenericRepository PUBLIC Qt6::Core)
+target_link_libraries(GenericRepository PUBLIC Qt6::Core Qt6::Sql)
 
 add_subdirectory(Backend/AuthService)
 add_subdirectory(Backend/MessageService)
@@ -71,7 +71,9 @@ target_include_directories(Frontend PRIVATE ${DEBUG_PROFILING_DIR})
 
 add_subdirectory(Backend/GenericRepository/benchmarks Backend/GenericRepository/benchmarks_build)
 
-add_executable(Chat main.cpp media.qrc)
+add_executable(Chat main.cpp media.qrc
+    Backend/GenericRepository/SQLiteDatabase.cpp
+    Backend/GenericRepository/Batcher.h)
 
 target_link_libraries(Chat PRIVATE
     Qt6::Core Qt6::Network Qt6::Widgets Qt6::WebSockets Qt6::Gui
