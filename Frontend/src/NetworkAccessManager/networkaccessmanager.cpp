@@ -1,9 +1,10 @@
 #include "networkaccessmanager.h"
 
-QNetworkReply* NetworkAccessManager::post(const QNetworkRequest& req, const QByteArray& byteArray) {
-    return netManager.post(req, byteArray);
+QNetworkReply* NetworkAccessManager::post(const QNetworkRequest& req,
+                                          const QByteArray& byteArray) {
+  return net_manager_.post(req, byteArray);
 }
 
-QNetworkReply* NetworkAccessManager::get(const QNetworkRequest& req){
-    return netManager.get(req);
+QNetworkReply* NetworkAccessManager::get(const QNetworkRequest& req) {
+  return net_manager_.get(req);
 }

@@ -1,32 +1,30 @@
-#ifndef AUTHSERVICE_H
-#define AUTHSERVICE_H
+#ifndef BACKEND_AUTHSERVICE_SRC_AUTHMANAGER_AUTHMANAGER_H_
+#define BACKEND_AUTHSERVICE_SRC_AUTHMANAGER_AUTHMANAGER_H_
 
-#include <string>
 #include <optional>
+#include <string>
 
-#include "Headers/AuthResponce.h"
-#include "Headers/RegisterRequest.h"
-#include "../../GenericRepository/GenericReposiroty.h"
+#include "AuthResponce.h"
+#include "GenericRepository.h"
+
+class RegisterRequest;
+class LoginRequest;
+class AuthResponce;
 
 using OptionalResponce = std::optional<AuthResponce>;
 using OptionalUser = std::optional<User>;
 
-class AuthManager
-{
-public:
+class AuthManager {
+ public:
+  AuthManager(GenericRepository& repository);
+  OptionalResponce getUser(const std::string& token);
+  OptionalResponce loginUser(const LoginRequest& login_request);
+  OptionalResponce registerUser(const RegisterRequest& req);
+  std::vector<User> findUserByTag(const std::string& tag);
+  OptionalUser findUserById(int user_id);
 
-    AuthManager(GenericRepository& repository)
-        : rep(repository)
-    {}
-
-    OptionalResponce getUser(const std::string& token);
-    OptionalResponce loginUser(const std::string& email, const std::string& password);
-    OptionalResponce registerUser(const RegisterRequest& req);
-    std::vector<User> findUserByTag(const std::string& tag);
-    OptionalUser findUserById(const int& userId);
-
-private:
-    GenericRepository rep;
+ private:
+  GenericRepository rep;
 };
 
-#endif // AUTHSERVICE_H
+#endif  // BACKEND_AUTHSERVICE_SRC_AUTHMANAGER_AUTHMANAGER_H_

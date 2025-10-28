@@ -2,92 +2,61 @@ cmake_minimum_required(VERSION 3.10)
 project(Frontend LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui)
 find_package(spdlog REQUIRED)
-#find_package(fmt REQUIRED)
 
-enable_testing()
-set(FRONTEND_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-add_subdirectory(tests)
+set(FRONTEND_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
+
+add_library(FrontendLib
+    ${FRONTEND_SRC_DIR}/Presenter/presenter.cpp
+    ${FRONTEND_SRC_DIR}/MessageModel/messagemodel.cpp
+    ${FRONTEND_SRC_DIR}/MessageDelegate/messagedelegate.cpp
+    ${FRONTEND_SRC_DIR}/ChatModel/chatmodel.cpp
+    ${FRONTEND_SRC_DIR}/Model/model.cpp
+    ${FRONTEND_SRC_DIR}/UserModel/UserModel.cpp
+    ${FRONTEND_SRC_DIR}/DataInputService/datainputservice.cpp
+
+    ${FRONTEND_SRC_DIR}/headers/MessageListView.h
+    ${FRONTEND_SRC_DIR}/UserDelegate/UserDelegate.cpp
+    ${FRONTEND_SRC_DIR}/ChatItemDelegate/ChatItemDelegate.cpp
+    ${FRONTEND_SRC_DIR}/NetworkAccessManager/NetworkAccessManager.cpp
+)
+
+target_include_directories(FrontendLib PUBLIC
+    ${FRONTEND_SRC_DIR}
+    ${DEBUG_PROFILING_DIR}
+    /usr/local/include
+    /opt/homebrew/include
+)
+
+include_directories(FrontendLib PUBLIC
+    ${CMAKE_SOURCE_DIR}
+)
+
+target_link_libraries(FrontendLib PUBLIC
+    Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
+    spdlog::spdlog
+    redis++
+    hiredis
+)
+
+target_compile_definitions(FrontendLib PUBLIC SPDLOG_HEADER_ONLY)
 
 add_executable(Frontend
-   main.cpp
-   src/MainWindow/mainwindow.cpp
-   src/MainWindow/mainwindow.h
-   src/MainWindow/mainwindow.ui
-
-   src/headers/SignUpRequest.h
-
-   src/Presenter/presenter.h
-   src/Presenter/presenter.cpp
-
-   src/headers/IMainWindow.h
-
-   src/Model/model.cpp
-   src/Model/model.h
-
-   src/headers/User.h
-
-   src/MessageDelegate/messagedelegate.cpp
-   src/MessageDelegate/messagedelegate.h
-
-   src/MessageModel/messagemodel.cpp
-   src/MessageModel/messagemodel.h
-
-   src/ChatItemDelegate/chatitemdelegate.cpp
-   src/ChatItemDelegate/chatitemdelegate.h
-
-   src/ChatModel/chatmodel.cpp
-   src/ChatModel/chatmodel.h
-
-   src/headers/JsonService.h
-
-   src/UserModel/UserModel.h
-
-   src/UserDelegate/userdelegate.h
-   src/UserDelegate/userdelegate.cpp
-
-   src/headers/INetworkAccessManager.h
-
-   src/NetworkAccessManager/networkaccessmanager.h
-   src/NetworkAccessManager/networkaccessmanager.cpp
-   src/NetworkAccessManager/MockAccessManager.h
-
-   src/headers/ICache.h
-   src/headers/RedisClient.h
-   src/headers/MockCache.h
-
-   src/UserModel/UserModel.cpp
-   src/headers/MockReply.h
-   src/headers/FakeSocket.h
-   src/headers/Message.h
-   src/DataInputService/datainputservice.h
-   src/DataInputService/datainputservice.cpp
-   src/headers/ChatBase.h
-   src/headers/DrawData.h
-   src/headers/MessageListView.h
+    main.cpp
+    ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.cpp
+    ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.h
+    ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.ui
 )
 
-target_include_directories(Frontend PRIVATE
-   ${CMAKE_CURRENT_SOURCE_DIR}/src
-   /usr/local/include
-   /opt/homebrew/include
-)
-
-target_link_libraries(Frontend PRIVATE
-   Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
-   redis++
-   #hiredis
-   spdlog::spdlog
-   #fmt::fmt
-   #TracyClient
-)
-
-target_compile_definitions(Frontend PRIVATE SPDLOG_HEADER_ONLY) #ENABLE_TRACY=1)
+target_link_libraries(Frontend PRIVATE FrontendLib)
 
 set_target_properties(Frontend PROPERTIES
     BUILD_WITH_INSTALL_RPATH ON

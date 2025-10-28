@@ -2,36 +2,33 @@
 #define REDISCLIENT_H
 
 #include <sw/redis++/redis++.h>
-#include <QDebug>
-#include "../../DebugProfiling/Debug_profiling.h"
+
+#include "Debug_profiling.h"
 #include "headers/ICache.h"
 
-class RedisClient : public ICache
-{
-    sw::redis::Redis redis;
+class RedisClient : public ICache {
+ public:
+  RedisClient(std::string url) : redis(url) {}
 
-public:
-
-    RedisClient(std::string url) : redis(url) {}
-
-    OptionalToken get(const Key& key) override{
-        OptionalToken takenOpt;
-        try {
-            takenOpt = redis.get(key);
-        } catch (const sw::redis::Error &e) {
-            spdlog::error("Redis error: '{}'", e.what());
-        }
-
-        return takenOpt;
+  OptionalToken get(const Key& key) override {
+    OptionalToken takenOpt;
+    try {
+      takenOpt = redis.get(key);
+    } catch (const sw::redis::Error& e) {
+      spdlog::error("Redis error: '{}'", e.what());
     }
 
-    void saveToken(const Key& key, const Token& token) override{
-        redis.set(key, token);
-    }
+    return takenOpt;
+  }
 
-    void deleteToken(const Key& key) override{
-        redis.del(key);
-    }
+  void saveToken(const Key& key, const Token& token) override {
+    redis.set(key, token);
+  }
+
+  void deleteToken(const Key& key) override { redis.del(key); }
+
+ private:
+  sw::redis::Redis redis;
 };
 
-#endif // REDISCLIENT_H
+#endif  // REDISCLIENT_H

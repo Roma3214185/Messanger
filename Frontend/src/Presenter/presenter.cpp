@@ -1,180 +1,177 @@
 #include "presenter.h"
-#include <QDebug>
-#include <headers/User.h>
-#include "MessageModel/messagemodel.h"
-#include "../../DebugProfiling/Debug_profiling.h"
-#include <QTimer>
+
 #include <QtConcurrent/QtConcurrent>
 
+#include "Debug_profiling.h"
+#include "MessageModel/messagemodel.h"
+#include "headers/User.h"
+#include "headers/IMainWindow.h"
+#include "headers/SignUpRequest.h"
+#include "headers/MessageListView.h"
+#include "Model/model.h"
+
 Presenter::Presenter(IMainWindow* window, Model* manager)
-    : view_(window)
-    , manager_(manager)
-{
-    view_->setChatModel(manager->getChatModel());
-    view_->setUserModel(manager->getUserModel());
-    manager_->checkToken();
+    : view_(window), manager_(manager) {
+  view_->setChatModel(manager->getChatModel());
+  view_->setUserModel(manager->getUserModel());
+  manager_->checkToken();
 
-    messageListView = std::make_unique<MessageListView>();
-    view_->setMessageListView(messageListView.get());
+  message_list_view_ = std::make_unique<MessageListView>();
+  view_->setMessageListView(message_list_view_.get());
 
-    initialConnections();
+  initialConnections();
 }
 
-void Presenter::signIn(const QString& email, const QString& password){
-    manager_->signIn(email, password);
+void Presenter::signIn(const QString& email, const QString& password) {
+  LogInRequest login_request{.email = email, .password = password};
+  manager_->signIn(login_request);
 }
 
-void Presenter::signUp(const SignUpRequest& req){
-    manager_->signUp(req);
+void Presenter::signUp(const SignUpRequest& req) { manager_->signUp(req); }
+
+void Presenter::initialConnections() {
+  connect(manager_, &Model::userCreated, this, &Presenter::setUser);
+  connect(manager_, &Model::newMessage, this, &Presenter::newMessage);
+  connect(manager_, &Model::chatAdded, this,
+          [this](int chatId) { manager_->fillChatHistory(chatId); });
+  connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
+
+  if (!message_list_view_.get()) {
+    LOG_ERROR("MessageListView is nullptr in initial connections");
+    throw std::runtime_error("Nullptr in Presenter::connections");
+  }
+
+  connect(message_list_view_.get(), &MessageListView::scrollChanged, this,
+          &Presenter::onScroll);
+  connect(manager_, &Model::chatUpdated, this, &Presenter::onChatUpdated);
 }
 
-void Presenter::initialConnections(){
-    connect(manager_, &Model::userCreated, this, &Presenter::setUser);
-    connect(manager_, &Model::newMessage, this, &Presenter::newMessage);
-    connect(manager_, &Model::chatAdded, this, [this](int chatId){
-        manager_->fillChatHistory(chatId);
-    });
-    connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
-
-    if(!messageListView.get()){
-        LOG_ERROR("MessageListView is nullptr in initial connections");
-        throw std::runtime_error("Nullptr in Presenter::connections");
-    }
-
-    connect(messageListView.get(), &MessageListView::scrollChanged, this, &Presenter::onScroll);
-    connect(manager_, &Model::chatUpdated, this, &Presenter::onChatUpdated);
+void Presenter::onChatUpdated(int chatId) {
+  if (!current_chat_id_) return;
+  QModelIndex idx = manager_->indexByChatId(chatId);
+  if (idx.isValid()) {
+    view_->setCurrentChatIndex(idx);
+    // ui->chatListView->scrollTo(idx, QAbstractItemView::PositionAtCenter);
+  }
 }
 
-void Presenter::onChatUpdated(int chatId){
-    if(!currentChatId_) return;
-    QModelIndex idx = manager_->indexByChatId(chatId);
-    if (idx.isValid()) {
-        view_->setCurrentChatIndex(idx);
-        //ui->chatListView->scrollTo(idx, QAbstractItemView::PositionAtCenter);
-    }
+void Presenter::onScroll(int value) {
+  if (value != 0) return;
+
+  PROFILE_SCOPE("Presenter::onScroll");
+  int chatId = *current_chat_id_;
+
+  auto newMessages = manager_->getChatMessages(chatId, 20);
+  if (newMessages.empty()) return;
+
+  for (const auto& newMsg : newMessages) {
+    manager_->addMessageToChat(chatId, newMsg, false);
+  }
+
+  message_list_view_->verticalScrollBar()->setValue(
+      message_list_view_->verticalScrollBar()->value() +
+      message_list_view_->sizeHintForRow(0) * newMessages.size());
 }
 
-void Presenter::onScroll(int value){
-    if(value != 0) return;
-
-    PROFILE_SCOPE("Presenter::onScroll");
-    int chatId = *currentChatId_;
-
-    auto newMessages = manager_->getChatMessages(chatId, 20);
-    if (newMessages.empty()) return;
-
-    for(auto newMsg: newMessages){
-        manager_->addMessageToChat(chatId, newMsg, false);
-    }
-
-    int scrollOffset = messageListView->verticalScrollBar()->value();
-    messageListView->verticalScrollBar()->setValue(
-        messageListView->verticalScrollBar()->value()
-        + messageListView->sizeHintForRow(0) * newMessages.size());
+void Presenter::onErrorOccurred(const QString& error) {
+  view_->showError(error);
 }
 
-void Presenter::onErrorOccurred(const QString& error){
-    view_->showError(error);
+void Presenter::setUser(const User& user, const QString& token) {
+  PROFILE_SCOPE("Presenter::setUser");
+  LOG_INFO("Set user name: '{}' | email '{}' | tag '{}' id '{}'",
+           user.name.toStdString(), user.email.toStdString(),
+           user.tag.toStdString(), user.id);
+
+  view_->setUser(user);
+  setId(user.id);
+  manager_->saveToken(token);
+
+  auto chats = manager_->loadChats();
+  LOG_INFO("In presenter loaded '{}' chats for user id '{}'", chats.size(),
+           user.id);
+
+  for (const auto& chat : chats) {
+    manager_->addChat(chat);
+  }
+
+  manager_->connectSocket(user.id);
 }
 
-void Presenter::setUser(const User& user, const QString& token){
-    PROFILE_SCOPE("Presenter::setUser");
-    LOG_INFO("Set user name: '{}' | email '{}' | tag '{}' id '{}'", user.name.toStdString(), user.email.toStdString(), user.tag.toStdString(), user.id);
-
-    view_->setUser(user);
-    setId(user.id);
-    manager_->saveToken(token);
-
-    auto chats = manager_->loadChats();
-    LOG_INFO("In presenter loaded '{}' chats for user id '{}'", chats.size(), user.id);
-
-    for (const auto& chat : chats) {
-        manager_->addChat(chat);
-    }
-
-    manager_->connectSocket(user.id);
+void Presenter::setId(int user_id) {
+  current_user_id_ = user_id;
+  manager_->setCurrentId(user_id);
 }
 
-void Presenter::setId(int id){
-    currentUserId_ = id;
-    manager_->setCurrentId(id);
+void Presenter::onChatClicked(int chat_id) { openChat(chat_id); }
+
+void Presenter::newMessage(Message& msg) {
+  if (msg.senderId == current_user_id_) msg.readed_by_me = true;
+
+  if (current_user_id_.has_value() && current_user_id_ == msg.chatId) {
+    int max = message_list_view_->getMaximumMessageScrollBar();
+    int value = message_list_view_->getMessageScrollBarValue();
+    manager_->addMessageToChat(msg.chatId, msg);
+    LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
+    if (max == value) message_list_view_->scrollToBottom();
+  } else {
+    manager_->addMessageToChat(msg.chatId, msg);
+  }
 }
 
-// void Presenter::resetId(){
-//     currentUserId_ = std::nullopt;
-//     manager->
-// }
-
-void Presenter::on_chat_clicked(const int chatId){
-    openChat(chatId);
-}
-
-void Presenter::newMessage(Message& msg){
-    if(msg.senderId == currentUserId_) msg.readed_by_me = true;
-
-    if(currentChatId_.has_value() && currentChatId_ == msg.chatId){
-        int max = messageListView->getMaximumMessageScrollBar();
-        int value = messageListView->getMessageScrollBarValue();
-        manager_->addMessageToChat(msg.chatId, msg);
-        LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
-        if(max == value) messageListView->scrollToBottom();
-    }else{
-        manager_->addMessageToChat(msg.chatId, msg);
-    }
-}
-
-void Presenter::findUserRequest(const QString& text){
-    if(text.isEmpty()) {
-        manager_->getUserModel()->clear(); return;
-    }
-
-    auto users = manager_->findUsers(text);
+void Presenter::findUserRequest(const QString& text) {
+  if (text.isEmpty()) {
     manager_->getUserModel()->clear();
+    return;
+  }
 
-    for(const auto& user: users){
-        if(currentUserId_ != user.id) manager_->getUserModel()->addUser(user);
+  auto users = manager_->findUsers(text);
+  manager_->getUserModel()->clear();
+
+  for (const auto& user : users) {
+    if (current_user_id_ != user.id) manager_->getUserModel()->addUser(user);
+  }
+}
+
+void Presenter::openChat(int chatId) {  // make unread message = 0; (?)
+  PROFILE_SCOPE("Presenter::openChat");
+  current_chat_id_ = chatId;
+  message_list_view_->setMessageModel(manager_->getMessageModel(chatId));
+  message_list_view_->scrollToBottom();
+  view_->setChatWindow();
+}
+
+void Presenter::onUserClicked(int user_id, bool is_user) {
+  manager_->getUserModel()->clear();
+  view_->clearFindUserEdit();
+
+  if (is_user && current_user_id_ == user_id) {
+    onErrorOccurred("[ERROR] Impossible to open chat with yourself");
+    return;
+  }
+
+  if (is_user) {
+    auto chat = manager_->getPrivateChatWithUser(user_id);
+    if (!chat) {
+      onErrorOccurred("Char is null in on_user_clicked");
+    } else {
+      openChat(chat->chat_id);
     }
+  } else {
+    qDebug() << "[ERROR] Implement finding group request";
+  }
 }
 
-void Presenter::openChat(const int chatId){ // make unread message = 0; (?)
-    PROFILE_SCOPE("Presenter::openChat");
-    currentChatId_ = chatId;
-    messageListView->setMessageModel(manager_->getMessageModel(chatId));
-    messageListView->scrollToBottom();
-    view_->setChatWindow();
+void Presenter::sendButtonClicked(const QString& text_to_send) {
+  if (text_to_send.isEmpty() || !current_chat_id_) {
+    if (text_to_send.isEmpty())
+      LOG_WARN("Presenter receive to send empty text");
+    else
+      onErrorOccurred("Presenter doesn't have opened chat");
+    return;
+  }
+  MessageInfo message_to_send{.chatId = *current_chat_id_, .senderId = *current_user_id_, .text = text_to_send };
+  manager_->sendMessage(message_to_send);
 }
 
-void Presenter::on_user_clicked(const int userId, const bool isUser){
-    manager_->getUserModel()->clear();
-    view_->clearFindUserEdit();
-
-    if(isUser && currentUserId_ == userId) {
-        onErrorOccurred("[ERROR] Impossible to open chat with yourself");
-        return;
-    }
-
-    if(isUser){
-        auto chat = manager_->getPrivateChatWithUser(userId);
-        if(!chat){
-            onErrorOccurred("Char is null in on_user_clicked");
-        }else{
-            openChat(chat->chatId);
-        }
-    }else{
-        qDebug() << "[ERROR] Implement finding group request";
-    }
-}
-
-void Presenter::sendButtonClicked(const QString& textToSend){
-    if(textToSend.isEmpty() || !currentChatId_) {
-        if(textToSend.isEmpty()) qDebug() << "[WARN] Presenter receive to send empty text";
-        else onErrorOccurred("Presenter doesn't have opened chat");
-        return;
-    }
-
-    manager_->sendMessage(*currentChatId_, *currentUserId_, textToSend);
-}
-
-void Presenter::on_logOutButtonClicked(){
-    manager_->logout();
-}
+void Presenter::onLogOutButtonClicked() { manager_->logout(); }

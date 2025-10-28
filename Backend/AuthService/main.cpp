@@ -1,8 +1,9 @@
-#include "src/AuthManager/authmanager.h"
-#include "Server/server.h"
 #include <QCoreApplication>
-#include "../GenericRepository/GenericReposiroty.h"
-#include "../../DebugProfiling/Debug_profiling.h"
+
+#include "authmanager.h"
+#include "Debug_profiling.h"
+#include "GenericRepository.h"
+#include "server.h"
 
 const int AUTH_PORT = 8083;
 
@@ -12,6 +13,7 @@ int main(int argc, char *argv[]) {
     SQLiteDatabase db;
     GenericRepository rep(db);
     AuthManager manager(rep);
+
     Server server(AUTH_PORT, &manager);
     server.run();
 

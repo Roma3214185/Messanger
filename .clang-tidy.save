@@ -1,0 +1,14 @@
+Checks: >
+  *, 
+  -clang-analyzer-alpha.*, 
+  google-*, 
+  -llvm-*, 
+  -cppcoreguidelines-avoid-magic-numbers
+CheckOptions:
+  - key:             google-readability-identifier-naming.VariableCase
+    value:           lower_case
+  - key:             google-readability-identifier-naming.FunctionCase
+    value:           CamelCase
+  - key:             google-readability-identifier-naming.ClassCase
+    value:           CamelCase
+ 

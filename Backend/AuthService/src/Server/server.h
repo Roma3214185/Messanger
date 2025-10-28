@@ -6,19 +6,13 @@
 
 using AuthControllerPtr = std::unique_ptr<AuthController>;
 
-class Server
-{
-
+class Server {
 public:
-
     Server(const int& port, AuthManager* manager);
-
     void run();
 
 private:
-
     void initRoutes();
-
     crow::SimpleApp app;
     AuthManager* manager;
     int port_;

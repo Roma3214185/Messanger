@@ -1,13 +1,18 @@
-#ifndef REGISTERREQUEST_H
-#define REGISTERREQUEST_H
+#ifndef BACKEND_AUTHSERVICE_SRC_HEADERS_REGISTERREQUEST_H_
+#define BACKEND_AUTHSERVICE_SRC_HEADERS_REGISTERREQUEST_H_
 
 #include <string>
 
-struct RegisterRequest{
-    std::string email;
-    std::string password;
-    std::string name;
-    std::string tag;
+struct RegisterRequest {
+  std::string email;
+  std::string password;
+  std::string name;
+  std::string tag;
 };
 
-#endif // REGISTERREQUEST_H
+struct LoginRequest {
+  std::string email;
+  std::string password;
+};
+
+#endif  // BACKEND_AUTHSERVICE_SRC_HEADERS_REGISTERREQUEST_H_

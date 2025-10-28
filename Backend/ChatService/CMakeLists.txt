@@ -13,7 +13,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
-# Додаємо шляхи до своїх заголовків
 include_directories(
     ${httplib_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -39,6 +38,9 @@ target_link_libraries(ChatService PRIVATE
     hiredis
     spdlog::spdlog
     TracyClient
+    RabbitMQClient
+    RedisCache
+    GenericRepository
 )
 
 include_directories(/opt/homebrew/include)

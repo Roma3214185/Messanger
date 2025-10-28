@@ -4,33 +4,27 @@
 #include "headers/INetworkAccessManager.h"
 #include "headers/MockReply.h"
 
-class MockNetworkAccessManager : public INetworkAccessManager{
+class MockNetworkAccessManager : public INetworkAccessManager {
+ public:
+  QNetworkReply* post(const QNetworkRequest& req,
+                      const QByteArray& byte_array) override {
+    Q_UNUSED(byte_array)
+    last_request_ = req;
+    return reply;
+  }
 
-public:
+  QNetworkReply* get(const QNetworkRequest& req) override {
+    last_request_ = req;
+    return reply;
+  }
 
-    QNetworkReply* post(const QNetworkRequest& req, const QByteArray& byteArray) override{
-        Q_UNUSED(byteArray)
-        lastRequest = req;
-        return reply;
-    }
+  auto getLastRequest() const -> QNetworkRequest { return last_request_; }
 
-    QNetworkReply* get(const QNetworkRequest& req) override{
-        lastRequest = req;
-        return reply;
-    }
+  void setReply(QNetworkReply* reply) { this->reply = reply; }
 
-    auto getLastRequest() const -> QNetworkRequest{
-        return lastRequest;
-    }
-
-    void setReply(QNetworkReply* reply){
-        this->reply = reply;
-    }
-
-private:
-
-    QNetworkRequest lastRequest;
-    QNetworkReply* reply = nullptr;
+ private:
+  QNetworkRequest last_request_;
+  QNetworkReply* reply = nullptr;
 };
 
-#endif // MOCKACCESSMANAGER_H
+#endif  // MOCKACCESSMANAGER_H

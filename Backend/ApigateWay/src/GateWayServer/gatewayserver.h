@@ -1,48 +1,41 @@
-#ifndef GATEWAYSERVER_H
-#define GATEWAYSERVER_H
+#ifndef BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_
+#define BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_
+
+#include <crow.h>
 
 #include <string>
-#include <crow.h>
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <chrono>
 
 #include "Headers/AuthVerifier.h"
 #include "Headers/ratelimiter.h"
 #include "ProxyClient/proxyclient.h"
 
-class GatewayServer
-{
+class GatewayServer {
+ public:
+  explicit GatewayServer(const int& port);
+  void run();
 
-public:
+ private:
+  crow::SimpleApp app_;
+  int port_;
 
-    explicit GatewayServer(const int& port);
-    void run();
+  RateLimiter rateLimiter_;
+  AuthVerifier authVerifier_;
+  ProxyClient authProxy_;
+  ProxyClient chatProxy_;
+  ProxyClient messageProxy_;
+  ProxyClient notificationProxy_;
 
-private:
+  void registerRoutes();
+  void registrerHealthCheck();
+  void registerNotificationRoutes();
+  void registerUserRoutes();
+  void registerMessagesRoutes();
+  void registerChatRoutes();
+  void registerAuthRoutes();
 
-    crow::SimpleApp app_;
-    int port_;
-
-    RateLimiter rateLimiter_;
-    AuthVerifier authVerifier_;
-    ProxyClient authProxy_;
-    ProxyClient chatProxy_;
-    ProxyClient messageProxy_;
-    ProxyClient notificationProxy_;
-
-    void registerRoutes();
-    void registrerHealthCheck();
-    void registerNotificationRoutes();
-    void registerUserRoutes();
-    void registerMessagesRoutes();
-    void registerChatRoutes();
-    void registerAuthRoutes();
-
-    bool checkRateLimit(const crow::request& req, crow::response& res);
-    std::string getMethod(const crow::HTTPMethod& method) const;
-    std::string extractToken(const crow::request& req) const;
+  bool checkRateLimit(const crow::request& req, crow::response& res);
+  std::string getMethod(const crow::HTTPMethod& method) const;
+  std::string extractToken(const crow::request& req) const;
 };
 
-#endif // GATEWAYSERVER_H
+#endif  // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_

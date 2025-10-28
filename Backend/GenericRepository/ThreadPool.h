@@ -1,92 +1,89 @@
-#ifndef THREADPOOL_H
-#define THREADPOOL_H
+#ifndef BACKEND_GENERICREPOSITORY_THREADPOOL_H_
+#define BACKEND_GENERICREPOSITORY_THREADPOOL_H_
 
-#include <vector>
-#include <thread>
-#include <queue>
-#include <future>
-#include <mutex>
 #include <condition_variable>
 #include <functional>
+#include <future>
+#include <mutex>
+#include <memory>
+#include <queue>
+#include <thread>
+#include <vector>
+#include <utility>
 
 class ThreadPool {
-public:
-    explicit ThreadPool(size_t numThreads) {
-        for (size_t i = 0; i < numThreads; ++i) {
-            workers.emplace_back([this] {
-                while (true) {
-                    std::function<void()> task;
-                    {
-                        std::unique_lock<std::mutex> lock(queueMutex);
-                        condition.wait(lock, [this] { return stop || !tasks.empty(); });
+ public:
+  explicit ThreadPool(size_t numThreads) {
+    for (size_t i = 0; i < numThreads; ++i) {
+      workers_.emplace_back([this] {
+        while (true) {
+          std::function<void()> task;
+          {
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
 
-                        if (stop && tasks.empty())
-                            return;
+            if (stop_ && tasks_.empty()) return;
 
-                        task = std::move(tasks.front());
-                        tasks.pop();
-                        ++activeTasks;
-                    }
+            task = std::move(tasks_.front());
+            tasks_.pop();
+            ++active_tasks_;
+          }
 
-                    task();
+          task();
 
-                    {
-                        std::unique_lock<std::mutex> lock(queueMutex);
-                        --activeTasks;
-                        if (tasks.empty() && activeTasks == 0)
-                            doneCondition.notify_all();
-                    }
-                }
-            });
+          {
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            --active_tasks_;
+            if (tasks_.empty() && active_tasks_ == 0) {
+                done_condition_.notify_all();
+            }
+          }
         }
+      });
     }
+  }
 
-    ~ThreadPool() {
-        {
-            std::unique_lock<std::mutex> lock(queueMutex);
-            stop = true;
-        }
-        condition.notify_all();
-        for (auto& worker : workers)
-            worker.join();
-    }
-
-    template<class F, class... Args>
-    auto enqueue(F&& f, Args&&... args)
-        -> std::future<typename std::invoke_result<F, Args...>::type>
+  ~ThreadPool() {
     {
-        using return_type = typename std::invoke_result<F, Args...>::type;
-
-        auto task = std::make_shared<std::packaged_task<return_type()>>(
-            std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-            );
-
-        {
-            std::unique_lock<std::mutex> lock(queueMutex);
-            if (stop)
-                throw std::runtime_error("enqueue on stopped ThreadPool");
-            tasks.emplace([task]() { (*task)(); });
-        }
-        condition.notify_one();
-        return task->get_future();
+      std::unique_lock<std::mutex> lock(queue_mutex_);
+      stop_ = true;
     }
+    condition_.notify_all();
+    for (auto& worker : workers_) worker.join();
+  }
 
-    void waitAll() {
-        std::unique_lock<std::mutex> lock(queueMutex);
-        doneCondition.wait(lock, [this] {
-            return tasks.empty() && activeTasks == 0;
-        });
+  template <class F, class... Args>
+  auto enqueue(F&& f, Args&&... args)
+      -> std::future<typename std::invoke_result<F, Args...>::type> {
+    using return_type = typename std::invoke_result<F, Args...>::type;
+
+    auto task = std::make_shared<std::packaged_task<return_type()>>(
+        std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+
+    {
+      std::unique_lock<std::mutex> lock(queue_mutex_);
+      if (stop_) throw std::runtime_error("enqueue on stopped ThreadPool");
+      tasks_.emplace([task]() { (*task)(); });
     }
+    condition_.notify_one();
+    return task->get_future();
+  }
 
-private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
+  void waitAll() {
+    std::unique_lock<std::mutex> lock(queue_mutex_);
+    done_condition_.wait(lock,
+                       [this] { return tasks_.empty() && active_tasks_ == 0; });
+  }
 
-    std::mutex queueMutex;
-    std::condition_variable condition;
-    std::condition_variable doneCondition;
-    bool stop = false;
-    size_t activeTasks = 0;
+ private:
+  std::vector<std::thread> workers_;
+  std::queue<std::function<void()>> tasks_;
+
+  std::mutex queue_mutex_;
+  std::condition_variable condition_;
+  std::condition_variable done_condition_;
+  bool stop_ = false;
+  size_t active_tasks_ = 0;
 };
 
-#endif // THREADPOOL_H
+#endif  // BACKEND_GENERICREPOSITORY_THREADPOOL_H_"

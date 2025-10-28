@@ -28,6 +28,8 @@ add_executable(AuthService
 
   src/Server/server.h
   src/Server/server.cpp
+
+   #../GenericRepository/SQLiteDatabase.cpp
 )
 
 
@@ -39,9 +41,20 @@ target_link_libraries(AuthService PRIVATE
   spdlog::spdlog
   redis++
   TracyClient
+  jwt-cpp
+  RedisCache
 )
 
-target_include_directories(AuthService PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(AuthService PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Server
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/AuthManager
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/AuthController
+  ${CMAKE_CURRENT_SOURCE_DIR}/../RedisCache
+  ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
+)
 
 include(GNUInstallDirs)
 install(TARGETS AuthService

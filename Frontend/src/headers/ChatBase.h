@@ -1,47 +1,40 @@
 #ifndef CHATBASE_H
 #define CHATBASE_H
 
-#include <QString>
 #include <QDateTime>
+#include <QString>
 #include <QStringList>
 #include <QVector>
 
-class ChatBase{
+struct ChatBase {
+  int chat_id;
+  QString title;
+  QString last_message;
+  int unread = 0;
+  QDateTime last_message_time;
+  QString avatar_path;
 
-public:
-
-    int chatId;
-    QString title;
-    QString lastMessage;
-    int unread = 0;
-    QDateTime lastMessageTime;
-    QString avatarPath;
-
-    virtual ~ChatBase() = default;
-    virtual bool isPrivate() const = 0;
+  virtual ~ChatBase() = 0;
+  [[nodiscard]] virtual auto isPrivate() const -> bool = 0;
 };
 
-class PrivateChat : public ChatBase{
+struct PrivateChat : public ChatBase {
+  QString user_tag;
+  int user_id;
+  QString status;
 
-public:
-
-    QString userTag;
-    int userId;
-    QString status;
-
-    bool isPrivate() const override { return true; }
+  [[nodiscard]] auto isPrivate() const -> bool override { return true; }
 };
 
-class GroupChat : public ChatBase{
+struct GroupChat : public ChatBase {
+  int member_count = 0;
+  QStringList member_tags;
+  QVector<int> members_id;
+  QStringList avatar_paths;
 
-public:
-
-    int memberCount = 0;
-    QStringList memberTags;
-    QVector<int> membersId;
-    QStringList avatarPaths;
-
-    bool isPrivate() const override { return false; }
+  [[nodiscard]] auto isPrivate() const -> bool override { return false; }
 };
 
-#endif // CHATBASE_H
+inline ChatBase::~ChatBase() = default;
+
+#endif  // CHATBASE_H

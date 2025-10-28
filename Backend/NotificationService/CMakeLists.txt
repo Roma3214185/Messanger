@@ -20,7 +20,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(httplib)
 
 find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
-find_package(Crow REQUIRED)
 find_package(spdlog REQUIRED)
 
 link_directories(/opt/homebrew/lib)
@@ -31,9 +30,9 @@ add_executable(NotificationService
   Headers/Message.h
   NotificationManager/notificationmanager.h NotificationManager/notificationmanager.cpp
   NetworkManager/networkmanager.h NetworkManager/networkmanager.cpp
-  SocketManager/SocketManager.h
-  Headers/MessageStatus.h
-  Server/server.h Server/server.cpp
+  SocketManager/
+  SocketManager/socketmanager.h SocketManager/socketmanager.cpp
+
 )
 
 target_link_libraries(NotificationService PRIVATE
@@ -44,6 +43,7 @@ target_link_libraries(NotificationService PRIVATE
   redis++
   spdlog::spdlog
   jwt-cpp
+  RabbitMQClient
 )
 
 include_directories(

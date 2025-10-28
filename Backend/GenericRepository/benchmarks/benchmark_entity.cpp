@@ -1,47 +1,48 @@
-#include "benchmark/benchmark.h"
-#include "../../GenericRepository/GenericReposiroty.h"
-#include "../../GenericRepository/Query.h"
 #include <QCoreApplication>
-#include "../ThreadPool.h"
+
+#include "GenericRepository.h"
+#include "Query.h"
+#include "ThreadPool.h"
+#include "benchmark/benchmark.h"
 
 static void EntityWithoutCache(benchmark::State& state) {
-    SQLiteDatabase db;
-    GenericRepository rep(db);
-    for (auto _ : state) {
-        auto results = rep.findOne<Message>(4);
-        benchmark::DoNotOptimize(results);
-    }
+  SQLiteDatabase db;
+  GenericRepository rep(db);
+  for (auto _ : state) {
+    auto results = rep.findOne<Message>(4);
+    benchmark::DoNotOptimize(results);
+  }
 }
 
 static void EntityWithCache(benchmark::State& state) {
-    SQLiteDatabase db;
-    GenericRepository rep(db);
-    for (auto _ : state) {
-        auto results = rep.findOneWithOutCache<Message>(4);
-        benchmark::DoNotOptimize(results);
-    }
+  SQLiteDatabase db;
+  GenericRepository rep(db);
+  for (auto _ : state) {
+    auto results = rep.findOneWithOutCache<Message>(4);
+    benchmark::DoNotOptimize(results);
+  }
 }
 
 static void EntityWithCacheAsync(benchmark::State& state) {
-    ThreadPool pool(4);
-    SQLiteDatabase db;
-    GenericRepository rep(db, &pool);
-    for (auto _ : state) {
-        auto future = rep.findOneAsync<Message>(4);
-        auto results = future.get();
-        benchmark::DoNotOptimize(results);
-    }
+  ThreadPool pool(4);
+  SQLiteDatabase db;
+  GenericRepository rep(db, &pool);
+  for (auto _ : state) {
+    auto future = rep.findOneAsync<Message>(4);
+    auto results = future.get();
+    benchmark::DoNotOptimize(results);
+  }
 }
 
 static void EntityWithoutCacheAsync(benchmark::State& state) {
-    ThreadPool pool(4);
-    SQLiteDatabase db;
-    GenericRepository rep(db, &pool);
-    for (auto _ : state) {
-        auto future = rep.findOneWithOutCacheAsync<Message>(4);
-        auto results = future.get();
-        benchmark::DoNotOptimize(results);
-    }
+  ThreadPool pool(4);
+  SQLiteDatabase db;
+  GenericRepository rep(db, &pool);
+  for (auto _ : state) {
+    auto future = rep.findOneWithOutCacheAsync<Message>(4);
+    auto results = future.get();
+    benchmark::DoNotOptimize(results);
+  }
 }
 
 BENCHMARK(EntityWithoutCache)->Iterations(100);
@@ -49,5 +50,5 @@ BENCHMARK(EntityWithCache)->Iterations(100);
 BENCHMARK(EntityWithCacheAsync)->Iterations(100);
 BENCHMARK(EntityWithoutCacheAsync)->Iterations(100);
 
-//cmake .. -DCMAKE_BUILD_TYPE=Release
-//cmake --build . --target benchmarks
+// cmake .. -DCMAKE_BUILD_TYPE=Release
+// cmake --build . --target benchmarks

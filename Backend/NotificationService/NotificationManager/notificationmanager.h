@@ -1,38 +1,35 @@
-#ifndef NOTIFICATIONMANAGER_H
-#define NOTIFICATIONMANAGER_H
+#ifndef BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
+#define BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 
 #include "Message.h"
-#include "rabbitmqclient.h"
-#include "networkmanager.h"
-#include "SocketManager.h"
 #include "MessageStatus.h"
+#include "RabbitMQClient/rabbitmqclient.h"
+#include "socketmanager.h"
 
-class NotificationManager
-{
-public:
-    NotificationManager(RabbitMQClient& mq, SocketsManager& sockManager, NetworkManager& networkManager);
+class NetworkManager;
+class RabbitMQClient;
 
-    void init();
-    void notifyMessageRead(int chatId, const MessageStatus& status);
-    void notifyNewMessages(Message msg, int userId);
-    void saveConnections(int userId, WebsocketPtr socket);
-    void deleteConnections(WebsocketPtr conn);
-    void userConnected(int userId, WebsocketPtr conn);
-    void onMarkReadMessage(Message message, int readBy);
-    void onSendMessage(Message msg);
-    void onMessageStatusSaved();
-    void onMessageSaved(Message msg);
-    void sendMessageToUser(int userId, Message& msg);
-    void saveMessage(Message& msg);
-    void saveMessageStatus(MessageStatus& msg);
-    void onUserSaved();
+class NotificationManager {
+  RabbitMQClient& mq_client_;
+  SocketsManager& socket_manager_;
+  NetworkManager& network_manager_;
 
-private:
-    void handleMessage(const std::string& body);
-
-    RabbitMQClient& mq;
-    SocketsManager& socketManager;
-    NetworkManager& networkManager;
+ public:
+  NotificationManager(RabbitMQClient& mq_client, SocketsManager& sock_manager,
+                      NetworkManager& network_manager);
+  void notifyMessageRead(int chat_id, const MessageStatus& message_status);
+  void notifyNewMessages(Message& message, int user_id);
+  void saveConnections(int user_id, WebsocketPtr socket);
+  void deleteConnections(WebsocketPtr conn);
+  void userConnected(int user_id, WebsocketPtr conn);
+  void onMarkReadMessage(Message& message, int read_by);
+  void onSendMessage(Message& message);
+  void onMessageStatusSaved();
+  void onMessageSaved(Message& message);
+  void sendMessageToUser(int user_id, Message& message);
+  void saveMessage(Message& message);
+  void saveMessageStatus(MessageStatus& message);
+  void onUserSaved();
 };
 
-#endif // NOTIFICATIONMANAGER_H
+#endif  // BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_

@@ -2,28 +2,24 @@
 #define AUTHCONTROLLER_H
 
 #include <crow/crow.h>
-#include "AuthManager/authmanager.h"
 
-class AuthController
-{
+#include "authmanager.h"
 
-public:
+class AuthController {
+ public:
+  AuthController(crow::SimpleApp& app, AuthManager* service);
+  void initRoutes();
 
-    AuthController(crow::SimpleApp& app, AuthManager* service);
+ private:
+  void handleRegister();
+  void handleLogin();
+  void handleMe();
+  void handleFindByTag();
+  void handleFindById();
+  std::optional<AuthResponce> verifyToken(const crow::request& req);
 
-    void initRoutes();
-
-private:
-
-    void handleRegister();
-    void handleLogin();
-    void handleMe();
-    void handleFindByTag();
-    void handleFindById();
-    std::optional<AuthResponce> verifyToken(const crow::request& req);
-
-    crow::SimpleApp& app_;
-    AuthManager* service_;
+  crow::SimpleApp& app_;
+  AuthManager* service_;
 };
 
-#endif // AUTHCONTROLLER_H
+#endif  // AUTHCONTROLLER_H
