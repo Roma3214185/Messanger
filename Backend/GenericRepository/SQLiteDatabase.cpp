@@ -61,13 +61,14 @@ void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
 
 void SQLiteDatabase::createMessageTable(QSqlDatabase& database) {
   QSqlQuery query(database);
+
   if (!query.exec(R"(
-            CREATE TABLE IF NOT EXISTS messages_status (
-                id INT,
-                receiver_id INTEGER,
-                is_read BOOLEAN,
-                read_at INTEGER,
-                PRIMARY KEY(id, receiver_id)
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                chat_id INT,
+                sender_id INT,
+                text TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         )")) {
     LOG_ERROR("Failed to create messages_status table: {}",

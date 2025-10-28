@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
-add_compile_definitions(SPDLOG_HEADER_ONLY)
+#add_compile_definitions(SPDLOG_HEADER_ONLY)
 
 set(BOOST_ROOT "/opt/homebrew/opt/boost@1.89")
 set(RABBITMQC_DIR ${CMAKE_SOURCE_DIR}/external/rabbitmq-c)

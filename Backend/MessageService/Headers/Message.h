@@ -11,10 +11,10 @@
 #include "Meta.h"
 
 struct Message {
-  int64_t id;
-  int64_t chat_id;
-  int64_t sender_id;
-  int64_t timestamp;
+  long long id;
+  long long chat_id;
+  long long sender_id;
+  long long timestamp;
   std::string text;
 };
 
@@ -25,11 +25,11 @@ struct Reflection<Message> {
         .name = "Messages",
         .table_name = "messages",
         .fields = {
-            make_field<Message, int64_t>("id", &Message::id),
-            make_field<Message, int64_t>("sender_id", &Message::sender_id),
-            make_field<Message, int64_t>("chat_id", &Message::chat_id),
+            make_field<Message, long long>("id", &Message::id),
+            make_field<Message, long long>("sender_id", &Message::sender_id),
+            make_field<Message, long long>("chat_id", &Message::chat_id),
             make_field<Message, std::string>("text", &Message::text),
-            make_field<Message, int64_t>("timestamp", &Message::timestamp)}};
+            make_field<Message, long long>("timestamp", &Message::timestamp)}};
   }
 };
 
@@ -42,7 +42,7 @@ struct Builder<Message> {
     auto assign = [&](auto& field) -> void {
       using TField = std::decay_t<decltype(field)>;
       const QVariant value = query.value(idx++);
-      if constexpr (std::is_same_v<TField, int64_t>) {
+      if constexpr (std::is_same_v<TField, long long>) {
         field = value.toLongLong();
       } else if constexpr (std::is_same_v<TField, int>) {
         field = value.toInt();

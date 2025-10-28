@@ -33,8 +33,7 @@ void NotificationManager::onMarkReadMessage(Message& message, int read_by) {
       .id = message.id,
       .receiver_id = read_by,
       .is_read = true,
-      .read_at = QDateTime::currentSecsSinceEpoch()
-    };
+      .read_at = QDateTime::currentSecsSinceEpoch() };
 
   // manager.saveMessageStatus(status);
   notifyMessageRead(message.id, message_status);

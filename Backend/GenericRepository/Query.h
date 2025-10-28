@@ -73,8 +73,16 @@ class Query {
 
     QSqlDatabase thread_db = db.getThreadDatabase();
     QSqlQuery query(thread_db);
-    query.prepare(sql);
-    for (int i = 0; i < values_.size(); ++i) query.bindValue(i, values_[i]);
+    if (!query.prepare(sql)) {
+      qWarning() << "Prepare failed:" << query.lastError().text();
+        return {};
+    } else {
+      LOG_INFO("Preparing success");
+    }
+
+    for (int i = 0; i < values_.size(); ++i) {
+      query.bindValue(i, values_[i]);
+    }
 
     if (!query.exec()) {
       LOG_ERROR("Query error: {}", query.lastError().text().toStdString());

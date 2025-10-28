@@ -226,13 +226,15 @@ class GenericRepository {
     }
     LOG_INFO("[repository] cashe not hit key = '{}'", key);
 
-    QSqlDatabase threaddatabase_ = database_.getThreadDatabase();
+    QSqlDatabase thread_database = database_.getThreadDatabase();
     auto meta = Reflection<T>::meta();
 
     QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.table_name);
     std::string stmtKey = std::string(meta.table_name) + ":findOne";
 
-    auto& query = getPreparedQuery(stmtKey, sql);
+    //auto& query = getPreparedQuery(stmtKey, sql);
+    QSqlQuery query(thread_database);
+    query.prepare(sql);
 
     query.bindValue(0, entity_id);
 

@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     init_logger("MessageService");
     QCoreApplication a(argc, argv);
     SQLiteDatabase bd;
-    RabbitMQClient mq("localhost", "guest", "guest");
+
     GenericRepository genetic_rep(bd);
 
     SaverBatcher<Message> message_saver_batcher(genetic_rep);
@@ -26,9 +26,17 @@ int main(int argc, char *argv[]) {
     Batcher<MessageStatus> message_status_batcher(message_status_saver_batcher, message_status_delete_batcher);
 
     MessageManager manager(&genetic_rep, &message_batcher, &message_status_batcher);
+    RabbitMQClient* mq = nullptr;
 
-    Server server(MESSAGE_PORT, &manager, &mq);
+    try {
+        mq = new RabbitMQClient("localhost", "guest", "guest");
+    } catch (const AmqpClient::AmqpLibraryException& e) {
+        qCritical() << "Cannot connect to RabbitMQ:" << e.what();
+    }
+
+    Server server(MESSAGE_PORT, &manager, mq);
     server.run();
+
     return a.exec();
 }
 
