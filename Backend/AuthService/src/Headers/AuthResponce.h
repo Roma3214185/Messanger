@@ -1,14 +1,14 @@
-#ifndef AUTHRESPONCE_H
-#define AUTHRESPONCE_H
+#ifndef BACKEND_AUTHSERVICE_SRC_HEADERS_AUTHRESPONCE_H_
+#define BACKEND_AUTHSERVICE_SRC_HEADERS_AUTHRESPONCE_H_
 
-#include <string>
 #include <optional>
+#include <string>
 
 #include "User.h"
 
-struct AuthResponce{
-    std::string token;
-    std::optional<User> user;
+struct AuthResponce {
+  std::string token;
+  std::optional<User> user;
 };
 
-#endif // AUTHRESPONCE_H
+#endif  // BACKEND_AUTHSERVICE_SRC_HEADERS_AUTHRESPONCE_H_

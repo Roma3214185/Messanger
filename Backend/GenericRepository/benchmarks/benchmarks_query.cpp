@@ -6,7 +6,7 @@
 // static void QueryWithoutCache(benchmark::State& state) {
 //     SQLiteDatabase db;
 //     GenericRepository rep(db);
-//     auto q = rcmake --build . --target benchmarksep.query<Message>().filter("id", 4).filter("receiver_id", 5);
+//     auto q = rep.query<Message>().filter("id", 4).filter("receiver_id", 5);
 //     for (auto _ : state) {
 //         auto results = q.execute();
 //         benchmark::DoNotOptimize(results);
