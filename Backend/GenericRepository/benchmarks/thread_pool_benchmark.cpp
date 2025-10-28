@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "Meta.h"
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 
 
 static void BM_FindWithCachePercHit(benchmark::State& state) {

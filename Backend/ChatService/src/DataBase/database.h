@@ -6,7 +6,7 @@
 #include <QList>
 
 #include "headers/Chat.h"
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 
 using ChatId = int;
 using UserId = int;

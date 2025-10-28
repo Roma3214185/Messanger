@@ -1,10 +1,12 @@
 #include <QCoreApplication>
 
 #include "Debug_profiling.h"
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 #include "MessageManager/MessageManager.h"
 #include "NotificationManager/notificationmanager.h"
 #include "Server/server.h"
+#include "GenericRepository/Batcher.h"
+#include "RabbitMQClient/rabbitmqclient.h"
 
 const int MESSAGE_PORT = 8082;
 
@@ -13,12 +15,19 @@ int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
     SQLiteDatabase bd;
     RabbitMQClient mq("localhost", "guest", "guest");
+    GenericRepository genetic_rep(bd);
 
-    GenericRepository genRep(bd);
-    MessageManager manager(genRep);
-    //NotificationManager notifManager(manager);
+    SaverBatcher<Message> message_saver_batcher(genetic_rep);
+    SaverBatcher<MessageStatus> message_status_saver_batcher(genetic_rep);
+    DeleterBatcher<Message> message_delete_batcher(genetic_rep);
+    DeleterBatcher<MessageStatus> message_status_delete_batcher(genetic_rep);
 
-    Server server(MESSAGE_PORT, manager, mq);
+    Batcher<Message> message_batcher(message_saver_batcher, message_delete_batcher);
+    Batcher<MessageStatus> message_status_batcher(message_status_saver_batcher, message_status_delete_batcher);
+
+    MessageManager manager(&genetic_rep, &message_batcher, &message_status_batcher);
+
+    Server server(MESSAGE_PORT, &manager, &mq);
     server.run();
     return a.exec();
 }

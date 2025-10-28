@@ -1,6 +1,6 @@
 #include "benchmark/benchmark.h"
 #include "SQLiteDataBase.h"
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 
 static void PrepareQuery(benchmark::State& state) {
     SQLiteDatabase db;

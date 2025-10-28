@@ -29,10 +29,10 @@ using FutureResultList = std::future<std::vector<T>>;
 
 class GenericRepository {
   IDataBase& database_;
-  RedisCache& cache_ = Rediscache_::instance();
+  RedisCache& cache_ = RedisCache::instance();
   ThreadPool* pool_;
   std::unordered_map<std::string, QSqlQuery>
-      stmtcache__;
+      stmt_cache_;
 
  public:
   explicit GenericRepository(IDataBase& database, ThreadPool* pool = nullptr)
@@ -40,13 +40,13 @@ class GenericRepository {
 
   QSqlDatabase& getThreadDatabase() { return database_.getThreadDatabase(); }
 
-  void clearCache() { cache_.clearcache_(); }
+  void clearCache() { cache_.clearCache(); }
 
   template <typename T>
   void save(T& entity) {
     PROFILE_SCOPE("[repository] Save");
     auto meta = Reflection<T>::meta();
-    LOG_INFO("Save in database_: '{}'", meta.tableName);
+    LOG_INFO("Save in database_: '{}'", meta.table_name);
 
     const Field* idField = meta.find("id");
     if (!idField) {
@@ -63,9 +63,9 @@ class GenericRepository {
 
     QSqlDatabase conn = database_.getThreadDatabase();
     std::string stmtKey =
-        meta.tableName + std::string(":save:") + std::to_string(columns.size());
+        meta.table_name + std::string(":save:") + std::to_string(columns.size());
     QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES (%3)")
-                      .arg(QString::fromStdString(meta.tableName))
+                      .arg(QString::fromStdString(meta.table_name))
                       .arg(columns.join(", "))
                       .arg(placeholders.join(", "));
 
@@ -97,7 +97,7 @@ class GenericRepository {
     }
 
     cache_.remove(makeKey<T>(id));
-    cache_.incr(std::string("table_generation:") + meta.tableName);
+    cache_.incr(std::string("table_generation:") + meta.table_name);
   }
 
   template <typename T>
@@ -106,7 +106,7 @@ class GenericRepository {
 
     PROFILE_SCOPE("[repository] Save batch");
     auto meta = Reflection<T>::meta();
-    LOG_INFO("Save batch in database_: '{}', count: {}", meta.tableName,
+    LOG_INFO("Save batch in database_: '{}', count: {}", meta.table_name,
              entities.size());
 
     const Field* idField = meta.find("id");
@@ -141,7 +141,7 @@ class GenericRepository {
     }
 
     QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES %3")
-                      .arg(QString::fromStdString(meta.tableName))
+                      .arg(QString::fromStdString(meta.table_name))
                       .arg(allColumns.join(", "))
                       .arg(placeholdersList.join(", "));
 
@@ -177,49 +177,49 @@ class GenericRepository {
           std::any_cast<long long>(idField->get(&entity))));
     }
 
-    cache_.incr(std::string("table_generation:") + meta.tableName);
+    cache_.incr(std::string("table_generation:") + meta.table_name);
   }
 
   template <typename T>
   void saveAsync(T& entity) {
-    if (!pool) {
+    if (!pool_) {
       LOG_WARN("Pool isn't initialized");
       save(entity);
     } else {
       LOG_INFO("Start save async");
-      pool->enqueue([this, entity]() { return this->save<T>(entity); });
+      pool_->enqueue([this, entity]() { return this->save<T>(entity); });
     }
   }
 
   template <typename T>
-  std::future<std::optional<T>> findOneAsync(long long id) {
-    if (!pool) {
+  std::future<std::optional<T>> findOneAsync(long long entity_id) {
+    if (!pool_) {
       LOG_WARN("Pool isn't initialized");
       return std::async(std::launch::deferred,
-                        [this, id]() { return this->findOne<T>(id); });
+                        [this, entity_id]() { return this->findOne<T>(entity_id); });
     } else {
       LOG_INFO("Start save async");
-      return pool->enqueue([this, id]() { return this->findOne<T>(id); });
+      return pool_->enqueue([this, entity_id]() { return this->findOne<T>(entity_id); });
     }
   }
 
   template <typename T>
-  std::future<std::optional<T>> findOneWithOutcache_Async(long long id) {
-    if (!pool) {
+  std::future<std::optional<T>> findOneWithOutCacheAsync(long long entity_id) {
+    if (!pool_) {
       LOG_WARN("Pool isn't initialized");
-      return std::async(std::launch::async, [this, id]() {
-        return this->findOneWithOutcache_<T>(id);
+      return std::async(std::launch::async, [this, entity_id]() {
+        return this->findOneWithOutCache<T>(entity_id);
       });
     } else {
-      return pool->enqueue(
-          [this, id]() { return this->findOneWithOutcache_<T>(id); });
+      return pool_->enqueue(
+          [this, entity_id]() { return this->findOneWithOutCache<T>(entity_id); });
     }
   }
 
   template <typename T>
-  std::optional<T> findOne(long long id) {
+  std::optional<T> findOne(long long entity_id) {
     PROFILE_SCOPE("[repository] FindOne");
-    const std::string key = makeKey<T>(id);
+    const std::string key = makeKey<T>(entity_id);
     if (auto cache_d = cache_.get<T>(key)) {
       LOG_INFO("[repository] [cache_ HIT] key = '{}'", key);
       return cache_d;
@@ -229,21 +229,21 @@ class GenericRepository {
     QSqlDatabase threaddatabase_ = database_.getThreadDatabase();
     auto meta = Reflection<T>::meta();
 
-    QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.tableName);
-    std::string stmtKey = std::string(meta.tableName) + ":findOne";
+    QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.table_name);
+    std::string stmtKey = std::string(meta.table_name) + ":findOne";
 
     auto& query = getPreparedQuery(stmtKey, sql);
 
-    query.bindValue(0, id);
+    query.bindValue(0, entity_id);
 
     if (!query.exec()) {
-      LOG_ERROR("[repository] SQL error on '{}': {}", meta.tableName,
+      LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
                 query.lastError().text().toStdString());
       return std::nullopt;
     }
 
     if (!query.next()) {
-      LOG_WARN("[repository] no rows found in '{}'", meta.tableName);
+      LOG_WARN("[repository] no rows found in '{}'", meta.table_name);
       return std::nullopt;
     }
 
@@ -255,11 +255,11 @@ class GenericRepository {
   QSqlQuery& getPreparedQuery(const std::string& stmtKey, const QString& sql) {
     QSqlDatabase threaddatabase_ = database_.getThreadDatabase();
 
-    auto it = stmtcache_.find(stmtKey);
-    if (it == stmtcache_.end()) {
+    auto it = stmt_cache_.find(stmtKey);
+    if (it == stmt_cache_.end()) {
       QSqlQuery query(threaddatabase_);
       query.prepare(sql);
-      auto [insertIt, _] = stmtcache_.emplace(stmtKey, std::move(query));
+      auto [insertIt, _] = stmt_cache_.emplace(stmtKey, std::move(query));
       return insertIt->second;
     } else {
       it->second.finish();
@@ -269,25 +269,25 @@ class GenericRepository {
   }
 
   template <typename T>
-  std::optional<T> findOneWithOutcache_(long long id) {
+  std::optional<T> findOneWithOutCache(long long id) {
     const std::string key = makeKey<T>(id);
-    QSqlDatabase threaddatabase_ = database_.getThreadDatabase();
+    QSqlDatabase thread_database = database_.getThreadDatabase();
     auto meta = Reflection<T>::meta();
 
-    std::string stmtKey = std::string(meta.tableName) + ":findOne";
-    QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.tableName);
+    std::string stmtKey = std::string(meta.table_name) + ":findOne";
+    QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.table_name);
     auto& query = getPreparedQuery(stmtKey, sql);
 
     query.bindValue(0, id);
 
     if (!query.exec()) {
-      LOG_ERROR("[repository] SQL error on '{}': {}", meta.tableName,
+      LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
                 query.lastError().text().toStdString());
       return std::nullopt;
     }
 
     if (!query.next()) {
-      LOG_WARN("[repository] no rows found in '{}'", meta.tableName);
+      LOG_WARN("[repository] no rows found in '{}'", meta.table_name);
       return std::nullopt;
     }
 
@@ -304,9 +304,9 @@ class GenericRepository {
     PROFILE_SCOPE("[repository] DeleteById");
     auto meta = Reflection<T>::meta();
     QString sql = QString("DELETE FROM %1 WHERE id = ?")
-                      .arg(QString::fromStdString(meta.tableName));
+                      .arg(QString::fromStdString(meta.table_name));
 
-    std::string stmKey = meta.tableName + std::string(":deleteById");
+    std::string stmKey = meta.table_name + std::string(":deleteById");
     // auto& query = getPreparedQuery(stmKey, sql);
     QSqlQuery query(database_.getThreadDatabase());
     query.prepare(sql);
@@ -319,7 +319,7 @@ class GenericRepository {
       throw std::runtime_error("Delete failed: " +
                                query.lastError().text().toStdString());
     }
-    cache_.incr(std::string("table_generation:") + meta.tableName);
+    cache_.incr(std::string("table_generation:") + meta.table_name);
     cache_.remove(makeKey<T>(id));
   }
 
@@ -329,7 +329,7 @@ class GenericRepository {
     if (batch.empty()) return;
 
     auto meta = Reflection<T>::meta();
-    QString tableName = QString::fromStdString(meta.tableName);
+    QString table_name = QString::fromStdString(meta.table_name);
 
     std::vector<long long> ids;
     ids.reserve(batch.size());
@@ -342,10 +342,10 @@ class GenericRepository {
     }
 
     QString sql = QString("DELETE FROM %1 WHERE id IN (%2)")
-                      .arg(tableName)
+                      .arg(table_name)
                       .arg(placeholders);
 
-    std::string stmKey = meta.tableName + std::string(":deleteBatch");
+    std::string stmKey = meta.table_name + std::string(":deleteBatch");
     // auto& query = getPreparedQuery(stmKey, sql);
     QSqlQuery query(database_.getThreadDatabase());
     query.prepare(sql);
@@ -360,7 +360,7 @@ class GenericRepository {
                                query.lastError().text().toStdString());
     }
 
-    cache_.incr(std::string("table_generation:") + meta.tableName);
+    cache_.incr(std::string("table_generation:") + meta.table_name);
     for (auto id : ids)
       cache_.remove(makeKey<T>(id));
   }
@@ -387,10 +387,10 @@ class GenericRepository {
 
     auto meta = Reflection<T>::meta();
     LOG_INFO("[repository] cache_ not HIT in database_ '{}', key '{}'",
-             meta.tableName, key);
+             meta.table_name, key);
     QString sql = QString("SELECT COUNT(1) FROM %1 WHERE id = ?")
-                      .arg(QString::fromStdString(meta.tableName));
-    std::string stmKey = meta.tableName + std::string(":exists");
+                      .arg(QString::fromStdString(meta.table_name));
+    std::string stmKey = meta.table_name + std::string(":exists");
     auto& query = getPreparedQuery(stmKey, sql);
     query.bindValue(0, id);
 
@@ -408,13 +408,13 @@ class GenericRepository {
     LOG_INFO("[repository] Truncate database '{}'");
     auto meta = Reflection<T>::meta();
     QString sql =
-        QString("DELETE FROM %1").arg(QString::fromStdString(meta.tableName));
-    std::string stmKey = meta.tableName + std::string(":truncate");
+        QString("DELETE FROM %1").arg(QString::fromStdString(meta.table_name));
+    std::string stmKey = meta.table_name + std::string(":truncate");
     auto& query = getPreparedQuery(stmKey, sql);
     if (!query.exec())
       throw std::runtime_error(
           ("Truncate failed: " + query.lastError().text()).toStdString());
-    cache_.clearPrefix(meta.tableName + ":");
+    cache_.clearPrefix(meta.table_name + ":");
   }
 
   template <typename T>
@@ -436,7 +436,7 @@ class GenericRepository {
 
   template <typename T>
   std::string makeKey(long long id) const {
-    return "entity_cache_:" + std::string(Reflection<T>::meta().tableName) +
+    return "entity_cache_:" + std::string(Reflection<T>::meta().table_name) +
            ":" + std::to_string(id);
   }
 
@@ -453,7 +453,7 @@ class GenericRepository {
     QStringList sets;
     for (const auto& f : meta.fields) {
       if (std::string(f.name) == "id" &&
-          std::string(meta.tableName) != "messages_status")
+          std::string(meta.table_name) != "messages_status")
         continue;
       sets << QString("%1 = ?").arg(f.name);
       values << toVariant(f, entity);
@@ -467,7 +467,7 @@ class GenericRepository {
     QStringList cols, ph;
     for (const auto& f : meta.fields) {
       if (std::string(f.name) == "id" &&
-          std::string(meta.tableName) != "messages_status")
+          std::string(meta.table_name) != "messages_status")
         continue;
       cols << f.name;
       ph << "?";

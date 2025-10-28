@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 #include "Meta.h"
 #include "RedisCache/RedisCache.h"
 #include "SQLiteDataBase.h"
@@ -24,7 +24,7 @@ class Query {
 
  public:
   explicit Query(IDataBase& db) : db(db) {
-    table_name_ = Reflection<T>::meta().tableName;
+    table_name_ = Reflection<T>::meta().table_name;
     involved_tables_.push_back(table_name_);
   }
 

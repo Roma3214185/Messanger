@@ -37,6 +37,10 @@ add_executable(MessageService
   NotificationManager/notificationmanager.cpp
   NotificationManager/notificationmanager.h
   Headers/NetworkManager.cpp
+  Headers/MessageStatus.h
+  MessageManager/MessageManager.cpp
+
+  #../GenericRepository/SQLiteDatabase.cpp
 )
 
 target_link_libraries(MessageService PRIVATE
@@ -53,12 +57,7 @@ target_link_libraries(MessageService PRIVATE
 
 include_directories(
     ${httplib_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/MessageManager
-    ${CMAKE_CURRENT_SOURCE_DIR}/Headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationManager
-    ${CMAKE_CURRENT_SOURCE_DIR}/MessageDataBase
-    ${CMAKE_CURRENT_SOURCE_DIR}/Server
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controller
+    ${CMAKE_CURRENT_SOURCE_DIR}
 
     ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
     ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository

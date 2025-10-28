@@ -39,10 +39,14 @@ add_executable(benchmarks
     preparedStatements_benchmark.cpp
     batcher_benchmark.cpp
     thread_pool_benchmark.cpp
+
+    #../SQLiteDatabase.cpp
 )
 
 add_executable(latencies
     benchmark_latency.cpp
+
+    #../SQLiteDatabase.cpp
 )
 
 target_include_directories(benchmarks PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Backend)

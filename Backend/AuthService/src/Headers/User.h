@@ -2,15 +2,16 @@
 #define USER_H
 
 #include <string>
+#include <cstdint>
 
 #include <nlohmann/json.hpp>
 
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 #include "RedisCache.h"
 
 struct User
 {
-    long long id;
+    int64_t id;
     std::string username;
     std::string email;
     std::string tag;
@@ -21,9 +22,9 @@ struct Reflection<User> {
     static Meta meta() {
         return {
             .name = "User",
-            .tableName = "users",
+            .table_name = "users",
             .fields = {
-                make_field<User, long long>("id", &User::id),
+                make_field<User, int64_t>("id", &User::id),
                 make_field<User, std::string>("username", &User::username),
                 make_field<User, std::string>("tag", &User::tag),
                 make_field<User, std::string>("email", &User::email)
@@ -53,7 +54,7 @@ struct Builder<User> {
         auto assign = [&](auto& field) {
             using TField = std::decay_t<decltype(field)>;
             QVariant value = query.value(i++);
-            if constexpr (std::is_same_v<TField, long long>)
+            if constexpr (std::is_same_v<TField, int64_t>)
                 field = value.toLongLong();
             else if constexpr (std::is_same_v<TField, int>)
                 field = value.toInt();
@@ -69,20 +70,20 @@ struct Builder<User> {
     }
 };
 
-inline void to_json(json& j, const User& u) {
-    j = json{
-        {"id", u.id},
-        {"email", u.email},
-        {"tag", u.tag},
-        {"username", u.username}
+inline void to_json(nlohmann::json& json_user, const User& user) {
+    json_user = nlohmann::json{
+        {"id", user.id},
+        {"email", user.email},
+        {"tag", user.tag},
+        {"username", user.username}
     };
 }
 
-inline void from_json(const json& j, User& u) {
-    j.at("id").get_to(u.id);
-    j.at("email").get_to(u.email);
-    j.at("tag").get_to(u.tag);
-    j.at("username").get_to(u.username);
+inline void from_json(const nlohmann::json& json_user, User& user) {
+    json_user.at("id").get_to(user.id);
+    json_user.at("email").get_to(user.email);
+    json_user.at("tag").get_to(user.tag);
+    json_user.at("username").get_to(user.username);
 }
 
 #endif // USER_H

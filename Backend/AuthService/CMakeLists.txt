@@ -28,6 +28,8 @@ add_executable(AuthService
 
   src/Server/server.h
   src/Server/server.cpp
+
+   #../GenericRepository/SQLiteDatabase.cpp
 )
 
 

@@ -1,21 +1,21 @@
-#ifndef NETWORKMANAGER_H
-#define NETWORKMANAGER_H
+#ifndef BACKEND_MESSAGESERVICE_HEADERS_NETWORKMANAGER_H_
+#define BACKEND_MESSAGESERVICE_HEADERS_NETWORKMANAGER_H_
 
-#include <string>
 #include <QVector>
+#include <string>
+#include <utility>
+#include <vector>
 
 using UserId = int;
 
 namespace NetworkManager {
 
 std::pair<int, std::string> forward(
-    const std::string& body,
-    const std::string& path,
-    const std::string& method,
+    const std::string& body, const std::string& path, const std::string& method,
     const std::vector<std::pair<std::string, std::string>>& extra_headers = {});
 
-QVector<UserId> getMembersOfChat(int chatId);
+QVector<UserId> getMembersOfChat(int chat_id);
 
-} // namespace NetworkManager
+}  // namespace NetworkManager
 
-#endif // NETWORKMANAGER_H
+#endif  // BACKEND_MESSAGESERVICE_HEADERS_NETWORKMANAGER_H_

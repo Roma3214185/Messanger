@@ -3,7 +3,7 @@
 #include <QtSql/QSqlQuery>
 
 #include "benchmark/benchmark.h"
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 #include "Meta.h"
 #include "MessageService/Headers/Message.h"
 #include "IEntityBuilder.h"

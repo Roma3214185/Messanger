@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
-#include "../GenericReposiroty.h"
+#include "GenericRepository.h"
 
 class MessagePool {
 public:

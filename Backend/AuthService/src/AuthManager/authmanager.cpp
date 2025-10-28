@@ -38,7 +38,7 @@ OptionalResponce AuthManager::getUser(const string& token){
 OptionalResponce AuthManager::loginUser(const string& email, const string& password){
     PROFILE_SCOPE("[AuthManager::loginUser");
     spdlog::debug("Try login user, email = '{}' and 'password '{}'", email, password);
-    auto findedUsers = rep.findBy<User>("email", QString::fromStdString(email));
+    auto findedUsers = rep.findByField<User>("email", QString::fromStdString(email));
 
     //find hashedPassword and check
     if(findedUsers.empty()) {
@@ -75,7 +75,8 @@ OptionalResponce AuthManager::registerUser(const RegisterRequest& req){
 
 std::vector<User> AuthManager::findUserByTag(const string& tag){
     PROFILE_SCOPE("AuthManager::findUserByTag");
-    auto findedUsers = rep.findBy<User>("tag", QString::fromStdString(tag));
+    auto findedUsers = rep.findByField<User>("tag", QString::fromStdString(tag));
+    // TODO: make "tag" -> User::UserTag
     return findedUsers;
 }
 

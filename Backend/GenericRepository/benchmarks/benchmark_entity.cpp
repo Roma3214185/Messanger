@@ -1,7 +1,7 @@
 #include "benchmark/benchmark.h"
 #include <QCoreApplication>
 
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 #include "Query.h"
 #include "ThreadPool.h"
 

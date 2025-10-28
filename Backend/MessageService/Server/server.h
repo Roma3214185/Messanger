@@ -1,23 +1,25 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef BACKEND_MESSAGESERVICE_SERVER_SERVER_H_
+#define BACKEND_MESSAGESERVICE_SERVER_SERVER_H_
+
+#include <memory>
 
 #include <crow.h>
 
-#include "controller.h"
-#include "MessageManager.h"
+#include "MessageManager/MessageManager.h"
+#include "Controller/controller.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
 
 class Server {
-public:
-    Server(int port, MessageManager& manager, RabbitMQClient& mq);
-    void run();
+ public:
+  Server(int port, MessageManager* message_manager, RabbitMQClient* mq_client);
+  void run();
 
-private:
-    void handleRoutes();
-    crow::SimpleApp app;
-    int port_;
-    ControllerPtr controller;
+ private:
+  void handleRoutes();
+  crow::SimpleApp app_;
+  int port_;
+  ControllerPtr controller_;
 };
 
-#endif // SERVER_H
+#endif  // BACKEND_MESSAGESERVICE_SERVER_SERVER_H_

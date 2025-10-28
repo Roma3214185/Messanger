@@ -50,7 +50,7 @@ add_library(RedisCache STATIC Backend/RedisCache/RedisCache.cpp)
 target_include_directories(RedisCache PUBLIC Backend/RedisCache ${DEBUG_PROFILING_DIR})
 target_link_libraries(RedisCache PUBLIC redis++ hiredis)
 
-add_library(GenericRepository STATIC Backend/GenericRepository/GenericRepository.cpp)
+add_library(GenericRepository STATIC Backend/GenericRepository/GenericRepository.cpp Backend/GenericRepository/SQLiteDatabase.cpp)
 target_include_directories(GenericRepository PUBLIC Backend/GenericRepository ${CMAKE_SOURCE_DIR}/Backend)
 target_link_libraries(GenericRepository PUBLIC Qt6::Core Qt6::Sql)
 
@@ -72,8 +72,9 @@ target_include_directories(Frontend PRIVATE ${DEBUG_PROFILING_DIR})
 add_subdirectory(Backend/GenericRepository/benchmarks Backend/GenericRepository/benchmarks_build)
 
 add_executable(Chat main.cpp media.qrc
-    Backend/GenericRepository/SQLiteDatabase.cpp
-    Backend/GenericRepository/Batcher.h)
+    #Backend/GenericRepository/SQLiteDatabase.cpp
+    #Backend/GenericRepository/Batcher.h
+)
 
 target_link_libraries(Chat PRIVATE
     Qt6::Core Qt6::Network Qt6::Widgets Qt6::WebSockets Qt6::Gui

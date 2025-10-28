@@ -1,37 +1,33 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_
+#define BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_
 
 #include <mutex>
 #include <unordered_map>
-#include <QtSql>
+#include <string>
 
 #include <crow.h>
+#include <QtSql>
 
-#include "Message.h"
-#include "notificationmanager.h"
-#include "rabbitmqclient.h"
+class Message;
+class MessageManager;
+class RabbitMQClient;
 
-class Controller
-{
+class Controller {
+ public:
+  Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
+             MessageManager* manager);
+  void handleRoutes();
 
-public:
+ private:
+  void handleGetMessagesFromChat();
+  void subscribeToEntitySaving();
+  void onSendMessage(Message message);
+  std::string getToken(const crow::request& req);
 
-    Controller(crow::SimpleApp& app, RabbitMQClient& mq, MessageManager& manager);
-    void handleRoutes();
-
-private:
-
-    void handleGetMessagesFromChat();
-    //void handleSocket();
-    //void  userConnected(int userId, crow::websocket::connection* conn);
-    void onSendMessage(Message message);
-    //void onMarkReadMessage(Message message, int readBy);
-    std::string getToken(const crow::request& req);
-
-    std::mutex socketMutex;
-    crow::SimpleApp& app_;
-    MessageManager& manager;
-    RabbitMQClient& mq;
+  std::mutex socket_mutex_;
+  crow::SimpleApp& app_;
+  MessageManager* manager_;
+  RabbitMQClient* mq_client_;
 };
 
-#endif // CONTROLLER_H
+#endif  // BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_

@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "../DebugProfiling/Debug_profiling.h"
 #include "GenericRepository/GenericRepository.h"
 
 template <typename T>
@@ -49,7 +49,7 @@ class SaverBatcher {
     PROFILE_SCOPE("Batcher::SaveEntity");
     std::vector<T> local_batch;
     {
-      std::unique_lock<std::mutex> lock(mtx);
+      std::unique_lock<std::mutex> lock(mtx_);
       batcher_.emplace_back(std::move(entity));
 
       if (batcher_.size() >= batch_size_) {
@@ -146,7 +146,7 @@ class DeleterBatcher {
     PROFILE_SCOPE("Batcher::DeleteEntity");
     std::vector<T> local_batch;
     {
-      std::unique_lock<std::mutex> lock(mtx);
+      std::unique_lock<std::mutex> lock(mtx_);
       batcher_.emplace_back(std::move(entity));
 
       if (batcher_.size() >= batch_size_) {

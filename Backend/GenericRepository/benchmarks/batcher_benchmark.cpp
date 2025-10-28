@@ -1,6 +1,7 @@
 #include "benchmark/benchmark.h"
-#include "GenericReposiroty.h"
+#include "GenericRepository.h"
 #include "ThreadPool.h"
+#include "Batcher.h"
 
 static void individualSaving(benchmark::State& state) {
     SQLiteDatabase db;
@@ -19,10 +20,10 @@ static void batcherSaving(benchmark::State& state) {
     GenericRepository rep(db);
 
     for (auto _ : state) {
-        SaverBatcher<Message> saverBatcher(rep);
+        SaverBatcher<Message> saver_batcher(rep);
         for(int i = 0; i < state.range(0); i++){
             Message msg;
-            saverBatcher.saveEntity(msg);
+            saver_batcher.saveEntity(msg);
             benchmark::DoNotOptimize(msg);
         }
     }
