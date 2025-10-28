@@ -7,29 +7,14 @@ using WebsocketPtr = crow::websocket::connection*;
 using UserId = int;
 using WebsocketByIdMap = std::unordered_map<UserId, WebsocketPtr>;
 
-class SocketsManager{
-    WebsocketByIdMap userSockets;
-public:
-    void saveConnections(int userId, WebsocketPtr socket){
-        userSockets[userId] = socket;
-    }
+class SocketsManager {
+ public:
+  void saveConnections(int user_id, WebsocketPtr socket);
+  void deleteConnections(WebsocketPtr conn);
+  WebsocketPtr getUserSocket(int user_Id);
 
-    void deleteConnections(WebsocketPtr conn){
-        for (auto it = userSockets.begin(); it != userSockets.end(); ++it) {
-            if (it->second == conn) {
-                userSockets.erase(it);
-                break;
-            }
-        }
-    }
-
-    WebsocketPtr getUserSocket(int userId){
-        auto find = userSockets.find(userId);
-        if (find == userSockets.end()) return nullptr;
-        return find->second;
-    }
-
-
+ private:
+  WebsocketByIdMap user_sockets_;
 };
 
-#endif // SOCKETMANAGER_H
+#endif  // SOCKETMANAGER_H

@@ -1,15 +1,15 @@
-#ifndef CHAT_H
-#define CHAT_H
+#ifndef BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_
+#define BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_
 
 #include <QDateTime>
 #include <string>
 
-struct Chat{
-    int id;
-    bool isGroup;
-    std::string name;
-    std::string avatar;
-    QDateTime createdAt;
+struct Chat {
+  int id;
+  bool isGroup;
+  std::string name;
+  std::string avatar;
+  QDateTime createdAt;
 };
 
-#endif // CHAT_H
+#endif  // BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_

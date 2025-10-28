@@ -1,62 +1,62 @@
-#ifndef RATELIMITER_H
-#define RATELIMITER_H
+#ifndef BACKEND_APIGATEWAY_SRC_HEADERS_RATELIMITER_H_
+#define BACKEND_APIGATEWAY_SRC_HEADERS_RATELIMITER_H_
 
-#include <mutex>
-#include <unordered_map>
 #include <chrono>
+#include <mutex>
 #include <string>
+#include <unordered_map>
 
 using namespace std::chrono;
 
-class RateLimiter
-{
-public:
+class RateLimiter {
+ public:
+  using IP = std::string;
 
-    using IP = std::string;
+  struct Entry {
+    int requests = 0;
+    steady_clock::time_point windowStart{};
+  };
 
-    struct Entry {
-        int requests = 0;
-        steady_clock::time_point windowStart{};
-    };
+  using EntriesMap = std::unordered_map<IP, Entry>;
 
-    using EntriesMap = std::unordered_map<IP, Entry>;
+  explicit RateLimiter(int maxReq = 300, seconds win = seconds(900))
+      : maxRequests(maxReq), window(win) {}
 
-    explicit RateLimiter(int maxReq = 300, seconds win = seconds(900))
-        : maxRequests(maxReq), window(win) {}
+  bool allow(const std::string& ip) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto now = steady_clock::now();
 
-    bool allow(const std::string& ip) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto now = steady_clock::now();
-
-        auto& entry = entries_[ip];
-        if (isNewWindow(entry, now)) {
-            resetEntry(entry, now);
-            return true;
-        }
-
-        if (entry.requests < maxRequests) {
-            entry.requests++;
-            return true;
-        }
-
-        return false;
+    auto& entry = entries_[ip];
+    if (isNewWindow(entry, now)) {
+      resetEntry(entry, now);
+      return true;
     }
 
-private:
-
-    EntriesMap entries_;
-    std::mutex mutex_;
-    int maxRequests;
-    seconds window;
-
-    bool isNewWindow(const Entry& entry, const steady_clock::time_point& now) const {
-        return entry.windowStart == steady_clock::time_point{} || (now - entry.windowStart) > window;
+    if (entry.requests < maxRequests) {
+      entry.requests++;
+      return true;
     }
 
-    void resetEntry(Entry& entry, const std::chrono::steady_clock::time_point& now) {
-        entry.requests = 1;
-        entry.windowStart = now;
-    }
+    return false;
+  }
+
+ private:
+  EntriesMap entries_;
+  std::mutex mutex_;
+  int maxRequests;
+  seconds window;
+
+  bool isNewWindow(const Entry& entry,
+                   const steady_clock::time_point& now) const {
+    return entry.windowStart == steady_clock::time_point {} ||
+           (now - entry.windowStart) > window;
+  }
+
+  void resetEntry(Entry& entry,
+                  const std::chrono::steady_clock::time_point& now) {
+    entry.requests = 1;
+    entry.windowStart = now;
+  }
 };
 
-#endif // RATELIMITER_H
+#endif  // BACKEND_APIGATEWAY_SRC_HEADERS_RATELIMITER_H_
