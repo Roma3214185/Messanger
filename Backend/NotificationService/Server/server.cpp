@@ -35,7 +35,7 @@ void Server::handleSocketRoutes() {
 void Server::handleSocketOnMessage(crow::websocket::connection& conn,
                                    const std::string& data, bool is_binary) {
   auto message_ptr = crow::json::load(data);
-
+  LOG_INFO("HANDLE SOCKET ON MESSAGE");
   if (!message_ptr) {
     LOG_ERROR("[onMessage] Failed in loading message");
     return;

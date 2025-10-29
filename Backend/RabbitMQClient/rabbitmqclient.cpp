@@ -21,6 +21,7 @@ RabbitMQClient::~RabbitMQClient() {
 void RabbitMQClient::publish(const std::string& exchange,
                              const std::string& routingKey,
                              const std::string& message) {
+  LOG_INFO("Publish for {} message: {}", exchange, message);
   AmqpClient::BasicMessage::ptr_t msg =
       AmqpClient::BasicMessage::Create(message);
   channel_->BasicPublish(exchange, routingKey, msg);

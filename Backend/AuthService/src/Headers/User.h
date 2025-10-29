@@ -10,7 +10,7 @@
 #include "RedisCache.h"
 
 struct User {
-  int64_t id;
+  long long id;
   std::string username;
   std::string email;
   std::string tag;
@@ -22,7 +22,7 @@ struct Reflection<User> {
     return {
         .name = "User",
         .table_name = "users",
-        .fields = {make_field<User, int64_t>("id", &User::id),
+        .fields = {make_field<User, long long>("id", &User::id),
                    make_field<User, std::string>("username", &User::username),
                    make_field<User, std::string>("tag", &User::tag),
                    make_field<User, std::string>("email", &User::email)}};
@@ -40,13 +40,13 @@ struct EntityFields<User> {
 template <>
 struct Builder<User> {
   static User build(QSqlQuery& query) {
-    User e;
+    User user;
     int i = 0;
 
     auto assign = [&](auto& field) {
       using TField = std::decay_t<decltype(field)>;
       QVariant value = query.value(i++);
-      if constexpr (std::is_same_v<TField, int64_t>)
+      if constexpr (std::is_same_v<TField, long long>)
         field = value.toLongLong();
       else if constexpr (std::is_same_v<TField, int>)
         field = value.toInt();
@@ -58,7 +58,12 @@ struct Builder<User> {
         field = value.value<TField>();
     };
 
-    return e;
+    assign(user.email);
+    assign(user.tag);
+    assign(user.username);
+    assign(user.id);
+
+    return user;
   }
 };
 

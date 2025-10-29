@@ -27,7 +27,7 @@ class NotificationManager {
   void onMessageStatusSaved();
   void onMessageSaved(Message& message);
   void sendMessageToUser(int user_id, Message& message);
-  void saveMessage(Message& message);
+  //void saveMessage(Message& message);
   void saveMessageStatus(MessageStatus& message);
   void onUserSaved();
 };
