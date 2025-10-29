@@ -9,6 +9,7 @@
 #include "RabbitMQClient/rabbitmqclient.h"
 
 const int MESSAGE_PORT = 8082;
+constexpr int kRabitMQPort = 5672;
 
 int main(int argc, char *argv[]) {
     init_logger("MessageService");
@@ -29,7 +30,7 @@ int main(int argc, char *argv[]) {
     RabbitMQClient* mq = nullptr;
 
     try {
-        mq = new RabbitMQClient("localhost", "guest", "guest");
+        mq = new RabbitMQClient("localhost", kRabitMQPort, "guest", "guest");
     } catch (const AmqpClient::AmqpLibraryException& e) {
         qCritical() << "Cannot connect to RabbitMQ:" << e.what();
     }

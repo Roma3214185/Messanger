@@ -43,7 +43,7 @@ add_subdirectory(external/tracy)
 add_subdirectory(external/SimpleAmqpClient)
 
 add_library(RabbitMQClient STATIC Backend/RabbitMQClient/RabbitMQClient.cpp)
-target_include_directories(RabbitMQClient PUBLIC Backend/RabbitMQClient ${RABBITMQC_DIR}/include ${SIMPLE_AMQP_CLIENT_DIR}/include)
+target_include_directories(RabbitMQClient PUBLIC Backend/RabbitMQClient Backend/GenericRepository ${RABBITMQC_DIR}/include ${SIMPLE_AMQP_CLIENT_DIR}/include)
 target_link_libraries(RabbitMQClient PRIVATE SimpleAmqpClient rabbitmq)
 
 add_library(RedisCache STATIC Backend/RedisCache/RedisCache.cpp)

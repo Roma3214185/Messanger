@@ -95,18 +95,35 @@ Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
 }
 
 void Controller::subscribeToEntitySaving() {
-  mq_client_->subscribe("message_service.in",
-                        [this](const std::string& body) -> void {
-                          auto jsonMsg = nlohmann::json::parse(body);
-                          if (jsonMsg["event"] == "message_to_save") {
-                            Message message;
-                            from_json(jsonMsg, message);
-                            LOG_INFO("Message to save id = '{}' | text '{}'",
-                                     message.id, message.text);
-                            manager_->saveMessage(message);
-                          }
-                        });
+  const std::string kSavingMessageEvent = "save_message";
+
+  static ThreadPool pool(4);
+
+  mq_client_->subscribe(
+      "app.events_queue",      // queue
+      "app.events",            // exchange
+      kSavingMessageEvent,     // routing key
+      [this, kSavingMessageEvent](const std::string& event, const std::string& payload) {
+        if (event == kSavingMessageEvent) {
+          nlohmann::json parsed = nlohmann::json::parse(payload);
+          Message message;
+          from_json(parsed, message);
+          LOG_INFO("Received message with id {} and text {}", message.id, message.text);
+
+          // Відправляємо обробку у thread pool
+          pool.enqueue([this, message]() mutable {
+            manager_->saveMessage(message);
+
+
+            // nlohmann::json saved_message;
+            // to_json(saved_message, message);
+            // mq_client_->publish("app.events", "message_saved", saved_message.dump());
+          });
+        }
+      }
+      );
 }
+
 
 void Controller::handleRoutes() { handleGetMessagesFromChat(); }
 
@@ -164,4 +181,4 @@ std::string Controller::getToken(const crow::request& req) {
   return req.get_header_value("Authorization");
 }
 
-void Controller::onSendMessage(Message msg) { manager_->saveMessage(msg); }
+//void Controller::onSendMessage(Message msg) { manager_->saveMessage(msg); }
