@@ -12,7 +12,7 @@ class MessageManager {
  public:
     MessageManager(GenericRepository* rep, Batcher<Message>* message_batcher,
                     Batcher<MessageStatus>* messages_status_batcher);
-    void saveMessage(Message& message);
+    [[nodiscard]] bool saveMessage(Message& message);
     std::optional<Message> getMessage(int message_id);
     std::optional<MessageStatus> getMessageStatus(int message_id, int receiver_id);
     std::optional<int> getChatId(int message_id);

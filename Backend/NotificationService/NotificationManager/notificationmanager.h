@@ -30,6 +30,9 @@ class NotificationManager {
   //void saveMessage(Message& message);
   void saveMessageStatus(MessageStatus& message);
   void onUserSaved();
+
+ private:
+  void subscribeMessageSaved();
 };
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_

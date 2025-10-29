@@ -12,7 +12,6 @@
 
 #include "Debug_profiling.h"
 #include "ThreadPool.h"
-//#include "../Backend/GenericRepository/ThreadPool.h"
 
 class RabbitMQClient {
  public:

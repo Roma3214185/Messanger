@@ -5,10 +5,42 @@
 #include "rabbitmqclient.h"
 #include "Debug_profiling.h"
 
+const std::string kSavingMessageSaved = "message_saved";
+
 NotificationManager::NotificationManager(RabbitMQClient& mq_client,
                                          SocketsManager& sock_manager,
                                          NetworkManager& network_manager)
-    : mq_client_(mq_client), socket_manager_(sock_manager), network_manager_(network_manager) {}
+    : mq_client_(mq_client), socket_manager_(sock_manager), network_manager_(network_manager) {
+  subscribeMessageSaved();
+}
+
+void NotificationManager::subscribeMessageSaved(){
+  mq_client_.subscribe(
+      "app.events_queue",
+      "app.events",
+      kSavingMessageSaved,
+      [this](const std::string& event, const std::string& payload) {
+        if (event == kSavingMessageSaved) {
+          nlohmann::json parsed = nlohmann::json::parse(payload);
+          Message saved_message;
+          from_json(parsed, saved_message);
+          LOG_INFO("Received saved message with id {} and text {}", saved_message.id, saved_message.text);
+          auto chats_ids = network_manager_.getMembersOfChat(saved_message.chat_id);
+
+          for (auto user_id: chats_ids) {
+            auto* socket = socket_manager_.getUserSocket(user_id);
+            if (!socket) {
+              LOG_ERROR("User {} is offline", user_id);
+              continue;
+            }
+            socket->send_text(payload);
+
+            // TODO(roma): Save message_status
+          }
+        }
+      }
+      );
+}
 
 void NotificationManager::notifyMessageRead(int chat_id,
                                             const MessageStatus& status_message) {}
@@ -47,27 +79,6 @@ void NotificationManager::onSendMessage(Message& message) {
   auto to_save = nlohmann::json{{"event", "save_message"}};
   to_json(to_save, message);
   mq_client_.publish("app.events", "save_message", to_save.dump());
-
-  // sendMessage(mq, message);
-
-  // mq_client_.subscribe("notification_service.in", [this](const std::string& body) {
-  //   auto res = nlohmann::json::parse(body);
-  //   if (res["event"] == "saved") {
-  //     LOG_INFO("Saved accept from mq");
-  //     if (res["saved"] == "User") {
-  //       // User user = from_json();
-  //       onUserSaved();
-  //     } else if (res["saved"] == "Message") {
-  //       Message newmessage;
-  //       from_json(res, newmessage);
-  //       onMessageSaved(newmessage);
-  //     } else if (res["saved"] == "MessageStatus") {
-  //       onMessageStatusSaved();
-  //     } else {
-  //       LOG_ERROR("Onknow type of saved enity");
-  //     }
-  //   }
-  // });
 }
 
 void NotificationManager::onMessageStatusSaved() {}

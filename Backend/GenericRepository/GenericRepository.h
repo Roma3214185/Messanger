@@ -43,7 +43,7 @@ class GenericRepository {
   void clearCache() { cache_.clearCache(); }
 
   template <typename T>
-  void save(T& entity) {
+  [[nodiscard]] bool save(T& entity) {
     PROFILE_SCOPE("[repository] Save");
     auto meta = Reflection<T>::meta();
     LOG_INFO("Save in database_: '{}'", meta.table_name);
@@ -52,6 +52,7 @@ class GenericRepository {
     if (!idField) {
       LOG_ERROR("[save] Missing id field in meta");
       throw std::runtime_error("Missing 'id' field in meta");
+      return false;
     }
 
     auto id = std::any_cast<long long>(idField->get(&entity));
@@ -82,6 +83,7 @@ class GenericRepository {
                 query.lastError().text().toStdString());
       throw std::runtime_error(
           ("Save failed: " + query.lastError().text()).toStdString());
+      return false;
     }
 
     LOG_INFO("[repository] Save successed");
@@ -95,10 +97,12 @@ class GenericRepository {
         cache_.remove(makeKey<T>(new_id));
       } else {
         LOG_ERROR("[repository] id isn't valid");
+        return false;
       }
     }
 
     cache_.incr(std::string("table_generation:") + meta.table_name);
+    return true;
   }
 
   template <typename T>

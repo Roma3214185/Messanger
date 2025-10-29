@@ -112,12 +112,13 @@ void Controller::subscribeToEntitySaving() {
 
           // Відправляємо обробку у thread pool
           pool.enqueue([this, message]() mutable {
-            manager_->saveMessage(message);
-
-
-            // nlohmann::json saved_message;
-            // to_json(saved_message, message);
-            // mq_client_->publish("app.events", "message_saved", saved_message.dump());
+            bool ok = manager_->saveMessage(message);
+            if (!ok) {
+              LOG_ERROR("Error saving message with text {}", message.text);
+              return;
+            }
+            LOG_INFO("Saved success with id {} text: {}", message.id, message.text);
+            mq_client_->publish("app.events", "message_saved", to_json(message).dump());
           });
         }
       }

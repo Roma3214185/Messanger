@@ -74,12 +74,23 @@ struct EntityFields<Message> {
   static constexpr auto& fields = MessageFields;
 };
 
-inline void to_json(nlohmann::json& json_message, const Message& message) {
-  json_message = nlohmann::json{{"id", message.id},
+[[nodiscard]] inline nlohmann::json to_json(const Message& message) {
+  auto json_message = nlohmann::json{{"id", message.id},
                                 {"chat_id", message.chat_id},
                                 {"sender_id", message.sender_id},
                                 {"text", message.text},
                                 {"timestamp", message.timestamp}};
+  return json_message;
+}
+
+inline void to_json(nlohmann::json& json_message, const Message& message) {
+  json_message = nlohmann::json{
+      {"id", message.id},
+      {"chat_id", message.chat_id},
+      {"sender_id", message.sender_id},
+      {"text", message.text},
+      {"timestamp", message.timestamp}
+  };
 }
 
 inline void from_json(const nlohmann::json& json_message, Message& message) {

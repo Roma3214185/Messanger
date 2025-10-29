@@ -8,8 +8,9 @@ MessageManager::MessageManager(GenericRepository* repository,
       message_batcher_(message_batcher),
       messages_status_batcher_(messages_status_batcher) {}
 
-void MessageManager::saveMessage(Message& msg) {
-  message_batcher_->save(msg);
+bool MessageManager::saveMessage(Message& msg) {
+  //message_batcher_->save(msg);
+  return repository_->save(msg);
 }
 
 std::optional<Message> MessageManager::getMessage(int message_id) {

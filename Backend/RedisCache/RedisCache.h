@@ -125,7 +125,7 @@ class RedisCache {
     } else if constexpr (std::is_same_v<T, std::string>) {
       return value;
     } else {
-      return json(value).dump();
+      return nlohmann::json(value).dump();
     }
   }
 
@@ -138,7 +138,7 @@ class RedisCache {
     } else if constexpr (std::is_same_v<T, std::string>) {
       return str;
     } else {
-      return json::parse(str).get<T>();
+      return nlohmann::json::parse(str).get<T>();
     }
   }
 

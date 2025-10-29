@@ -73,6 +73,16 @@ struct EntityFields<MessageStatus> {
   static constexpr auto& fields = kMessageStatusFields;
 };
 
+[[nodiscard]] inline nlohmann::json to_json(
+                    const MessageStatus& message_status) {
+  auto json_message_status =
+      nlohmann::json{{"id", message_status.id},
+                     {"receiver_id", message_status.receiver_id},
+                     {"is_read", message_status.is_read},
+                     {"read_at", message_status.read_at}};
+  return json_message_status;
+}
+
 inline void to_json(nlohmann::json& json_message_status,
                     const MessageStatus& message_status) {
   json_message_status =

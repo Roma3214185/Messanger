@@ -45,28 +45,10 @@ class SaverBatcher {
     LOG_INFO("~SaverBatcher()");
   }
 
-  void saveEntity(T entity) {
+  void saveEntity(T& entity) {
     PROFILE_SCOPE("Batcher::SaveEntity");
-    std::vector<T> local_batch;
-    {
-      std::unique_lock<std::mutex> lock(mtx_);
-      batcher_.emplace_back(std::move(entity));
-
-      if (batcher_.size() >= batch_size_) {
-        local_batch = std::move(batcher_);
-        batcher_.clear();
-      }
-    }
-
-    if (!local_batch.empty()) {
-      pool_.enqueue([this, local_batch = std::move(local_batch)]() mutable {
-        try {
-          rep_.save(local_batch);
-        } catch (...) {
-          LOG_ERROR("Error saving batch");
-        }
-      });
-    }
+    std::unique_lock<std::mutex> lock(mtx_);
+    batcher_.emplace_back(std::move(entity));
   }
 
   void flush() {
