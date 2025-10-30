@@ -12,12 +12,17 @@ constexpr int kRabitMQPort = 5672;
 
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
+<<<<<<< HEAD
     crow::SimpleApp app_;
     RabbitMQClient mq("localhost", kRabitMQPort, "guest", "guest");
+=======
+    RabbitMQClient mq("localhost", "guest", "guest");
+>>>>>>> origin/refactor-work
     SocketsManager sockManager;
     NetworkManager netManager;
     NotificationManager notifManager(mq, sockManager, netManager);
 
+<<<<<<< HEAD
 
 
     CROW_ROUTE(app_, "/ws")
@@ -60,4 +65,8 @@ int main(int argc, char *argv[]) {
 
     LOG_INFO("Notication service is running on '{}'", NOTIFICATION_PORT);
     app_.port(NOTIFICATION_PORT).multithreaded().run();
+=======
+    Server server(NOTIFICATION_PORT, notifManager);
+    server.run();
+>>>>>>> origin/refactor-work
 }
