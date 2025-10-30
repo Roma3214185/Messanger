@@ -55,7 +55,7 @@ void Server::handleSocketOnMessage(crow::websocket::connection& conn,
     notification_manager_.onSendMessage(message);
   } else if (message_ptr["type"].s() == "mark_read") {
     auto message = from_crow_json(message_ptr);
-    int read_by = message["receiver_id"].i();
+    int read_by = message_ptr["receiver_id"].i();
     notification_manager_.onMarkReadMessage(message, read_by);
   } else {
     LOG_ERROR("[onMessage] Invalid type");

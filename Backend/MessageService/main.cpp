@@ -30,13 +30,12 @@ int main(int argc, char *argv[]) {
     RabbitMQClient* mq = nullptr;
 
     try {
-        mq = new RabbitMQClient("localhost", kRabitMQPort, "guest", "guest");
+      mq = new RabbitMQClient("localhost", kRabitMQPort, "guest", "guest");
     } catch (const AmqpClient::AmqpLibraryException& e) {
       LOG_ERROR("Cannot connect to RabbitMQ: {}", e.what());
     }
 
     Server server(MESSAGE_PORT, &manager, mq);
-    LOG_INFO("All setted 3");
     server.run();
 
     return a.exec();

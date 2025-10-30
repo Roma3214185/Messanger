@@ -70,6 +70,7 @@ void MessageModel::addMessage(Message msg,
       LOG_ERROR("Invalid siruation with ids");
       //throw std::runtime_error("Invalid ids");
     }
+
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
     it->id = msg.id;
     it->text = msg.text;
@@ -77,6 +78,7 @@ void MessageModel::addMessage(Message msg,
     it->status_sended = true;
     endInsertRows();
     return;
+
   }
 
 
