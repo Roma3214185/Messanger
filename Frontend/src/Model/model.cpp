@@ -187,10 +187,10 @@ void Model::onMessageReceived(const QString& msg) {
     return;
   }
 
-  auto newMsg = JsonService::getMessageFromJson(doc.object());
+  auto new_msg = JsonService::getMessageFromJson(doc.object());
   LOG_INFO("[onMessageReceived] Message received from user {}: '{}'",
-           newMsg.senderId, newMsg.text.toStdString());
-  Q_EMIT newMessage(newMsg);
+           new_msg.senderId, new_msg.text.toStdString());
+  Q_EMIT newMessage(new_msg);
 }
 
 auto Model::loadChat(int chatId) -> ChatPtr {
@@ -510,9 +510,10 @@ void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
 
   if (in_front) {
     messageModel->addMessage(msg, *user, true);
-    chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
+    //chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
   } else {
     messageModel->addMessage(msg, *user, false);
+    chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
   }
 }
 
@@ -706,7 +707,7 @@ void Model::fillChatHistory(int chat_id) {
                user->id);
     }
 
-    messageModel->addMessage(message, *user, false);
+    messageModel->addMessage(message, *user, true);
   }
 }
 

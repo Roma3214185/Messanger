@@ -65,7 +65,7 @@ void Presenter::onScroll(int value) {
   if (newMessages.empty()) return;
 
   for (const auto& newMsg : newMessages) {
-    manager_->addMessageToChat(chatId, newMsg, false);
+    manager_->addMessageToChat(chatId, newMsg, true);
   }
 
   message_list_view_->verticalScrollBar()->setValue(
