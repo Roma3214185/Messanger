@@ -54,8 +54,8 @@ std::vector<Message> MessageManager::getChatMessages(int chat_id, int limit,
   return custom_query.execute();
 }
 
-void MessageManager::saveMessageStatus(MessageStatus& status) {
-  repository_->save(status);
+[[nodiscard]] bool MessageManager::saveMessageStatus(MessageStatus& status) {
+  return repository_->save(status);
 }
 
 std::vector<MessageStatus> MessageManager::getUndeliveredMessages(int user_id) {

@@ -58,10 +58,10 @@ struct Builder<User> {
         field = value.value<TField>();
     };
 
+    assign(user.id);
+    assign(user.username);
     assign(user.email);
     assign(user.tag);
-    assign(user.username);
-    assign(user.id);
 
     return user;
   }

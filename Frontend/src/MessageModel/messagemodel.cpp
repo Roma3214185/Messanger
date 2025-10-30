@@ -47,7 +47,7 @@ std::optional<Message> MessageModel::getFirstMessage() {
 }
 
 void MessageModel::addMessage(Message msg,
-                              const User& user, bool in_front) {  // make with realocate
+                              const User& user, bool in_front) {
   auto it = users_by_message_id_.find(msg.id);
 
   if (it != users_by_message_id_.end()) {
@@ -59,9 +59,9 @@ void MessageModel::addMessage(Message msg,
 
   beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
   if (in_front) {
-    messages_.push_back(msg);
-  } else {
     messages_.push_front(msg);
+  } else {
+    messages_.push_back(msg);
   }
   users_by_message_id_[msg.id] = user;
   endInsertRows();

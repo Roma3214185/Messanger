@@ -15,32 +15,54 @@ NotificationManager::NotificationManager(RabbitMQClient& mq_client,
 }
 
 void NotificationManager::subscribeMessageSaved(){
+
   mq_client_.subscribe(
-      "app.events_queue",
+      "notification_service_queue",
       "app.events",
-      kSavingMessageSaved,
+      "message_saved",
       [this](const std::string& event, const std::string& payload) {
-        if (event == kSavingMessageSaved) {
+        if (event == "message_saved") handleMessageSaved(payload);
+      },
+      "topic"
+      );
+}
+
+void NotificationManager::handleMessageSaved(const std::string& payload) {
+  try{
           nlohmann::json parsed = nlohmann::json::parse(payload);
           Message saved_message;
           from_json(parsed, saved_message);
-          LOG_INFO("Received saved message with id {} and text {}", saved_message.id, saved_message.text);
-          auto chats_ids = network_manager_.getMembersOfChat(saved_message.chat_id);
 
-          for (auto user_id: chats_ids) {
+          LOG_INFO("Received saved message id {} text '{}'", saved_message.id, saved_message.text);
+
+          auto chat_members = network_manager_.getMembersOfChat(saved_message.chat_id);
+          for (auto user_id : chat_members) {
             auto* socket = socket_manager_.getUserSocket(user_id);
             if (!socket) {
-              LOG_ERROR("User {} is offline", user_id);
+              LOG_INFO("User {} offline", user_id);
               continue;
             }
-            socket->send_text(payload);
 
-            // TODO(roma): Save message_status
+            nlohmann::json json_msg;
+            to_json(json_msg, saved_message);
+            socket->send_text(json_msg.dump());
+            LOG_INFO("Sent message {} to user {}", saved_message.id, user_id);
+
+            MessageStatus status;
+            status.id = saved_message.id;
+            status.receiver_id = user_id;
+            status.is_read = false;
+
+            nlohmann::json status_json;
+            to_json(status_json, status);
+
+            mq_client_.publish("app.events", "save_message_status", status_json.dump());
           }
+        } catch (const std::exception& e) {
+          LOG_ERROR("Failed to parse message payload: {}", e.what());
         }
-      }
-      );
 }
+
 
 void NotificationManager::notifyMessageRead(int chat_id,
                                             const MessageStatus& status_message) {}

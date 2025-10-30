@@ -17,7 +17,7 @@ class MessageManager {
     std::optional<MessageStatus> getMessageStatus(int message_id, int receiver_id);
     std::optional<int> getChatId(int message_id);
     std::vector<Message> getChatMessages(int chat_id, int limit, int before_id);
-    void saveMessageStatus(MessageStatus& status);
+    [[nodiscard]] bool saveMessageStatus(MessageStatus& status);
     std::vector<MessageStatus> getUndeliveredMessages(int user_id);
 
 private:

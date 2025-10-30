@@ -107,15 +107,16 @@ void Presenter::onChatClicked(int chat_id) { openChat(chat_id); }
 
 void Presenter::newMessage(Message& msg) {
   if (msg.senderId == current_user_id_) msg.readed_by_me = true;
+  LOG_INFO("New message for chat {} : {}", msg.chatId, msg.text.toStdString());
 
-  if (current_user_id_.has_value() && current_user_id_ == msg.chatId) {
+  if (current_chat_id_.has_value() && current_chat_id_ == msg.chatId) {
     int max = message_list_view_->getMaximumMessageScrollBar();
     int value = message_list_view_->getMessageScrollBarValue();
-    manager_->addMessageToChat(msg.chatId, msg);
+    manager_->addMessageToChat(msg.chatId, msg, false);
     LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
     if (max == value) message_list_view_->scrollToBottom();
   } else {
-    manager_->addMessageToChat(msg.chatId, msg);
+    manager_->addMessageToChat(msg.chatId, msg, false);
   }
 }
 

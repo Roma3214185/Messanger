@@ -34,6 +34,9 @@ constexpr int kSuccessfullStatusCode = 200;
 constexpr int kServerError = 500;
 constexpr int kUserError = 400;
 
+const std::string kSavingMessageStatusEvent = "save_message_status";
+const std::string kSavingMessageEvent = "save_message";
+
 inline std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   try {
     auto decoded = jwt::decode(token);
@@ -91,40 +94,55 @@ inline Message from_crow_json(const crow::json::rvalue& json_message) {
 Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
                        MessageManager* manager)
     : app_(app), manager_(manager), mq_client_(mq_client) {
-  subscribeToEntitySaving();
+  //subscribeMultipleKeys();
+  subscribeSaveMessage();
 }
 
-void Controller::subscribeToEntitySaving() {
-  const std::string kSavingMessageEvent = "save_message";
-
-  static ThreadPool pool(4);
-
-  mq_client_->subscribe(
-      "app.events_queue",      // queue
-      "app.events",            // exchange
-      kSavingMessageEvent,     // routing key
-      [this, kSavingMessageEvent](const std::string& event, const std::string& payload) {
-        if (event == kSavingMessageEvent) {
+void Controller::handleSaveMessage(const std::string& payload) {
+  try {
           nlohmann::json parsed = nlohmann::json::parse(payload);
-          Message message;
-          from_json(parsed, message);
-          LOG_INFO("Received message with id {} and text {}", message.id, message.text);
+          Message msg;
+          from_json(parsed, msg);
 
-          // Відправляємо обробку у thread pool
-          pool.enqueue([this, message]() mutable {
-            bool ok = manager_->saveMessage(message);
-            if (!ok) {
-              LOG_ERROR("Error saving message with text {}", message.text);
-              return;
-            }
-            LOG_INFO("Saved success with id {} text: {}", message.id, message.text);
-            mq_client_->publish("app.events", "message_saved", to_json(message).dump());
+          LOG_INFO("Get message to save with id {} and text {}", msg.id, msg.text);
+
+          pool_.enqueue([this, msg]() mutable {
+            bool ok = manager_->saveMessage(msg);
+            if (!ok) LOG_ERROR("Error saving message id {}", msg.id);
+            else mq_client_->publish("app.events", "message_saved", to_json(msg).dump());
           });
+        } catch (...) {
+          LOG_ERROR("Failed to parse message payload");
         }
-      }
+}
+
+void Controller::subscribeSaveMessage(){
+  mq_client_->subscribe(
+      "message_service_queue",
+      "app.events",
+      "save_message",
+      [this](const std::string& event, const std::string& payload) {
+        handleSaveMessage(payload);
+      },
+      "topic"  // <--- important!
       );
 }
 
+void Controller::handleSaveMessageStatus(const std::string& payload) {
+        try {
+          nlohmann::json parsed = nlohmann::json::parse(payload);
+          MessageStatus status;
+          from_json(parsed, status);
+
+          pool_.enqueue([this, &status]() {
+            bool ok = manager_->saveMessageStatus(status);
+            if (!ok) LOG_ERROR("Error saving message_status id {}", status.id);
+            else mq_client_->publish("app.events", "message_status_saved", to_json(status).dump());
+          });
+        } catch (...) {
+          LOG_ERROR("Failed to parse message_status payload");
+        }
+}
 
 void Controller::handleRoutes() { handleGetMessagesFromChat(); }
 

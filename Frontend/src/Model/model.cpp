@@ -487,7 +487,7 @@ MessageModelPtr Model::createMessageModel(int chat_id) {
   return msgModel;
 }
 
-void Model::addMessageToChat(int chat_id, const Message& msg, bool infront) {
+void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
   PROFILE_SCOPE("Model::addMessageToChat");
   auto chatIter = chats_by_id_.find(chat_id);
   if (chatIter == chats_by_id_.end()) {
@@ -508,10 +508,9 @@ void Model::addMessageToChat(int chat_id, const Message& msg, bool infront) {
     return;
   }
 
-  if (infront) {
-    messageModel->addMessage(msg, *user);
+  if (in_front) {
+    messageModel->addMessage(msg, *user, true);
     chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
-    // chat_model_->realocateChatInFront(chatId);
   } else {
     messageModel->addMessage(msg, *user, false);
   }

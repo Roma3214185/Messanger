@@ -33,6 +33,7 @@ class NotificationManager {
 
  private:
   void subscribeMessageSaved();
+  void handleMessageSaved(const std::string& payload);
 };
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_

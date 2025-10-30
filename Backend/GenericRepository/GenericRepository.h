@@ -424,7 +424,7 @@ class GenericRepository {
   }
 
   template <typename T>
-  T buildEntity(QSqlQuery& query, BuilderType type = BuilderType::Fast) const {
+  T buildEntity(QSqlQuery& query, BuilderType type = BuilderType::Generic) const {
     auto builder = makeBuilder<T>(type);
     return builder->build(query);
   }
