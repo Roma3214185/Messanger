@@ -523,7 +523,7 @@ void Model::addChatInFront(const ChatPtr& chat) {
   chat_model_->realocateChatInFront(chat->chat_id);
 }
 
-void Model::sendMessage(const MessageInfo& msg) {
+void Model::sendMessage(const Message& msg) {
   PROFILE_SCOPE("Model::sendMessage");
 
   if (msg.text.trimmed().isEmpty()) {
@@ -537,7 +537,8 @@ void Model::sendMessage(const MessageInfo& msg) {
       {"sender_id", msg.senderId},
       {"chat_id", msg.chatId},
       {"text", msg.text},
-      {"timestamp", QDateTime::currentDateTime().toString()},
+      {"timestamp", msg.timestamp.toString()},
+      {"local_id", msg.local_id}
   };
 
   socket_->sendTextMessage(

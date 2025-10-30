@@ -75,7 +75,7 @@ void RabbitMQClient::subscribe(
         std::string event = envelope->RoutingKey();
         std::string payload = envelope->Message()->Body();
         LOG_INFO("[rabbit] Received payload: {}", payload);
-         LOG_INFO("[rabbit] Received event: {}", event);
+        LOG_INFO("[rabbit] Received event: {}", event);
         pool_.enqueue([callback, event, payload]() {
           try { callback(event, payload); }
           catch (const std::exception& e) {

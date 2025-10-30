@@ -18,6 +18,7 @@ inline crow::json::wvalue to_crow_json(const Message& message) {
   json_message["timestamp"] = QDateTime::fromSecsSinceEpoch(message.timestamp)
                        .toString(Qt::ISODate)
                        .toStdString();
+  json_message["local_id"] = message.local_id;
   return json_message;
 }
 

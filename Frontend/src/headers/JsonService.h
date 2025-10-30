@@ -32,16 +32,19 @@ inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
               .text = obj["text"].toString(),
               .timestamp = QDateTime::fromString(obj["timestamp"].toString(),
                                                  Qt::ISODate),
-              .readed_by_me = obj["readed_by_me"].toBool(false)};
+              .readed_by_me = obj["readed_by_me"].toBool(false),
+        .local_id = obj["local_id"].toString()
+  };
 
   spdlog::info(
       "[MESSAGE] id={} | "
       "senderId='{}' | "
       "chatId='{}' | "
       "text='{}' | "
-      "timestamp='{}' | readed_by_me = '{}'",
+      "timestamp='{}' | readed_by_me = '{}' | local_id = {}",
       msg.id, msg.senderId, msg.chatId, msg.text.toStdString(),
-      msg.timestamp.toString().toStdString(), msg.readed_by_me);
+      msg.timestamp.toString().toStdString(), msg.readed_by_me,
+      msg.local_id.toStdString());
   return msg;
 }
 

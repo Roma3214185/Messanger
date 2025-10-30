@@ -121,6 +121,7 @@ void NotificationManager::onMessageSaved(Message& message) {
     MessageStatus messageStatus{
         .id = message.id, .receiver_id = toUser, .is_read = false};
 
+    qDebug() << "For text " << message.text << " local_id " << message.local_id;
     saveMessageStatus(messageStatus);
     sendMessageToUser(toUser, message);
   }

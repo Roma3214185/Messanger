@@ -12,20 +12,22 @@
 namespace {
 
 inline crow::json::wvalue to_crow_json(const Message& message) {
-  crow::json::wvalue jsonMessage;
+  crow::json::wvalue json_message;
   LOG_INFO(
       "[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | "
       "timestamp '{}'",
       message.id, message.chat_id, message.sender_id, message.text,
       message.timestamp);
-  jsonMessage["id"] = message.id;
-  jsonMessage["chat_id"] = message.chat_id;
-  jsonMessage["sender_id"] = message.sender_id;
-  jsonMessage["text"] = message.text;
-  jsonMessage["timestamp"] = QDateTime::fromSecsSinceEpoch(message.timestamp)
+  json_message["id"] = message.id;
+  json_message["chat_id"] = message.chat_id;
+  json_message["sender_id"] = message.sender_id;
+  json_message["text"] = message.text;
+  json_message["timestamp"] = QDateTime::fromSecsSinceEpoch(message.timestamp)
                                  .toString(Qt::ISODate)
                                  .toStdString();
-  return jsonMessage;
+  json_message["local_id"] = message.local_id;
+  LOG_INFO("Local_id for text {} is {}", message.text, message.local_id);
+  return json_message;
 }
 
 constexpr const char* SECRET_KEY = "super_secret_key";
@@ -72,6 +74,8 @@ Message from_crow_json(const crow::json::rvalue& json_message) {
   message.chat_id = json_message["chat_id"].i();
   message.sender_id = json_message["sender_id"].i();
   message.text = json_message["text"].s();
+  message.local_id = json_message["local_id"].s();
+  LOG_INFO("[Message] For text: {}, Local_id = ", message.text, message.local_id);
 
   if (json_message.count("timestamp")) {
     QString timestamp = QString::fromStdString(json_message["timestamp"].s());

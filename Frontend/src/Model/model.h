@@ -51,7 +51,7 @@ class Model : public QObject {
   [[nodiscard]] QList<Message> getChatMessages(int chat_id);
   [[nodiscard]] QList<Message> getChatMessages(int chat_id, int limit);
 
-  void sendMessage(const MessageInfo& msg);
+  void sendMessage(const Message& msg);
   [[nodiscard]] QList<ChatPtr> loadChats();
   void authenticateWithToken(const QString& token);
   void fillChatHistory(int chat_id);

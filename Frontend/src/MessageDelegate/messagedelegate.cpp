@@ -144,16 +144,48 @@ MessageDrawData MessageDelegate::extractMessageData(
                        .toString("hh:mm dd.MM");
   data.sender_id = index.data(MessageModel::SenderIdRole).toInt();
   data.receiver_id = index.data(MessageModel::ReceiverIdTole).toInt();
+  data.is_sended = index.data(MessageModel::SendedStatusRole).toInt();
+  data.is_readed = index.data(MessageModel::ReadedStatusRole).toInt();
   return data;
 }
 
 void MessageDelegate::drawAll(QPainter* painter,
                               const QStyleOptionViewItem& option,
-                              const MessageDrawData& msg, bool isMine) const {
+                              const MessageDrawData& msg, bool is_mine) const {
   QRect rect = option.rect.normalized();
-  drawBackgroundState(painter, rect, option, isMine);
-  drawAvatar(painter, rect, QPixmap(msg.avatar_path), isMine);
-  drawUsername(painter, rect, msg.username, isMine);
-  drawTimestamp(painter, rect, msg.timestamp, isMine);
-  drawText(painter, rect, msg.text, isMine);
+  drawBackgroundState(painter, rect, option, is_mine);
+  drawAvatar(painter, rect, QPixmap(msg.avatar_path), is_mine);
+  drawUsername(painter, rect, msg.username, is_mine);
+  drawTimestamp(painter, rect, msg.timestamp, is_mine);
+  drawText(painter, rect, msg.text, is_mine);
+  drawStatus(painter, rect, msg, is_mine);
+}
+
+void MessageDelegate::drawStatus(QPainter* painter, const QRect& rect,
+                const MessageDrawData& message_data, bool is_mine) const {
+  if (!is_mine) return;
+  QString status_symbol;
+  constexpr int status_size = 16;
+
+  if (!message_data.is_sended) {
+    status_symbol = "!";
+  } else if (message_data.is_readed) {
+    status_symbol = "..";
+  } else {
+    status_symbol = ".";
+  }
+
+  constexpr int kTopOffset = 30;
+  constexpr int kLeftOffset = 4;
+
+  QPoint position(rect.left() + kLeftOffset, rect.top() + kTopOffset);
+
+  QFont font = painter->font();
+  font.setPointSize(status_size);
+  painter->setFont(font);
+
+  painter->save();
+  painter->setPen(QPen(Qt::gray));
+  painter->drawText(position, status_symbol);
+  painter->restore();
 }

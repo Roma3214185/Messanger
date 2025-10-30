@@ -16,6 +16,7 @@ struct Message {
   long long sender_id;
   long long timestamp;
   std::string text;
+  std::string local_id;
 };
 
 template <>
@@ -29,7 +30,9 @@ struct Reflection<Message> {
             make_field<Message, long long>("sender_id", &Message::sender_id),
             make_field<Message, long long>("chat_id", &Message::chat_id),
             make_field<Message, std::string>("text", &Message::text),
-            make_field<Message, long long>("timestamp", &Message::timestamp)}};
+            make_field<Message, long long>("timestamp", &Message::timestamp),
+            make_field<Message, std::string>("local_id", &Message::local_id)}
+    };
   }
 };
 
@@ -60,6 +63,7 @@ struct Builder<Message> {
     assign(message.sender_id);
     assign(message.timestamp);
     assign(message.text);
+    assign(message.local_id);
 
     return message;
   }
@@ -79,7 +83,8 @@ struct EntityFields<Message> {
                                 {"chat_id", message.chat_id},
                                 {"sender_id", message.sender_id},
                                 {"text", message.text},
-                                {"timestamp", message.timestamp}};
+                                {"timestamp", message.timestamp},
+                                {"local_id", message.local_id}};
   return json_message;
 }
 
@@ -89,7 +94,8 @@ inline void to_json(nlohmann::json& json_message, const Message& message) {
       {"chat_id", message.chat_id},
       {"sender_id", message.sender_id},
       {"text", message.text},
-      {"timestamp", message.timestamp}
+      {"timestamp", message.timestamp},
+      {"local_id", message.local_id}
   };
 }
 
@@ -99,6 +105,7 @@ inline void from_json(const nlohmann::json& json_message, Message& message) {
   json_message.at("sender_id").get_to(message.sender_id);
   json_message.at("text").get_to(message.text);
   json_message.at("timestamp").get_to(message.timestamp);
+  json_message.at("local_id").get_to(message.local_id);
 }
 
 #endif  // BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_

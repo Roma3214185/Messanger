@@ -15,10 +15,4 @@ struct LogInRequest {
   QString password{};
 };
 
-struct MessageInfo {
-  int chatId;
-  int senderId;
-  QString text;
-};
-
 #endif  // SIGNUPREQUEST_H
