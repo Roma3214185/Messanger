@@ -1,9 +1,9 @@
 #include "controller.h"
 
-#include <utility>
-
 #include <jwt-cpp/jwt.h>
+
 #include <nlohmann/json.hpp>
+#include <utility>
 
 #include "Debug_profiling.h"
 #include "MessageManager/MessageManager.h"
@@ -28,16 +28,20 @@ inline crow::json::wvalue to_crow_json(const Message& message) {
   return jsonMessage;
 }
 
-inline constexpr const char* SECRET_KEY = "super_secret_key";
-inline constexpr const char* ISSUER = "my-amazon-clone";
+constexpr const char* SECRET_KEY = "super_secret_key";
+constexpr const char* ISSUER = "my-amazon-clone";
 constexpr int kSuccessfullStatusCode = 200;
 constexpr int kServerError = 500;
 constexpr int kUserError = 400;
 
 const std::string kSavingMessageStatusEvent = "save_message_status";
 const std::string kSavingMessageEvent = "save_message";
+const std::string kMessageSaved = "message_saved";
+const std::string kExchange = "app.events";
+const std::string kMessageQueue = "message_service_queue";
+const std::string kMessageStatusSaved = "message_status_saved";
 
-inline std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
+std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   try {
     auto decoded = jwt::decode(token);
     auto verifier = jwt::verify()
@@ -57,7 +61,7 @@ inline std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   }
 }
 
-inline Message from_crow_json(const crow::json::rvalue& json_message) {
+Message from_crow_json(const crow::json::rvalue& json_message) {
   Message message;
   if (json_message.count("id")) {
     message.id = json_message["id"].i();
@@ -94,54 +98,71 @@ inline Message from_crow_json(const crow::json::rvalue& json_message) {
 Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
                        MessageManager* manager)
     : app_(app), manager_(manager), mq_client_(mq_client) {
-  //subscribeMultipleKeys();
   subscribeSaveMessage();
+  subscribeSaveMessageStatus();
 }
 
 void Controller::handleSaveMessage(const std::string& payload) {
+  nlohmann::json parsed;
   try {
-          nlohmann::json parsed = nlohmann::json::parse(payload);
-          Message msg;
-          from_json(parsed, msg);
+    parsed = nlohmann::json::parse(payload);
+  } catch (...) {
+    LOG_ERROR("Failed to parse message payload");
+    return;
+  }
+  Message msg;
+  from_json(parsed, msg);
 
-          LOG_INFO("Get message to save with id {} and text {}", msg.id, msg.text);
+  LOG_INFO("Get message to save with id {} and text {}", msg.id, msg.text);
 
-          pool_.enqueue([this, msg]() mutable {
-            bool ok = manager_->saveMessage(msg);
-            if (!ok) LOG_ERROR("Error saving message id {}", msg.id);
-            else mq_client_->publish("app.events", "message_saved", to_json(msg).dump());
-          });
-        } catch (...) {
-          LOG_ERROR("Failed to parse message payload");
-        }
+  pool_.enqueue([this, msg]() mutable {
+    bool ok = manager_->saveMessage(msg);
+    if (!ok)
+      LOG_ERROR("Error saving message id {}", msg.id);
+    else
+      mq_client_->publish(kExchange, kMessageSaved, to_json(msg).dump());
+  });
 }
 
-void Controller::subscribeSaveMessage(){
+void Controller::subscribeSaveMessage() {
   mq_client_->subscribe(
-      "message_service_queue",
-      "app.events",
-      "save_message",
+      kMessageQueue, kExchange, kSavingMessageEvent,
       [this](const std::string& event, const std::string& payload) {
         handleSaveMessage(payload);
       },
-      "topic"  // <--- important!
-      );
+      "topic");
+}
+
+void Controller::subscribeSaveMessageStatus() {
+  mq_client_->subscribe(
+      kMessageQueue, kExchange, kSavingMessageStatusEvent,
+      [this](const std::string& event, const std::string& payload) {
+        handleSaveMessageStatus(payload);
+      },
+      "topic");
 }
 
 void Controller::handleSaveMessageStatus(const std::string& payload) {
-        try {
-          nlohmann::json parsed = nlohmann::json::parse(payload);
-          MessageStatus status;
-          from_json(parsed, status);
+  nlohmann::json parsed;
 
-          pool_.enqueue([this, &status]() {
-            bool ok = manager_->saveMessageStatus(status);
-            if (!ok) LOG_ERROR("Error saving message_status id {}", status.id);
-            else mq_client_->publish("app.events", "message_status_saved", to_json(status).dump());
-          });
-        } catch (...) {
-          LOG_ERROR("Failed to parse message_status payload");
-        }
+  try {
+    parsed = nlohmann::json::parse(payload);
+  } catch (...) {
+    LOG_ERROR("Failed to parse message_status payload");
+    return;
+  }
+
+  MessageStatus status;
+  from_json(parsed, status);
+
+  pool_.enqueue([this, status]() mutable {
+    bool ok = manager_->saveMessageStatus(status);
+    if (!ok)
+      LOG_ERROR("Error saving message_status id {}", status.id);
+    else
+      mq_client_->publish(kExchange, kMessageStatusSaved,
+                          to_json(status).dump());
+  });
 }
 
 void Controller::handleRoutes() { handleGetMessagesFromChat(); }
@@ -154,15 +175,16 @@ void Controller::handleGetMessagesFromChat() {
         std::string token = getToken(req);
         std::optional<int> current_user_id = verifyTokenAndGetUserId(token);
 
-        if (!current_user_id) {  // TODO(roma): make check if u have acess to ges
-                                 // these messagess
+        if (!current_user_id) {  // TODO(roma): make check if u have acess to
+                                 // ges these messagess
           LOG_ERROR("Can't verify token");
           return crow::response(kUserError);
         }
 
         int limit = req.url_params.get("limit")
                         ? std::stoi(req.url_params.get("limit"))
-                        : INT_MAX;  // TODO(roma): beforeId -> before_id in Frontend/src/Model
+                        : INT_MAX;  // TODO(roma): beforeId -> before_id in
+                                    // Frontend/src/Model
         int before_id = req.url_params.get("beforeId")
                             ? std::stoi(req.url_params.get("beforeId"))
                             : 0;
@@ -199,5 +221,3 @@ void Controller::handleGetMessagesFromChat() {
 std::string Controller::getToken(const crow::request& req) {
   return req.get_header_value("Authorization");
 }
-
-//void Controller::onSendMessage(Message msg) { manager_->saveMessage(msg); }

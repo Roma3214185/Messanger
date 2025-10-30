@@ -21,6 +21,7 @@ class Controller {
   void handleRoutes();
 
  private:
+  void subscribeSaveMessageStatus();
   void subscribeSaveMessage();
   void handleGetMessagesFromChat();
   void onSendMessage(Message message);

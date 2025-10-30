@@ -18,13 +18,11 @@ class RabbitMQClient {
                    size_t thread_pool_size = 4);
     ~RabbitMQClient();
 
-    // Публікація події
     void publish(const std::string& exchange,
                  const std::string& routingKey,
                  const std::string& message,
                  const std::string& exchangeType = "direct");
 
-    // Підписка на 1 routing key
     void subscribe(const std::string& queue,
                    const std::string& exchange,
                    const std::string& routingKey,
@@ -32,7 +30,6 @@ class RabbitMQClient {
                                             const std::string& payload)>& callback,
                    const std::string& exchangeType = "direct");
 
-    // Зупинити всі підписки
     void stop();
 
   private:
