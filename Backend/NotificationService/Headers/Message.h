@@ -15,6 +15,7 @@ struct Message {
   long long sender_id;
   std::string text;
   long long timestamp;
+  std::string local_id;
 };
 
 inline void to_json(nlohmann::json& j, const Message& m) {
@@ -22,7 +23,9 @@ inline void to_json(nlohmann::json& j, const Message& m) {
                      {"chat_id", m.chat_id},
                      {"sender_id", m.sender_id},
                      {"text", m.text},
-                     {"timestamp", m.timestamp}};
+                     {"timestamp", m.timestamp},
+                     {"local_id", m.local_id}
+  };
 }
 
 inline void from_json(const nlohmann::json& j, Message& u) {
@@ -31,14 +34,15 @@ inline void from_json(const nlohmann::json& j, Message& u) {
   j.at("sender_id").get_to(u.sender_id);
   j.at("text").get_to(u.text);
   j.at("timestamp").get_to(u.timestamp);
+  j.at("local_id").get_to(u.local_id);
 }
 
 inline crow::json::wvalue to_crow_json(const Message& m) {
   crow::json::wvalue j;
   LOG_INFO(
       "[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | "
-      "timestamp '{}'",
-      m.id, m.chat_id, m.sender_id, m.text, m.timestamp);
+      "timestamp '{}' | local_id '{}'",
+      m.id, m.chat_id, m.sender_id, m.text, m.timestamp, m.local_id);
   j["id"] = m.id;
   j["chat_id"] = m.chat_id;
   j["sender_id"] = m.sender_id;
@@ -46,6 +50,7 @@ inline crow::json::wvalue to_crow_json(const Message& m) {
   j["timestamp"] = QDateTime::fromSecsSinceEpoch(m.timestamp)
                        .toString(Qt::ISODate)
                        .toStdString();
+  j["local_id"] = m.local_id;
   return j;
 }
 
@@ -59,6 +64,7 @@ inline Message from_crow_json(const crow::json::rvalue& j) {
   m.chat_id = j["chat_id"].i();
   m.sender_id = j["sender_id"].i();
   m.text = j["text"].s();
+  m.local_id = j["local_id"].s();
 
   if (j.count("timestamp")) {
     QString ts = QString::fromStdString(j["timestamp"].s());
@@ -74,8 +80,8 @@ inline Message from_crow_json(const crow::json::rvalue& j) {
 
   LOG_INFO(
       "[Message from json] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' "
-      "| timestamp '{}'",
-      m.id, m.chat_id, m.sender_id, m.text, m.timestamp);
+      "| timestamp '{}' | local_id = {}",
+      m.id, m.chat_id, m.sender_id, m.text, m.timestamp, m.local_id);
   return m;
 }
 

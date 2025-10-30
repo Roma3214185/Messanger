@@ -4,11 +4,11 @@
 
 #include "Debug_profiling.h"
 #include "MessageModel/messagemodel.h"
-#include "headers/User.h"
-#include "headers/IMainWindow.h"
-#include "headers/SignUpRequest.h"
-#include "headers/MessageListView.h"
 #include "Model/model.h"
+#include "headers/IMainWindow.h"
+#include "headers/MessageListView.h"
+#include "headers/SignUpRequest.h"
+#include "headers/User.h"
 
 Presenter::Presenter(IMainWindow* window, Model* manager)
     : view_(window), manager_(manager) {
@@ -65,7 +65,7 @@ void Presenter::onScroll(int value) {
   if (newMessages.empty()) return;
 
   for (const auto& newMsg : newMessages) {
-    manager_->addMessageToChat(chatId, newMsg, false);
+    manager_->addMessageToChat(chatId, newMsg, true);
   }
 
   message_list_view_->verticalScrollBar()->setValue(
@@ -107,15 +107,17 @@ void Presenter::onChatClicked(int chat_id) { openChat(chat_id); }
 
 void Presenter::newMessage(Message& msg) {
   if (msg.senderId == current_user_id_) msg.readed_by_me = true;
+  LOG_INFO("New messages for chat {} :({}) with local_id {}", msg.chatId,
+           msg.text.toStdString(), msg.local_id.toStdString());
 
-  if (current_user_id_.has_value() && current_user_id_ == msg.chatId) {
+  if (current_chat_id_.has_value() && current_chat_id_ == msg.chatId) {
     int max = message_list_view_->getMaximumMessageScrollBar();
     int value = message_list_view_->getMessageScrollBarValue();
-    manager_->addMessageToChat(msg.chatId, msg);
+    manager_->addMessageToChat(msg.chatId, msg, false);
     LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
     if (max == value) message_list_view_->scrollToBottom();
   } else {
-    manager_->addMessageToChat(msg.chatId, msg);
+    manager_->addMessageToChat(msg.chatId, msg, false);
   }
 }
 
@@ -170,7 +172,16 @@ void Presenter::sendButtonClicked(const QString& text_to_send) {
       onErrorOccurred("Presenter doesn't have opened chat");
     return;
   }
-  MessageInfo message_to_send{.chatId = *current_chat_id_, .senderId = *current_user_id_, .text = text_to_send };
+
+  Message message_to_send{.chatId = *current_chat_id_,
+                          .senderId = *current_user_id_,
+                          .text = text_to_send,
+                          .status_sended = false,
+                          .timestamp = QDateTime::currentDateTime(),
+                          .local_id = QUuid::createUuid().toString()};
+  LOG_INFO("Set for message {} local_id {}", message_to_send.text.toStdString(),
+           message_to_send.local_id.toStdString());
+  newMessage(message_to_send);
   manager_->sendMessage(message_to_send);
 }
 

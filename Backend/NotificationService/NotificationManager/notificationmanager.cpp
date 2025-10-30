@@ -1,17 +1,74 @@
 #include "notificationmanager.h"
 
-#include "socketmanager.h"
+#include "Debug_profiling.h"
 #include "networkmanager.h"
 #include "rabbitmqclient.h"
-#include "Debug_profiling.h"
+#include "socketmanager.h"
+
+const std::string kMessageSaved = "message_saved";
+const std::string kSaveMessage = "save_message";
+const std::string kSaveMessageStatus = "save_message_status";
+const std::string kNotificationQueue = "notification_service_queue";
+const std::string kExchange = "app.events";
+
 
 NotificationManager::NotificationManager(RabbitMQClient& mq_client,
                                          SocketsManager& sock_manager,
                                          NetworkManager& network_manager)
-    : mq_client_(mq_client), socket_manager_(sock_manager), network_manager_(network_manager) {}
+    : mq_client_(mq_client),
+      socket_manager_(sock_manager),
+      network_manager_(network_manager) {
+  subscribeMessageSaved();
+}
 
-void NotificationManager::notifyMessageRead(int chat_id,
-                                            const MessageStatus& status_message) {}
+void NotificationManager::subscribeMessageSaved() {
+  mq_client_.subscribe(
+      kNotificationQueue, kExchange, kMessageSaved,
+      [this](const std::string& event, const std::string& payload) {
+        if (event == kMessageSaved) handleMessageSaved(payload);
+        else LOG_ERROR("Invalid event");
+      },
+      "topic");
+}
+
+void NotificationManager::handleMessageSaved(const std::string& payload) {
+  nlohmann::json parsed;
+  try {
+    parsed = nlohmann::json::parse(payload);
+  } catch (const std::exception& e) {
+    LOG_ERROR("Failed to parse message payload: {}", e.what());
+    return;
+  }
+
+  Message saved_message;
+  from_json(parsed, saved_message);
+
+  LOG_INFO("Received saved message id {} text '{}'", saved_message.id,
+           saved_message.text);
+
+  auto chat_members =
+      network_manager_.getMembersOfChat(saved_message.chat_id);
+  for (auto user_id : chat_members) {
+    auto* socket = socket_manager_.getUserSocket(user_id);
+    if (!socket) {
+      LOG_INFO("User {} offline", user_id);
+      continue;
+    }
+
+    socket->send_text(to_crow_json(saved_message).dump());
+    LOG_INFO("Sent message {} to user {}", saved_message.id, user_id);
+
+    MessageStatus status;
+    status.id = saved_message.id;
+    status.receiver_id = user_id;
+    status.is_read = false;
+
+    saveMessageStatus(status);
+  }
+}
+
+void NotificationManager::notifyMessageRead(
+    int chat_id, const MessageStatus& status_message) {}
 
 void NotificationManager::notifyNewMessages(Message& message, int user_id) {}
 
@@ -29,12 +86,11 @@ void NotificationManager::userConnected(int user_id, WebsocketPtr conn) {
 }
 
 void NotificationManager::onMarkReadMessage(Message& message, int read_by) {
-  const MessageStatus message_status {
+  const MessageStatus message_status{
       .id = message.id,
       .receiver_id = read_by,
       .is_read = true,
-      .read_at = QDateTime::currentSecsSinceEpoch()
-    };
+      .read_at = QDateTime::currentSecsSinceEpoch()};
 
   // manager.saveMessageStatus(status);
   notifyMessageRead(message.id, message_status);
@@ -42,29 +98,12 @@ void NotificationManager::onMarkReadMessage(Message& message, int read_by) {
 
 void NotificationManager::onSendMessage(Message& message) {
   PROFILE_SCOPE("Controller::onSendMessage");
-  LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')", message.sender_id,
-           message.chat_id, message.text);
+  LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')",
+           message.sender_id, message.chat_id, message.text);
 
-  // sendMessage(mq, message);
-
-  mq_client_.subscribe("notification_service.in", [this](const std::string& body) {
-    auto res = nlohmann::json::parse(body);
-    if (res["event"] == "saved") {
-      LOG_INFO("Saved accept from mq");
-      if (res["saved"] == "User") {
-        // User user = from_json();
-        onUserSaved();
-      } else if (res["saved"] == "Message") {
-        Message newmessage;
-        from_json(res, newmessage);
-        onMessageSaved(newmessage);
-      } else if (res["saved"] == "MessageStatus") {
-        onMessageStatusSaved();
-      } else {
-        LOG_ERROR("Onknow type of saved enity");
-      }
-    }
-  });
+  auto to_save = nlohmann::json{{"event", "save_message"}};
+  to_json(to_save, message);
+  mq_client_.publish(kExchange, kSaveMessage, to_save.dump());
 }
 
 void NotificationManager::onMessageStatusSaved() {}
@@ -82,6 +121,7 @@ void NotificationManager::onMessageSaved(Message& message) {
     MessageStatus messageStatus{
         .id = message.id, .receiver_id = toUser, .is_read = false};
 
+    qDebug() << "For text " << message.text << " local_id " << message.local_id;
     saveMessageStatus(messageStatus);
     sendMessageToUser(toUser, message);
   }
@@ -99,16 +139,12 @@ void NotificationManager::sendMessageToUser(int user_id, Message& message) {
   user_socket->send_text(json_message.dump());
 }
 
-void NotificationManager::saveMessage(Message& message) {
-  auto to_save = nlohmann::json{{"event", "save_message"}};
-  to_json(to_save, message);
-  mq_client_.publish("app.events", "save", to_save.dump());
-}
+void NotificationManager::saveMessageStatus(MessageStatus& status) {
+  nlohmann::json status_json;
+  to_json(status_json, status);
 
-void NotificationManager::saveMessageStatus(MessageStatus& message) {
-  auto to_save = nlohmann::json{{"event", "save_message_status"}};
-  to_json(to_save, message);
-  mq_client_.publish("app.events", "save", to_save.dump());
+  mq_client_.publish(kExchange, kSaveMessageStatus,
+                     status_json.dump());
 }
 
 void NotificationManager::onUserSaved() {}

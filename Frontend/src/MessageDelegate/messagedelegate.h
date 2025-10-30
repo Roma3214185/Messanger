@@ -36,6 +36,8 @@ class MessageDelegate : public QStyledItemDelegate {
                 bool is_mine) const;
   void drawTimestamp(QPainter* painter, const QRect& rect,
                      const QString& timestamp, bool is_mine) const;
+  void drawStatus(QPainter* painter, const QRect& rect,
+                const MessageDrawData& message_data, bool is_mine) const;
 };
 
 #endif  // CHATDELEGATE_H

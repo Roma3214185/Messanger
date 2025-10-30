@@ -17,17 +17,17 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(benchmark)
 
 set(HIREDIS_ROOT "/opt/homebrew/opt/hiredis")
-set(REDIS_PLUS_PLUS_ROOT "/opt/homebrew/opt/redis-plus-plus")
+#set(REDIS_PLUS_PLUS_ROOT "/opt/homebrew/opt/redis-plus-plus")
 
 include_directories(
     ${HIREDIS_ROOT}/include
-    ${REDIS_PLUS_PLUS_ROOT}/include
+    #${REDIS_PLUS_PLUS_ROOT}/include
     ${CMAKE_SOURCE_DIR}/Backend
 )
 
 link_directories(
     ${HIREDIS_ROOT}/lib
-    ${REDIS_PLUS_PLUS_ROOT}/lib
+    #${REDIS_PLUS_PLUS_ROOT}/lib
 )
 
 add_executable(benchmarks

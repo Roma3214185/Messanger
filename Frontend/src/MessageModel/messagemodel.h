@@ -9,7 +9,9 @@
 
 using ListOfMessages = QList<Message>;
 using MessageId = int;
+using ChatId = int;
 using UsersByMessageId = std::unordered_map<MessageId, User>;
+using MessagesByChatId = std::unordered_map<ChatId, ListOfMessages>;
 
 class MessageModel : public QAbstractListModel {
   Q_OBJECT
@@ -21,7 +23,9 @@ class MessageModel : public QAbstractListModel {
     AvatarRole,
     TimestampRole,
     ReceiverIdTole,
-    SenderIdRole
+    SenderIdRole,
+    SendedStatusRole,
+    ReadedStatusRole
   };
 
   explicit MessageModel(QObject* parent = nullptr);
@@ -39,6 +43,7 @@ class MessageModel : public QAbstractListModel {
 
  private:
   ListOfMessages messages_;
+  MessagesByChatId messages_by_chat_id;
   UsersByMessageId users_by_message_id_;
   static std::optional<int> currentUserId;
 };

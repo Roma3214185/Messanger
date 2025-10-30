@@ -33,8 +33,7 @@ OptionalResponce AuthManager::getUser(const string& token) {
     return nullopt;
   }
 
-  LOG_INFO("User was founded; name = '{}'", finded_user->username);
-
+  LOG_INFO("User was founded; name = '{}' and id {}", finded_user->username, finded_user->id);
   return AuthResponce{.token = token, .user = finded_user};
 }
 

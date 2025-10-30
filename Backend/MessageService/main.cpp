@@ -9,12 +9,13 @@
 #include "RabbitMQClient/rabbitmqclient.h"
 
 const int MESSAGE_PORT = 8082;
+constexpr int kRabitMQPort = 5672;
 
 int main(int argc, char *argv[]) {
     init_logger("MessageService");
     QCoreApplication a(argc, argv);
     SQLiteDatabase bd;
-    RabbitMQClient mq("localhost", "guest", "guest");
+
     GenericRepository genetic_rep(bd);
 
     SaverBatcher<Message> message_saver_batcher(genetic_rep);
@@ -26,9 +27,17 @@ int main(int argc, char *argv[]) {
     Batcher<MessageStatus> message_status_batcher(message_status_saver_batcher, message_status_delete_batcher);
 
     MessageManager manager(&genetic_rep, &message_batcher, &message_status_batcher);
+    RabbitMQClient* mq = nullptr;
 
-    Server server(MESSAGE_PORT, &manager, &mq);
+    try {
+      mq = new RabbitMQClient("localhost", kRabitMQPort, "guest", "guest");
+    } catch (const AmqpClient::AmqpLibraryException& e) {
+      LOG_ERROR("Cannot connect to RabbitMQ: {}", e.what());
+    }
+
+    Server server(MESSAGE_PORT, &manager, mq);
     server.run();
+
     return a.exec();
 }
 

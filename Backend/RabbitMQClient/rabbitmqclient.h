@@ -1,35 +1,48 @@
-#ifndef BACKEND_RABBITMQCLIENT_RABBITMQCLIENT_H_
-#define BACKEND_RABBITMQCLIENT_RABBITMQCLIENT_H_
-
-#include <SimpleAmqpClient/SimpleAmqpClient.h>
-
-#include <atomic>
-#include <functional>
-#include <nlohmann/json.hpp>
+#pragma once
 #include <string>
 #include <thread>
+#include <atomic>
+#include <functional>
+#include <vector>
+#include <mutex>
+#include <unordered_set>
+#include <memory>
+#include "SimpleAmqpClient/SimpleAmqpClient.h"
+#include "ThreadPool.h"
+#include "Debug_profiling.h"
 
 class RabbitMQClient {
- public:
-  RabbitMQClient(const std::string& host, const std::string& user,
-                 const std::string& password, const std::string& vhost = "/",
-                 int port = 5672);
+  public:
+    RabbitMQClient(const std::string& host, int port,
+                   const std::string& user, const std::string& password,
+                   size_t thread_pool_size = 4);
+    ~RabbitMQClient();
 
-  ~RabbitMQClient();
+    void publish(const std::string& exchange,
+                 const std::string& routingKey,
+                 const std::string& message,
+                 const std::string& exchangeType = "direct");
 
-  void publish(const std::string& exchange, const std::string& routing_key,
-               const std::string& message);
+    void subscribe(const std::string& queue,
+                   const std::string& exchange,
+                   const std::string& routingKey,
+                   const std::function<void(const std::string& event,
+                                            const std::string& payload)>& callback,
+                   const std::string& exchangeType = "direct");
 
-  void subscribe(const std::string& queue,
-                 const std::function<void(const std::string&)>& callback);
+    void stop();
 
- private:
-  void consumerLoop(const std::string& queue,
-                    std::function<void(const std::string&)> callback);
+  private:
+    void declareExchange(const std::string& exchange,
+                         const std::string& type,
+                         bool durable);
 
-  AmqpClient::Channel::ptr_t channel_;
-  std::thread consumer_thread_;
-  std::atomic<bool> running_{false};
+  private:
+    std::atomic<bool> running_{false};
+    ThreadPool pool_;
+    std::vector<std::thread> consumer_threads_;
+    std::mutex consumer_threads_mutex_;
+    std::unordered_set<std::string> declared_exchanges_;
+    std::string host_, user_, password_;
+    int port_;
 };
-
-#endif  // BACKEND_RABBITMQCLIENT_RABBITMQCLIENT_H_

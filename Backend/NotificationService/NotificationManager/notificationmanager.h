@@ -27,9 +27,13 @@ class NotificationManager {
   void onMessageStatusSaved();
   void onMessageSaved(Message& message);
   void sendMessageToUser(int user_id, Message& message);
-  void saveMessage(Message& message);
+  //void saveMessage(Message& message);
   void saveMessageStatus(MessageStatus& message);
   void onUserSaved();
+
+ private:
+  void subscribeMessageSaved();
+  void handleMessageSaved(const std::string& payload);
 };
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_

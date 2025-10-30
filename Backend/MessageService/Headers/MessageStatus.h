@@ -11,9 +11,9 @@
 #include "Meta.h"
 
 struct MessageStatus {
-  int64_t id;
-  int64_t receiver_id;
-  int64_t read_at = QDateTime::currentSecsSinceEpoch();
+  long long id;
+  long long receiver_id;
+  long long read_at = QDateTime::currentSecsSinceEpoch();
   bool is_read = false;
 };
 
@@ -24,11 +24,11 @@ struct Reflection<MessageStatus> {
         .name = "MessageStatus",
         .table_name = "messages_status",
         .fields = {
-            make_field<MessageStatus, int64_t>("id", &MessageStatus::id),
-            make_field<MessageStatus, int64_t>("receiver_id",
+            make_field<MessageStatus, long long>("id", &MessageStatus::id),
+            make_field<MessageStatus, long long>("receiver_id",
                                                &MessageStatus::receiver_id),
             make_field<MessageStatus, bool>("is_read", &MessageStatus::is_read),
-            make_field<MessageStatus, int64_t>("read_at",
+            make_field<MessageStatus, long long>("read_at",
                                                &MessageStatus::read_at)}};
   }
 };
@@ -42,7 +42,7 @@ struct Builder<MessageStatus> {
     auto assign = [&](auto& field) -> void {
       using TField = std::decay_t<decltype(field)>;
       const QVariant value = query.value(idx++);
-      if constexpr (std::is_same_v<TField, int64_t>) {
+      if constexpr (std::is_same_v<TField, long long>) {
         field = value.toLongLong();
       } else if constexpr (std::is_same_v<TField, int>) {
         field = value.toInt();
@@ -72,6 +72,16 @@ template <>
 struct EntityFields<MessageStatus> {
   static constexpr auto& fields = kMessageStatusFields;
 };
+
+[[nodiscard]] inline nlohmann::json to_json(
+                    const MessageStatus& message_status) {
+  auto json_message_status =
+      nlohmann::json{{"id", message_status.id},
+                     {"receiver_id", message_status.receiver_id},
+                     {"is_read", message_status.is_read},
+                     {"read_at", message_status.read_at}};
+  return json_message_status;
+}
 
 inline void to_json(nlohmann::json& json_message_status,
                     const MessageStatus& message_status) {

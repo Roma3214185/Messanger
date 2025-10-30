@@ -11,11 +11,12 @@
 #include "Meta.h"
 
 struct Message {
-  int64_t id;
-  int64_t chat_id;
-  int64_t sender_id;
-  int64_t timestamp;
+  long long id;
+  long long chat_id;
+  long long sender_id;
+  long long timestamp;
   std::string text;
+  std::string local_id;
 };
 
 template <>
@@ -25,11 +26,13 @@ struct Reflection<Message> {
         .name = "Messages",
         .table_name = "messages",
         .fields = {
-            make_field<Message, int64_t>("id", &Message::id),
-            make_field<Message, int64_t>("sender_id", &Message::sender_id),
-            make_field<Message, int64_t>("chat_id", &Message::chat_id),
+            make_field<Message, long long>("id", &Message::id),
+            make_field<Message, long long>("sender_id", &Message::sender_id),
+            make_field<Message, long long>("chat_id", &Message::chat_id),
             make_field<Message, std::string>("text", &Message::text),
-            make_field<Message, int64_t>("timestamp", &Message::timestamp)}};
+            make_field<Message, long long>("timestamp", &Message::timestamp),
+            make_field<Message, std::string>("local_id", &Message::local_id)}
+    };
   }
 };
 
@@ -42,7 +45,7 @@ struct Builder<Message> {
     auto assign = [&](auto& field) -> void {
       using TField = std::decay_t<decltype(field)>;
       const QVariant value = query.value(idx++);
-      if constexpr (std::is_same_v<TField, int64_t>) {
+      if constexpr (std::is_same_v<TField, long long>) {
         field = value.toLongLong();
       } else if constexpr (std::is_same_v<TField, int>) {
         field = value.toInt();
@@ -60,6 +63,7 @@ struct Builder<Message> {
     assign(message.sender_id);
     assign(message.timestamp);
     assign(message.text);
+    assign(message.local_id);
 
     return message;
   }
@@ -74,12 +78,25 @@ struct EntityFields<Message> {
   static constexpr auto& fields = MessageFields;
 };
 
-inline void to_json(nlohmann::json& json_message, const Message& message) {
-  json_message = nlohmann::json{{"id", message.id},
+[[nodiscard]] inline nlohmann::json to_json(const Message& message) {
+  auto json_message = nlohmann::json{{"id", message.id},
                                 {"chat_id", message.chat_id},
                                 {"sender_id", message.sender_id},
                                 {"text", message.text},
-                                {"timestamp", message.timestamp}};
+                                {"timestamp", message.timestamp},
+                                {"local_id", message.local_id}};
+  return json_message;
+}
+
+inline void to_json(nlohmann::json& json_message, const Message& message) {
+  json_message = nlohmann::json{
+      {"id", message.id},
+      {"chat_id", message.chat_id},
+      {"sender_id", message.sender_id},
+      {"text", message.text},
+      {"timestamp", message.timestamp},
+      {"local_id", message.local_id}
+  };
 }
 
 inline void from_json(const nlohmann::json& json_message, Message& message) {
@@ -88,6 +105,7 @@ inline void from_json(const nlohmann::json& json_message, Message& message) {
   json_message.at("sender_id").get_to(message.sender_id);
   json_message.at("text").get_to(message.text);
   json_message.at("timestamp").get_to(message.timestamp);
+  json_message.at("local_id").get_to(message.local_id);
 }
 
 #endif  // BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_

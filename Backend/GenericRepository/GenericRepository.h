@@ -43,7 +43,7 @@ class GenericRepository {
   void clearCache() { cache_.clearCache(); }
 
   template <typename T>
-  void save(T& entity) {
+  [[nodiscard]] bool save(T& entity) {
     PROFILE_SCOPE("[repository] Save");
     auto meta = Reflection<T>::meta();
     LOG_INFO("Save in database_: '{}'", meta.table_name);
@@ -52,6 +52,7 @@ class GenericRepository {
     if (!idField) {
       LOG_ERROR("[save] Missing id field in meta");
       throw std::runtime_error("Missing 'id' field in meta");
+      return false;
     }
 
     auto id = std::any_cast<long long>(idField->get(&entity));
@@ -64,7 +65,7 @@ class GenericRepository {
     QSqlDatabase conn = database_.getThreadDatabase();
     std::string stmtKey =
         meta.table_name + std::string(":save:") + std::to_string(columns.size());
-    QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES (%3)")
+    QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES (%3) RETURNING id")
                       .arg(QString::fromStdString(meta.table_name))
                       .arg(columns.join(", "))
                       .arg(placeholders.join(", "));
@@ -82,22 +83,26 @@ class GenericRepository {
                 query.lastError().text().toStdString());
       throw std::runtime_error(
           ("Save failed: " + query.lastError().text()).toStdString());
+      return false;
     }
 
     LOG_INFO("[repository] Save successed");
 
-    if (isInsert) {
-      QVariant newId = query.lastInsertId();
-      if (newId.isValid()) {
-        LOG_INFO("id is valid: '{}'", newId.toLongLong());
-        idField->set(&entity, newId.toLongLong());
+    if (isInsert && query.next()) {
+      QVariant id_variant = query.value(0);
+      if (id_variant.isValid()) {
+        auto new_id = id_variant.toLongLong();
+        LOG_INFO("id is valid: '{}'", new_id);
+        idField->set(&entity, new_id);
+        cache_.remove(makeKey<T>(new_id));
       } else {
-        LOG_ERROR("[repository] id isn't valid:");
+        LOG_ERROR("[repository] id isn't valid");
+        return false;
       }
     }
 
-    cache_.remove(makeKey<T>(id));
     cache_.incr(std::string("table_generation:") + meta.table_name);
+    return true;
   }
 
   template <typename T>
@@ -140,7 +145,7 @@ class GenericRepository {
       placeholdersList << "(" + ph.join(", ") + ")";
     }
 
-    QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES %3")
+    QString sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES %3 RETURNING id")
                       .arg(QString::fromStdString(meta.table_name))
                       .arg(allColumns.join(", "))
                       .arg(placeholdersList.join(", "));
@@ -164,17 +169,11 @@ class GenericRepository {
     }
 
     LOG_INFO("[repository] Save batch successed, {} rows", entities.size());
-
-    // Update IDs for inserted entities
-    QVariant lastId = query.lastInsertId();
-    for (auto& entity : entities) {
-      if (lastId.isValid()) {
-        idField->set(
-            &entity,
-            lastId.toLongLong());  // simple decrement to assign unique IDs
-      }
-      cache_.remove(makeKey<T>(
-          std::any_cast<long long>(idField->get(&entity))));
+    int i = 0;
+    while(query.next()){
+      auto entity_id = static_cast<long long>(query.value(0).toLongLong());
+      entities[i++].id = entity_id;
+      cache_.remove(makeKey<T>(entity_id));
     }
 
     cache_.incr(std::string("table_generation:") + meta.table_name);
@@ -226,13 +225,15 @@ class GenericRepository {
     }
     LOG_INFO("[repository] cashe not hit key = '{}'", key);
 
-    QSqlDatabase threaddatabase_ = database_.getThreadDatabase();
+    QSqlDatabase thread_database = database_.getThreadDatabase();
     auto meta = Reflection<T>::meta();
 
     QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.table_name);
     std::string stmtKey = std::string(meta.table_name) + ":findOne";
 
-    auto& query = getPreparedQuery(stmtKey, sql);
+    //auto& query = getPreparedQuery(stmtKey, sql);
+    QSqlQuery query(thread_database);
+    query.prepare(sql);
 
     query.bindValue(0, entity_id);
 
@@ -423,7 +424,7 @@ class GenericRepository {
   }
 
   template <typename T>
-  T buildEntity(QSqlQuery& query, BuilderType type = BuilderType::Fast) const {
+  T buildEntity(QSqlQuery& query, BuilderType type = BuilderType::Generic) const {
     auto builder = makeBuilder<T>(type);
     return builder->build(query);
   }

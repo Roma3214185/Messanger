@@ -8,8 +8,9 @@ MessageManager::MessageManager(GenericRepository* repository,
       message_batcher_(message_batcher),
       messages_status_batcher_(messages_status_batcher) {}
 
-void MessageManager::saveMessage(Message& msg) {
-  message_batcher_->save(msg);
+bool MessageManager::saveMessage(Message& msg) {
+  //message_batcher_->save(msg);
+  return repository_->save(msg);
 }
 
 std::optional<Message> MessageManager::getMessage(int message_id) {
@@ -53,8 +54,8 @@ std::vector<Message> MessageManager::getChatMessages(int chat_id, int limit,
   return custom_query.execute();
 }
 
-void MessageManager::saveMessageStatus(MessageStatus& status) {
-  repository_->save(status);
+[[nodiscard]] bool MessageManager::saveMessageStatus(MessageStatus& status) {
+  return repository_->save(status);
 }
 
 std::vector<MessageStatus> MessageManager::getUndeliveredMessages(int user_id) {

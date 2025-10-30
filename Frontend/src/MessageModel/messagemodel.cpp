@@ -27,6 +27,10 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
       return msg.senderId;
     case ReceiverIdTole:
       return *currentUserId;
+    case SendedStatusRole:
+      return msg.status_sended;
+    case ReadedStatusRole:
+      return false;  //TODO(roma) implement reading status(readed_cnt ?= 2
     default:
       return QVariant();
   }
@@ -47,23 +51,44 @@ std::optional<Message> MessageModel::getFirstMessage() {
 }
 
 void MessageModel::addMessage(Message msg,
-                              const User& user, bool in_front) {  // make with realocate
-  auto it = users_by_message_id_.find(msg.id);
+                              const User& user, bool in_front) {
+  users_by_message_id_[msg.id] = user;
 
-  if (it != users_by_message_id_.end()) {
-    // undelivered messages will not copy when i load all messages;
-    LOG_WARN("Message '{}' with id '{}' already exist", msg.text.toStdString(),
-             msg.id);
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&] (const auto& other){
+      return msg.local_id == other.local_id || msg.id == other.id;
+  });
+
+  LOG_INFO("Local_id {} and id {}", msg.local_id.toStdString(), msg.id);
+
+  if (it != messages_.end()) {
+    LOG_INFO("Message already exist with id {} ans local id {}", it->id, it->local_id.toStdString());
+    LOG_INFO("Situation with id for text {} id {} vs other.id {}"
+              "ans local_id {} vs other local_id {}", msg.id, it->id, msg.local_id.toStdString(),
+              it->local_id.toStdString());
+
+    if(msg.local_id != it->local_id || (msg.id != it->id && it->id != 0)) {
+      LOG_ERROR("Invalid siruation with ids");
+      //throw std::runtime_error("Invalid ids");
+    }
+
+    beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
+    it->id = msg.id;
+    it->text = msg.text;
+    it->timestamp = msg.timestamp;
+    it->status_sended = true;
+    endInsertRows();
     return;
+
   }
+
 
   beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
   if (in_front) {
-    messages_.push_back(msg);
-  } else {
     messages_.push_front(msg);
+  } else {
+    messages_.push_back(msg);
   }
-  users_by_message_id_[msg.id] = user;
+
   endInsertRows();
 }
 

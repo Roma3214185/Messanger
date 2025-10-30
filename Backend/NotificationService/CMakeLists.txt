@@ -32,6 +32,7 @@ add_executable(NotificationService
   NetworkManager/networkmanager.h NetworkManager/networkmanager.cpp
   SocketManager/
   SocketManager/socketmanager.h SocketManager/socketmanager.cpp
+  Server/server.cpp
 
 )
 

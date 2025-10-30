@@ -144,15 +144,14 @@ void AuthController::handleFindById() {
       .methods(crow::HTTPMethod::GET)(
           [this](const crow::request& req, int user_id) -> crow::response  {
             PROFILE_SCOPE("/users/id");
-            auto foundUser = service_->findUserById(user_id);
-            if (!foundUser) {
+            auto found_user = service_->findUserById(user_id);
+            if (!found_user) {
               LOG_ERROR("[handleById] User not found with id '{}'", user_id);
               return crow::response{kUserError, "Users not found"};
             }
-
-            LOG_INFO("[handleById] User found with id '{}'", user_id);
-            auto userJson = userToJson(*foundUser);
-            return crow::response(kSuccessfulCode, userJson["user"]);
+            LOG_INFO("[handleById] User found with id '{}' and name {}", found_user->id, found_user->username);
+            auto user_json = userToJson(*found_user);
+            return crow::response(kSuccessfulCode, user_json["user"]);
           });
 }
 
