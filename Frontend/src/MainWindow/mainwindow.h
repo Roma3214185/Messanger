@@ -32,6 +32,9 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setMessageListView(QListView* list_view) override;
   void setCurrentChatIndex(QModelIndex chat_idx) override;
 
+  void setLightTheme();
+  void setDarkTheme();
+
  private Q_SLOTS:
   void on_upSubmitButton_clicked();
   void on_inSubmitButton_clicked();
@@ -40,7 +43,9 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void on_sendButton_clicked();
   void on_logoutButton_clicked();
 
- private:
+  void on_pushButton_clicked(bool checked);
+
+private:
   void setMainWindow();
   void setSignInPage();
   void setSignUpPage();

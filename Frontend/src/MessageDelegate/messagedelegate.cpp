@@ -50,9 +50,9 @@ QSize MessageDelegate::sizeHint(const QStyleOptionViewItem& option,
 void MessageDelegate::drawBackgroundState(QPainter* painter, const QRect& rect,
                                           const QStyleOptionViewItem& option,
                                           bool isMine) const {
-  const QColor kLightBlue = QColor("#d0e7ff");
-  if (option.state & QStyle::State_Selected)
-    painter->fillRect(rect, kLightBlue);
+  // const QColor kLightBlue = QColor("#d0e7ff");
+  // if (option.state & QStyle::State_Selected)
+  //   painter->fillRect(rect, kLightBlue);
 }
 
 void MessageDelegate::drawAvatar(QPainter* painter, const QRect& rect,
