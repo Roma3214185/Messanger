@@ -76,6 +76,8 @@ class GenericRepository {
     LOG_INFO("[repository] [save] values to insert size is '{}'",
              values.size());
 
+    qDebug() << query.lastQuery();
+
     for (int i = 0; i < values.size(); ++i) query.bindValue(i, values[i]);
 
     if (!query.exec()) {
@@ -454,7 +456,8 @@ class GenericRepository {
     QStringList sets;
     for (const auto& f : meta.fields) {
       if (std::string(f.name) == "id" &&
-          std::string(meta.table_name) != "messages_status")
+          std::string(meta.table_name) != "messages_status" &&
+          std::string(meta.table_name) != "chat_members")
         continue;
       sets << QString("%1 = ?").arg(f.name);
       values << toVariant(f, entity);
@@ -467,8 +470,9 @@ class GenericRepository {
       const Meta& meta, const T& entity, QList<QVariant>& values) {
     QStringList cols, ph;
     for (const auto& f : meta.fields) {
-      if (std::string(f.name) == "id" &&
-          std::string(meta.table_name) != "messages_status")
+      if (std::string(f.name) == "id" &&  //TODO(roma) make another field id for this tables
+          std::string(meta.table_name) != "messages_status" &&
+          std::string(meta.table_name) != "chat_members")
         continue;
       cols << f.name;
       ph << "?";

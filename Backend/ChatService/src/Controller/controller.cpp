@@ -10,13 +10,9 @@ constexpr int kUserError = 400;
 constexpr int kServerError = 500;
 constexpr int kSuccessfullCode = 200;
 
-Controller::Controller(crow::SimpleApp& app, DataBase& dataBase)
-    : app_(app), database_(dataBase) {
-  auto initial = database_.initialDb();
-  if (!initial) {
-    LOG_ERROR("DB CHAT isn't initial");
-    throw std::runtime_error("BD not initial");
-  }
+Controller::Controller(crow::SimpleApp& app, ChatManager* manager)
+    : app_(app), manager_(manager) {
+
 }
 
 void Controller::handleRoutes() {
@@ -55,7 +51,7 @@ void Controller::handleCreatingPrivateChat() {
           return crow::response(kUserError, "User not founded");
         }
 
-        auto chat_id = database_.createPrivateChat();
+        auto chat_id = manager_->createPrivateChat();
         if (!chat_id) {
           LOG_ERROR(
               "[CreatePrivateChat] Failed to create chat for user id '{}'",
@@ -66,11 +62,11 @@ void Controller::handleCreatingPrivateChat() {
         LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
 
         std::vector members{*my_id, user_id};
-        bool wasAddedMembers = database_.addMembersToChat(*chat_id, members);
+        bool wasAddedMembers = manager_->addMembersToChat(*chat_id, members);
         if (!wasAddedMembers) {
           LOG_ERROR("[CreatePrivateChat] Failed to add members in chat '{}'",
                     *chat_id);
-          database_.deleteChat(*chat_id);
+          //manager_->deleteChat(*chat_id);
           return crow::response(kUserError,
                                 "Members isn't permitted to add in this chat");
         }
@@ -101,7 +97,7 @@ void Controller::handleGetAllChats() {
           return crow::response(kUserError, "Can't verify token");
         }
 
-        auto chats = database_.getChatsOfUser(*user_id);
+        auto chats = manager_->getChatsOfUser(*user_id);
         LOG_INFO("[GetAllChats] Returned chats '{}'", chats.size());
         crow::json::wvalue res;
         res["chats"] = crow::json::wvalue::list();
@@ -110,14 +106,14 @@ void Controller::handleGetAllChats() {
         for (const auto& chat : chats) {
           crow::json::wvalue chat_json;
           chat_json["id"] = chat.id;
-          chat_json["type"] = chat.isGroup ? "group" : "private";
+          chat_json["type"] = chat.is_group ? "group" : "private";
 
-          if (chat.isGroup) {
+          if (chat.is_group) {
             chat_json["name"] = chat.name;
             chat_json["avatar"] = chat.avatar;
-            chat_json["member_count"] = database_.getMembersCount(chat.id);
+            chat_json["member_count"] = manager_->getMembersCount(chat.id);
           } else {
-            auto other_user_id = database_.getOtherMemberId(chat.id, *user_id);
+            auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
             if (!other_user_id) {
               LOG_ERROR("I can't get other member id");
               return crow::response(kServerError);
@@ -159,7 +155,7 @@ void Controller::handleGetAllChatsById() {
           return crow::response(kUserError, "Unauthorized");
         }
 
-        auto chat_opt = database_.getChatById(chat_id);
+        auto chat_opt = manager_->getChatById(chat_id);
         if (!chat_opt) {
           LOG_ERROR("[GetAllChatsById] Chat with id '{}' not found", *user_id);
           return crow::response(kUserError, "Chat not found");
@@ -169,15 +165,15 @@ void Controller::handleGetAllChatsById() {
         crow::json::wvalue chat_json;
 
         chat_json["id"] = chat.id;
-        chat_json["type"] = chat.isGroup ? "group" : "private";
+        chat_json["type"] = chat.is_group ? "group" : "private";
 
-        if (chat.isGroup) {
+        if (chat.is_group) {
           chat_json["name"] = chat.name;
           chat_json["avatar"] = chat.avatar;
-          chat_json["member_count"] = database_.getMembersCount(chat.id);
+          chat_json["member_count"] = manager_->getMembersCount(chat.id);
 
         } else {  // private
-          auto other_user_id = database_.getOtherMemberId(chat.id, *user_id);
+          auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
           if (other_user_id) {
             auto user = NetworkManager::getUserById(*other_user_id);
             if (user) {
@@ -201,21 +197,20 @@ void Controller::handleGetAllChatsMembers() {
       .methods(crow::HTTPMethod::GET)([&](int chat_id) {
         PROFILE_SCOPE("/chats/<int>/members");
 
-        optional<QList<int>> list_of_members =
-            database_.getMembersOfChat(chat_id);
-        if (!list_of_members) {
+        std::vector<int> list_of_members =
+            manager_->getMembersOfChat(chat_id);
+        if (list_of_members.empty()) {
           LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");
           return crow::response(kServerError, "Error in db.getMembersOfChat");
-          ;
         }
 
         LOG_INFO("Db return '{}' members for chat '{}'",
-                 list_of_members->size(), chat_id);
+                 list_of_members.size(), chat_id);
         crow::json::wvalue res;
         res["members"] = crow::json::wvalue::list();
 
         int i = 0;
-        for (auto member_id : *list_of_members) {
+        for (auto member_id : list_of_members) {
           LOG_INFO("ChatId '{}' - member '{}'", chat_id, member_id);
           res["members"][i++] = member_id;
         }

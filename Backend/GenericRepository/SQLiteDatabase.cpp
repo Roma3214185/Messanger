@@ -8,22 +8,8 @@ void SQLiteDatabase::initializeSchema() {
   createMessageStatusTable(database);
   createMessageTable(database);
   createChatTable(database);
+  createChatMemberTable(database);
   LOG_INFO("Database schema initialized successfully");
-}
-
-void SQLiteDatabase::createChatTable(QSqlDatabase& database) {
-  QSqlQuery query(database);
-  if (!query.exec(R"(
-            CREATE TABLE IF NOT EXISTS chats (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                is_group BOOLEAN NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
-        )")) {
-    LOG_ERROR("Failed to create chats table: {}",
-              query.lastError().text().toStdString());
-  }
 }
 
 void SQLiteDatabase::createUserTable(QSqlDatabase& database) {
@@ -61,6 +47,53 @@ void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
         )")) {
     LOG_ERROR("Failed to create messages_status table: {}",
               query.lastError().text().toStdString());
+  }
+}
+
+void SQLiteDatabase::createChatTable(QSqlDatabase& database){
+  QSqlQuery query(database);
+
+  if(!query.exec("DROP TABLE IF EXISTS chats")) {
+    qDebug() << "ERROR DELETING chats";
+  } else{
+      qDebug() << "DELETING chats";
+  }
+
+  query.prepare(R"(
+        CREATE TABLE IF NOT EXISTS chats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            is_group INTEGER NOT NULL DEFAULT 0,
+            name TEXT,
+            avatar TEXT,
+            created_at INTEGER
+        );
+    )");
+
+  if(!query.exec()){
+    LOG_ERROR("Error creating chats {}", query.lastError().text().toStdString());
+  }
+}
+
+void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database){
+  QSqlQuery query(database);
+
+  if(!query.exec("DROP TABLE IF EXISTS chat_members")) {
+    qDebug() << "ERROR DELETING chat_members";
+  } else{
+    qDebug() << "DELETING chat_members";
+  }
+
+  query.prepare(R"(
+        CREATE TABLE IF NOT EXISTS chat_members (
+            id INTEGER,
+            user_id INTEGER,
+            status TEXT DEFAULT 'member',
+            added_at INTEGER
+        );
+    )");
+
+  if(!query.exec()) {
+    LOG_ERROR("Error creating chat_members", query.lastError().text().toStdString());
   }
 }
 

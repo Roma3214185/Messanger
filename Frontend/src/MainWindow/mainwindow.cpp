@@ -269,8 +269,6 @@ void MainWindow::setLightTheme() {
         QTextEdit {
             background-color: #ffffff;
             border: 1px solid #c7dfff;
-            border-radius: 8px;
-            padding: 6px 10px;
             color: #1b1b1b;
         }
 

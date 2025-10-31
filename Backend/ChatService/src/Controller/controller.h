@@ -4,10 +4,11 @@
 #include <crow/crow.h>
 
 #include "database.h"
+#include "ChatManager/chatmanager.h"
 
 class Controller {
  public:
-  Controller(crow::SimpleApp& app, DataBase& dataBase);
+  Controller(crow::SimpleApp& app, ChatManager* manager);
   void handleRoutes();
 
  private:
@@ -17,7 +18,7 @@ class Controller {
   void handleGetAllChatsMembers();
 
   crow::SimpleApp& app_;
-  DataBase database_;
+  ChatManager* manager_;
 };
 
 #endif  // CONTROLLER_H
