@@ -50,16 +50,9 @@ QSize MessageDelegate::sizeHint(const QStyleOptionViewItem& option,
 void MessageDelegate::drawBackgroundState(QPainter* painter, const QRect& rect,
                                           const QStyleOptionViewItem& option,
                                           bool isMine) const {
+  const QColor kLightBlue = QColor("#d0e7ff");
   if (option.state & QStyle::State_Selected)
-    painter->fillRect(rect, QColor("#d0e7ff"));
-  else if (option.state & QStyle::State_MouseOver)
-    painter->fillRect(rect, QColor("#f5f5f5"));
-  else {
-    // QColor bgColor = isMine ? QColor("#dcf8c6") : QColor("#ffffff");
-    // QRect bubbleRect = rect.adjusted(isMine ? 80 : 10, 5, isMine ? -10 : -80,
-    // -5); painter->setBrush(bgColor); painter->setPen(Qt::NoPen);
-    // painter->drawRoundedRect(bubbleRect, 10, 10);
-  }
+    painter->fillRect(rect, kLightBlue);
 }
 
 void MessageDelegate::drawAvatar(QPainter* painter, const QRect& rect,

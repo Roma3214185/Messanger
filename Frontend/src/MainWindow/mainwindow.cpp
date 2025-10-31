@@ -37,7 +37,19 @@ void MainWindow::setChatModel(ChatModel* model) {
   ui_->chatListView->setModel(model);
 }
 
-void MainWindow::setChatWindow() { ui_->messageWidget->setVisible(true); }
+void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
+  ui_->messageWidget->setVisible(true);
+  QString name = chat->title;
+  QPixmap avatar(chat->avatar_path);
+  constexpr int kAvatarSize = 40;
+  const QString kDefaultAvatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
+  if (!avatar.isNull()) {
+    ui_->avatarTitle->setPixmap(avatar.scaled(kAvatarSize, kAvatarSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  } else {
+    ui_->avatarTitle->setPixmap(QPixmap(kDefaultAvatar).scaled(kAvatarSize, kAvatarSize));
+  }
+  ui_->nameTitle->setText(name);
+}
 
 void MainWindow::setMessageListView(QListView* list_view) {
   ui_->messageListViewLayout->addWidget(list_view);

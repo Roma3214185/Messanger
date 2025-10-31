@@ -156,6 +156,12 @@ void Model::onSignUpFinished(QNetworkReply* reply) {
   Q_EMIT userCreated(createdUser, current_token_);
 }
 
+ChatPtr Model::getChat(int chat_id) {
+  auto iter = chats_by_id_.find(chat_id);
+  if (iter == chats_by_id_.end()) return nullptr;
+  return iter->second;
+}
+
 void Model::connectSocket(int user_id) {
   PROFILE_SCOPE("Model::connectSocket");
   connect(socket_, &QWebSocket::connected,

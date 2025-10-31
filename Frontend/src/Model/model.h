@@ -45,7 +45,7 @@ class Model : public QObject {
 
   [[nodiscard]] ChatPtr loadChat(int chat_id);
   [[nodiscard]] QList<User> findUsers(const QString& text);
-  [[nodiscard]] std::optional<User> getUser(int user_id);
+  std::optional<User> getUser(int user_id);
   ChatPtr createPrivateChat(int user_id);
 
   [[nodiscard]] QList<Message> getChatMessages(int chat_id);
@@ -65,9 +65,10 @@ class Model : public QObject {
   void clearAllChats();
   void clearAllMessages();
   void logout();
+  ChatPtr getChat(int chat_id);
 
-  [[nodiscard]] int getNumberOfExistingChats() const;
-  [[nodiscard]] QModelIndex indexByChatId(int chat_id);
+  int getNumberOfExistingChats() const;
+  QModelIndex indexByChatId(int chat_id);
   static void setCurrentId(int current_id);
 
  Q_SIGNALS:

@@ -65,7 +65,6 @@ void MessageModel::addMessage(const Message& msg,
     if(msg.local_id != it->local_id || (it->id != 0 && msg.id != it->id)) {
       LOG_ERROR("Invalid siruation with ids");
       return;
-      //throw std::runtime_error("Invalid ids");
     }
 
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());

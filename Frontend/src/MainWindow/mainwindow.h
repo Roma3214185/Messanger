@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
 
   void setPresenter(Presenter* presenter);
   void setUser(const User& user) override;
-  void setChatWindow() override;
+  void setChatWindow(std::shared_ptr<ChatBase> chat) override;
   void setChatModel(ChatModel* model) override;
   void setUserModel(UserModel* user_model) override;
   void clearFindUserEdit() override;
