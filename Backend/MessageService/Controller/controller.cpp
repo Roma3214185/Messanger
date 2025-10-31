@@ -108,6 +108,7 @@ Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
 
 void Controller::handleSaveMessage(const std::string& payload) {
   nlohmann::json parsed;
+  LOG_INFO("Save message hanling {}", payload);
   try {
     parsed = nlohmann::json::parse(payload);
   } catch (...) {
@@ -141,6 +142,7 @@ void Controller::subscribeSaveMessageStatus() {
   mq_client_->subscribe(
       kMessageQueue, kExchange, kSavingMessageStatusEvent,
       [this](const std::string& event, const std::string& payload) {
+        LOG_INFO("Save message_status hanling {}", payload);
         handleSaveMessageStatus(payload);
       },
       "topic");

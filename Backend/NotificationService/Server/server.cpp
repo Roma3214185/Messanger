@@ -5,7 +5,9 @@
 #include "notificationmanager.h"
 
 Server::Server(int port, NotificationManager& notification_manager)
-    : notification_manager_(notification_manager), notification_port_(port) {}
+    : notification_manager_(notification_manager), notification_port_(port) {
+  initRoutes();
+}
 
 void Server::run() {
   LOG_INFO("Notication service is running on '{}'", notification_port_);

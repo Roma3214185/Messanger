@@ -50,24 +50,21 @@ std::optional<Message> MessageModel::getFirstMessage() {
   return messages_.front();
 }
 
-void MessageModel::addMessage(Message msg,
+void MessageModel::addMessage(const Message& msg,
                               const User& user, bool in_front) {
+  LOG_INFO("Msg id {} ans local_id {}", msg.id, msg.local_id.toStdString());
   users_by_message_id_[msg.id] = user;
 
   auto it = std::find_if(messages_.begin(), messages_.end(), [&] (const auto& other){
-      return msg.local_id == other.local_id || msg.id == other.id;
+    return msg.local_id == other.local_id; //|| msg.id == other.id;
   });
-
-  LOG_INFO("Local_id {} and id {}", msg.local_id.toStdString(), msg.id);
 
   if (it != messages_.end()) {
     LOG_INFO("Message already exist with id {} ans local id {}", it->id, it->local_id.toStdString());
-    LOG_INFO("Situation with id for text {} id {} vs other.id {}"
-              "ans local_id {} vs other local_id {}", msg.id, it->id, msg.local_id.toStdString(),
-              it->local_id.toStdString());
 
-    if(msg.local_id != it->local_id || (msg.id != it->id && it->id != 0)) {
+    if(msg.local_id != it->local_id || (it->id != 0 && msg.id != it->id)) {
       LOG_ERROR("Invalid siruation with ids");
+      return;
       //throw std::runtime_error("Invalid ids");
     }
 
