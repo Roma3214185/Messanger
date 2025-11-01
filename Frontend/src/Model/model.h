@@ -20,6 +20,11 @@ class SignUpRequest;
 class LogInRequest;
 class User;
 class MessageInfo;
+class SessionManager;
+class ChatManager;
+class MessageManager;
+class UserManager;
+class SocketManager;
 
 using ChatId = int;
 using ChatPtr = std::shared_ptr<ChatBase>;
@@ -32,6 +37,7 @@ class Model : public QObject {
 
  public:
   explicit Model(const QUrl& url, INetworkAccessManager* net_manager, ICache* cache, QWebSocket* socket);
+  ~Model();
 
   ChatModel* getChatModel() const;
   UserModel* getUserModel() const;
@@ -48,8 +54,7 @@ class Model : public QObject {
   std::optional<User> getUser(int user_id);
   ChatPtr createPrivateChat(int user_id);
 
-  [[nodiscard]] QList<Message> getChatMessages(int chat_id);
-  [[nodiscard]] QList<Message> getChatMessages(int chat_id, int limit);
+  QList<Message> getChatMessages(int chat_id, int limit = 20);
 
   void sendMessage(const Message& msg);
   [[nodiscard]] QList<ChatPtr> loadChats();
@@ -60,8 +65,8 @@ class Model : public QObject {
   void createChat(int chat_id);
   void addMessageToChat(int chat_id, const Message& msg, bool in_front = false);
   void deleteToken() const;
-  [[nodiscard]] ChatPtr getPrivateChatWithUser(int user_id);
-  void saveToken(const QString& token) const;
+  ChatPtr getPrivateChatWithUser(int user_id);
+  void saveToken(const QString& token);
   void clearAllChats();
   void clearAllMessages();
   void logout();
@@ -79,28 +84,22 @@ class Model : public QObject {
   void chatUpdated(int chat_id);
 
  private:
-  void onSignInFinished(QNetworkReply* reply);
-  void onSignUpFinished(QNetworkReply* reply);
   void onMessageReceived(const QString& msg);
-  void onSocketConnected(int id);
-  ChatPtr onChatLoaded(QNetworkReply* reply);
-  QList<User> onFindUsers(QNetworkReply* reply);
-  ChatPtr onCreatePrivateChat(QNetworkReply* reply);
-  QList<Message> onGetChatMessages(QNetworkReply* reply);
-  QList<ChatPtr> onLoadChats(QNetworkReply* reply);
-  void onAuthenticate(QNetworkReply* reply);
-  std::optional<User> onGetUser(QNetworkReply* reply);
-  QNetworkRequest getRequestWithToken(QUrl endpoint);
+  void setupConnections();
 
-  QUrl url_;
-  INetworkAccessManager* net_manager_;
   ICache* cache_;
-  QWebSocket* socket_;
+
   QString current_token_;
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
   ChatMap chats_by_id_;
+
   MessageModelMap message_models_by_chat_id_;
+  SessionManager* session_manager_;
+  ChatManager* chat_manager_;
+  MessageManager* message_manager_;
+  UserManager* user_manager_;
+  SocketManager* socket_manager_;
 };
 
 #endif  // MODEL_H

@@ -27,6 +27,12 @@ add_library(FrontendLib
     ${FRONTEND_SRC_DIR}/UserDelegate/UserDelegate.cpp
     ${FRONTEND_SRC_DIR}/ChatItemDelegate/ChatItemDelegate.cpp
     ${FRONTEND_SRC_DIR}/NetworkAccessManager/NetworkAccessManager.cpp
+
+    ${FRONTEND_SRC_DIR}/Managers/SessionManager/sessionmanager.cpp
+    ${FRONTEND_SRC_DIR}/Managers/ChatManager/chatmanager.cpp
+    ${FRONTEND_SRC_DIR}/Managers/MessageManager/messagemanager.cpp
+    ${FRONTEND_SRC_DIR}/Managers/UserManager/usermanager.cpp
+     ${FRONTEND_SRC_DIR}/Managers/SocketManager/socketmanager.cpp
 )
 
 target_include_directories(FrontendLib PUBLIC

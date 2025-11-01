@@ -42,11 +42,15 @@ void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
   QString name = chat->title;
   QPixmap avatar(chat->avatar_path);
   constexpr int kAvatarSize = 40;
-  const QString kDefaultAvatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
+  const QString kDefaultAvatar =
+      "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
   if (!avatar.isNull()) {
-    ui_->avatarTitle->setPixmap(avatar.scaled(kAvatarSize, kAvatarSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui_->avatarTitle->setPixmap(avatar.scaled(kAvatarSize, kAvatarSize,
+                                              Qt::KeepAspectRatio,
+                                              Qt::SmoothTransformation));
   } else {
-    ui_->avatarTitle->setPixmap(QPixmap(kDefaultAvatar).scaled(kAvatarSize, kAvatarSize));
+    ui_->avatarTitle->setPixmap(
+        QPixmap(kDefaultAvatar).scaled(kAvatarSize, kAvatarSize));
   }
   ui_->nameTitle->setText(name);
 }
@@ -219,7 +223,7 @@ void MainWindow::setupUI() {
   ui_->textEdit->setFrameStyle(QFrame::NoFrame);
 
   setLightTheme();
-  //setDarkTheme();
+  // setDarkTheme();
 }
 
 void MainWindow::setCurrentChatIndex(QModelIndex chat_idx) {
@@ -229,8 +233,8 @@ void MainWindow::setCurrentChatIndex(QModelIndex chat_idx) {
 void MainWindow::setLightTheme() {
   ui_->centralwidget->setStyleSheet(R"(
         QWidget {
-            background-color: #eaf4ff;      /* light blue background */
-            color: #1b1b1b;                 /* dark text */
+            background-color: #eaf4ff;
+            color: #1b1b1b;
             font-family: "Inter", "Arial";
         }
 
@@ -317,16 +321,16 @@ void MainWindow::setLightTheme() {
 void MainWindow::setDarkTheme() {
   ui_->centralwidget->setStyleSheet(R"(
         QWidget {
-            background-color: #0f1c2b;  /* dark blue background */
-            color: #e0e6f0;             /* light gray text */
+            background-color: #0f1c2b;
+            color: #e0e6f0;
             font-family: "Inter", "Arial";
         }
 
         QListView {
-            background-color: #142133;  /* dark message area */
+            background-color: #142133;
             border: 1px solid #0f2a45;
             outline: 0;
-            selection-background-color: #1f4a7a; /* slightly lighter blue for selection */
+            selection-background-color: #1f4a7a;
             selection-color: #ffffff;
             show-decoration-selected: 0;
         }
@@ -336,15 +340,14 @@ void MainWindow::setDarkTheme() {
             padding: 6px 8px;
         }
 
-        /* Selected item: slightly lighter background */
+
         QListView::item:selected,
         QListView::item:selected:focus,
         QListView::item:selected:!focus {
-            background-color: #1f4a7a; /* lighter than normal background */
+            background-color: #1f4a7a;
             color: #ffffff !important;
         }
 
-        /* Remove hover effect */
         QListView::item:hover {
             background: transparent;
             color: #e0e6f0;
@@ -376,14 +379,14 @@ void MainWindow::setDarkTheme() {
         }
 
         QTextEdit {
-            background-color: #142133;  /* same dark message area */
-            border: 1px solid #0f2a45;  /* dark border */
+            background-color: #142133;
+            border: 1px solid #0f2a45;
             color: #e0e6f0;
         }
 
         QLineEdit {
-            background-color: #142133;  /* same dark message area */
-            border: 1px solid #0f2a45;  /* dark border */
+            background-color: #142133;
+            border: 1px solid #0f2a45;
             color: #e0e6f0;
         }
 
@@ -405,7 +408,8 @@ void MainWindow::setDarkTheme() {
 }
 
 void MainWindow::on_pushButton_clicked(bool checked) {
-  if(checked) setDarkTheme();
-  else setLightTheme();
+  if (checked)
+    setDarkTheme();
+  else
+    setLightTheme();
 }
-

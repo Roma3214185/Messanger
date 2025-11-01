@@ -83,6 +83,7 @@ void Presenter::setUser(const User& user, const QString& token) {
            user.name.toStdString(), user.email.toStdString(),
            user.tag.toStdString(), user.id);
 
+
   view_->setUser(user);
   setId(user.id);
   manager_->saveToken(token);
