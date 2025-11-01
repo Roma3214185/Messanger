@@ -6,19 +6,20 @@
 
 #include "Controller/controller.h"
 #include "DataBase/database.h"
+#include "ChatManager/chatmanager.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
 
 class Server {
  public:
-  Server(const int port, DataBase& database);
+  Server(const int port, ChatManager* manager);
   void run();
 
  private:
   void initRoutes();
 
   int port_;
-  DataBase database_;
+  ChatManager* manager_;
   crow::SimpleApp app_;
   ControllerPtr controller_;
 };

@@ -34,7 +34,7 @@ class MessageModel : public QAbstractListModel {
   [[nodiscard]] int rowCount() const {return rowCount(QModelIndex()); }
   [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
   [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
-  void addMessage(Message msg, const User& user, bool in_front = true);
+  void addMessage(const Message& msg, const User& user, bool in_front = true);
   void clear();
   [[nodiscard]] std::optional<Message> getLastMessage();
   [[nodiscard]] std::optional<Message> getFirstMessage();

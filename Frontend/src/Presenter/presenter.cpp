@@ -83,6 +83,7 @@ void Presenter::setUser(const User& user, const QString& token) {
            user.name.toStdString(), user.email.toStdString(),
            user.tag.toStdString(), user.id);
 
+
   view_->setUser(user);
   setId(user.id);
   manager_->saveToken(token);
@@ -135,12 +136,13 @@ void Presenter::findUserRequest(const QString& text) {
   }
 }
 
-void Presenter::openChat(int chatId) {  // make unread message = 0; (?)
+void Presenter::openChat(int chat_id) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
-  current_chat_id_ = chatId;
-  message_list_view_->setMessageModel(manager_->getMessageModel(chatId));
+  current_chat_id_ = chat_id;
+  message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
   message_list_view_->scrollToBottom();
-  view_->setChatWindow();
+  auto chat = manager_->getChat(chat_id);
+  view_->setChatWindow(chat);
 }
 
 void Presenter::onUserClicked(int user_id, bool is_user) {

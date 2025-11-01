@@ -55,7 +55,7 @@ bool DataBase::executeQuery(QSqlQuery& query, Args&&... args) {
 
 Chat DataBase::getChatFromQuery(QSqlQuery& query, int chat_id) {
   return Chat{.id = chat_id,
-              .isGroup = query.value("is_group").toInt() == 1,
+              .is_group = query.value("is_group").toInt() == 1,
               .name = query.value("name").toString().toStdString(),
               .avatar = query.value("avatar").toString().toStdString()};
 }
@@ -140,7 +140,7 @@ bool DataBase::initialDb() {
             is_group INTEGER NOT NULL,
             name TEXT,
             avatar TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at INTEGER
         );
     )");
 
@@ -149,7 +149,7 @@ bool DataBase::initialDb() {
             chat_id INTEGER,
             user_id INTEGER,
             status TEXT DEFAULT 'member',
-            added_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            added_at INTEGER
         );
     )");
 
@@ -204,7 +204,7 @@ QList<Chat> DataBase::getChatsOfUser(int user_id) {
       Chat chat = getChatFromQuery(query2, chat_id);
       chats.append(chat);
       qDebug() << "[INFO] Loaded chat id=" << chat_id
-               << " isGroup=" << chat.isGroup;
+               << " isGroup=" << chat.is_group;
     }
   }
 

@@ -43,9 +43,11 @@ void UserDelegate::drawBackgroundState(
     QPainter* painter, const QRect& rect,
     const QStyleOptionViewItem& option) const {
   if (option.state & QStyle::State_Selected) {
-    painter->fillRect(rect, QColor("#d0e7ff"));
-  } else if (option.state & QStyle::State_MouseOver) {
-    painter->fillRect(rect, QColor("#f5f5f5"));
+    QColor bg = option.palette.color(QPalette::Base);
+    int r = qMin(bg.red() + 38, 255);
+    int g = qMin(bg.green() + 38, 255);
+    int b = qMin(bg.blue() + 38, 255);
+    painter->fillRect(option.rect, QColor(r, g, b));
   }
 }
 

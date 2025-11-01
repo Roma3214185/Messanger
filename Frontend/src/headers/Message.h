@@ -6,7 +6,7 @@
 #include <QUuid>
 
 struct Message {
-  int id;
+  int id = 0;
   int senderId;
   int chatId;
   QString text;

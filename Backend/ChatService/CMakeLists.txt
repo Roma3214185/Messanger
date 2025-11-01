@@ -28,6 +28,8 @@ add_executable(ChatService
     src/Server/server.h src/Server/server.cpp
     src/headers/Chat.h
     src/headers/NetworkManager.cpp
+    src/ChatManager/chatmanager.cpp
+    src/headers/ChatMember.h
 )
 
 target_link_libraries(ChatService PRIVATE

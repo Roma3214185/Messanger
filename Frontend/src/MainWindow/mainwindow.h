@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
 
   void setPresenter(Presenter* presenter);
   void setUser(const User& user) override;
-  void setChatWindow() override;
+  void setChatWindow(std::shared_ptr<ChatBase> chat) override;
   void setChatModel(ChatModel* model) override;
   void setUserModel(UserModel* user_model) override;
   void clearFindUserEdit() override;
@@ -31,6 +31,9 @@ class MainWindow : public QMainWindow, public IMainWindow {
 
   void setMessageListView(QListView* list_view) override;
   void setCurrentChatIndex(QModelIndex chat_idx) override;
+
+  void setLightTheme();
+  void setDarkTheme();
 
  private Q_SLOTS:
   void on_upSubmitButton_clicked();
@@ -40,7 +43,9 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void on_sendButton_clicked();
   void on_logoutButton_clicked();
 
- private:
+  void on_pushButton_clicked(bool checked);
+
+private:
   void setMainWindow();
   void setSignInPage();
   void setSignUpPage();

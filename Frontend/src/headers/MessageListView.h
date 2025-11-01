@@ -22,6 +22,8 @@ class MessageListView : public QListView {
     QListView::setFocusPolicy(Qt::NoFocus);
     QListView::setSelectionMode(QAbstractItemView::NoSelection);
     this->setMinimumWidth(300);
+    setAttribute(Qt::WA_Hover, false);
+    setMouseTracking(false);
   }
 
   void setMessageModel(MessageModel* model) { QListView::setModel(model); }
