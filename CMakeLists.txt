@@ -66,6 +66,7 @@ foreach(service IN ITEMS AuthService MessageService ChatService ApiGateWay Notif
 endforeach()
 
 add_subdirectory(Frontend)
+
 target_link_libraries(Frontend PRIVATE RabbitMQClient GenericRepository RedisCache)
 target_include_directories(Frontend PRIVATE ${DEBUG_PROFILING_DIR})
 

@@ -2,7 +2,7 @@
 
 #include <QtConcurrent/QtConcurrent>
 
-#include "Debug_profiling.h"
+#include "DebugProfiling/Debug_profiling.h"
 #include "MessageModel/messagemodel.h"
 #include "Model/model.h"
 #include "headers/IMainWindow.h"

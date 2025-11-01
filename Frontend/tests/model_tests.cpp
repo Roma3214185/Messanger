@@ -1,4 +1,4 @@
-#define CATCH_CONFIG_MAIN
+//#define CATCH_CONFIG_MAIN
 #include <QCoreApplication>
 #include <QUrl>
 #include <QtTest/QSignalSpy>
@@ -11,12 +11,39 @@
 #include "headers/FakeSocket.h"
 #include "headers/IMainWindow.h"
 #include "headers/MockCache.h"
+#include "headers/SignUpRequest.h"
+#include "headers/MessageListView.h"
+
+#include <QNetworkReply>
+#include <QObject>
+
+class MockReply : public QNetworkReply {
+    Q_OBJECT
+  public:
+    MockReply(QObject* parent = nullptr) : QNetworkReply(parent) {
+      open(ReadOnly | Unbuffered);
+      setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+      setFinished(true);
+      setAttribute(QNetworkRequest::HttpStatusCodeAttribute, 200);
+      setUrl(QUrl("http://mock.url"));
+    }
+
+    void abort() override {}
+    void setData(const QByteArray& data) { this->data = data; }
+    void emitFinished() { Q_EMIT finished(); }
+
+    QByteArray data;
+
+  protected:
+    qint64 readData(char* buffer, qint64 maxlen) override {
+      qint64 len = std::min(maxlen, qint64(data.size()));
+      memcpy(buffer, data.constData(), len);
+      data.remove(0, len);
+      return len;
+    }
+};
 
 TEST_CASE("Test model", "[model]") {
-  int argc = 0;
-  char* argv[] = {};
-  QCoreApplication app(argc, argv);
-
   MockNetworkAccessManager netManager;
   FakeSocket socket;
   QUrl url("");
@@ -74,8 +101,8 @@ TEST_CASE("Test model", "[model]") {
 
     QSignalSpy spyUserCreated(&model, &Model::userCreated);
     int before = spyUserCreated.count();
-
-    model.signIn("romanlobach1911@gmail.com", "12345678");
+    LogInRequest login_request{ .email = "romanlobach1911@gmail.com", .password = "12345678"};
+    model.signIn(login_request);
     reply->emitFinished();
 
     REQUIRE(spyUserCreated.count() == before + 1);
@@ -90,8 +117,8 @@ TEST_CASE("Test model", "[model]") {
 
     QSignalSpy spyUserCreated(&model, &Model::userCreated);
     int before = spyUserCreated.count();
-
-    model.signIn("romanlobach1911@gmail.com", "12345678");
+    LogInRequest login_request{ .email = "romanlobach1911@gmail.com", .password = "12345678"};
+    model.signIn(login_request);
     reply->emitFinished();
 
     QList<QVariant> args = spyUserCreated.takeFirst();
@@ -120,7 +147,7 @@ TEST_CASE("Test model", "[model]") {
 
   SECTION("AddTwoSameChatsExpectedNumbersOfChatIncreasedByOne") {
     auto chat = std::make_shared<PrivateChat>();
-    chat->chatId = 1;
+    chat->chat_id = 1;
     int beforeChatsInModel = model.getNumberOfExistingChats();
 
     model.addChat(chat);
@@ -132,7 +159,7 @@ TEST_CASE("Test model", "[model]") {
   SECTION(
       "AddTwoSameChatsInDifferentSidesExpectedNumbersOfChatIncreasedByOne") {
     auto chat = std::make_shared<PrivateChat>();
-    chat->chatId = 1;
+    chat->chat_id = 1;
     int beforeChatsInModel = model.getNumberOfExistingChats();
 
     model.addChat(chat);
@@ -141,28 +168,32 @@ TEST_CASE("Test model", "[model]") {
     REQUIRE(model.getNumberOfExistingChats() == beforeChatsInModel + 1);
   }
 
+  Message message;
+  message.senderId = 1;
+  message.chatId = 1;
+
   SECTION("SendEmptyMessageExpectedCallsToSocketNotChanged") {
     int before_callsSendText = socket.sendTextMessage_calls;
-
-    model.sendMessage(1, 1, "");
+    message.text = "";
+    model.sendMessage(message);
 
     REQUIRE(socket.sendTextMessage_calls == before_callsSendText);
   }
 
   SECTION("SendMessageWithOnlyWithGapsExpectedCallsToSocketNotChanged") {
     int before_callsSendText = socket.sendTextMessage_calls;
-    QString msgWithGaps = "                                          ";
+    message.text = "                   ";
 
-    model.sendMessage(1, 1, msgWithGaps);
+    model.sendMessage(message);
 
     REQUIRE(socket.sendTextMessage_calls == before_callsSendText);
   }
 
   SECTION("AfterLogoutExpectedZeroExistingChats") {
     auto chat1 = std::make_shared<PrivateChat>();
-    chat1->chatId = 1;
+    chat1->chat_id = 1;
     auto chat2 = std::make_shared<PrivateChat>();
-    chat2->chatId = 2;
+    chat2->chat_id = 2;
     model.addChat(chat1);
     model.addChatInFront(chat2);
     REQUIRE(model.getNumberOfExistingChats() == 2);
@@ -172,3 +203,6 @@ TEST_CASE("Test model", "[model]") {
     REQUIRE(model.getNumberOfExistingChats() == 0);
   }
 }
+
+#include "model_tests.moc"
+

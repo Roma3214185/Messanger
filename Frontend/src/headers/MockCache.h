@@ -11,7 +11,7 @@ class MockCache : public ICache {
  public:
   OptionalToken get(const Key& key) override {
     auto iter = cache_.find(key);
-    if (iter != cache_.end()) return it->second;
+    if (iter != cache_.end()) return iter->second;
     return std::nullopt;
   }
 

@@ -56,6 +56,8 @@ target_link_libraries(FrontendLib PUBLIC
 
 target_compile_definitions(FrontendLib PUBLIC SPDLOG_HEADER_ONLY)
 
+add_library(Frontend::Lib ALIAS FrontendLib)
+
 add_executable(Frontend
     main.cpp
     ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.cpp
@@ -64,6 +66,8 @@ add_executable(Frontend
 )
 
 target_link_libraries(Frontend PRIVATE FrontendLib)
+
+add_subdirectory(tests)
 
 set_target_properties(Frontend PROPERTIES
     BUILD_WITH_INSTALL_RPATH ON
