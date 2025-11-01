@@ -25,12 +25,11 @@ class ChatManager;
 class MessageManager;
 class UserManager;
 class SocketManager;
+class DataManager;
 
 using ChatId = int;
 using ChatPtr = std::shared_ptr<ChatBase>;
 using MessageModelPtr = std::shared_ptr<MessageModel>;
-using ChatMap = std::unordered_map<ChatId, ChatPtr>;
-using MessageModelMap = std::unordered_map<ChatId, MessageModelPtr>;
 
 class Model : public QObject {
     Q_OBJECT
@@ -88,18 +87,17 @@ class Model : public QObject {
   void setupConnections();
 
   ICache* cache_;
-
   QString current_token_;
+
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
-  ChatMap chats_by_id_;
 
-  MessageModelMap message_models_by_chat_id_;
   SessionManager* session_manager_;
   ChatManager* chat_manager_;
   MessageManager* message_manager_;
   UserManager* user_manager_;
   SocketManager* socket_manager_;
+  DataManager* data_manager_;
 };
 
 #endif  // MODEL_H

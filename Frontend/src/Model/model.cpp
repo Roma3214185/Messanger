@@ -28,6 +28,7 @@
 #include "Managers/MessageManager/messagemanager.h"
 #include "Managers/UserManager/usermanager.h"
 #include "Managers/SocketManager/socketmanager.h"
+#include "Managers/DataManager/datamanager.h"
 
 namespace {
 
@@ -46,8 +47,7 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
     , chat_model_(std::make_unique<ChatModel>())
     , user_model_(std::make_unique<UserModel>())
     , current_token_("")
-    , chats_by_id_()
-    , message_models_by_chat_id_()
+    , data_manager_(new DataManager())
     , session_manager_(new SessionManager(netManager, url))
     , chat_manager_(new ChatManager(netManager, url))
     , message_manager_(new MessageManager(netManager, url))
@@ -75,6 +75,7 @@ Model::~Model() {
   delete message_manager_;
   delete user_manager_;
   delete socket_manager_;
+  delete data_manager_;
 }
 
 auto Model::indexByChatId(int chat_id) -> QModelIndex {
@@ -126,16 +127,9 @@ ChatPtr Model::loadChat(int chat_id) {
 
 auto Model::getPrivateChatWithUser(int user_id) -> ChatPtr {
   PROFILE_SCOPE("Model::getPrivateChatWithUser");
-  for (auto [_, chat] : chats_by_id_) {
-    if (chat->isPrivate()) {
-      auto* pchat = static_cast<PrivateChat*>(chat.get());
-      if (pchat->user_id == user_id) {
-        LOG_INFO("Found private chat for this user '{}' and id '{}'",
-                 pchat->title.toStdString(), pchat->chat_id);
-        return chat;
-      }
-    }
-  }
+  auto chat_ptr = data_manager_->getPrivateChatWithUser(user_id);
+  if(chat_ptr) return chat_ptr;
+
   LOG_INFO("Private chat for this user '{}' not found", user_id);
   auto chat = createPrivateChat(user_id);
   LOG_INFO("Private chat for this user '{}' is created, id '{}'", chat->chat_id);
@@ -153,14 +147,17 @@ auto Model::loadChats() -> QList<ChatPtr> {
 
 auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
   int before_id = 0;
-  if (message_models_by_chat_id_.count(chat_id)) {
-    auto firstMessage = message_models_by_chat_id_[chat_id]->getFirstMessage();
+
+  auto message_model = data_manager_->getMessageModel(chat_id);
+  if(message_model){
+    auto firstMessage = message_model->getFirstMessage();
     if (firstMessage) {
       LOG_INFO("Last message with id '{}' and text '{}'", firstMessage->id,
                firstMessage->text.toStdString());
       before_id = firstMessage->id;
     }
   }
+
   LOG_INFO("[getChatMessages] Loading messages for chatId={}, beforeId = '{}'",
            chat_id, before_id);
 
@@ -169,47 +166,47 @@ auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
 
 MessageModel* Model::getMessageModel(int chat_id) {
   PROFILE_SCOPE("Model::getMessageModel");
-  auto chat_iter = message_models_by_chat_id_.find(chat_id);
-  if (chat_iter == message_models_by_chat_id_.end()) {
-    LOG_INFO("Chat with id '{}' isn't exist", chat_id);
+  auto message_model = data_manager_->getMessageModel(chat_id);
+  if(!message_model) {
     createMessageModel(chat_id);
   }
-  return message_models_by_chat_id_[chat_id].get();
+
+  return data_manager_->getMessageModel(chat_id).get();  //can't be nullptr
 }
 
 MessageModelPtr Model::createMessageModel(int chat_id) {
   PROFILE_SCOPE("Model::createMessageModel");
-  auto msgModel = std::make_shared<MessageModel>();
-  message_models_by_chat_id_[chat_id] = msgModel;
-  return msgModel;
+  auto message_model = std::make_shared<MessageModel>();
+  data_manager_->addMessageModel(chat_id, message_model);
+  return message_model;
 }
 
 void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
   PROFILE_SCOPE("Model::addMessageToChat");
-  auto chatIter = chats_by_id_.find(chat_id);
-  if (chatIter == chats_by_id_.end()) {
-    LOG_INFO("Chat with id '{}' isn't exist", chat_id);
-    auto chat =
-        loadChat(msg.chatId);  // u can receive new message from group/user if u
-                               // delete for youtself and from newUser
-    addChatInFront(chat);
+  auto chat = data_manager_->getChat(chat_id);
+  if(!chat) {
+      LOG_INFO("Chat with id '{}' isn't exist", chat_id);
+        auto chat =
+          loadChat(msg.chatId);  // u can receive new message from group/user if u
+                                // delete for youtself and from newUser
+      addChatInFront(chat);
   }
 
-  auto messageModel = message_models_by_chat_id_[chat_id];
+  auto message_model = data_manager_->getMessageModel(chat_id);  //TODO: what if nullptr??
   auto user = getUser(msg.senderId);
 
-  if (!user) {
-    LOG_ERROR("Use with id '{}' isn't exist", msg.senderId);
-    Q_EMIT errorOccurred(QString("Server doesn't return info about user id(") +
+  if (!user || !message_model) {
+    LOG_ERROR("Use with id '{}' isn't exist (or message model)", msg.senderId);
+    Q_EMIT errorOccurred(QString("(maybe messagemodel) message_modelServer doesn't return info about user id(") +
                          QString::fromStdString(std::to_string(msg.senderId)));
     return;
   }
 
   if (in_front) {
-    messageModel->addMessage(msg, *user, true);
+    message_model->addMessage(msg, *user, true);
     //chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
   } else {
-    messageModel->addMessage(msg, *user, false);
+    message_model->addMessage(msg, *user, false);
     chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
   }
 }
@@ -251,8 +248,9 @@ auto Model::getUser(int user_id) -> optional<User> {
 }
 
 auto Model::getNumberOfExistingChats() const -> int {
-  LOG_INFO("[getNumberOfExistingChats] Number of chats={}", chats_by_id_.size());
-  return chats_by_id_.size();
+  int size = data_manager_->getNumberOfExistingChats();
+  LOG_INFO("[getNumberOfExistingChats] Number of chats={}", size);
+  return size;
 }
 
 void Model::logout() {
@@ -270,12 +268,12 @@ void Model::logout() {
 }
 
 void Model::clearAllChats() {
-  chats_by_id_.clear();
+  data_manager_->clearAllChats();
   LOG_INFO("[clearAllChats] clearAllChats complete");
 }
 
 void Model::clearAllMessages() {
-  message_models_by_chat_id_.clear();
+  data_manager_->clearAllMessageModels();
   LOG_INFO("[clearAllMessages] clearAllMessages complete");
 }
 
@@ -285,15 +283,13 @@ auto Model::findUsers(const QString& text) -> QList<User> {
 
 void Model::addChat(const ChatPtr& chat) {
   PROFILE_SCOPE("Model::addChat");
-  chats_by_id_[chat->chat_id] = chat;
+  data_manager_->addChat(chat);
   chat_model_->addChat(chat);
   Q_EMIT chatAdded(chat->chat_id);
 }
 
 ChatPtr Model::getChat(int chat_id){
-  auto iter = chats_by_id_.find(chat_id);
-  if(iter == chats_by_id_.end()) return nullptr;
-  return iter->second;
+  return data_manager_->getChat(chat_id);
 }
 
 void Model::connectSocket(int user_id) {
@@ -320,32 +316,32 @@ void Model::onMessageReceived(const QString& msg) {
 
 void Model::createChat(int chat_id) {
   PROFILE_SCOPE("Model::createChat");
-  auto chatIterator = chats_by_id_.find(chat_id);
-  if (chatIterator != chats_by_id_.end()) {
+  auto chat = data_manager_->getChat(chat_id);
+  if (chat) {
     LOG_INFO("[Chat '{}' already exist", chat_id);
     return;
   }
-  auto chat = loadChat(chat_id);
+  auto new_chat = loadChat(chat_id);
   fillChatHistory(chat_id);
-  chat_model_->addChatInFront(chat);
+  chat_model_->addChatInFront(new_chat);
 }
 
 void Model::fillChatHistory(int chat_id) {
   PROFILE_SCOPE("Model::fillChatHistory");
-  auto messageHistory = getChatMessages(chat_id);
+  auto message_history = getChatMessages(chat_id);
   LOG_INFO("[fillChatHistory] For chat '{}' loaded '{}' messages", chat_id,
-           messageHistory.size());
-  auto messageModel = std::make_shared<MessageModel>(this);
-  message_models_by_chat_id_[chat_id] = messageModel;
+           message_history.size());
+  auto message_model = std::make_shared<MessageModel>(this);
+  data_manager_->addMessageModel(chat_id, message_model);
 
-  if (messageHistory.empty()) {
+  if (message_history.empty()) {
     return;
   }
 
-  chat_model_->updateChat(chat_id, messageHistory.front().text,
-                          messageHistory.front().timestamp);
+  chat_model_->updateChat(chat_id, message_history.front().text,
+                          message_history.front().timestamp);
 
-  for (auto message : messageHistory) {
+  for (auto message : message_history) {
     auto user = getUser(message.senderId);
     if (!user) {
       LOG_ERROR("[fillChatHistory] getUser failed for message '{}'",
@@ -355,7 +351,7 @@ void Model::fillChatHistory(int chat_id) {
                user->id);
     }
 
-    messageModel->addMessage(message, *user, true);
+    message_model->addMessage(message, *user, true);
   }
 }
 
