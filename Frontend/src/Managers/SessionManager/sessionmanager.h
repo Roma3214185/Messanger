@@ -12,19 +12,17 @@ class SignUpRequest;
 
 class SessionManager : public QObject {
     Q_OBJECT
-    INetworkAccessManager* net_manager_;
+    INetworkAccessManager* network_manager_;
     QUrl url_;
 
   public:
-    SessionManager(INetworkAccessManager* net_manager, QUrl url);
+    SessionManager(INetworkAccessManager* net_manager, const QUrl& url);
     void signIn(const LogInRequest& login_request);
     void signUp(const SignUpRequest& signup_request);
     void authenticateWithToken(const QString& token);
 
-  private:
-    void onSignInFinished(QNetworkReply* reply);
-    void onSignUpFinished(QNetworkReply* reply);
-    void onAuthenticate(QNetworkReply* reply);
+  protected:
+    virtual void onReplyFinished(QNetworkReply* reply);
 
   Q_SIGNALS:
     void errorOccurred(const QString& error);

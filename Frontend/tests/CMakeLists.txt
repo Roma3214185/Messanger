@@ -59,9 +59,10 @@ target_compile_definitions(FrontendLib_local PUBLIC SPDLOG_HEADER_ONLY)
 # --- Build the test executable ---
 add_executable(FrontendServiceTests
     main.cpp
-    presenter_tests.cpp
-    model_tests.cpp
-    DataInputServices_tests.cpp
+    test_datainputservice.cpp
+    test_presenter.cpp
+    test_model.cpp
+    test_sessionmanager.cpp
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES

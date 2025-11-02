@@ -12,8 +12,8 @@
 #include "headers/User.h"
 #include "headers/SignUpRequest.h"
 
-SessionManager::SessionManager(INetworkAccessManager* net_manager, QUrl url)
-    : net_manager_(net_manager), url_(url) {}
+SessionManager::SessionManager(INetworkAccessManager* network_manager, const QUrl& url)
+    : network_manager_(network_manager), url_(url) {}
 
 void SessionManager::signIn(const LogInRequest& login_request){
   PROFILE_SCOPE("SessionManager::signIn");
@@ -23,29 +23,21 @@ void SessionManager::signIn(const LogInRequest& login_request){
   QUrl endpoint = url_.resolved(QUrl("/auth/login"));
   QNetworkRequest req(endpoint);
   req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  LOG_INFO("Url setted");
 
   QJsonObject body{{"email", login_request.email},
                    {"password", login_request.password}};
-  LOG_INFO("Json created");
-  auto temp = QJsonDocument(body).toJson();
-  LOG_INFO("temp created");
-  if(!net_manager_) LOG_INFO("nullptr");
-  else LOG_INFO(" not nullptr");
-  auto reply = net_manager_->post(req, temp);
-  //auto reply = net_manager_->post(req, QJsonDocument(body).toJson());
-  LOG_INFO("reply sended");
+  auto reply = network_manager_->post(req, QJsonDocument(body).toJson());
 
   QObject::connect(reply, &QNetworkReply::finished, this,
-                   [this, reply]() -> void { onSignInFinished(reply); });
+                   [this, reply]() -> void { onReplyFinished(reply); });
 }
 
-void SessionManager::onSignInFinished(QNetworkReply* reply) {
-  PROFILE_SCOPE("SessionManager::onSignInFinished");
+void SessionManager::onReplyFinished(QNetworkReply* reply) {
+  PROFILE_SCOPE("SessionManager::onReplyFinished");
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
   if (reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onSignInFinished] Network error: '{}'",
+    LOG_ERROR("[onReplyFinished] Network error: '{}'",
               reply->errorString().toStdString());
     Q_EMIT errorOccurred(reply->errorString());
     return;
@@ -57,74 +49,9 @@ void SessionManager::onSignInFinished(QNetworkReply* reply) {
       JsonService::getUserFromResponse(responseObj["user"].toObject());
   QString current_token = responseObj["token"].toString();
 
-  LOG_INFO("[onSignInFinished] Login success. User: '{}', Token: '{}'",
+  LOG_INFO("[onReplyFinished] User created. User: '{}', Token: '{}'",
            createdUser.name.toStdString(), current_token.toStdString());
   Q_EMIT userCreated(createdUser, current_token);
-}
-
-void SessionManager::onSignUpFinished(QNetworkReply *reply){
-  PROFILE_SCOPE("Model::onSignUpFinished");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-
-  if (reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onSignUpFinished] Network error: '{}'",
-              reply->errorString().toStdString());
-    Q_EMIT errorOccurred(reply->errorString());
-    return;
-  }
-
-  auto jsonResponse = QJsonDocument::fromJson(reply->readAll());
-  auto responseObj = jsonResponse.object();
-  auto createdUser =
-      JsonService::getUserFromResponse(responseObj["user"].toObject());
-  QString current_token = responseObj["token"].toString();
-
-  LOG_INFO("[onSignUpFinished] Registration success. User: '{}', Token: '{}'",
-           createdUser.name.toStdString(), current_token.toStdString());
-  Q_EMIT userCreated(createdUser, current_token);
-}
-
-void SessionManager::onAuthenticate(QNetworkReply* reply) {
-  PROFILE_SCOPE("Model::onAuthenticate");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-
-  if (reply->error() != QNetworkReply::NoError) {
-    spdlog::warn("OnAuthenticate failed: '{}'", reply->errorString().toStdString());
-    return;
-  }
-
-  auto response_data = reply->readAll();
-  QJsonParseError parse_error;
-  auto json_response = QJsonDocument::fromJson(response_data, &parse_error);
-  if (parse_error.error != QJsonParseError::NoError ||
-      !json_response.isObject()) {
-    LOG_ERROR("Sign me failed: invalid JSON - '{}'",
-              parse_error.errorString().toStdString());
-    return;
-  }
-
-  auto response_obj = json_response.object();
-
-  if (!response_obj.contains("user") || !response_obj["user"].isObject()) {
-    LOG_ERROR("Sign me failed: JSON does not contain 'user' object");
-    return;
-  }
-  QString current_token;
-
-  auto created_user =
-      JsonService::getUserFromResponse(response_obj["user"].toObject());
-
-  if (!response_obj.contains("token") || !response_obj["token"].isString()) {
-    spdlog::warn("Sign me succeeded but no token returned for user '{}'",
-                 created_user.name.toStdString());
-    current_token.clear();
-  } else {
-    current_token = response_obj["token"].toString();
-    LOG_INFO("Sign me success: user '{}' with token '{}'",
-             created_user.name.toStdString(), current_token.toStdString());
-  }
-
-  Q_EMIT userCreated(created_user, current_token);
 }
 
 void SessionManager::signUp(const SignUpRequest& signup_request){
@@ -139,21 +66,20 @@ void SessionManager::signUp(const SignUpRequest& signup_request){
                    {"password", signup_request.password},
                    {"name", signup_request.name},
                    {"tag", signup_request.tag}};
-  auto reply = net_manager_->post(req, QJsonDocument(body).toJson());
+  auto reply = network_manager_->post(req, QJsonDocument(body).toJson());
 
   connect(reply, &QNetworkReply::finished, this,
-          [this, reply]() -> void { onSignUpFinished(reply); });
+          [this, reply]() -> void { onReplyFinished(reply); });
 }
 
 void SessionManager::authenticateWithToken(const QString& token) {
-  QUrl url("http://localhost:8083");
-  QUrl endpoint = url.resolved(QUrl("/auth/me"));
+  QUrl endpoint = url_.resolved(QUrl("/auth/me"));
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", token.toUtf8());
-  auto* reply = net_manager_->get(request);
+  auto* reply = network_manager_->get(request);
   QObject::connect(reply, &QNetworkReply::finished, this,
-                   [this, reply]() -> void { onAuthenticate(reply); });
+                   [this, reply]() -> void { onReplyFinished(reply); });
 }
 
 
