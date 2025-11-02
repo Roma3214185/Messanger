@@ -18,9 +18,10 @@ class MessageManager {
     MessageManager(INetworkAccessManager* network_manager, QUrl url);
     QList<Message> getChatMessages(QString current_token, int chat_id, int before_id, int limit);
 
-  private:
+  protected:
     QList<Message> onGetChatMessages(QNetworkReply* reply);
 
+  private:
     INetworkAccessManager* network_manager_;
     QUrl url_;
 };

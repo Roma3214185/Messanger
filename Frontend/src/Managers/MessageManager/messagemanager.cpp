@@ -29,8 +29,7 @@ MessageManager::MessageManager(INetworkAccessManager* network_manager, QUrl url)
 QList<Message> MessageManager::getChatMessages(QString current_token, int chat_id, int before_id, int limit) {
   PROFILE_SCOPE("ChatManager::getChatMessages");
 
-  QUrl url("http://localhost:8082");
-  QUrl endpoint = url.resolved(QUrl(QString("/messages/%1").arg(chat_id)));
+  QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(chat_id)));
   LOG_INFO("For chatId '{}' limit is '{}' and beforeId '{}'", chat_id, limit,
            before_id);
   QUrlQuery query;

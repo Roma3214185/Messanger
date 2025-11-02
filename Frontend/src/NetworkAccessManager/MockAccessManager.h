@@ -18,6 +18,7 @@ class MockNetworkAccessManager : public INetworkAccessManager {
   QNetworkReply* get(const QNetworkRequest& req) override {
     last_request = req;
     ++get_counter;
+    if(!reply) qDebug() << "REPLY IS NULL";
     return reply;
   }
 
@@ -26,7 +27,11 @@ class MockNetworkAccessManager : public INetworkAccessManager {
   int post_counter = 0;
   int get_counter = 0;
 
-  void setReply(QNetworkReply* reply) { this->reply = reply; }
+  void setReply(QNetworkReply* reply) {
+    qDebug() << "REPLY is setted";
+    this->reply = reply;
+    if(!reply) qDebug() << "REPLY is still nullptr";
+  }
 
  private:
   QNetworkReply* reply = nullptr;

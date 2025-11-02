@@ -78,23 +78,3 @@ TEST_CASE("Test socket") {
     REQUIRE(message_from_socket == message_to_send);
   }
 }
-
-// void SocketManager::connectSocket(int user_id) {
-//   PROFILE_SCOPE("Model::connectSocket");
-//   connect(socket_, &QWebSocket::connected,
-//           [this, user_id]() -> void { onSocketConnected(user_id); });
-//   connect(socket_, &QWebSocket::textMessageReceived, this,
-//           &SocketManager::newTextFromSocket);
-
-//   socket_->open(wsUrl_);
-//   LOG_INFO("[connectSocket] Connecting WebSocket for userId={}", user_id);
-// }
-
-// void SocketManager::close(){
-//   socket_->disconnect();
-//   socket_->close();
-// }
-
-// void SocketManager::sendText(const QString &message) {
-//   socket_->sendTextMessage(message);
-// }

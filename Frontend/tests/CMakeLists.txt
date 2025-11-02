@@ -65,6 +65,7 @@ add_executable(FrontendServiceTests
     test_model.cpp
     test_sessionmanager.cpp
     test_socketmanager.cpp
+    test_messagemanager.cpp
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES
