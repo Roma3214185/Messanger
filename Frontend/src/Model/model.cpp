@@ -29,6 +29,7 @@
 #include "Managers/UserManager/usermanager.h"
 #include "Managers/SocketManager/socketmanager.h"
 #include "Managers/DataManager/datamanager.h"
+#include "headers/ISocket.h"
 
 namespace {
 
@@ -42,7 +43,7 @@ auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkReques
 }  // namespace
 
 Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
-             QWebSocket* socket)
+             ISocket* socket)
     : cache_(cash)
     , chat_model_(std::make_unique<ChatModel>())
     , user_model_(std::make_unique<UserModel>())
@@ -52,7 +53,7 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
     , chat_manager_(new ChatManager(netManager, url))
     , message_manager_(new MessageManager(netManager, url))
     , user_manager_(new UserManager(netManager, url))
-    , socket_manager_(new SocketManager(socket, url))
+    , socket_manager_(new SocketManager(socket, QUrl("http://localhost:8086/")))
 {
 
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'",

@@ -13,6 +13,9 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class Presenter;
+class ChatBase;
+class User;
+class QListView;
 
 class MainWindow : public QMainWindow, public IMainWindow {
   Q_OBJECT

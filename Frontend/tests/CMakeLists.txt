@@ -36,6 +36,7 @@ add_library(FrontendLib_local
     ${FRONTEND_SRC_DIR}/Managers/DataManager/datamanager.cpp
     ${FRONTEND_SRC_DIR}/../src/headers/MessageListView.h
     ${FRONTEND_SRC_DIR}/../../DebugProfiling/Debug_profiling.h
+    ${FRONTEND_SRC_DIR}/../src/headers/ISocket.h
 )
 
 target_include_directories(FrontendLib_local PUBLIC
@@ -63,6 +64,7 @@ add_executable(FrontendServiceTests
     test_presenter.cpp
     test_model.cpp
     test_sessionmanager.cpp
+    test_socketmanager.cpp
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES

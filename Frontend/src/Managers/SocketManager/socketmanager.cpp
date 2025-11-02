@@ -4,14 +4,21 @@
 
 #include "DebugProfiling/Debug_profiling.h"
 #include "headers/JsonService.h"
+#include "headers/ISocket.h"
 
-SocketManager::SocketManager(QWebSocket* socket, QUrl url)
-    : socket_(socket)
-    , url_(url) {}
+SocketManager::SocketManager(ISocket* socket, const QUrl& url)
+    : socket_(socket) {
+  url_ = url;
+  url_.setScheme("ws");
+  url_.setPath("/ws");
+
+  connect(socket_, &ISocket::textMessageReceived, this,
+          &SocketManager::newTextFromSocket);
+}
 
 void SocketManager::onSocketConnected(int user_id) {
   PROFILE_SCOPE("Model::onSocketConnected");
-  QJsonObject json{{"type", "init"}, {"userId", user_id}};
+  QJsonObject json{{"type", "init"}, {"user_id", user_id}};
   const QString msg =
       QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact));
   socket_->sendTextMessage(msg);
@@ -20,11 +27,10 @@ void SocketManager::onSocketConnected(int user_id) {
 
 void SocketManager::connectSocket(int user_id) {
   PROFILE_SCOPE("Model::connectSocket");
-  connect(socket_, &QWebSocket::connected,
+  connect(socket_, &ISocket::connected,
         [this, user_id]() -> void { onSocketConnected(user_id); });
-  connect(socket_, &QWebSocket::textMessageReceived, this,
-        &SocketManager::newTextFromSocket);
-  socket_->open(QUrl("ws://localhost:8086/ws"));
+
+  socket_->open(url_);
   LOG_INFO("[connectSocket] Connecting WebSocket for userId={}", user_id);
 }
 

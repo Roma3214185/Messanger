@@ -34,6 +34,9 @@ add_library(FrontendLib
     ${FRONTEND_SRC_DIR}/Managers/UserManager/usermanager.cpp
     ${FRONTEND_SRC_DIR}/Managers/SocketManager/socketmanager.cpp
     ${FRONTEND_SRC_DIR}/Managers/DataManager/datamanager.cpp
+
+    ${FRONTEND_SRC_DIR}/headers/ISocket.h
+    ${FRONTEND_SRC_DIR}/headers/RealSocket.h
 )
 
 target_include_directories(FrontendLib PUBLIC

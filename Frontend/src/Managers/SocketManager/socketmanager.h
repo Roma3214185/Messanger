@@ -4,20 +4,21 @@
 #include <QUrl>
 #include <QObject>
 
-class QWebSocket;
+class ISocket;
 
 class SocketManager : public QObject {
     Q_OBJECT
   public:
-    SocketManager(QWebSocket* socket, QUrl url);
+    SocketManager(ISocket* socket, const QUrl& url);
     void connectSocket(int user_id);
     void close();
     void sendText(const QString& message);
 
-  private:
+  protected:
     void onSocketConnected(int user_id);
 
-    QWebSocket* socket_;
+  private:
+    ISocket* socket_;
     QUrl url_;
 
   Q_SIGNALS:

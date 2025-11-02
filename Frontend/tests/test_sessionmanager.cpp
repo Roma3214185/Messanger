@@ -245,11 +245,13 @@ TEST_CASE("Test onSignInFinished") {
     reply->setData(json_data);
 
     QSignalSpy spyUserCreated(&session_manager, &TestSessionManager::userCreated);
+    int before = spyUserCreated.count();
+
     session_manager.onReplyFinished(reply);
 
     QCoreApplication::processEvents();
 
-    REQUIRE(spyUserCreated.count() == 1);
+    REQUIRE(spyUserCreated.count() == before + 1);
 
     QList<QVariant> arguments = spyUserCreated.takeFirst();
 
