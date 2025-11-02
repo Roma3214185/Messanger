@@ -3,6 +3,7 @@
 #include <QEventLoop>
 #include <QNetworkReply>
 #include <QJsonArray>
+#include <QTimer>
 
 #include "DebugProfiling/Debug_profiling.h"
 #include "headers/JsonService.h"
@@ -12,7 +13,10 @@ UserManager::UserManager(INetworkAccessManager *network_manager, QUrl url)
     : network_manager_(network_manager)
     , url_(url) {}
 
-auto UserManager::getUser(int user_id) -> optional<User> {
+void UserManager::getUser(
+    int user_id,
+    std::function<std::optional<User>(std::optional<User>)> onSuccess,
+    std::function<std::optional<User>(QString)> onError) {
   PROFILE_SCOPE("UserManager::getUser");
   LOG_INFO("[getUser] Loading user id={}", user_id);
 
@@ -20,11 +24,25 @@ auto UserManager::getUser(int user_id) -> optional<User> {
   QNetworkRequest req(endpoint);
   auto* reply = network_manager_->get(req);
 
-  QEventLoop loop;
-  QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-  loop.exec();
+  QTimer::singleShot(5000, reply, [reply, onError]() {
+    if (reply->isRunning()) {
+      reply->abort();
+      onError("Server not respond");
+    }
+  });
 
-  return onGetUser(reply);
+  QObject::connect(reply, &QNetworkReply::finished, this,
+                   [reply, onSuccess, onError, this]() mutable {
+                     if (reply->error() != QNetworkReply::NoError) {
+                       onError(reply->errorString());
+                       reply->deleteLater();
+                       return;
+                     }
+
+                     optional<User> user_ptr = onGetUser(reply);
+                     reply->deleteLater();
+                     onSuccess(user_ptr);
+                   });
 }
 
 auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
@@ -51,19 +69,38 @@ auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   return user;
 }
 
-QList<User> UserManager::findUsersByTag(const QString& tag) {
+void UserManager::findUsersByTag(
+    const QString& tag,
+    std::function<QList<User>(QList<User>)> onSuccess,
+    std::function<QList<User>(QString)> onError)
+{
   QUrl endpoint =
       url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
   auto request = QNetworkRequest(endpoint);
   auto* reply = network_manager_->get(request);
-  QEventLoop loop;
-  QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-  loop.exec();
-  auto users = findUsersByTag(reply);
-  return users;
+
+  QTimer::singleShot(5000, reply, [reply, onError]() {
+    if (reply->isRunning()) {
+      reply->abort();
+      onError("Server not respond");
+    }
+  });
+
+  QObject::connect(reply, &QNetworkReply::finished, this,
+                   [this, reply, onSuccess, onError]() mutable {
+                     if (reply->error() != QNetworkReply::NoError) {
+                       onError(reply->errorString());
+                       reply->deleteLater();
+                       return;
+                     }
+
+                     QList<User> users = onFindUsersByTag(reply);
+                     reply->deleteLater();
+                     onSuccess(users);
+                   });
 }
 
-QList<User> UserManager::findUsersByTag(QNetworkReply* reply) {
+QList<User> UserManager::onFindUsersByTag(QNetworkReply* reply) {
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
   if (reply->error() != QNetworkReply::NoError) {
     //Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
