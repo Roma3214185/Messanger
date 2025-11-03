@@ -69,6 +69,7 @@ add_executable(FrontendServiceTests
     test_socketmanager.cpp
     test_messagemanager.cpp
     test_usermanager.cpp
+    test_chatmanager.cpp
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES

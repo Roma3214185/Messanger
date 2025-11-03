@@ -155,6 +155,7 @@ auto ChatManager::onCreatePrivateChat(QNetworkReply* reply) -> ChatPtr {
     Q_EMIT errorOccurred("onCreatePrivateChat" + reply->errorString());
     return nullptr;
   }
+
   auto responseData = reply->readAll();
   auto doc = QJsonDocument::fromJson(responseData);
   if (!doc.isObject()) {
@@ -162,13 +163,14 @@ auto ChatManager::onCreatePrivateChat(QNetworkReply* reply) -> ChatPtr {
     Q_EMIT errorOccurred("Invalid JSON: expected object at root");
     return nullptr;
   }
+
   auto responseObj = doc.object();
-  if (responseObj["chat_type"].toString() != "PRIVATE") {
-    LOG_ERROR("Error in model create private chat returned group chat");
+  if (responseObj["type"].toString() != "private") {
     Q_EMIT errorOccurred(
         "Error in model create private chat returned group chat");
     return nullptr;
   }
+
   auto new_chat = JsonService::getPrivateChatFromJson(responseObj);
   LOG_INFO("Private chat created with id '{}' ", new_chat->chat_id);
   return new_chat;
