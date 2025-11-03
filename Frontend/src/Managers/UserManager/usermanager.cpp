@@ -10,12 +10,10 @@
 #include "headers/JsonService.h"
 #include "headers/INetworkAccessManager.h"
 
-const QString kServerNotRespondError = "Server didn't respond";
-
-UserManager::UserManager(INetworkAccessManager *network_manager, const QUrl& url, int timeouts_ms)
+UserManager::UserManager(INetworkAccessManager *network_manager, const QUrl& url, int timeout_ms)
     : network_manager_(network_manager)
     , url_(url)
-    , timeouts_ms_(timeouts_ms) {}
+    , timeout_ms_(timeout_ms) {}
 
 QFuture<std::optional<User>> UserManager::getUser(int user_id) {
   PROFILE_SCOPE("UserManager::getUser");
@@ -25,43 +23,12 @@ QFuture<std::optional<User>> UserManager::getUser(int user_id) {
   QNetworkRequest req(endpoint);
   auto* reply = network_manager_->get(req);
 
-  auto promisePtr = std::make_shared<QPromise<std::optional<User>>>();
-  auto future = promisePtr->future();
-
-  auto isCompleted = std::make_shared<std::atomic_bool>(false);
-
-  QTimer::singleShot(timeouts_ms_, reply, [reply, promisePtr, isCompleted, this]() {
-    if (isCompleted->exchange(true))
-      return;
-
-    if (reply->isRunning()) {
-      reply->abort();
-      Q_EMIT errorOccurred(kServerNotRespondError);
-      promisePtr->addResult(std::nullopt);
-      promisePtr->finish();
-    }
-  });
-
-  QObject::connect(reply, &QNetworkReply::finished, this,
-                   [reply, promisePtr, isCompleted, this]() mutable {
-                     if (isCompleted->exchange(true)) {
-                       reply->deleteLater();
-                       return;
-                     }
-
-                     if (reply->error() != QNetworkReply::NoError) {
-                       Q_EMIT errorOccurred("Error occurred: " + reply->errorString());
-                       promisePtr->addResult(std::nullopt);
-                     } else {
-                       std::optional<User> userOpt = onGetUser(reply);
-                       promisePtr->addResult(userOpt);
-                     }
-
-                     promisePtr->finish();
-                     reply->deleteLater();
-                   });
-
-  return future;
+  return handleReplyWithTimeout<std::optional<User>>(
+      reply,
+      [this](QNetworkReply* server_reply) { return onGetUser(server_reply); },
+      timeout_ms_,
+      std::nullopt
+    );
 }
 
 auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
@@ -79,7 +46,7 @@ auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   auto doc = QJsonDocument::fromJson(reply->readAll());
   if (!doc.isObject()) {
     LOG_ERROR("[onGetUser] Invalid JSON: expected object at root");
-    //Q_EMIT errorOccurred("Invalid JSON: expected object at root");
+    Q_EMIT errorOccurred("Invalid JSON: expected object at root");
     return std::nullopt;
   }
 
@@ -96,43 +63,12 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag) {
   QNetworkRequest request(endpoint);
   auto* reply = network_manager_->get(request);
 
-  auto promisePtr = std::make_shared<QPromise<QList<User>>>();
-  auto future = promisePtr->future();
-
-  auto isCompleted = std::make_shared<std::atomic_bool>(false);
-
-  QTimer::singleShot(timeouts_ms_, reply, [reply, promisePtr, isCompleted, this]() {
-    if (isCompleted->exchange(true))
-      return;
-
-    if (reply->isRunning()) {
-      reply->abort();
-      Q_EMIT errorOccurred(kServerNotRespondError);
-      promisePtr->addResult({});
-      promisePtr->finish();
-    }
-  });
-
-  QObject::connect(reply, &QNetworkReply::finished, this,
-                   [reply, promisePtr, isCompleted, this]() mutable {
-                     if (isCompleted->exchange(true)) {
-                       reply->deleteLater();
-                       return;
-                     }
-
-                     if (reply->error() != QNetworkReply::NoError) {
-                       Q_EMIT errorOccurred("Error occurred: " + reply->errorString());
-                       promisePtr->addResult({});
-                     } else {
-                       QList<User> users = onFindUsersByTag(reply);
-                       promisePtr->addResult(users);
-                     }
-
-                     promisePtr->finish();
-                     reply->deleteLater();
-                   });
-
-  return future;
+  return handleReplyWithTimeout<QList<User>>(
+    reply,
+    [this](QNetworkReply* server_reply) { return onFindUsersByTag(server_reply); },
+    timeout_ms_,
+    QList<User>{}
+  );
 }
 
 QList<User> UserManager::onFindUsersByTag(QNetworkReply* reply) {

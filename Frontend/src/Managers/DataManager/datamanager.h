@@ -3,6 +3,7 @@
 
 #include "headers/ChatBase.h"
 #include "MessageModel/messagemodel.h"
+#include "headers/IManager.h"
 
 using ChatId = int;
 using ChatPtr = std::shared_ptr<ChatBase>;
@@ -10,7 +11,7 @@ using MessageModelPtr = std::shared_ptr<MessageModel>;
 using ChatMap = std::unordered_map<ChatId, ChatPtr>;
 using MessageModelMap = std::unordered_map<ChatId, MessageModelPtr>;
 
-class DataManager {
+class DataManager : public IManager {
   public:
     ChatPtr getPrivateChatWithUser(int user_id);
     MessageModelPtr getMessageModel(int chat_id);

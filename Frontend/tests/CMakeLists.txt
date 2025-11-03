@@ -37,6 +37,8 @@ add_library(FrontendLib_local
     ${FRONTEND_SRC_DIR}/../src/headers/MessageListView.h
     ${FRONTEND_SRC_DIR}/../../DebugProfiling/Debug_profiling.h
     ${FRONTEND_SRC_DIR}/../src/headers/ISocket.h
+     ${FRONTEND_SRC_DIR}/../src/headers/IManager.cpp
+     ${FRONTEND_SRC_DIR}/../src/headers/IManager.h
 )
 
 target_include_directories(FrontendLib_local PUBLIC

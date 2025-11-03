@@ -3,20 +3,20 @@
 
 #include <QList>
 #include <QUrl>
-#include <QObject>
 #include <QFuture>
 
 #include "headers/User.h"
+#include "headers/IManager.h"
 
 class INetworkAccessManager;
 class QUrl;
 class QNetworkReply;
 class User;
 
-class UserManager : public QObject {
+class UserManager : public IManager {
     Q_OBJECT
   public:
-    UserManager(INetworkAccessManager* network_manager, const QUrl& url, int timeouts_ms = 5000);
+    UserManager(INetworkAccessManager* network_manager, const QUrl& url, int timeout_ms = 5000);
     QFuture<QList<User>> findUsersByTag(const QString& tag);
     QFuture<std::optional<User>> getUser(int user_id);
 
@@ -30,7 +30,7 @@ class UserManager : public QObject {
   private:
     INetworkAccessManager* network_manager_;
     QUrl url_;
-    int timeouts_ms_;
+    int timeout_ms_;
 };
 
 #endif // USERMANAGER_H

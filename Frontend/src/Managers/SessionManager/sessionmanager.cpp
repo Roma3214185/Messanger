@@ -12,8 +12,10 @@
 #include "headers/User.h"
 #include "headers/SignUpRequest.h"
 
-SessionManager::SessionManager(INetworkAccessManager* network_manager, const QUrl& url)
-    : network_manager_(network_manager), url_(url) {}
+SessionManager::SessionManager(INetworkAccessManager* network_manager, const QUrl& url, int timeout_ms)
+    : network_manager_(network_manager)
+    , url_(url)
+    , timeout_ms_(timeout_ms) {}
 
 void SessionManager::signIn(const LogInRequest& login_request){
   PROFILE_SCOPE("SessionManager::signIn");
@@ -28,8 +30,11 @@ void SessionManager::signIn(const LogInRequest& login_request){
                    {"password", login_request.password}};
   auto reply = network_manager_->post(req, QJsonDocument(body).toJson());
 
-  QObject::connect(reply, &QNetworkReply::finished, this,
-                   [this, reply]() -> void { onReplyFinished(reply); });
+  handleReplyWithTimeoutVoid(
+      reply,
+      [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },
+      timeout_ms_
+      );
 }
 
 void SessionManager::onReplyFinished(QNetworkReply* reply) {
@@ -66,10 +71,12 @@ void SessionManager::signUp(const SignUpRequest& signup_request){
                    {"password", signup_request.password},
                    {"name", signup_request.name},
                    {"tag", signup_request.tag}};
-  auto reply = network_manager_->post(req, QJsonDocument(body).toJson());
-
-  connect(reply, &QNetworkReply::finished, this,
-          [this, reply]() -> void { onReplyFinished(reply); });
+  auto* reply = network_manager_->post(req, QJsonDocument(body).toJson());
+  handleReplyWithTimeoutVoid(
+      reply,
+      [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },
+      timeout_ms_
+    );
 }
 
 void SessionManager::authenticateWithToken(const QString& token) {
@@ -78,8 +85,11 @@ void SessionManager::authenticateWithToken(const QString& token) {
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", token.toUtf8());
   auto* reply = network_manager_->get(request);
-  QObject::connect(reply, &QNetworkReply::finished, this,
-                   [this, reply]() -> void { onReplyFinished(reply); });
+  handleReplyWithTimeoutVoid(
+      reply,
+      [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },
+      timeout_ms_
+      );
 }
 
 

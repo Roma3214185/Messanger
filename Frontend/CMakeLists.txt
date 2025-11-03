@@ -37,6 +37,8 @@ add_library(FrontendLib
 
     ${FRONTEND_SRC_DIR}/headers/ISocket.h
     ${FRONTEND_SRC_DIR}/headers/RealSocket.h
+    ${FRONTEND_SRC_DIR}/headers/ITheme.h
+    ${FRONTEND_SRC_DIR}/headers/IManager.cpp
 )
 
 target_include_directories(FrontendLib PUBLIC
@@ -66,7 +68,6 @@ add_executable(Frontend
     ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.cpp
     ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.h
     ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.ui
-    src/headers/ITheme.h
 )
 
 target_link_libraries(Frontend PRIVATE FrontendLib)

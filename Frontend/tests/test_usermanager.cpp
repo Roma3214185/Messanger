@@ -83,7 +83,7 @@ TEST_CASE("Test user manager") {
   }
 
   SECTION("ErrorReplyExpectedEmittedErrorOccuredWithValidText") {
-    QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
+    QSignalSpy spyErrorOccured(&user_manager, &IManager::errorOccurred);
     int before_calls = spyErrorOccured.count();
     auto mock_reply = new MockReply();
     mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError, "error");
@@ -215,7 +215,7 @@ TEST_CASE("Test onGetUser") {
     REQUIRE(args.at(0).toString() == "get user: connection refused");
   }
 
-  SECTION("InvalidJsonExpectedReturnNulloptNoErrorSignal") {
+  SECTION("InvalidJsonExpectedReturnNulloptWithErrorSignal") {
     QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
     int before_calls = spyErrorOccured.count();
 
@@ -229,10 +229,10 @@ TEST_CASE("Test onGetUser") {
     QCoreApplication::processEvents();
 
     REQUIRE_FALSE(result.has_value());
-    REQUIRE(spyErrorOccured.count() == before_calls);
+    REQUIRE(spyErrorOccured.count() == before_calls + 1);
   }
 
-  SECTION("JsonArrayInsteadOfObjectExpectedReturnNulloptNoErrorSignal") {
+  SECTION("JsonArrayInsteadOfObjectExpectedReturnNulloptWithErrorSignal") {
     QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
     int before_calls = spyErrorOccured.count();
 
@@ -249,7 +249,7 @@ TEST_CASE("Test onGetUser") {
     QCoreApplication::processEvents();
 
     REQUIRE_FALSE(result.has_value());
-    REQUIRE(spyErrorOccured.count() == before_calls);
+    REQUIRE(spyErrorOccured.count() == before_calls + 1);
   }
 
   SECTION("EmptyJsonObjectExpectedReturnNulloptNoErrorSignal") {
@@ -354,7 +354,7 @@ TEST_CASE("Test findUsersByTag") {
     auto reply_with_error = new MockReply();
     reply_with_error->setMockError(QNetworkReply::AuthenticationRequiredError, "there is no authentification");
     network_manager.setReply(reply_with_error);
-    QSignalSpy spyErrorOccurred(&user_manager, &UserManager::errorOccurred);
+    QSignalSpy spyErrorOccurred(&user_manager, &IManager::errorOccurred);
     int before_calls = spyErrorOccurred.count();
 
     QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
