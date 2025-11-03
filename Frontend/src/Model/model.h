@@ -26,6 +26,7 @@ class MessageManager;
 class UserManager;
 class SocketManager;
 class DataManager;
+class ISocket;
 
 using ChatId = int;
 using ChatPtr = std::shared_ptr<ChatBase>;
@@ -35,7 +36,7 @@ class Model : public QObject {
     Q_OBJECT
 
  public:
-  explicit Model(const QUrl& url, INetworkAccessManager* net_manager, ICache* cache, QWebSocket* socket);
+  explicit Model(const QUrl& url, INetworkAccessManager* net_manager, ICache* cache, ISocket* socket);
   ~Model();
 
   ChatModel* getChatModel() const;

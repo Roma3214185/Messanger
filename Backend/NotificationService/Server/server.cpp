@@ -49,7 +49,7 @@ void Server::handleSocketOnMessage(crow::websocket::connection& conn,
   }
 
   if (message_ptr["type"].s() == "init") {
-    int user_id = message_ptr["userId"].i();
+    int user_id = message_ptr["user_id"].i();
     notification_manager_.userConnected(user_id, &conn);
     LOG_INFO("[onMessage] Socket is registered for userId '{}'", user_id);
   } else if (message_ptr["type"].s() == "send_message") {

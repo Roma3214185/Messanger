@@ -4,28 +4,29 @@
 #include <QList>
 #include <QObject>
 #include <QUrl>
+#include <QFuture>
 
 #include "headers/ChatBase.h"
+#include "headers/BaseManager.h"
 
 using ChatPtr = std::shared_ptr<ChatBase>;
 
 class INetworkAccessManager;
 class QNetworkReply;
 
-class ChatManager {
+class ChatManager : public BaseManager {
+    Q_OBJECT
   public:
-    ChatManager(INetworkAccessManager* network_manager, QUrl url) : network_manager_(network_manager), url_(url) {}
-    QList<ChatPtr> loadChats(const QString& current_token);
-    ChatPtr loadChat(const QString& current_token, int chat_id);
-    ChatPtr createPrivateChat(const QString& current_token, int user_id);
+    using BaseManager::BaseManager;
 
-  private:
+    QFuture<QList<ChatPtr>> loadChats(const QString& current_token);
+    QFuture<ChatPtr> loadChat(const QString& current_token, int chat_id);
+    QFuture<ChatPtr> createPrivateChat(const QString& current_token, int user_id);
+
+  protected:
     QList<ChatPtr> onLoadChats(QNetworkReply* reply);
     ChatPtr onChatLoaded(QNetworkReply* reply);
     ChatPtr onCreatePrivateChat(QNetworkReply* reply);
-
-    INetworkAccessManager* network_manager_;
-    QUrl url_;
 };
 
 

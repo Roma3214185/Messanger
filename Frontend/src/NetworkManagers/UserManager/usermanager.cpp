@@ -3,16 +3,14 @@
 #include <QEventLoop>
 #include <QNetworkReply>
 #include <QJsonArray>
+#include <QTimer>
+#include <QPromise>
 
 #include "DebugProfiling/Debug_profiling.h"
 #include "headers/JsonService.h"
 #include "headers/INetworkAccessManager.h"
 
-UserManager::UserManager(INetworkAccessManager *network_manager, QUrl url)
-    : network_manager_(network_manager)
-    , url_(url) {}
-
-auto UserManager::getUser(int user_id) -> optional<User> {
+QFuture<std::optional<User>> UserManager::getUser(int user_id) {
   PROFILE_SCOPE("UserManager::getUser");
   LOG_INFO("[getUser] Loading user id={}", user_id);
 
@@ -20,11 +18,12 @@ auto UserManager::getUser(int user_id) -> optional<User> {
   QNetworkRequest req(endpoint);
   auto* reply = network_manager_->get(req);
 
-  QEventLoop loop;
-  QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-  loop.exec();
-
-  return onGetUser(reply);
+  return handleReplyWithTimeout<std::optional<User>>(
+      reply,
+      [this](QNetworkReply* server_reply) { return onGetUser(server_reply); },
+      timeout_ms_,
+      std::nullopt
+    );
 }
 
 auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
@@ -35,14 +34,14 @@ auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   if (reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onGetUser] Network error: '{}'",
               reply->errorString().toStdString());
-    //Q_EMIT errorOccurred("get user: " + reply->errorString());
+    Q_EMIT errorOccurred("get user: " + reply->errorString());
     return std::nullopt;
   }
 
   auto doc = QJsonDocument::fromJson(reply->readAll());
   if (!doc.isObject()) {
     LOG_ERROR("[onGetUser] Invalid JSON: expected object at root");
-    //Q_EMIT errorOccurred("Invalid JSON: expected object at root");
+    Q_EMIT errorOccurred("Invalid JSON: expected object at root");
     return std::nullopt;
   }
 
@@ -51,37 +50,45 @@ auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   return user;
 }
 
-QList<User> UserManager::findUsersByTag(const QString& tag) {
-  QUrl endpoint =
-      url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
-  auto request = QNetworkRequest(endpoint);
+QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag) {
+  PROFILE_SCOPE("UserManager::findUsersByTag");
+  LOG_INFO("[findUsersByTag] Searching for users with tag={}", tag.toStdString());
+
+  QUrl endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
+  QNetworkRequest request(endpoint);
   auto* reply = network_manager_->get(request);
-  QEventLoop loop;
-  QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-  loop.exec();
-  auto users = findUsersByTag(reply);
-  return users;
+
+  return handleReplyWithTimeout<QList<User>>(
+    reply,
+    [this](QNetworkReply* server_reply) { return onFindUsersByTag(server_reply); },
+    timeout_ms_,
+    QList<User>{}
+  );
 }
 
-QList<User> UserManager::findUsersByTag(QNetworkReply* reply) {
+QList<User> UserManager::onFindUsersByTag(QNetworkReply* reply) {
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
   if (reply->error() != QNetworkReply::NoError) {
-    //Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
+    Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
     return {};
   }
   auto responseData = reply->readAll();
   auto doc = QJsonDocument::fromJson(responseData);
+
   if (!doc.isObject()) {
-    //Q_EMIT errorOccurred("Invalid JSON: expected object at root");
+    Q_EMIT errorOccurred("Invalid JSON: expected object at root");
     return {};
   }
+
   auto rootObj = doc.object();
   auto arr = rootObj["users"].toArray();
   QList<User> users;
+
   for (const auto& value : std::as_const(arr)) {
     auto obj = value.toObject();
     auto user = JsonService::getUserFromResponse(obj);
     users.append(user);
   }
+
   return users;
 }

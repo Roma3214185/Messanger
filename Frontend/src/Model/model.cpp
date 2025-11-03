@@ -13,6 +13,8 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include <QtWebSockets/QWebSocket>
+#include <QFuture>
+#include <QFutureWatcher>
 
 #include "ChatModel/chatmodel.h"
 #include "headers/INetworkAccessManager.h"
@@ -23,12 +25,13 @@
 #include "Debug_profiling.h"
 #include "MessageModel/messagemodel.h"
 #include "UserModel/UserModel.h"
-#include "Managers/SessionManager/sessionmanager.h"
-#include "Managers/ChatManager/chatmanager.h"
-#include "Managers/MessageManager/messagemanager.h"
-#include "Managers/UserManager/usermanager.h"
-#include "Managers/SocketManager/socketmanager.h"
-#include "Managers/DataManager/datamanager.h"
+#include "NetworkManagers/SessionManager/sessionmanager.h"
+#include "NetworkManagers/ChatManager/chatmanager.h"
+#include "NetworkManagers/MessageManager/messagemanager.h"
+#include "NetworkManagers/UserManager/usermanager.h"
+#include "SocketManager/socketmanager.h"
+#include "DataManager/datamanager.h"
+#include "headers/ISocket.h"
 
 namespace {
 
@@ -39,10 +42,22 @@ auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkReques
   return request;
 }
 
+template<typename T>
+T waitForFuture(QFuture<T>& future) {
+  QFutureWatcher<T> watcher;
+  watcher.setFuture(future);
+
+  QEventLoop loop;
+  QObject::connect(&watcher, &QFutureWatcher<T>::finished, &loop, &QEventLoop::quit);
+  loop.exec();
+
+  return future.result();
+}
+
 }  // namespace
 
 Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
-             QWebSocket* socket)
+             ISocket* socket)
     : cache_(cash)
     , chat_model_(std::make_unique<ChatModel>())
     , user_model_(std::make_unique<UserModel>())
@@ -50,9 +65,9 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
     , data_manager_(new DataManager())
     , session_manager_(new SessionManager(netManager, url))
     , chat_manager_(new ChatManager(netManager, url))
-    , message_manager_(new MessageManager(netManager, url))
+    , message_manager_(new MessageManager(netManager, QUrl("http://localhost:8082/")))
     , user_manager_(new UserManager(netManager, url))
-    , socket_manager_(new SocketManager(socket, url))
+    , socket_manager_(new SocketManager(socket, QUrl("http://localhost:8086/")))
 {
 
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'",
@@ -122,7 +137,8 @@ void Model::signUp(const SignUpRequest& request) {
 }
 
 ChatPtr Model::loadChat(int chat_id) {
-  return chat_manager_->loadChat(current_token_, chat_id);
+  auto future =  chat_manager_->loadChat(current_token_, chat_id);
+  return waitForFuture(future);
 }
 
 auto Model::getPrivateChatWithUser(int user_id) -> ChatPtr {
@@ -138,11 +154,13 @@ auto Model::getPrivateChatWithUser(int user_id) -> ChatPtr {
 }
 
 auto Model::createPrivateChat(int user_id) -> ChatPtr {
-  return chat_manager_->createPrivateChat(current_token_, user_id);
+  auto future =  chat_manager_->createPrivateChat(current_token_, user_id);
+  return waitForFuture(future);
 }
 
 auto Model::loadChats() -> QList<ChatPtr> {
-  return chat_manager_->loadChats(current_token_);
+  auto future = chat_manager_->loadChats(current_token_);
+  return waitForFuture(future);
 }
 
 auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
@@ -161,7 +179,8 @@ auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
   LOG_INFO("[getChatMessages] Loading messages for chatId={}, beforeId = '{}'",
            chat_id, before_id);
 
-  return message_manager_->getChatMessages(current_token_, chat_id, before_id, limit);
+  auto future = message_manager_->getChatMessages(current_token_, chat_id, before_id, limit);
+  return waitForFuture(future);
 }
 
 MessageModel* Model::getMessageModel(int chat_id) {
@@ -244,7 +263,8 @@ void Model::sendMessage(const Message& msg) {
 }
 
 auto Model::getUser(int user_id) -> optional<User> {
-  return user_manager_->getUser(user_id);  //TODO(roma): send token to verify user blocks u
+  auto future = user_manager_->getUser(user_id);
+  return waitForFuture(future);
 }
 
 auto Model::getNumberOfExistingChats() const -> int {
@@ -278,7 +298,8 @@ void Model::clearAllMessages() {
 }
 
 auto Model::findUsers(const QString& text) -> QList<User> {
-  return user_manager_->findUsersByTag(text);
+  auto future = user_manager_->findUsersByTag(text);
+  return waitForFuture(future);
 }
 
 void Model::addChat(const ChatPtr& chat) {

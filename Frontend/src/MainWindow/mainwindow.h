@@ -13,6 +13,10 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class Presenter;
+class ChatBase;
+class User;
+class QListView;
+class ITheme;
 
 class MainWindow : public QMainWindow, public IMainWindow {
   Q_OBJECT
@@ -32,8 +36,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setMessageListView(QListView* list_view) override;
   void setCurrentChatIndex(QModelIndex chat_idx) override;
 
-  void setLightTheme();
-  void setDarkTheme();
+  void setTheme(std::unique_ptr<ITheme> theme);
 
  private Q_SLOTS:
   void on_upSubmitButton_clicked();
@@ -42,7 +45,6 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void on_textEdit_textChanged();
   void on_sendButton_clicked();
   void on_logoutButton_clicked();
-
   void on_pushButton_clicked(bool checked);
 
 private:
@@ -54,6 +56,7 @@ private:
   void seupConnections();
   void setupUI();
 
+  std::unique_ptr<ITheme> currentTheme;
   Ui::MainWindow* ui_;
   Presenter* presenter_;
 };

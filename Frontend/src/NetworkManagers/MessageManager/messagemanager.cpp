@@ -1,11 +1,9 @@
 #include "messagemanager.h"
 
-#include <QEventLoop>
-#include <QUrl>
-#include <QUrlQuery>
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QUrlQuery>
 
 #include "DebugProfiling/Debug_profiling.h"
 #include "headers/INetworkAccessManager.h"
@@ -22,15 +20,10 @@ auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkReques
 
 }  // namespace
 
-MessageManager::MessageManager(INetworkAccessManager* network_manager, QUrl url)
-    : network_manager_(network_manager)
-    , url_(url) { }
-
-QList<Message> MessageManager::getChatMessages(QString current_token, int chat_id, int before_id, int limit) {
+QFuture<QList<Message>> MessageManager::getChatMessages(QString current_token, int chat_id, int before_id, int limit) {
   PROFILE_SCOPE("ChatManager::getChatMessages");
 
-  QUrl url("http://localhost:8082");
-  QUrl endpoint = url.resolved(QUrl(QString("/messages/%1").arg(chat_id)));
+  QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(chat_id)));
   LOG_INFO("For chatId '{}' limit is '{}' and beforeId '{}'", chat_id, limit,
            before_id);
   QUrlQuery query;
@@ -38,30 +31,31 @@ QList<Message> MessageManager::getChatMessages(QString current_token, int chat_i
   query.addQueryItem("beforeId", QString::number(before_id));
   endpoint.setQuery(query);
   auto request = getRequestWithToken(endpoint, current_token);
-  auto* reply = network_manager_->get(request);
+  auto* reply = network_manager_->get(request); //TODO(roma): make function getReplyGetChatMessages();
 
-  QEventLoop loop;
-  QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-  loop.exec();
-
-  return onGetChatMessages(reply);
+  return handleReplyWithTimeout<QList<Message>>(
+      reply,
+      [this](QNetworkReply* server_reply) { return onGetChatMessages(server_reply); },
+      timeout_ms_,
+      QList<Message>{}
+      );
 }
 
-auto MessageManager::onGetChatMessages(QNetworkReply* reply) -> QList<Message> {
+QList<Message> MessageManager::onGetChatMessages(QNetworkReply* reply) {
   PROFILE_SCOPE("ChatManager::onGetChatMessages");
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
   if (reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onGetChatMessages] Network error: '{}'",
               reply->errorString().toStdString());
-    //Q_EMIT errorOccurred("[network] " + reply->errorString());
+    Q_EMIT errorOccurred("[network] " + reply->errorString());
     return {};
   }
 
   auto doc = QJsonDocument::fromJson(reply->readAll());
   if (!doc.isArray()) {
     LOG_ERROR("[onGetChatMessages] Invalid JSON: expected array");
-    //Q_EMIT errorOccurred("Invalid JSON: expected array at root");
+    Q_EMIT errorOccurred("Invalid JSON: expected array at root");
     return {};
   }
 
