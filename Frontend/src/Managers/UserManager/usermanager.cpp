@@ -4,6 +4,7 @@
 #include <QNetworkReply>
 #include <QJsonArray>
 #include <QTimer>
+#include <QPromise>
 
 #include "DebugProfiling/Debug_profiling.h"
 #include "headers/JsonService.h"
@@ -13,10 +14,7 @@ UserManager::UserManager(INetworkAccessManager *network_manager, QUrl url)
     : network_manager_(network_manager)
     , url_(url) {}
 
-void UserManager::getUser(
-    int user_id,
-    std::function<std::optional<User>(std::optional<User>)> onSuccess,
-    std::function<std::optional<User>(QString)> onError) {
+QFuture<std::optional<User>> UserManager::getUser(int user_id) {
   PROFILE_SCOPE("UserManager::getUser");
   LOG_INFO("[getUser] Loading user id={}", user_id);
 
@@ -24,26 +22,44 @@ void UserManager::getUser(
   QNetworkRequest req(endpoint);
   auto* reply = network_manager_->get(req);
 
-  QTimer::singleShot(5000, reply, [reply, onError]() {
+  auto promisePtr = std::make_shared<QPromise<std::optional<User>>>();
+  auto future = promisePtr->future();
+
+  auto isCompleted = std::make_shared<std::atomic_bool>(false);
+
+  // Timeout handling
+  QTimer::singleShot(5000, reply, [reply, promisePtr, isCompleted]() {
+    if (isCompleted->exchange(true)) return;
     if (reply->isRunning()) {
       reply->abort();
-      onError("Server not respond");
+      promisePtr->setException(std::make_exception_ptr(
+          std::runtime_error("Server didn't respond")));
     }
   });
 
+  // Reply finished handling
   QObject::connect(reply, &QNetworkReply::finished, this,
-                   [reply, onSuccess, onError, this]() mutable {
-                     if (reply->error() != QNetworkReply::NoError) {
-                       onError(reply->errorString());
+                   [reply, promisePtr, isCompleted, this]() mutable {
+                     if (isCompleted->exchange(true)) {
                        reply->deleteLater();
                        return;
                      }
 
-                     optional<User> user_ptr = onGetUser(reply);
+                     if (reply->error() != QNetworkReply::NoError) {
+                       promisePtr->setException(std::make_exception_ptr(
+                           std::runtime_error(reply->errorString().toStdString())));
+                     } else {
+                       std::optional<User> userOpt = onGetUser(reply);
+                       promisePtr->addResult(userOpt);
+                     }
+
+                     promisePtr->finish();
                      reply->deleteLater();
-                     onSuccess(user_ptr);
                    });
+
+  return future;
 }
+
 
 auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   PROFILE_SCOPE("UserManager::onGetUser");
@@ -69,35 +85,51 @@ auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   return user;
 }
 
-void UserManager::findUsersByTag(
-    const QString& tag,
-    std::function<QList<User>(QList<User>)> onSuccess,
-    std::function<QList<User>(QString)> onError)
-{
-  QUrl endpoint =
-      url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
-  auto request = QNetworkRequest(endpoint);
+QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag) {
+  PROFILE_SCOPE("UserManager::findUsersByTag");
+  LOG_INFO("[findUsersByTag] Searching for users with tag={}", tag.toStdString());
+
+  QUrl endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
+  QNetworkRequest request(endpoint);
   auto* reply = network_manager_->get(request);
 
-  QTimer::singleShot(5000, reply, [reply, onError]() {
+  auto promisePtr = std::make_shared<QPromise<QList<User>>>();
+  auto future = promisePtr->future();
+
+  // Shared atomic flag to ensure we finish only once
+  auto isCompleted = std::make_shared<std::atomic_bool>(false);
+
+  // Timeout guard (5 seconds)
+  QTimer::singleShot(5000, reply, [reply, promisePtr, isCompleted]() {
+    if (isCompleted->exchange(true)) return; // already handled
     if (reply->isRunning()) {
       reply->abort();
-      onError("Server not respond");
+      promisePtr->setException(std::make_exception_ptr(
+          std::runtime_error("Server didn't respond")));
     }
   });
 
+  // Handle when network reply finishes
   QObject::connect(reply, &QNetworkReply::finished, this,
-                   [this, reply, onSuccess, onError]() mutable {
-                     if (reply->error() != QNetworkReply::NoError) {
-                       onError(reply->errorString());
+                   [reply, promisePtr, isCompleted, this]() mutable {
+                     if (isCompleted->exchange(true)) {
                        reply->deleteLater();
                        return;
                      }
 
-                     QList<User> users = onFindUsersByTag(reply);
+                     if (reply->error() != QNetworkReply::NoError) {
+                       promisePtr->setException(std::make_exception_ptr(
+                           std::runtime_error(reply->errorString().toStdString())));
+                     } else {
+                       QList<User> users = onFindUsersByTag(reply);
+                       promisePtr->addResult(users);
+                     }
+
+                     promisePtr->finish();
                      reply->deleteLater();
-                     onSuccess(users);
                    });
+
+  return future;
 }
 
 QList<User> UserManager::onFindUsersByTag(QNetworkReply* reply) {

@@ -16,35 +16,13 @@ TEST_CASE("Test user manager") {
 
   SECTION("GetUserExpectedRightUrlCreated") {
     QUrl resolved_url("http://localhost:8083/users/4");
-    user_manager.getUser(
-        user_id,
-
-        [](std::optional<User> user) {
-          return user;
-        },
-
-        [](QString error) {
-          return std::nullopt;
-        }
-    );
-
+    user_manager.getUser(user_id);
     REQUIRE(network_manager.last_request.url() == resolved_url);
   }
 
   SECTION("GetUserExpectedGetMethod") {
     int before_get_calls = network_manager.get_counter;
-    user_manager.getUser(
-      user_id,
-
-      [](std::optional<User> user) {
-        return user;
-      },
-
-      [](QString error) {
-        return std::nullopt;
-      }
-    );
-
+    user_manager.getUser(user_id);
     REQUIRE(network_manager.get_counter == before_get_calls + 1);
   }
 }

@@ -13,6 +13,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include <QtWebSockets/QWebSocket>
+#include <QFuture>
 
 #include "ChatModel/chatmodel.h"
 #include "headers/INetworkAccessManager.h"
@@ -245,18 +246,14 @@ void Model::sendMessage(const Message& msg) {
 }
 
 auto Model::getUser(int user_id) -> optional<User> {
-  user_manager_->getUser( //TODO(roma): send token to verify user blocks u
-      user_id,
-
-      [](const std::optional<User>& user) -> std::optional<User> {
-        return user;
-      },
-
-      [](const QString& error) -> std::optional<User> {
-        LOG_ERROR("Server not respond {}", error.toStdString());
-        return std::nullopt;
-      }
-  );
+  try {
+    auto future = user_manager_->getUser(user_id);
+    std::optional<User> result = future.result();
+    return result;
+  } catch (const std::exception& e) {
+    LOG_ERROR("Failed to get user {}: {}", user_id, e.what());
+    return std::nullopt;
+  }
 }
 
 auto Model::getNumberOfExistingChats() const -> int {
@@ -290,18 +287,14 @@ void Model::clearAllMessages() {
 }
 
 auto Model::findUsers(const QString& text) -> QList<User> {
-  user_manager_->findUsersByTag(
-      text,
-
-      [](const QList<User>& users) -> QList<User> {
-        return users;
-      },
-
-      [](const QString& error) -> QList<User> {
-        LOG_ERROR("Server doesn't respond {}", error.toStdString());
-        return QList<User>{};
-      }
-  );
+  try {
+    auto future = user_manager_->findUsersByTag(text);
+    QList<User> result = future.result();
+    return result;
+  } catch (const std::exception& e) {
+    LOG_ERROR("Failed to get users for tag {}: {}", text.toStdString(), e.what());
+    return QList<User>{};
+  }
 }
 
 void Model::addChat(const ChatPtr& chat) {

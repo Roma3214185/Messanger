@@ -4,6 +4,7 @@
 #include <QList>
 #include <QUrl>
 #include <QObject>
+#include <QFuture>
 
 #include "headers/User.h"
 
@@ -16,15 +17,8 @@ class UserManager : public QObject {
     Q_OBJECT
   public:
     UserManager(INetworkAccessManager* network_manager, QUrl url);
-    void findUsersByTag(
-        const QString& tag,
-        std::function<QList<User>(QList<User>)> onSuccess,
-        std::function<QList<User>(QString)> onError);
-
-   void getUser(
-      int user_id,
-      std::function<std::optional<User>(std::optional<User>)> onSuccess,
-      std::function<std::optional<User>(QString)> onError);
+    QFuture<QList<User>> findUsersByTag(const QString& tag);
+    QFuture<std::optional<User>> getUser(int user_id);
 
   private:
     QList<User> onFindUsersByTag(QNetworkReply* reply);
