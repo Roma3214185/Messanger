@@ -14,6 +14,7 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QtWebSockets/QWebSocket>
 #include <QFuture>
+#include <QFutureWatcher>
 
 #include "ChatModel/chatmodel.h"
 #include "headers/INetworkAccessManager.h"
@@ -246,14 +247,16 @@ void Model::sendMessage(const Message& msg) {
 }
 
 auto Model::getUser(int user_id) -> optional<User> {
-  try {
-    auto future = user_manager_->getUser(user_id);
-    std::optional<User> result = future.result();
-    return result;
-  } catch (const std::exception& e) {
-    LOG_ERROR("Failed to get user {}: {}", user_id, e.what());
-    return std::nullopt;
-  }
+  auto future = user_manager_->getUser(user_id);
+  QFutureWatcher<std::optional<User>> watcher;
+  watcher.setFuture(future);
+
+  QEventLoop loop;
+  QObject::connect(&watcher, &QFutureWatcher<std::optional<User>>::finished, &loop, &QEventLoop::quit);
+  loop.exec();
+
+  std::optional<User> result = future.result();
+  return result;
 }
 
 auto Model::getNumberOfExistingChats() const -> int {
@@ -287,14 +290,16 @@ void Model::clearAllMessages() {
 }
 
 auto Model::findUsers(const QString& text) -> QList<User> {
-  try {
-    auto future = user_manager_->findUsersByTag(text);
-    QList<User> result = future.result();
-    return result;
-  } catch (const std::exception& e) {
-    LOG_ERROR("Failed to get users for tag {}: {}", text.toStdString(), e.what());
-    return QList<User>{};
-  }
+  auto future = user_manager_->findUsersByTag(text);
+  QFutureWatcher<QList<User>> watcher;
+  watcher.setFuture(future);
+
+  QEventLoop loop;
+  QObject::connect(&watcher, &QFutureWatcher<QList<User>>::finished, &loop, &QEventLoop::quit);
+  loop.exec();
+
+  QList<User> result = future.result();
+  return result;
 }
 
 void Model::addChat(const ChatPtr& chat) {

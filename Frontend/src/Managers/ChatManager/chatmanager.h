@@ -19,11 +19,12 @@ class ChatManager {
     ChatPtr loadChat(const QString& current_token, int chat_id);
     ChatPtr createPrivateChat(const QString& current_token, int user_id);
 
-  private:
+  protected:
     QList<ChatPtr> onLoadChats(QNetworkReply* reply);
     ChatPtr onChatLoaded(QNetworkReply* reply);
     ChatPtr onCreatePrivateChat(QNetworkReply* reply);
 
+  private:
     INetworkAccessManager* network_manager_;
     QUrl url_;
 };

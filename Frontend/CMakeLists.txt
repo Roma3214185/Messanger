@@ -66,6 +66,7 @@ add_executable(Frontend
     ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.cpp
     ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.h
     ${FRONTEND_SRC_DIR}/MainWindow/mainwindow.ui
+    src/headers/ITheme.h
 )
 
 target_link_libraries(Frontend PRIVATE FrontendLib)
