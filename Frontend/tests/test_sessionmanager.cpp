@@ -27,7 +27,8 @@ class TestSessionManager : public SessionManager {
 };
 
 TEST_CASE("Test sign in") {
-  MockNetworkAccessManager network_manager;
+  MockReply mock_reply;
+  MockNetworkAccessManager network_manager(&mock_reply);
   TestSessionManager session_manager(&network_manager, url_auth_service);
   LogInRequest login_request{"user@test.com", "12345"};
 
@@ -75,7 +76,8 @@ TEST_CASE("Test sign in") {
 }
 
 TEST_CASE("Test sign up") {
-  MockNetworkAccessManager network_manager;
+  MockReply mock_reply;
+  MockNetworkAccessManager network_manager(&mock_reply);
   TestSessionManager session_manager(&network_manager, url_auth_service);
   SignUpRequest signup_request{
     .email = "user@test.com",
@@ -130,7 +132,8 @@ TEST_CASE("Test sign up") {
 }
 
 TEST_CASE("Test authenticateWithToken") {
-  MockNetworkAccessManager network_manager;
+  MockReply mock_reply;
+  MockNetworkAccessManager network_manager(&mock_reply);
   TestSessionManager session_manager(&network_manager, url_auth_service);
   const QString& token = "secret-token123";
 
@@ -176,7 +179,8 @@ TEST_CASE("Test authenticateWithToken") {
 }
 
 TEST_CASE("Test onSignInFinished") {
-  MockNetworkAccessManager network_manager;
+  MockReply mock_reply;
+  MockNetworkAccessManager network_manager(&mock_reply);
   TestSessionManager session_manager(&network_manager, url_auth_service);
 
   SECTION ("ReplyWithErrorExpectedErrorOccured") {

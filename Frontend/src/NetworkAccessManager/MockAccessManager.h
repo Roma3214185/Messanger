@@ -1,12 +1,15 @@
 #ifndef MOCKACCESSMANAGER_H
 #define MOCKACCESSMANAGER_H
 
+#include <QTimer>
+
 #include "headers/INetworkAccessManager.h"
 #include "headers/MockReply.h"
-#include <QTimer>
+#include "DebugProfiling/Debug_profiling.h"
 
 class MockNetworkAccessManager : public INetworkAccessManager {
  public:
+  MockNetworkAccessManager(QNetworkReply* mock_reply) : reply(mock_reply) {}
   QNetworkReply* post(const QNetworkRequest& req,
                       const QByteArray& byte_array) override {
     last_data = byte_array;
@@ -18,7 +21,7 @@ class MockNetworkAccessManager : public INetworkAccessManager {
   QNetworkReply* get(const QNetworkRequest& req) override {
     last_request = req;
     ++get_counter;
-    if(!reply) qDebug() << "REPLY IS NULL";
+    if(!reply) LOG_WARN("[MockNetworkAccessManager] Reply in nullptr");
     return reply;
   }
 
@@ -28,9 +31,7 @@ class MockNetworkAccessManager : public INetworkAccessManager {
   int get_counter = 0;
 
   void setReply(QNetworkReply* reply) {
-    qDebug() << "REPLY is setted";
     this->reply = reply;
-    if(!reply) qDebug() << "REPLY is still nullptr";
   }
 
  private:

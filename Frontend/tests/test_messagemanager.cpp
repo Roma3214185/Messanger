@@ -21,7 +21,8 @@ class TestMessageManager : public MessageManager {
 };
 
 TEST_CASE("Test getChatMessages") {
-  MockNetworkAccessManager network_manager;
+  MockReply mock_reply;
+  MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("http://localhost:8082/");
   TestMessageManager message_manager(&network_manager, url);
   QString token = "secret-token";

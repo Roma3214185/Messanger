@@ -10,9 +10,12 @@
 #include "headers/JsonService.h"
 #include "headers/INetworkAccessManager.h"
 
-UserManager::UserManager(INetworkAccessManager *network_manager, QUrl url)
+const QString kServerNotRespondError = "Server didn't respond";
+
+UserManager::UserManager(INetworkAccessManager *network_manager, const QUrl& url, int timeouts_ms)
     : network_manager_(network_manager)
-    , url_(url) {}
+    , url_(url)
+    , timeouts_ms_(timeouts_ms) {}
 
 QFuture<std::optional<User>> UserManager::getUser(int user_id) {
   PROFILE_SCOPE("UserManager::getUser");
@@ -27,17 +30,18 @@ QFuture<std::optional<User>> UserManager::getUser(int user_id) {
 
   auto isCompleted = std::make_shared<std::atomic_bool>(false);
 
-  // Timeout handling
-  QTimer::singleShot(5000, reply, [reply, promisePtr, isCompleted]() {
-    if (isCompleted->exchange(true)) return;
+  QTimer::singleShot(timeouts_ms_, reply, [reply, promisePtr, isCompleted, this]() {
+    if (isCompleted->exchange(true))
+      return;
+
     if (reply->isRunning()) {
       reply->abort();
-      promisePtr->setException(std::make_exception_ptr(
-          std::runtime_error("Server didn't respond")));
+      Q_EMIT errorOccurred(kServerNotRespondError);
+      promisePtr->addResult(std::nullopt);
+      promisePtr->finish();
     }
   });
 
-  // Reply finished handling
   QObject::connect(reply, &QNetworkReply::finished, this,
                    [reply, promisePtr, isCompleted, this]() mutable {
                      if (isCompleted->exchange(true)) {
@@ -46,8 +50,8 @@ QFuture<std::optional<User>> UserManager::getUser(int user_id) {
                      }
 
                      if (reply->error() != QNetworkReply::NoError) {
-                       promisePtr->setException(std::make_exception_ptr(
-                           std::runtime_error(reply->errorString().toStdString())));
+                       Q_EMIT errorOccurred("Error occurred: " + reply->errorString());
+                       promisePtr->addResult(std::nullopt);
                      } else {
                        std::optional<User> userOpt = onGetUser(reply);
                        promisePtr->addResult(userOpt);
@@ -60,7 +64,6 @@ QFuture<std::optional<User>> UserManager::getUser(int user_id) {
   return future;
 }
 
-
 auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   PROFILE_SCOPE("UserManager::onGetUser");
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater>
@@ -69,7 +72,7 @@ auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   if (reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onGetUser] Network error: '{}'",
               reply->errorString().toStdString());
-    //Q_EMIT errorOccurred("get user: " + reply->errorString());
+    Q_EMIT errorOccurred("get user: " + reply->errorString());
     return std::nullopt;
   }
 
@@ -96,20 +99,20 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag) {
   auto promisePtr = std::make_shared<QPromise<QList<User>>>();
   auto future = promisePtr->future();
 
-  // Shared atomic flag to ensure we finish only once
   auto isCompleted = std::make_shared<std::atomic_bool>(false);
 
-  // Timeout guard (5 seconds)
-  QTimer::singleShot(5000, reply, [reply, promisePtr, isCompleted]() {
-    if (isCompleted->exchange(true)) return; // already handled
+  QTimer::singleShot(timeouts_ms_, reply, [reply, promisePtr, isCompleted, this]() {
+    if (isCompleted->exchange(true))
+      return;
+
     if (reply->isRunning()) {
       reply->abort();
-      promisePtr->setException(std::make_exception_ptr(
-          std::runtime_error("Server didn't respond")));
+      Q_EMIT errorOccurred(kServerNotRespondError);
+      promisePtr->addResult({});
+      promisePtr->finish();
     }
   });
 
-  // Handle when network reply finishes
   QObject::connect(reply, &QNetworkReply::finished, this,
                    [reply, promisePtr, isCompleted, this]() mutable {
                      if (isCompleted->exchange(true)) {
@@ -118,8 +121,8 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag) {
                      }
 
                      if (reply->error() != QNetworkReply::NoError) {
-                       promisePtr->setException(std::make_exception_ptr(
-                           std::runtime_error(reply->errorString().toStdString())));
+                       Q_EMIT errorOccurred("Error occurred: " + reply->errorString());
+                       promisePtr->addResult({});
                      } else {
                        QList<User> users = onFindUsersByTag(reply);
                        promisePtr->addResult(users);
@@ -135,22 +138,26 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag) {
 QList<User> UserManager::onFindUsersByTag(QNetworkReply* reply) {
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
   if (reply->error() != QNetworkReply::NoError) {
-    //Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
+    Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
     return {};
   }
   auto responseData = reply->readAll();
   auto doc = QJsonDocument::fromJson(responseData);
+
   if (!doc.isObject()) {
-    //Q_EMIT errorOccurred("Invalid JSON: expected object at root");
+    Q_EMIT errorOccurred("Invalid JSON: expected object at root");
     return {};
   }
+
   auto rootObj = doc.object();
   auto arr = rootObj["users"].toArray();
   QList<User> users;
+
   for (const auto& value : std::as_const(arr)) {
     auto obj = value.toObject();
     auto user = JsonService::getUserFromResponse(obj);
     users.append(user);
   }
+
   return users;
 }
