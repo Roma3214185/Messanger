@@ -12,11 +12,6 @@
 #include "headers/User.h"
 #include "headers/SignUpRequest.h"
 
-SessionManager::SessionManager(INetworkAccessManager* network_manager, const QUrl& url, int timeout_ms)
-    : network_manager_(network_manager)
-    , url_(url)
-    , timeout_ms_(timeout_ms) {}
-
 void SessionManager::signIn(const LogInRequest& login_request){
   PROFILE_SCOPE("SessionManager::signIn");
   LOG_INFO("[signIn] Attempting login for email '{}'",

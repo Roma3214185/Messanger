@@ -7,7 +7,7 @@
 #include <QJsonArray>
 
 #include "headers/JsonService.h"
-#include "Managers/ChatManager/chatmanager.h"
+#include "NetworkManagers/ChatManager/chatmanager.h"
 #include "NetworkAccessManager/MockAccessManager.h"
 
 class TestChatManager : public ChatManager {
@@ -237,7 +237,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     reply->setData("not json");
     network_manager.setReply(reply);
 
-    QSignalSpy spyError(&chat_manager, &IManager::errorOccurred);
+    QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
     int before = spyError.count();
     QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
@@ -258,7 +258,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     auto reply = new MockReply();
     reply->setData(QJsonDocument(invalid_chat_obj).toJson());
     network_manager.setReply(reply);
-    QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
+    QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
 
     QTimer::singleShot(0, reply, &MockReply::emitFinished);
     auto future = chat_manager.createPrivateChat("token", 5);

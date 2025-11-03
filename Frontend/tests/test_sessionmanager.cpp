@@ -6,7 +6,7 @@
 #include <QSignalSpy>
 #include <QMetaType>
 
-#include "Managers/SessionManager/sessionmanager.h"
+#include "NetworkManagers/SessionManager/sessionmanager.h"
 #include "NetworkAccessManager/MockAccessManager.h"
 #include "headers/SignUpRequest.h"
 #include "headers/User.h"

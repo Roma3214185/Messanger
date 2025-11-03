@@ -10,11 +10,6 @@
 #include "headers/JsonService.h"
 #include "headers/INetworkAccessManager.h"
 
-UserManager::UserManager(INetworkAccessManager *network_manager, const QUrl& url, int timeout_ms)
-    : network_manager_(network_manager)
-    , url_(url)
-    , timeout_ms_(timeout_ms) {}
-
 QFuture<std::optional<User>> UserManager::getUser(int user_id) {
   PROFILE_SCOPE("UserManager::getUser");
   LOG_INFO("[getUser] Loading user id={}", user_id);

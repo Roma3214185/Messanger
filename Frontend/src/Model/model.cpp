@@ -25,12 +25,12 @@
 #include "Debug_profiling.h"
 #include "MessageModel/messagemodel.h"
 #include "UserModel/UserModel.h"
-#include "Managers/SessionManager/sessionmanager.h"
-#include "Managers/ChatManager/chatmanager.h"
-#include "Managers/MessageManager/messagemanager.h"
-#include "Managers/UserManager/usermanager.h"
-#include "Managers/SocketManager/socketmanager.h"
-#include "Managers/DataManager/datamanager.h"
+#include "NetworkManagers/SessionManager/sessionmanager.h"
+#include "NetworkManagers/ChatManager/chatmanager.h"
+#include "NetworkManagers/MessageManager/messagemanager.h"
+#include "NetworkManagers/UserManager/usermanager.h"
+#include "SocketManager/socketmanager.h"
+#include "DataManager/datamanager.h"
 #include "headers/ISocket.h"
 
 namespace {

@@ -4,11 +4,9 @@
 #include <QUrl>
 #include <QObject>
 
-#include "headers/IManager.h"
-
 class ISocket;
 
-class SocketManager :public IManager {
+class SocketManager : public QObject {
     Q_OBJECT
   public:
     SocketManager(ISocket* socket, const QUrl& url);

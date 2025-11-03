@@ -26,11 +26,6 @@ auto getRequestWithToken(QUrl endpoint, const QString& current_token) -> QNetwor
 
 }  // namespace
 
-ChatManager::ChatManager(INetworkAccessManager* network_manager, const QUrl& url, int timeout_ms)
-    : network_manager_(network_manager)
-    , url_(url)
-    , timeout_ms_(timeout_ms) {}
-
 QFuture<QList<ChatPtr>> ChatManager::loadChats(const QString& current_token) {
   PROFILE_SCOPE("Model::loadChats");
   LOG_INFO("[loadChats] Loading all chats");

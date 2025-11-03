@@ -5,7 +5,7 @@
 
 #include "headers/JsonService.h"
 #include "headers/FakeSocket.h"
-#include "Managers/SocketManager/socketmanager.h"
+#include "SocketManager/socketmanager.h"
 
 class TestSocketManager : public SocketManager {
   public:
@@ -63,7 +63,6 @@ TEST_CASE("Test socket") {
   SECTION("NewMessageExpectedEmittedOnNewMessage") {
     QSignalSpy spyNewMessage(&socket_manager, &SocketManager::newTextFromSocket);
     int before = spyNewMessage.count();
-
     QString message_to_send = "Hi Roma";
     //socket_manager.connectSocket(20);
     fakesocket.receiveTextMessage(message_to_send);

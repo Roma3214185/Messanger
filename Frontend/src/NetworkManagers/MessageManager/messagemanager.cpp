@@ -1,13 +1,9 @@
 #include "messagemanager.h"
 
-#include <QEventLoop>
-#include <QUrl>
-#include <QUrlQuery>
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QTimer>
-
+#include <QUrlQuery>
 
 #include "DebugProfiling/Debug_profiling.h"
 #include "headers/INetworkAccessManager.h"
@@ -23,13 +19,6 @@ auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkReques
 }
 
 }  // namespace
-
-const QString kServerNotRespondError = "Server didn't respond";
-
-MessageManager::MessageManager(INetworkAccessManager* network_manager, const QUrl& url, int timeout_ms)
-    : network_manager_(network_manager)
-    , url_(url)
-    , timeout_ms_(timeout_ms) {}
 
 QFuture<QList<Message>> MessageManager::getChatMessages(QString current_token, int chat_id, int before_id, int limit) {
   PROFILE_SCOPE("ChatManager::getChatMessages");

@@ -8,26 +8,22 @@
 
 #include "headers/Message.h"
 #include "headers/ChatBase.h"
-#include "headers/IManager.h"
+#include "headers/BaseManager.h"
 
 using ChatPtr = std::shared_ptr<ChatBase>;
 
 class INetworkAccessManager;
 class QNetworkReply;
 
-class MessageManager : public IManager {
+class MessageManager : public BaseManager {
     Q_OBJECT
   public:
-    MessageManager(INetworkAccessManager* network_manager, const QUrl& url, int timeout_ms = 5000);
+    using BaseManager::BaseManager;
+
     QFuture<QList<Message>> getChatMessages(QString current_token, int chat_id, int before_id, int limit);
 
   protected:
     QList<Message> onGetChatMessages(QNetworkReply* reply);
-
-  private:
-    INetworkAccessManager* network_manager_;
-    QUrl url_;
-    int timeout_ms_;
 };
 
 #endif // MESSAGEMANAGER_H

@@ -1,16 +1,20 @@
-#ifndef IMANAGER_H
-#define IMANAGER_H
+#ifndef BASEMANAGER_H
+#define BASEMANAGER_H
 
 #include <QObject>
 #include <QFuture>
 #include <QNetworkReply>
 #include <QPromise>
 #include <QTimer>
+#include <QUrl>
 
-class IManager : public QObject {
+#include "headers/INetworkAccessManager.h"
+
+class BaseManager : public QObject {
     Q_OBJECT
   public:
-    virtual ~IManager() = default;
+    explicit BaseManager(INetworkAccessManager* network_manager, const QUrl& base_url, int timeout_ms = 5000, QObject* parent = nullptr);
+    virtual ~BaseManager() = default;
 
   protected:
     template<typename T, typename Callback>
@@ -18,8 +22,7 @@ class IManager : public QObject {
         QNetworkReply* reply,
         Callback onSuccess,
         int timeout_ms,
-        const T& defaultValue = T())
-    {
+        const T& defaultValue = T()) {
       auto promisePtr = std::make_shared<QPromise<T>>();
       auto future = promisePtr->future();
       auto isCompleted = std::make_shared<std::atomic_bool>(false);
@@ -92,6 +95,11 @@ class IManager : public QObject {
       return future;
     }
 
+  protected:
+    INetworkAccessManager* network_manager_;
+    QUrl url_;
+    int timeout_ms_;
+
   private:
     const QString kServerNotRespondError = "Server didn't respond";
     const QString kErrorOccured = "Error occurred: ";
@@ -101,4 +109,4 @@ class IManager : public QObject {
     void errorOccurred(const QString& message);
 };
 
-#endif // IMANAGER_H
+#endif // BASEMANAGER_H
