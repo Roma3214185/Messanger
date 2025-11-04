@@ -2,6 +2,7 @@
 #define BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_
 
 #include <crow.h>
+#include <../external/IXWebSocket/ixwebsocket/IXWebSocket.h>
 
 #include <string>
 
@@ -25,6 +26,8 @@ class GatewayServer {
   ProxyClient messageProxy_;
   ProxyClient notificationProxy_;
 
+  std::unordered_map<crow::websocket::connection*, std::shared_ptr<ix::WebSocket>> client_to_backend;
+
   void registerRoutes();
   void registrerHealthCheck();
   void registerNotificationRoutes();
@@ -32,6 +35,7 @@ class GatewayServer {
   void registerMessagesRoutes();
   void registerChatRoutes();
   void registerAuthRoutes();
+  void registerWebSocketRoutes();
 
   bool checkRateLimit(const crow::request& req, crow::response& res);
   std::string getMethod(const crow::HTTPMethod& method) const;

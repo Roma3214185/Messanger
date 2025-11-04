@@ -30,32 +30,54 @@ pair<int, string> ProxyClient::post_json(
 pair<int, string> ProxyClient::forward(
     const crow::request& req, const string& path, const string& method,
     const vector<pair<string, string>>& extra_headers) {
+
   httplib::Headers headers;
+
+  // Передаємо всі заголовки від клієнта
   for (auto& h : req.headers) {
     headers.emplace(h.first, h.second);
   }
 
+  // Додаємо додаткові заголовки
   for (auto& h : extra_headers) {
     headers.emplace(h.first, h.second);
   }
 
-  httplib::Result res(unique_ptr<httplib::Response>(nullptr),
-                      httplib::Error::Unknown);
+  string full_path = path;
+  auto keys = req.url_params.keys();
+  if (!keys.empty()) {
+    full_path += "?";
+    bool first = true;
+    for (const auto& key : keys) {
+      if (!first) full_path += "&";
+      full_path += key;
+      full_path += "=";
+      full_path += req.url_params.get(key);
+      first = false;
+    }
+  }
 
   cout << "METHOD: " << method << endl;
-  cout << "PATH: " << path.c_str() << endl;
+  cout << "PATH: " << full_path << endl;
 
+  string content_type = req.get_header_value("content-type");
+  if (content_type.empty()) content_type = "application/json"; // або default
+
+  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr),
+                      httplib::Error::Unknown);
   if (method == "GET")
-    res = cli->Get(path.c_str(), headers);
+    res = cli->Get(full_path.c_str(), headers);
   else if (method == "DELETE")
-    res = cli->Delete(path.c_str(), headers);
+    res = cli->Delete(full_path.c_str(), headers);
   else if (method == "PUT")
-    res = cli->Put(path.c_str(), headers, req.body,
-                   req.get_header_value("content-type").c_str());
-  else
-    res = cli->Post(path.c_str(), headers, req.body,
-                    req.get_header_value("content-type").c_str());
+    res = cli->Put(full_path.c_str(), headers, req.body, content_type.c_str());
+  else // POST
+    res = cli->Post(full_path.c_str(), headers, req.body, content_type.c_str());
 
-  if (!res) return {502, "Bad Gateway: downstream no response"};
-  return {(int)res->status, res->body};
+  if (!res) {
+    return {502, "Bad Gateway: downstream no response"};
+  }
+
+  return {static_cast<int>(res->status), res->body};
 }
+

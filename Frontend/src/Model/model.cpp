@@ -65,9 +65,9 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
     , data_manager_(new DataManager())
     , session_manager_(new SessionManager(netManager, url))
     , chat_manager_(new ChatManager(netManager, url))
-    , message_manager_(new MessageManager(netManager, QUrl("http://localhost:8082/")))
+    , message_manager_(new MessageManager(netManager, url))
     , user_manager_(new UserManager(netManager, url))
-    , socket_manager_(new SocketManager(socket, QUrl("http://localhost:8086/")))
+    , socket_manager_(new SocketManager(socket, url))
 {
 
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'",

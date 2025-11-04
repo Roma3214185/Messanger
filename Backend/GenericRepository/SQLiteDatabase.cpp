@@ -14,6 +14,7 @@ void SQLiteDatabase::initializeSchema() {
 
 void SQLiteDatabase::createUserTable(QSqlDatabase& database) {
   QSqlQuery query(database);
+  //deleteTable(database, "users");
 
   if (!query.exec(R"(
             CREATE TABLE IF NOT EXISTS users (
@@ -28,13 +29,20 @@ void SQLiteDatabase::createUserTable(QSqlDatabase& database) {
   }
 }
 
-void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
+void SQLiteDatabase::deleteTable(QSqlDatabase& database, const QString& name) {
   QSqlQuery query(database);
 
-  // if(!query.exec("DROP TABLE IF EXISTS messages_status")){
-  //   qDebug() << "Error deleting messages_status";
-  // }
-  // qDebug() << "DELETE messages_status";
+  QString sql = QString("DROP TABLE IF EXISTS \"%1\"").arg(name);
+  if (!query.exec(sql)) {
+    qDebug() << "Error deleting table" << name << ":" << query.lastError().text();
+  } else {
+    qDebug() << "Deleted table" << name;
+  }
+}
+
+void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
+  QSqlQuery query(database);
+  //deleteTable(database, "messages_status");
 
   if (!query.exec(R"(
             CREATE TABLE IF NOT EXISTS messages_status (
@@ -52,12 +60,7 @@ void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
 
 void SQLiteDatabase::createChatTable(QSqlDatabase& database){
   QSqlQuery query(database);
-
-  if(!query.exec("DROP TABLE IF EXISTS chats")) {
-    qDebug() << "ERROR DELETING chats";
-  } else{
-      qDebug() << "DELETING chats";
-  }
+  //deleteTable(database, "chats");
 
   query.prepare(R"(
         CREATE TABLE IF NOT EXISTS chats (
@@ -76,12 +79,7 @@ void SQLiteDatabase::createChatTable(QSqlDatabase& database){
 
 void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database){
   QSqlQuery query(database);
-
-  if(!query.exec("DROP TABLE IF EXISTS chat_members")) {
-    qDebug() << "ERROR DELETING chat_members";
-  } else{
-    qDebug() << "DELETING chat_members";
-  }
+  //deleteTable(database, "chat_members");
 
   query.prepare(R"(
         CREATE TABLE IF NOT EXISTS chat_members (
@@ -99,11 +97,7 @@ void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database){
 
 void SQLiteDatabase::createMessageTable(QSqlDatabase& database) {
   QSqlQuery query(database);
-
-  // if(!query.exec("DROP TABLE IF EXISTS messages")){
-  //   qDebug() << "Error deleting messages";
-  // }
-  // qDebug() << "DELETE MESSAGES";
+  //deleteTable(database, "messages");
 
   if (!query.exec(R"(
             CREATE TABLE IF NOT EXISTS messages (

@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
   RealSocket real_socket(&socket);
   QApplication a(argc, argv);
   MainWindow w;
-  QUrl url("http://localhost:8083");
+  QUrl url("http://localhost:8084");
   NetworkAccessManager manager;
 
   Model model(url, &manager, &redis, &real_socket);
