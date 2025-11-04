@@ -1,6 +1,7 @@
 #include "presenter.h"
 
 #include <QtConcurrent/QtConcurrent>
+#include <QJsonObject>
 
 #include "DebugProfiling/Debug_profiling.h"
 #include "MessageModel/messagemodel.h"
@@ -9,6 +10,7 @@
 #include "headers/MessageListView.h"
 #include "headers/SignUpRequest.h"
 #include "headers/User.h"
+#include "headers/JsonService.h"
 
 Presenter::Presenter(IMainWindow* window, Model* manager)
     : view_(window), manager_(manager) {
@@ -31,7 +33,7 @@ void Presenter::signUp(const SignUpRequest& req) { manager_->signUp(req); }
 
 void Presenter::initialConnections() {
   connect(manager_, &Model::userCreated, this, &Presenter::setUser);
-  connect(manager_, &Model::newMessage, this, &Presenter::newMessage);
+  connect(manager_, &Model::newResponce, this, &Presenter::onNewResponce);
   connect(manager_, &Model::chatAdded, this,
           [this](int chatId) { manager_->fillChatHistory(chatId); });
   connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
@@ -44,6 +46,23 @@ void Presenter::initialConnections() {
   connect(message_list_view_.get(), &MessageListView::scrollChanged, this,
           &Presenter::onScroll);
   connect(manager_, &Model::chatUpdated, this, &Presenter::onChatUpdated);
+}
+
+void Presenter::onNewResponce(QJsonObject& json_object){
+  QString type = json_object["type"].toString();
+  const QString openedType = "opened";
+  const QString newMessageType = "new_message";
+
+  if(type == openedType) {
+    LOG_INFO("Open type");
+    manager_->initSocket(*current_user_id_);
+  }else if(type == newMessageType){
+    LOG_INFO("New Message type");
+    auto new_message = JsonService::getMessageFromJson(json_object);
+    newMessage(new_message);
+  } else{
+    LOG_ERROR("Invalid type");
+  }
 }
 
 void Presenter::onChatUpdated(int chatId) {
@@ -96,7 +115,7 @@ void Presenter::setUser(const User& user, const QString& token) {
     manager_->addChat(chat);
   }
 
-  manager_->connectSocket(user.id);
+  manager_->connectSocket();
 }
 
 void Presenter::setId(int user_id) {

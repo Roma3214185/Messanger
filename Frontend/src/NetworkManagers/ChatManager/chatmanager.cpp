@@ -30,8 +30,8 @@ QFuture<QList<ChatPtr>> ChatManager::loadChats(const QString& current_token) {
   PROFILE_SCOPE("Model::loadChats");
   LOG_INFO("[loadChats] Loading all chats");
 
-  QUrl url("http://localhost:8081");
-  QUrl endpoint = url.resolved(QUrl("/chats"));
+  //QUrl url("http://localhost:8081");
+  QUrl endpoint = url_.resolved(QUrl("/chats"));
   QNetworkRequest req(endpoint);
   req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   req.setRawHeader("Authorization", current_token.toUtf8());

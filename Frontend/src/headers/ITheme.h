@@ -6,6 +6,7 @@
 class ITheme {
   public:
     virtual QString getStyleSheet() = 0;
+    virtual ~ITheme() = default;
 };
 
 class LightTheme : public ITheme {

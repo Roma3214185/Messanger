@@ -55,7 +55,9 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
       continue;
     }
 
-    socket->send_text(to_crow_json(saved_message).dump());
+    auto json_message = to_crow_json(saved_message);
+    json_message["type"] = "new_message";
+    socket->send_text(json_message.dump());
     LOG_INFO("Sent message {} to user {}", saved_message.id, user_id);
 
     MessageStatus status;

@@ -20,7 +20,10 @@ void Server::handleSocketRoutes() {
   CROW_ROUTE(app_, "/ws")
       .websocket(&app_)
       .onopen([&](crow::websocket::connection& conn) {
+        crow::json::wvalue json;
+        json["type"] = "opened";
         LOG_INFO("Websocket is connected");
+        conn.send_text(json.dump());
       })
       .onclose([&](crow::websocket::connection& conn, const std::string& reason,
                    uint16_t code) {
@@ -37,7 +40,7 @@ void Server::handleSocketRoutes() {
 void Server::handleSocketOnMessage(crow::websocket::connection& conn,
                                    const std::string& data, bool is_binary) {
   auto message_ptr = crow::json::load(data);
-  LOG_INFO("HANDLE SOCKET ON MESSAGE");
+  LOG_INFO("HANDLE SOCKET ON MESSAGE {}", data);
   if (!message_ptr) {
     LOG_ERROR("[onMessage] Failed in loading message");
     return;

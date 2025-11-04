@@ -47,7 +47,8 @@ class Model : public QObject {
   void checkToken();
   void signIn(const LogInRequest& login_request);
   void signUp(const SignUpRequest& request);
-  void connectSocket(int user_id);
+  void initSocket(int user_id);
+  void connectSocket();
 
   [[nodiscard]] ChatPtr loadChat(int chat_id);
   [[nodiscard]] QList<User> findUsers(const QString& text);
@@ -80,7 +81,7 @@ class Model : public QObject {
   void chatAdded(int id);
   void errorOccurred(const QString& error);
   void userCreated(const User& user, const QString& token);
-  void newMessage(Message& message);
+  void newResponce(QJsonObject& message);
   void chatUpdated(int chat_id);
 
  private:
