@@ -15,6 +15,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
+add_subdirectory(
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../external/IXWebSocket
+     ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
+)
+
 add_executable(ApiGateWay
     main.cpp
     src/GateWayServer/gatewayserver.cpp
@@ -31,4 +36,13 @@ target_include_directories(ApiGateWay PRIVATE
 
 target_link_libraries(ApiGateWay PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
+    ixwebsocket
+    spdlog::spdlog
+    jwt-cpp
+)
+
+set_target_properties(ApiGateWay PROPERTIES
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib;/opt/homebrew/opt/redis-plus-plus/lib"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
 )

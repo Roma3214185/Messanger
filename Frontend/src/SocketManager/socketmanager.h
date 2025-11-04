@@ -10,12 +10,10 @@ class SocketManager : public QObject {
     Q_OBJECT
   public:
     SocketManager(ISocket* socket, const QUrl& url);
-    void connectSocket(int user_id);
     void close();
     void sendText(const QString& message);
-
-  protected:
-    void onSocketConnected(int user_id);
+    void initSocket(int user_id);
+    void connectSocket();
 
   private:
     ISocket* socket_;

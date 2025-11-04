@@ -13,6 +13,7 @@ class Message;
 class SignUpRequest;
 class UserModel;
 class User;
+class QJsonObject;
 
 template <typename T>
 using Optional = std::optional<T>;
@@ -40,6 +41,7 @@ class Presenter : public QObject {
   void openChat(int chat_id);
   void onErrorOccurred(const QString& error);
   void onChatUpdated(int chat_id);
+  void onNewResponce(QJsonObject& json_object);
 
   IMainWindow* view_;
   Model* manager_;

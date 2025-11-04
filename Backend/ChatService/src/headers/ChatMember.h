@@ -7,8 +7,6 @@
 
 #include "Meta.h"
 
-
-
 struct ChatMember {
     long long id;
     long long user_id;

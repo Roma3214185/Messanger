@@ -20,7 +20,7 @@ class MessageManager : public BaseManager {
   public:
     using BaseManager::BaseManager;
 
-    QFuture<QList<Message>> getChatMessages(QString current_token, int chat_id, int before_id, int limit);
+    QFuture<QList<Message>> getChatMessages(const QString& current_token, int chat_id, int before_id, int limit);
 
   protected:
     QList<Message> onGetChatMessages(QNetworkReply* reply);

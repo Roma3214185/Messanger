@@ -16,8 +16,7 @@ SocketManager::SocketManager(ISocket* socket, const QUrl& url)
           &SocketManager::newTextFromSocket);
 }
 
-void SocketManager::onSocketConnected(int user_id) {
-  PROFILE_SCOPE("Model::onSocketConnected");
+void SocketManager::initSocket(int user_id) {
   QJsonObject json{{"type", "init"}, {"user_id", user_id}};
   const QString msg =
       QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact));
@@ -25,13 +24,8 @@ void SocketManager::onSocketConnected(int user_id) {
   LOG_INFO("[onSocketConnected] WebSocket initialized for userId={}", user_id);
 }
 
-void SocketManager::connectSocket(int user_id) {
-  PROFILE_SCOPE("Model::connectSocket");
-  connect(socket_, &ISocket::connected,
-        [this, user_id]() -> void { onSocketConnected(user_id); });
-
+void SocketManager::connectSocket() {
   socket_->open(url_);
-  LOG_INFO("[connectSocket] Connecting WebSocket for userId={}", user_id);
 }
 
 void SocketManager::close(){

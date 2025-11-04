@@ -65,9 +65,9 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash,
     , data_manager_(new DataManager())
     , session_manager_(new SessionManager(netManager, url))
     , chat_manager_(new ChatManager(netManager, url))
-    , message_manager_(new MessageManager(netManager, QUrl("http://localhost:8082/")))
+    , message_manager_(new MessageManager(netManager, url))
     , user_manager_(new UserManager(netManager, url))
-    , socket_manager_(new SocketManager(socket, QUrl("http://localhost:8086/")))
+    , socket_manager_(new SocketManager(socket, url))
 {
 
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'",
@@ -313,12 +313,15 @@ ChatPtr Model::getChat(int chat_id){
   return data_manager_->getChat(chat_id);
 }
 
-void Model::connectSocket(int user_id) {
-  socket_manager_->connectSocket(user_id);
+void Model::initSocket(int user_id) {
+  socket_manager_->initSocket(user_id);
 }
 
 void Model::onMessageReceived(const QString& msg) {
   PROFILE_SCOPE("Model::onMessageReceived");
+  LOG_INFO("[onMessageReceived] Message received from user {}: ",
+           msg.toStdString());
+
   QJsonParseError parseError;
   auto doc = QJsonDocument::fromJson(msg.toUtf8(), &parseError);
 
@@ -329,10 +332,12 @@ void Model::onMessageReceived(const QString& msg) {
     return;
   }
 
-  auto new_msg = JsonService::getMessageFromJson(doc.object());
-  LOG_INFO("[onMessageReceived] Message received from user {}: '{}'",
-           new_msg.senderId, new_msg.text.toStdString());
-  Q_EMIT newMessage(new_msg);
+  auto json_responce = doc.object();
+  Q_EMIT newResponce(json_responce);
+}
+
+void Model::connectSocket() {
+  socket_manager_->connectSocket();
 }
 
 void Model::createChat(int chat_id) {

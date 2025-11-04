@@ -75,7 +75,7 @@ void Controller::handleCreatingPrivateChat() {
                  *chat_id);
         crow::json::wvalue result;
         result["chat_id"] = *chat_id;
-        result["chat_type"] = "PRIVATE";
+        result["type"] = "private";
         result["title"] = user->name;
         result["avatar"] = user->avatar;
         result["user_id"] = user->id;
