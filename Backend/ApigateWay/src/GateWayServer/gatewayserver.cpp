@@ -6,6 +6,7 @@
 
 #include "Debug_profiling.h"
 #include "ScopedRequestsTimer.h"
+#include "WebSocketBridge/websocketbridge.h"
 
 using json = nlohmann::json;
 using namespace std::chrono_literals;
@@ -39,7 +40,6 @@ constexpr int kRateLimitExceedCode = 429;
 GatewayServer::GatewayServer(int port)
     : port_(port),
       rateLimiter_(300, std::chrono::seconds(900)),
-      // authVerifier_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
       authProxy_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
       chatProxy_(getenv_or("PRODUCT_SERVICE_URL", "http://localhost:8081")),
       messageProxy_(getenv_or("ORDER_SERVICE_URL", "http://localhost:8082")),
@@ -142,66 +142,17 @@ void GatewayServer::handleProxyRequest(
 }
 
 void GatewayServer::registerWebSocketRoutes() {
+  auto wsBridge = std::make_shared<WebSocketBridge>("ws://127.0.0.1:8086/ws");
+
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
-      .onopen([&](crow::websocket::connection& client_ws) {
-        LOG_INFO("Frontend WebSocket connected: {}",
-                     client_ws.get_remote_ip());
-        auto backend_ws = std::make_shared<ix::WebSocket>();
-        backend_ws->setUrl("ws://127.0.0.1:8086/ws");
-
-        crow::websocket::connection* client_ptr = &client_ws;
-
-        backend_ws->setOnMessageCallback(
-            [client_ptr](const ix::WebSocketMessagePtr& msg) {
-              if (!client_ptr) return;
-
-              switch (msg->type) {
-                case ix::WebSocketMessageType::Open:
-                  LOG_INFO("Backend WebSocket connected");
-                  break;
-                case ix::WebSocketMessageType::Message:
-                  client_ptr->send_text(
-                      msg->str);  // Forward message to frontend
-                  break;
-                case ix::WebSocketMessageType::Close:
-                  LOG_INFO("Backend WS closed: code={}, reason={}",
-                               msg->closeInfo.code, msg->closeInfo.reason);
-                  break;
-                case ix::WebSocketMessageType::Error:
-                  LOG_ERROR("Backend WebSocket error: {} ({})",
-                                msg->errorInfo.reason,
-                                msg->errorInfo.http_status);
-                  break;
-                default:
-                  break;
-              }
-            });
-
-        backend_ws->start();
-        client_to_backend[&client_ws] = backend_ws;
+      .onopen([wsBridge](crow::websocket::connection& client) {
+        wsBridge->onClientConnect(client);
       })
-      .onmessage([&](crow::websocket::connection& client_ws,
-                     const std::string& data, bool /*is_binary*/) {
-        LOG_INFO("Send message: {}", data);
-
-        auto it = client_to_backend.find(&client_ws);
-        if (it != client_to_backend.end() && it->second) {
-          it->second->send(data);  // Forward frontend message to backend
-        }
+      .onmessage([wsBridge](crow::websocket::connection& client, const std::string& data, bool) {
+        wsBridge->onClientMessage(client, data);
       })
-      .onclose([&](crow::websocket::connection& client_ws,
-                   const std::string& reason, uint16_t code) {
-        LOG_INFO("Frontend WS closed: reason='{}', code={}", reason, code);
-
-        auto it = client_to_backend.find(&client_ws);
-        if (it != client_to_backend.end()) {
-          auto backend_ws = it->second;
-          if (backend_ws &&
-              backend_ws->getReadyState() == ix::ReadyState::Open) {
-            backend_ws->close();
-          }
-          client_to_backend.erase(it);
-        }
+      .onclose([wsBridge](crow::websocket::connection& client, const std::string& reason, uint16_t code) {
+        wsBridge->onClientClose(client, reason, code);
       });
 }
 

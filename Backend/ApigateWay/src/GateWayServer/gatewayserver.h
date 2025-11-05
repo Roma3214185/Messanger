@@ -33,8 +33,6 @@ class GatewayServer {
   prometheus::Family<prometheus::Counter>& request_counter_family_;
   prometheus::Histogram& request_latency_;
 
-  std::unordered_map<crow::websocket::connection*, std::shared_ptr<ix::WebSocket>> client_to_backend;
-
   void handleProxyRequest(const crow::request& req,
                                         crow::response& res,
                                         ProxyClient& proxy,
@@ -47,15 +45,9 @@ class GatewayServer {
 
   void registerRoutes();
   void registerHealthCheck();
-  //void registerNotificationRoutes();
-  //void registerUserRoutes();
-  //void registerMessagesRoutes();
-  //void registerChatRoutes();
-  //void registerAuthRoutes();
   void registerWebSocketRoutes();
 
   bool checkRateLimit(const crow::request& req, crow::response& res);
-  //std::string getMethod(const crow::HTTPMethod& method) const;
   std::string extractToken(const crow::request& req) const;
 };
 
