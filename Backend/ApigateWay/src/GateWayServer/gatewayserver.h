@@ -4,6 +4,8 @@
 #include <crow.h>
 #include <../external/IXWebSocket/ixwebsocket/IXWebSocket.h>
 
+#include "ScopedRequestsTimer.h"
+
 #include <string>
 
 #include "Headers/AuthVerifier.h"
@@ -25,6 +27,12 @@ class GatewayServer {
   ProxyClient chatProxy_;
   ProxyClient messageProxy_;
   ProxyClient notificationProxy_;
+
+  std::unique_ptr<prometheus::Exposer> exposer_;
+  std::shared_ptr<prometheus::Registry> registry_;
+
+  prometheus::Family<prometheus::Counter>& request_counter_family_;
+  prometheus::Histogram& request_latency_;
 
   std::unordered_map<crow::websocket::connection*, std::shared_ptr<ix::WebSocket>> client_to_backend;
 

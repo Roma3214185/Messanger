@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "Debug_profiling.h"
+#include "ScopedRequestsTimer.h"
 
 using json = nlohmann::json;
 using namespace std::chrono_literals;
@@ -17,15 +18,29 @@ static string getenv_or(const char* key, const char* def) {
 
 GatewayServer::GatewayServer(const int& port)
     : port_(port),
-      rateLimiter_(300, std::chrono::seconds(900)),
-      authVerifier_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
-      authProxy_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
-      chatProxy_(getenv_or("PRODUCT_SERVICE_URL", "http://localhost:8081")),
-      messageProxy_(getenv_or("ORDER_SERVICE_URL", "http://localhost:8082")),
-      notificationProxy_(
-          getenv_or("PAYMENT_SERVICE_URL", "http://localhost:8086")) {
+    rateLimiter_(300, std::chrono::seconds(900)),
+    authVerifier_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
+    authProxy_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
+    chatProxy_(getenv_or("PRODUCT_SERVICE_URL", "http://localhost:8081")),
+    messageProxy_(getenv_or("ORDER_SERVICE_URL", "http://localhost:8082")),
+    notificationProxy_(getenv_or("PAYMENT_SERVICE_URL", "http://localhost:8086")),
+    exposer_(std::make_unique<prometheus::Exposer>("0.0.0.0:8089")),
+    registry_(std::make_shared<prometheus::Registry>()),
+    request_counter_family_(prometheus::BuildCounter()
+                                .Name("api_gateway_requests_total")
+                                .Help("Total number of requests")
+                                .Register(*registry_)),
+  request_latency_(prometheus::BuildHistogram()
+                         .Name("api_gateway_request_duration_seconds")
+                         .Help("Request duration in seconds")
+                         .Register(*registry_)
+                         .Add({}, prometheus::Histogram::BucketBoundaries{
+                                                                            0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10})) {
+
+  exposer_->RegisterCollectable(registry_);
   registerRoutes();
 }
+
 
 void GatewayServer::run() {
   std::cout << "Starting API Gateway on port " << port_ << "\n";
@@ -78,8 +93,8 @@ void GatewayServer::registerAuthRoutes() {
   CROW_ROUTE(app_, "/auth/<path>")
       .methods(crow::HTTPMethod::GET, crow::HTTPMethod::POST)(
           [this](const crow::request& req, crow::response& res, string path) {
-            LOG_INFO("chats/{}", path);
             string downstream_path = "/auth/" + path;
+            PROFILE_SCOPE(downstream_path.c_str());
             auto result =
                 authProxy_.forward(req, downstream_path, getMethod(req.method));
             res.code = result.first;
@@ -92,20 +107,12 @@ void GatewayServer::registerChatRoutes() {
   CROW_ROUTE(app_, "/chats/<path>")
       .methods(crow::HTTPMethod::GET, crow::HTTPMethod::POST)(
           [this](const crow::request& req, crow::response& res, string path) {
-            LOG_INFO("chats/{}", path);
-            // if (!checkRateLimit(req, res)) return;
-
-            // string token = extractToken(req);
-            // auto v = authVerifier_.verify(token);
-            // if (!v.first) {
-            // LOG_ERROR("Invalid token");
-            //   res.code = 401;
-            //   res.write("Invalid token");
-            //   res.end();
-            //   return;
-            // }
-
+            PROFILE_SCOPE(std::string("chats/") + path);
+            std::string method = getMethod(req.method);
             string downstream_path = "/chats/" + path;
+            ScopedRequestMetrics metrics(request_counter_family_, request_latency_, downstream_path, method);
+
+            // if (!checkRateLimit(req, res)) return;
             auto result =
                 chatProxy_.forward(req, downstream_path, getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
@@ -117,7 +124,11 @@ void GatewayServer::registerChatRoutes() {
   CROW_ROUTE(app_, "/chats")
       .methods(crow::HTTPMethod::GET, crow::HTTPMethod::POST)(
           [this](const crow::request& req, crow::response& res) {
-            LOG_INFO("chats");
+            PROFILE_SCOPE("chats");
+            std::string method = getMethod(req.method);
+            std::string downstream_path = "/chats";
+            ScopedRequestMetrics metrics(request_counter_family_, request_latency_, downstream_path, method);
+
             // if (!checkRateLimit(req, res)) return;
 
             string token = extractToken(req);
@@ -131,7 +142,7 @@ void GatewayServer::registerChatRoutes() {
               return;
             }
 
-            string downstream_path = "/chats";
+            //string downstream_path = "/chats";
             auto result =
                 chatProxy_.forward(req, downstream_path, getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
@@ -145,7 +156,11 @@ void GatewayServer::registerMessagesRoutes() {
   CROW_ROUTE(app_, "/messages/<path>")
       .methods(crow::HTTPMethod::GET, crow::HTTPMethod::POST)(
           [this](const crow::request& req, crow::response& res, string path) {
-            LOG_INFO("messages/{}", path);
+            PROFILE_SCOPE(std::string("messages/") + path);
+            string downstream_path = "/messages/" + path;
+            std::string method = getMethod(req.method);
+            ScopedRequestMetrics metrics(request_counter_family_, request_latency_, downstream_path, method);
+
             // if (!checkRateLimit(req, res)) return;
 
             // string token = extractToken(req);
@@ -157,7 +172,7 @@ void GatewayServer::registerMessagesRoutes() {
             //   return;
             // }
 
-            string downstream_path = "/messages/" + path;
+            //string downstream_path = "/messages/" + path;
             auto result = messageProxy_.forward(req, downstream_path,
                                                 getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
@@ -171,8 +186,10 @@ void GatewayServer::registerNotificationRoutes() {
   CROW_ROUTE(app_, "/notification/<path>")
       .methods(crow::HTTPMethod::GET, crow::HTTPMethod::POST)(
           [this](const crow::request& req, crow::response& res, string path) {
-            LOG_INFO("notification/{}", path);
+            PROFILE_SCOPE(std::string("notification/") + path);
             string downstream_path = "/notification/" + path;
+            std::string method = getMethod(req.method);
+            ScopedRequestMetrics metrics(request_counter_family_, request_latency_, downstream_path, method);
             auto result = notificationProxy_.forward(req, downstream_path,
                                                      getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
@@ -186,8 +203,10 @@ void GatewayServer::registerUserRoutes() {
   CROW_ROUTE(app_, "/users/<path>")
       .methods(crow::HTTPMethod::GET, crow::HTTPMethod::POST)(
           [this](const crow::request& req, crow::response& res, string path) {
-            LOG_INFO("Users/{}", path);
+            PROFILE_SCOPE(std::string("Users/") + path);
             string downstream_path = "/users/" + path;
+            std::string method = getMethod(req.method);
+            ScopedRequestMetrics metrics(request_counter_family_, request_latency_, downstream_path, method);
             auto result =
                 authProxy_.forward(req, downstream_path, getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);

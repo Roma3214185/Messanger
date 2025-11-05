@@ -11,11 +11,20 @@
 #include <string>
 #include <vector>
 
+//#include "metrics.h"
+// #include <prometheus/counter.h>
+// #include <prometheus/histogram.h>
+// #include <prometheus/exposer.h>
+// #include <prometheus/registry.h>
+// #include <memory>
+
+
 #ifdef ENABLE_TRACY
 #include "../external/tracy/public/tracy/Tracy.hpp"
 #define PROFILE_SCOPE(name) ZoneScopedN(name)
 #else
 #define PROFILE_SCOPE(name) ScopedTimer timer##__LINE__(name)
+#define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
 #endif
 
 #define LOG_INFO(...) spdlog::info(__VA_ARGS__)
@@ -28,20 +37,28 @@ class ScopedTimer {
   std::chrono::high_resolution_clock::time_point start_;
 
  public:
-  explicit ScopedTimer(const char* name)
-      : name_(name), start_(std::chrono::high_resolution_clock::now()) {
+  ScopedTimer(const char* name)
+      : name_(name), start_(std::chrono::high_resolution_clock::now())
+  {
     spdlog::info("[TIMER START] {}", name_);
   }
+
+  ScopedTimer(const std::string& name) : ScopedTimer(name.c_str()) {}
   ~ScopedTimer() {
     auto end = std::chrono::high_resolution_clock::now();
-    spdlog::info(
-        "[TIMER END] {} took {} ms", name_,
-        std::chrono::duration_cast<std::chrono::milliseconds>(end - start_)
-            .count());
+    double duration_seconds =
+        std::chrono::duration<double>(end - start_).count();
+
+    spdlog::info("[TIMER END] {} took {:.3f} s", name_, duration_seconds);
+
+    // if (record_metrics_) {
+    //   auto& metrics = GlobalMetrics::metrics();
+    //   metrics.request_counter.Increment();
+    //   metrics.request_latency.Observe(duration_seconds);
+    // }
   }
 };
 
-// --------------------- SQLite query logging ---------------------
 // inline void enable_sqlite_logging(sqlite3* db) {
 //     sqlite3_trace_v2(db, SQLITE_TRACE_STMT, [](unsigned, void*, void* p,
 //     void*) -> int {

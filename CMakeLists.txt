@@ -15,10 +15,12 @@ set(BOOST_ROOT "/opt/homebrew/opt/boost@1.89")
 set(RABBITMQC_DIR ${CMAKE_SOURCE_DIR}/external/rabbitmq-c)
 set(SIMPLE_AMQP_CLIENT_DIR ${CMAKE_SOURCE_DIR}/external/SimpleAmqpClient)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
+set(CMAKE_OSX_ARCHITECTURES arm64)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets WebSockets Gui Sql)
 find_package(SQLite3 REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(ZLIB REQUIRED)
 
 include_directories(
     /usr/local/include
@@ -42,6 +44,10 @@ add_subdirectory(external/jwt-cpp)
 add_subdirectory(external/tracy)
 add_subdirectory(external/SimpleAmqpClient)
 
+add_library(Metrics STATIC DebugProfiling/metrics.cpp)
+target_include_directories(Metrics PUBLIC DebugProfiling)
+target_link_libraries(Metrics PUBLIC prometheus-cpp-core prometheus-cpp-pull ZLIB::ZLIB)
+
 add_library(RabbitMQClient STATIC Backend/RabbitMQClient/RabbitMQClient.cpp)
 target_include_directories(RabbitMQClient PUBLIC Backend/RabbitMQClient Backend/GenericRepository ${RABBITMQC_DIR}/include ${SIMPLE_AMQP_CLIENT_DIR}/include)
 target_link_libraries(RabbitMQClient PRIVATE SimpleAmqpClient rabbitmq)
@@ -59,20 +65,22 @@ add_subdirectory(Backend/MessageService)
 add_subdirectory(Backend/ChatService)
 add_subdirectory(Backend/ApigateWay)
 add_subdirectory(Backend/NotificationService)
+#add_subdirectory(/Users/roma/QtProjects/Chat/prometheus-cpp)
 
 foreach(service IN ITEMS AuthService MessageService ChatService ApiGateWay NotificationService)
-    target_link_libraries(${service} PRIVATE RabbitMQClient GenericRepository RedisCache)
+    target_link_libraries(${service} PRIVATE RabbitMQClient GenericRepository RedisCache Metrics prometheus-cpp-core prometheus-cpp-pull)
     target_include_directories(${service} PRIVATE ${DEBUG_PROFILING_DIR})
 endforeach()
 
 add_subdirectory(Frontend)
 
-target_link_libraries(Frontend PRIVATE RabbitMQClient GenericRepository RedisCache)
+target_link_libraries(Frontend PRIVATE RabbitMQClient GenericRepository RedisCache prometheus-cpp-core prometheus-cpp-pull)
 target_include_directories(Frontend PRIVATE ${DEBUG_PROFILING_DIR})
 
 add_subdirectory(Backend/GenericRepository/benchmarks Backend/GenericRepository/benchmarks_build)
 
 add_executable(Chat main.cpp media.qrc
+    DebugProfiling/ScopedRequestsTimer.h
     #Backend/GenericRepository/SQLiteDatabase.cpp
     #Backend/GenericRepository/Batcher.h
 )
@@ -88,6 +96,7 @@ target_link_libraries(Chat PRIVATE
     RabbitMQClient
     RedisCache
     GenericRepository
+    prometheus-cpp-core prometheus-cpp-pull
 )
 
 include_directories(Chat PUBLIC
