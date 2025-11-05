@@ -9,6 +9,7 @@ class AuthController {
  public:
   AuthController(crow::SimpleApp& app, AuthManager* service);
   void initRoutes();
+  void generateKeys();
 
  private:
   void handleRegister();

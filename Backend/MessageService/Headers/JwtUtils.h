@@ -1,31 +1,26 @@
-#ifndef BACKEND_CHATSERVICE_SRC_HEADERS_TOKENSERVICE_H_
-#define BACKEND_CHATSERVICE_SRC_HEADERS_TOKENSERVICE_H_
+#ifndef MESSAGE_SERVICE_HEADERS_JWTUTILS_H
+#define MESSAGE_SERVICE_HEADERS_JWTUTILS_H
 
 #include <jwt-cpp/jwt.h>
-#include <nlohmann/json.hpp>
-#include <fstream>
-#include <memory>
+#include <optional>
 #include "Debug_profiling.h"
+
+const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
+inline constexpr const char* kIssuer = "auth_service";
 
 namespace {
 
 std::string readFile(const std::string& path) {
   std::ifstream file(path);
   if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
-  auto key =  std::string((std::istreambuf_iterator<char>(file)),
-                         std::istreambuf_iterator<char>());
-  LOG_INFO("Key first 40 chars:\n{}", key.substr(0,40));
-  LOG_INFO("Key last 40 chars:\n{}", key.substr(key.size()-40,40));
-  return key;
+  return std::string((std::istreambuf_iterator<char>(file)),
+                     std::istreambuf_iterator<char>());
 }
 
 }  // namespace
 
 namespace JwtUtils {
-
-inline constexpr const char* kIssuer = "auth_service";
-const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
 
 std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   try {
@@ -48,13 +43,6 @@ std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   }
 }
 
-}  // namespace JwtUtils
+}  // namespace TokenService
 
-#endif  // BACKEND_CHATSERVICE_SRC_HEADERS_TOKENSERVICE_H_
-
-
-
-
-
-
-
+#endif // MESSAGE_SERVICE_HEADERS_JWTUTILS_H

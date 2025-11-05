@@ -55,6 +55,7 @@ OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
            findedUser.id);
 
   auto token = JwtUtils::generateToken(findedUser.id);
+  LOG_INFO("Generated token = '{}'", token);
   return AuthResponce{.token = token, .user = findedUser};
 }
 

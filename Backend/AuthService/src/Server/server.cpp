@@ -7,6 +7,7 @@ Server::Server(const int& port, AuthManager* mgr)
 {
     authController = std::make_unique<AuthController>(app, manager);
     initRoutes();
+    //generateKeys();
 }
 
 void Server::run() {
@@ -16,4 +17,8 @@ void Server::run() {
 
 void Server::initRoutes() {
     authController->initRoutes();
+}
+
+void Server::generateKeys() {
+  authController->generateKeys();
 }

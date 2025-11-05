@@ -24,6 +24,9 @@ add_executable(ApiGateWay
     main.cpp
     src/GateWayServer/gatewayserver.cpp
     src/ProxyClient/proxyclient.cpp
+    src/Headers/JwtUtils.cpp
+    src/WebSocketBridge/websocketbridge.h
+    src/WebSocketBridge/websocketbridge.cpp
 )
 
 target_include_directories(ApiGateWay PRIVATE

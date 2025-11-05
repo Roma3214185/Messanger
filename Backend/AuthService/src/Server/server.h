@@ -12,6 +12,7 @@ public:
     void run();
 
 private:
+    void generateKeys();
     void initRoutes();
     crow::SimpleApp app;
     AuthManager* manager;

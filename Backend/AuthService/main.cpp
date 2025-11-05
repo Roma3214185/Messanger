@@ -7,6 +7,8 @@
 
 const int AUTH_PORT = 8083;
 
+void genereteKeys();
+
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
     init_logger("AuthService");
