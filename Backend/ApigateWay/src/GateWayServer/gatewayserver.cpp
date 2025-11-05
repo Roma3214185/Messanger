@@ -98,6 +98,7 @@ void GatewayServer::registerAuthRoutes() {
             auto result =
                 authProxy_.forward(req, downstream_path, getMethod(req.method));
             res.code = result.first;
+            metrics.setStatus(result.first);
             res.write(result.second);
             res.end();
           });
@@ -117,6 +118,7 @@ void GatewayServer::registerChatRoutes() {
                 chatProxy_.forward(req, downstream_path, getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
             res.code = result.first;
+            metrics.setStatus(result.first);
             res.write(result.second);
             res.end();
           });
@@ -147,6 +149,7 @@ void GatewayServer::registerChatRoutes() {
                 chatProxy_.forward(req, downstream_path, getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
             res.code = result.first;
+            metrics.setStatus(result.first);
             res.write(result.second);
             res.end();
           });
@@ -177,6 +180,7 @@ void GatewayServer::registerMessagesRoutes() {
                                                 getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
             res.code = result.first;
+            metrics.setStatus(result.first);
             res.write(result.second);
             res.end();
           });
@@ -194,6 +198,7 @@ void GatewayServer::registerNotificationRoutes() {
                                                      getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
             res.code = result.first;
+            metrics.setStatus(result.first);
             res.write(result.second);
             res.end();
           });
@@ -211,6 +216,7 @@ void GatewayServer::registerUserRoutes() {
                 authProxy_.forward(req, downstream_path, getMethod(req.method));
             LOG_INFO("result code {} and res {}", result.first, result.second);
             res.code = result.first;
+            metrics.setStatus(result.first);
             res.write(result.second);
             res.end();
           });
