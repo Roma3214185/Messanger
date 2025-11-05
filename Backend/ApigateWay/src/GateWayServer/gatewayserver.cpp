@@ -19,7 +19,7 @@ static string getenv_or(const char* key, const char* def) {
 GatewayServer::GatewayServer(const int& port)
     : port_(port),
     rateLimiter_(300, std::chrono::seconds(900)),
-    authVerifier_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
+    //authVerifier_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
     authProxy_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
     chatProxy_(getenv_or("PRODUCT_SERVICE_URL", "http://localhost:8081")),
     messageProxy_(getenv_or("ORDER_SERVICE_URL", "http://localhost:8082")),
@@ -89,12 +89,39 @@ void GatewayServer::registerRoutes() {
   registerWebSocketRoutes();
 }
 
+
+// std::string readFile(const std::string& path) {
+//   std::ifstream file(path);
+//   return std::string((std::istreambuf_iterator<char>(file)),
+//                      std::istreambuf_iterator<char>());
+// }
+
+// std::string private_key = readFile("private_key.pem"); // файл з приватним ключем
+// auto token = jwt::create()
+//                  .set_issuer("auth_service")
+//                  .sign(jwt::algorithm::rs256(private_key, "", "", ""));
+
+
+// std::string public_key = readFile("public_key.pem"); // файл з публічним ключем
+// auto verifier = jwt::verify()
+//                     .allow_algorithm(jwt::algorithm::rs256("", public_key, "", ""))
+//                     .with_issuer("auth_service");
+// verifier.verify(decoded);
+
+// openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048
+// openssl rsa -pubout -in private_key.pem -out public_key.pem
+
+
+
 void GatewayServer::registerAuthRoutes() {
   CROW_ROUTE(app_, "/auth/<path>")
       .methods(crow::HTTPMethod::GET, crow::HTTPMethod::POST)(
           [this](const crow::request& req, crow::response& res, string path) {
             string downstream_path = "/auth/" + path;
+            std::string method = getMethod(req.method);
+            ScopedRequestMetrics metrics(request_counter_family_, request_latency_, downstream_path, method);
             PROFILE_SCOPE(downstream_path.c_str());
+
             auto result =
                 authProxy_.forward(req, downstream_path, getMethod(req.method));
             res.code = result.first;
@@ -135,7 +162,7 @@ void GatewayServer::registerChatRoutes() {
 
             string token = extractToken(req);
             LOG_INFO("Token '{}'", token);
-            auto userIdPtr = authVerifier_.verifyTokenAndGetUserId(token);
+            auto userIdPtr = JwtUtils::verifyTokenAndGetUserId(token);
             if (!userIdPtr) {
               LOG_ERROR("Invalid token");
               res.code = 401;

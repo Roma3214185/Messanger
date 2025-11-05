@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "Headers/AuthVerifier.h"
+#include "Headers/JwtUtils.h"
 #include "Headers/ratelimiter.h"
 #include "ProxyClient/proxyclient.h"
 
@@ -22,7 +22,6 @@ class GatewayServer {
   int port_;
 
   RateLimiter rateLimiter_;
-  AuthVerifier authVerifier_;
   ProxyClient authProxy_;
   ProxyClient chatProxy_;
   ProxyClient messageProxy_;

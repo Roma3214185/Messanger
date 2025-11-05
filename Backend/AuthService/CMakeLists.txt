@@ -24,12 +24,11 @@ add_executable(AuthService
   src/Headers/RegisterRequest.h
   src/Headers/AuthResponce.h
   src/Headers/User.h
-  src/Headers/JwtUtils.h
+  #src/Headers/JwtUtils.h
+  src/Headers/JwtUtils.cpp
 
   src/Server/server.h
   src/Server/server.cpp
-
-   #../GenericRepository/SQLiteDatabase.cpp
 )
 
 

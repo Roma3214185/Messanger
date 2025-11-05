@@ -33,24 +33,26 @@
 #define LOG_DEBUG(...) spdlog::debug(__VA_ARGS__)
 
 class ScopedTimer {
-  const char* name_;
-  std::chrono::high_resolution_clock::time_point start_;
+    std::string name_;
+    std::chrono::high_resolution_clock::time_point start_;
 
- public:
-  ScopedTimer(const char* name)
-      : name_(name), start_(std::chrono::high_resolution_clock::now())
-  {
-    spdlog::info("[TIMER START] {}", name_);
-  }
+  public:
+    explicit ScopedTimer(std::string name)
+        : name_(std::move(name)),
+        start_(std::chrono::high_resolution_clock::now()) {
+      spdlog::info("[TIMER START] {}", name_);
+    }
 
-  ScopedTimer(const std::string& name) : ScopedTimer(name.c_str()) {}
-  ~ScopedTimer() {
-    auto end = std::chrono::high_resolution_clock::now();
-    double duration_seconds =
-        std::chrono::duration<double>(end - start_).count();
+    ~ScopedTimer() noexcept {
+      auto end = std::chrono::high_resolution_clock::now();
+      double duration_seconds =
+          std::chrono::duration<double>(end - start_).count();
 
-    spdlog::info("[TIMER END] {} took {:.3f} s", name_, duration_seconds);
-
+      try {
+        spdlog::info("[TIMER END] {} took {:.3f} s", name_, duration_seconds);
+      } catch (...) {
+        LOG_ERROR("Error in destructor");
+      }
     // if (record_metrics_) {
     //   auto& metrics = GlobalMetrics::metrics();
     //   metrics.request_counter.Increment();

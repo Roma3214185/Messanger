@@ -33,6 +33,7 @@ add_executable(NotificationService
   SocketManager/
   SocketManager/socketmanager.h SocketManager/socketmanager.cpp
   Server/server.cpp
+  Headers/JwtUtils.h
 
 )
 

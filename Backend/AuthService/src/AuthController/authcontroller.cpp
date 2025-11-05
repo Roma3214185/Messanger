@@ -5,6 +5,7 @@
 
 #include "Debug_profiling.h"
 #include "RegisterRequest.h"
+#include "JwtUtils.h"
 
 using std::string;
 
@@ -156,7 +157,7 @@ void AuthController::handleFindById() {
 }
 
 std::optional<AuthResponce> AuthController::verifyToken(
-    const crow::request& req) {
+  const crow::request& req) {
   auto token = req.get_header_value("Authorization");
   if (token.empty()) {
     LOG_ERROR("Token empty");
@@ -164,4 +165,25 @@ std::optional<AuthResponce> AuthController::verifyToken(
   }
 
   return service_->getUser(token);
+}
+
+void AuthController::generateKeys() {
+  const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+  const std::string kPrivateKeyFile = "private_key.pem";
+  const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
+
+  auto [private_key, public_key] = JwtUtils::generate_rsa_keys();
+  std::filesystem::create_directories(kKeysDir);
+  std::ofstream privFile(kPrivateKeyFile);
+  if (!privFile) throw std::runtime_error("Cannot open private_key.pem for writing");
+  privFile << private_key;
+  privFile.close();
+
+  std::ofstream publFile(kPublicKeyFile);
+  if (!publFile) throw std::runtime_error("Cannot open public_key.pem for writing");
+  publFile << public_key;
+  publFile.close();
+
+  LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
+  LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
 }

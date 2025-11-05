@@ -31,7 +31,7 @@ void Controller::handleCreatingPrivateChat() {
         auto auth_header = req.get_header_value("Authorization");
 
         optional<int> my_id =
-            TokenService::verifyTokenAndGetUserId(auth_header);
+            JwtUtils::verifyTokenAndGetUserId(auth_header);
         if (!my_id) {
           LOG_ERROR("[CreatePrivateChat] Can't verify token");
           return crow::response(kUserError, "Not valid user token");
@@ -91,7 +91,7 @@ void Controller::handleGetAllChats() {
         PROFILE_SCOPE("/chats");
 
         string token = req.get_header_value("Authorization");
-        auto user_id = TokenService::verifyTokenAndGetUserId(token);
+        auto user_id = JwtUtils::verifyTokenAndGetUserId(token);
         if (!user_id) {
           LOG_ERROR("[GetAllChats] Can't verify token");
           return crow::response(kUserError, "Can't verify token");
@@ -149,7 +149,7 @@ void Controller::handleGetAllChatsById() {
           return crow::response(kUserError, "Missing token");
         }
 
-        auto user_id = TokenService::verifyTokenAndGetUserId(token);
+        auto user_id = JwtUtils::verifyTokenAndGetUserId(token);
         if (!user_id) {
           LOG_ERROR("[GetAllChatsById] can't verify token");
           return crow::response(kUserError, "Unauthorized");
