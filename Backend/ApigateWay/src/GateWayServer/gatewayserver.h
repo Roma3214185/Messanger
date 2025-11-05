@@ -14,7 +14,7 @@
 
 class GatewayServer {
  public:
-  explicit GatewayServer(const int& port);
+  explicit GatewayServer(int port);
   void run();
 
  private:
@@ -35,17 +35,27 @@ class GatewayServer {
 
   std::unordered_map<crow::websocket::connection*, std::shared_ptr<ix::WebSocket>> client_to_backend;
 
+  void handleProxyRequest(const crow::request& req,
+                                        crow::response& res,
+                                        ProxyClient& proxy,
+                                        const std::string& path,
+                                        bool requireAuth);
+
+  void registerRoute(const std::string& basePath,
+                                    ProxyClient& proxy,
+                                    bool requireAuth = true);
+
   void registerRoutes();
-  void registrerHealthCheck();
-  void registerNotificationRoutes();
-  void registerUserRoutes();
-  void registerMessagesRoutes();
-  void registerChatRoutes();
-  void registerAuthRoutes();
+  void registerHealthCheck();
+  //void registerNotificationRoutes();
+  //void registerUserRoutes();
+  //void registerMessagesRoutes();
+  //void registerChatRoutes();
+  //void registerAuthRoutes();
   void registerWebSocketRoutes();
 
   bool checkRateLimit(const crow::request& req, crow::response& res);
-  std::string getMethod(const crow::HTTPMethod& method) const;
+  //std::string getMethod(const crow::HTTPMethod& method) const;
   std::string extractToken(const crow::request& req) const;
 };
 
