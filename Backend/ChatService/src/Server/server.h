@@ -18,6 +18,11 @@ class Server {
  private:
   void initRoutes();
 
+  void handleCreatingPrivateChat();
+  void handleGetAllChats();
+  void handleGetAllChatsById();
+  void handleGetAllChatsMembers();
+
   int port_;
   ChatManager* manager_;
   crow::SimpleApp app_;
