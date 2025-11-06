@@ -64,20 +64,42 @@ ValidationResult nameValidDetailed(const QString &name, const Config &cfg) {
   if (name.isEmpty())
     return {false, "Name is empty"};
 
-  const int len = utf8Length(name);
-  if (len < cfg.kMinLenOfName)
+  // Count only letters and digits for length checks (ignore spaces, hyphens, apostrophes)
+  int meaningfulLen = 0;
+  for (const QChar &c : name) {
+    if (c.category() == QChar::Other_Control)
+      return {false, "Name contains invalid character"};
+
+    // treat letters and numbers as meaningful
+    if (c.isLetter() || c.isNumber()) {
+      ++meaningfulLen;
+    }
+  }
+
+  if (meaningfulLen < cfg.kMinLenOfName)
     return {false, "Name too short"};
-  if (len > cfg.kMaxLenOfName)
+  if (meaningfulLen > cfg.kMaxLenOfName)
     return {false, "Name too long"};
 
   for (const QChar &c : name) {
-    if (c.unicode() < 128) {
-      if (!c.isLetterOrNumber() && c != QLatin1Char(' ')
-          && c != QLatin1Char('-') && c != QLatin1Char('\'')) {
+    if (c.category() == QChar::Other_Control)
+      return {false, "Name contains invalid character"};
+
+    const ushort u = c.unicode();
+    if (u < 128) {
+      if (!c.isLetterOrNumber() &&
+          !c.isSpace() &&
+          c != QLatin1Char('-') &&
+          c != QLatin1Char('\'')) {
+        return {false, "Name contains invalid character"};
+      }
+    } else {
+      if (!c.isLetter() && !c.isSpace()) {
         return {false, "Name contains invalid character"};
       }
     }
   }
+
   return {true, ""};
 }
 

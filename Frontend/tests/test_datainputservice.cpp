@@ -158,10 +158,61 @@ TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, bo
     REQUIRE(!r.valid);
     REQUIRE(r.message == "Invalid domain");
   }
-
-
-
 }
+
+
+TEST_CASE("Chained validation - form level", "[form]") {
+  Config cfg;
+  SECTION("Good request expected result is valid") {
+    SignUpRequest good_request{.name = "John Doe", .email = "john+dev@gmail.com", .password = "GoodP@ss1", .tag = "dev_tag"};
+    auto r = validateRegistrationUserInput(good_request, cfg);
+    LOG_WARN("Message: {}", r.message.toStdString());
+    REQUIRE(r.valid);
+  }
+
+  SECTION("Request with invalid name expected valid error message") {
+    SignUpRequest bad_name_request{.name = "", .email = "john+dev@example.com", .password = "GoodP@ss1", .tag = "dev_tag"};
+    auto r2 = validateRegistrationUserInput(bad_name_request, cfg);
+    REQUIRE(!r2.valid);
+    LOG_WARN("Message: {}", r2.message.toStdString());
+    REQUIRE(r2.message == "Name is empty");
+  }
+
+  SECTION("Request with invalid email expected valid error message") {
+    SignUpRequest bad_email_request{.name = "John Doe", .email = "invalidemail", .password = "GoodP@ss1", .tag = "dev_tag"};
+    auto r3 = validateRegistrationUserInput(bad_email_request, cfg);
+    REQUIRE(!r3.valid);
+    LOG_WARN("Message: {}", r3.message.toStdString());
+    REQUIRE(r3.message == "Email does not contain @");
+  }
+
+  SECTION("Request with invalid password expected valid error message") {
+    SignUpRequest bad_password_request{.name = "John Doe", .email = "john@gmail.com", .password = "short", .tag = "dev_tag"};
+    auto r4 = validateRegistrationUserInput(bad_password_request, cfg);
+    REQUIRE(!r4.valid);
+    LOG_WARN("Message: {}", r4.message.toStdString());
+    REQUIRE(r4.message == "Password is too short");
+  }
+
+  SECTION("Request with invalid tag expected valid error message") {
+    SignUpRequest bad_tag_request{.name = "John Doe", .email = "john@gmail.com", .password = "GoodP@ss1", .tag = "_tag"};
+    auto r5 = validateRegistrationUserInput(bad_tag_request, cfg);
+    REQUIRE(!r5.valid);
+    LOG_WARN("Message from tag: {}", r5.message.toStdString());
+    REQUIRE(r5.message == "First character must be letter or number");
+  }
+}
+
+TEST_CASE("Parameterized invalid passwords", "[password][param]") {
+  Config cfg;
+  cfg.kMinPasswordLength = 6;
+  cfg.kMaxPasswordLength = 12;
+
+  auto password_sample = GENERATE("short", "has space", "bad|char", "\nnewline");
+  auto r = passwordValidDetailed(password_sample, cfg);
+  REQUIRE(!r.valid);
+}
+
 
 
 
