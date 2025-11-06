@@ -12,12 +12,7 @@ constexpr int kRabitMQPort = 5672;
 
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
-
-    //crow::SimpleApp app_;
     RabbitMQClient mq("localhost", kRabitMQPort, "guest", "guest");
-
-    //RabbitMQClient mq("localhost", "guest", "guest");
-
     SocketsManager sockManager;
     NetworkManager netManager;
     NotificationManager notifManager(mq, sockManager, netManager);
