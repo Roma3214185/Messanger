@@ -108,5 +108,60 @@ TEST_CASE("Tag validation - mixed patterns, boundaries, unicode", "[tag]") {
   }
 }
 
+TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, boundaries", "[email]") {
+  Config cfg;
+  cfg.kMinEmailLocalPartLength = 1;
+  cfg.kMaxEmailLocalPartLength = 64;
+
+  SECTION("Simple valid") {
+    auto r = emailValidDetailed("user@gmail.com", cfg);
+    REQUIRE(r.valid);
+  }
+
+  SECTION("Plus alias") {
+    auto r = emailValidDetailed("user+alias@gmail.com", cfg);
+    REQUIRE(r.valid);
+  }
+
+  SECTION("Quoted local") {
+    auto r = emailValidDetailed("\"john..doe\"@gmail.com", cfg);
+    REQUIRE(r.valid);
+  }
+
+  SECTION("Local part too long") {
+    QString local(cfg.kMaxEmailLocalPartLength + 1, 'a');
+    auto r = emailValidDetailed(local + "@gmail.com", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Local part too long");
+  }
+
+  SECTION("Local part too short") {
+    auto r = emailValidDetailed("@gmail.com", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Local part is empty");
+  }
+
+  SECTION("Missing at") {
+    auto r = emailValidDetailed("notanemail", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Email does not contain @");
+  }
+
+  SECTION("Empty domain") {
+    auto r = emailValidDetailed("user@", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Domain is empty");
+  }
+
+  SECTION("Invalid email") {
+    auto r = emailValidDetailed("user@gmaill.com", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Invalid domain");
+  }
+
+
+
+}
+
 
 

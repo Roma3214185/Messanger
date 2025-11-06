@@ -92,8 +92,6 @@ ValidationResult emailValidDetailed(const QString &email, const Config &cfg) {
   const QString local = email.left(atPos);
   const QString domain = email.mid(atPos + 1);
 
-  if(!isValidDomain(domain, cfg))
-    return {false, "InvalidDomain"};
   if (local.isEmpty())
     return {false, "Local part is empty"};
   if (local.size() < cfg.kMinEmailLocalPartLength)
@@ -128,27 +126,30 @@ ValidationResult emailValidDetailed(const QString &email, const Config &cfg) {
   if (domain.isEmpty())
     return {false, "Domain is empty"};
 
-  if (domain.startsWith('[') && domain.endsWith(']')) {
-    const QString inside = domain.mid(1, domain.size() - 2);
-    if (inside.isEmpty())
-      return {false, "Empty IP literal"};
-    for (const QChar &c : inside) {
-      if (!c.isDigit() && c != '.' && c != ':')
-        return {false, "IP literal contains invalid character"};
-    }
-    return {true, "Email is valid"};
-  }
+  if(!isValidDomain(domain, cfg))
+    return {false, "Invalid domain"};
 
-  if (domain.size() > 255)
-    return {false, "Domain too long"};
+  // if (domain.startsWith('[') && domain.endsWith(']')) {
+  //   const QString inside = domain.mid(1, domain.size() - 2);
+  //   if (inside.isEmpty())
+  //     return {false, "Empty IP literal"};
+  //   for (const QChar &c : inside) {
+  //     if (!c.isDigit() && c != '.' && c != ':')
+  //       return {false, "IP literal contains invalid character"};
+  //   }
+  //   return {true, "Email is valid"};
+  // }
 
-  const QStringList labels = domain.split('.');
-  for (const QString &label : labels) {
-    if (label.isEmpty())
-      return {false, "Domain contains empty label"};
-    if (label.startsWith('-') || label.endsWith('-'))
-      return {false, "Label starts or ends with '-' character"};
-  }
+  // if (domain.size() > 255)
+  //   return {false, "Domain too long"};
+
+  // const QStringList labels = domain.split('.');
+  // for (const QString &label : labels) {
+  //   if (label.isEmpty())
+  //     return {false, "Domain contains empty label"};
+  //   if (label.startsWith('-') || label.endsWith('-'))
+  //     return {false, "Label starts or ends with '-' character"};
+  // }
 
   return {true, "Email is valid"};
 }
