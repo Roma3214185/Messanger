@@ -6,9 +6,9 @@
 #include <utility>
 
 #include "Debug_profiling.h"
-#include "MessageManager/MessageManager.h"
+#include "managers/MessageManager.h"
 #include "RabbitMQClient/rabbitmqclient.h"
-#include "headers/JwtUtils.h"
+#include "managers/JwtUtils.h"
 
 namespace {
 

@@ -3,8 +3,8 @@
 
 #include "GenericRepository.h"
 #include "Batcher.h"
-#include "Headers/Message.h"
-#include "Headers/MessageStatus.h"
+#include "entities/Message.h"
+#include "entities/MessageStatus.h"
 
 class GenericRepository;
 

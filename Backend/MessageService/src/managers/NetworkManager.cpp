@@ -1,4 +1,4 @@
-#include "NetworkManager.h"
+#include "managers/NetworkManager.h"
 
 #include <httplib.h>
 #include <QByteArray>

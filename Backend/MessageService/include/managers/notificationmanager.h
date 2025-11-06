@@ -5,7 +5,7 @@
 
 #include <crow.h>
 
-#include "Headers/Message.h"
+#include "entities/Message.h"
 
 class MessageStatus;
 

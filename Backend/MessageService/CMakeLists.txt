@@ -9,6 +9,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(MESSAGE_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(MESSAGE_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -26,23 +29,15 @@ link_directories(/opt/homebrew/lib)
 
 
 add_executable(MessageService
-  main.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/main.cpp
 
-  Controller/controller.cpp
-  Server/server.h Server/server.cpp
-  Headers/Message.h
-  MessageManager/MessageManager.h
-  MessageWorker/messageworker.h
-  MessageWorker/messageworker.cpp
-  NotificationManager/notificationmanager.cpp
-  NotificationManager/notificationmanager.h
-  Headers/NetworkManager.cpp
-  Headers/MessageStatus.h
-  MessageManager/MessageManager.cpp
-  Headers/JwtUtils.h
-  Headers/JwtUtils.cpp
-
-  #../GenericRepository/SQLiteDatabase.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/controller.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/server.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/messageworker.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/managers/notificationmanager.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/managers/NetworkManager.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/managers/MessageManager.cpp
+  ${MESSAGE_SERVICE_SRC_DIR}/JwtUtils.cpp
 )
 
 target_link_libraries(MessageService PRIVATE
@@ -59,14 +54,16 @@ target_link_libraries(MessageService PRIVATE
 
 include_directories(
     ${httplib_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${MESSAGE_SERVICE_INCLUDE_DIR}/
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
-    ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../GenericRepository
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../GenericRepository
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../RedisCache
+    # ${CMAKE_CURRENT_SOURCE_DIR}
+
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../GenericRepository
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../../GenericRepository
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../../RedisCache
 )
 
 

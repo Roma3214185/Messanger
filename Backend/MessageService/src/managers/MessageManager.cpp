@@ -1,4 +1,4 @@
-#include "MessageManager.h"
+#include "managers/MessageManager.h"
 #include "GenericRepository/GenericRepository.h"
 
 MessageManager::MessageManager(GenericRepository* repository,

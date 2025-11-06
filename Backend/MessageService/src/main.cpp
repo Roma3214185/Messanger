@@ -2,9 +2,9 @@
 
 #include "Debug_profiling.h"
 #include "GenericRepository.h"
-#include "MessageManager/MessageManager.h"
-#include "NotificationManager/notificationmanager.h"
-#include "Server/server.h"
+#include "managers/MessageManager.h"
+#include "managers/notificationmanager.h"
+#include "server.h"
 #include "GenericRepository/Batcher.h"
 #include "RabbitMQClient/rabbitmqclient.h"
 

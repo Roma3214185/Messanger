@@ -15,7 +15,7 @@
 
 #include "Debug_profiling.h"
 #include "IEntityBuilder.h"
-#include "MessageService/Headers/Message.h"
+#include "MessageService/include/entities/Message.h"
 #include "Meta.h"
 #include "Query.h"
 #include "RedisCache/RedisCache.h"

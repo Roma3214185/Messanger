@@ -5,8 +5,8 @@
 
 #include <crow.h>
 
-#include "MessageManager/MessageManager.h"
-#include "Controller/controller.h"
+#include "managers/MessageManager.h"
+#include "controller.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
 

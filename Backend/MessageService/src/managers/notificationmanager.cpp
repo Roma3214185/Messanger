@@ -1,7 +1,7 @@
-#include "notificationmanager.h"
+#include "managers/notificationmanager.h"
 
-#include "Headers/NetworkManager.h"
-#include "Headers/MessageStatus.h"
+#include "managers/NetworkManager.h"
+#include "entities/MessageStatus.h"
 
 void NotificationManager::notifyMessageRead(int chat_id,
                                             const MessageStatus& status) {
