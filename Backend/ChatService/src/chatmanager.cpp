@@ -1,6 +1,6 @@
 #include "chatmanager.h"
 
-#include "headers/ChatMember.h"
+#include "entities/ChatMember.h"
 
 ChatManager::ChatManager(GenericRepository* repository)
     : repository_(repository) { }

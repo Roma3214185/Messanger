@@ -4,6 +4,9 @@ project(ChatService LANGUAGES CXX)
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(spdlog REQUIRED)
 
+set(CHAT_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(CHAT_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -13,23 +16,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
-include_directories(
-    ${httplib_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/DataBase
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Controller
+add_executable(ChatService
+    ${CHAT_SERVICE_SRC_DIR}/main.cpp
+    ${CHAT_SERVICE_SRC_DIR}/database.cpp
+    ${CHAT_SERVICE_SRC_DIR}/controller.cpp
+    ${CHAT_SERVICE_SRC_DIR}/server.cpp
+    ${CHAT_SERVICE_SRC_DIR}/NetworkManager.cpp
+    ${CHAT_SERVICE_SRC_DIR}/chatmanager.cpp
 )
 
-add_executable(ChatService
-    main.cpp
-    src/DataBase/database.cpp
-    src/Controller/controller.cpp
-    src/Server/server.h src/Server/server.cpp
-    src/headers/Chat.h
-    src/headers/NetworkManager.cpp
-    src/ChatManager/chatmanager.cpp
-    src/headers/ChatMember.h
+target_include_directories(ChatService PRIVATE
+  ${httplib_SOURCE_DIR}
+  ${CHAT_SERVICE_INCLUDE_DIR}/
 )
 
 target_link_libraries(ChatService PRIVATE

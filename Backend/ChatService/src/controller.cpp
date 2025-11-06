@@ -1,7 +1,7 @@
 #include "controller.h"
 
-#include "headers/NetworkManager.h"
-#include "headers/TokenService.h"
+#include "NetworkManager.h"
+#include "TokenService.h"
 
 using std::optional;
 using std::string;

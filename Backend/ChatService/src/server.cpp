@@ -1,6 +1,6 @@
 #include "server.h"
 
-#include "Controller/controller.h"
+#include "controller.h"
 #include "Debug_profiling.h"
 
 Server::Server(const int port, ChatManager* manager) : port_(port), manager_(manager) {

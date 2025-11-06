@@ -2,11 +2,11 @@
 
 #include <QCoreApplication>
 
-#include "Controller/controller.h"
-#include "DataBase/database.h"
+#include "controller.h"
+#include "database.h"
 #include "Debug_profiling.h"
-#include "Server/server.h"
-#include "ChatManager/chatmanager.h"
+#include "server.h"
+#include "chatmanager.h"
 #include "GenericRepository/GenericRepository.h"
 
 const int kChatServicePort = 8081;

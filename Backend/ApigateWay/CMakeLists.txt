@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(FRONTEND_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(FRONTEND_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(APIGATE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(APIGATE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 find_package(Threads REQUIRED)
 include(FetchContent)
@@ -24,15 +24,15 @@ add_subdirectory(
 )
 
 add_executable(ApiGateWay
-    ${FRONTEND_SRC_DIR}/main.cpp
-    ${FRONTEND_SRC_DIR}/gatewayserver.cpp
-    ${FRONTEND_SRC_DIR}/proxyclient.cpp
-    ${FRONTEND_SRC_DIR}/JwtUtils.cpp
-    ${FRONTEND_SRC_DIR}/websocketbridge.cpp
+    ${APIGATE_SRC_DIR}/main.cpp
+    ${APIGATE_SRC_DIR}/gatewayserver.cpp
+    ${APIGATE_SRC_DIR}/proxyclient.cpp
+    ${APIGATE_SRC_DIR}/JwtUtils.cpp
+    ${APIGATE_SRC_DIR}/websocketbridge.cpp
 )
 
 target_include_directories(ApiGateWay PRIVATE
-    ${FRONTEND_INC_DIR}/
+    ${APIGATE_INCLUDE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/../external
     ${httplib_SOURCE_DIR}

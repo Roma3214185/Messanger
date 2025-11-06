@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "GenericRepository.h"
-#include "headers/Chat.h"
+#include "entities/Chat.h"
 
 using ChatId = int;
 using UserId = int;

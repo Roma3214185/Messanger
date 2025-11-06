@@ -6,7 +6,7 @@
 #include <QList>
 
 #include "GenericRepository/GenericRepository.h"
-#include "headers/Chat.h"
+#include "entities/Chat.h"
 
 class ChatManager {
   public:

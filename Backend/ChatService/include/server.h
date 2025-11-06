@@ -1,12 +1,13 @@
 #ifndef BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_
 #define BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_
 
-#include <crow/crow.h>
 #include <memory>
 
-#include "Controller/controller.h"
-#include "DataBase/database.h"
-#include "ChatManager/chatmanager.h"
+#include <crow/crow.h>
+
+#include "controller.h"
+#include "database.h"
+#include "chatmanager.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
 

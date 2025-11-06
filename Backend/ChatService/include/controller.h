@@ -4,7 +4,7 @@
 #include <crow/crow.h>
 
 #include "database.h"
-#include "ChatManager/chatmanager.h"
+#include "chatmanager.h"
 
 class Controller {
  public:

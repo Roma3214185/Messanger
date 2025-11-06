@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "user.h"
+#include "entities/user.h"
 
 namespace NetworkManager {
 
