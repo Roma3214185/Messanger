@@ -2,15 +2,13 @@
 #define BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_
 
 #include <crow.h>
-#include <../external/IXWebSocket/ixwebsocket/IXWebSocket.h>
-
-#include "ScopedRequestsTimer.h"
-
+#include <ixwebsocket/IXWebSocket.h>
 #include <string>
 
-#include "Headers/JwtUtils.h"
-#include "Headers/ratelimiter.h"
-#include "ProxyClient/proxyclient.h"
+#include "ScopedRequestsTimer.h"
+#include "JwtUtils.h"
+#include "ratelimiter.h"
+#include "proxyclient.h"
 
 class GatewayServer {
  public:

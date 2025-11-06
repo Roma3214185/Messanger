@@ -14,7 +14,7 @@
 #include "presenter.h"
 #include "delegators/userdelegate.h"
 #include "dto/SignUpRequest.h"
-#include "forms/ui_mainwindow.h"
+#include "../forms/ui_mainwindow.h"
 #include "interfaces/ITheme.h"
 
 MainWindow::MainWindow(QWidget* parent)

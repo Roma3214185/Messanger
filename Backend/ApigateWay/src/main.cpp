@@ -1,4 +1,4 @@
-#include "GateWayServer/gatewayserver.h"
+#include "gatewayserver.h"
 
 int main() {
   const int port =

@@ -2,7 +2,6 @@
 
 #include <fstream>
 
-
 namespace {
 
 std::string readFile(const std::string& path) {

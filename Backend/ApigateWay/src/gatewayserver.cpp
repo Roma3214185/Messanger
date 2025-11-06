@@ -6,7 +6,7 @@
 
 #include "Debug_profiling.h"
 #include "ScopedRequestsTimer.h"
-#include "WebSocketBridge/websocketbridge.h"
+#include "websocketbridge.h"
 
 using json = nlohmann::json;
 using namespace std::chrono_literals;

@@ -1,10 +1,10 @@
 #ifndef BACKEND_APIGATEWAY_SRC_PROXYCLIENT_PROXYCLIENT_H_
 #define BACKEND_APIGATEWAY_SRC_PROXYCLIENT_PROXYCLIENT_H_
 
+#include <memory>
+
 #include <crow/crow.h>
 #include <httplib.h>
-
-#include <memory>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

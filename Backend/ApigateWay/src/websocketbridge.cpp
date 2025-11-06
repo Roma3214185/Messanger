@@ -1,4 +1,3 @@
-// WebSocketBridge.cpp
 #include "WebSocketBridge.h"
 
 std::shared_ptr<ix::WebSocket> WebSocketBridge::createBackendConnection(crow::websocket::connection& client) {

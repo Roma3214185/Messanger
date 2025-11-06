@@ -13,6 +13,7 @@ find_package(spdlog REQUIRED)
 
 set(FRONTEND_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(FRONTEND_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(FRONTEND_FORMS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/forms)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 
 add_library(FrontendLib
@@ -37,7 +38,8 @@ add_library(FrontendLib
     ${FRONTEND_SRC_DIR}/managers/socketmanager.cpp
     ${FRONTEND_SRC_DIR}/managers/BaseManager.cpp
     ${FRONTEND_SRC_DIR}/managers/datamanager.cpp
-    ${FRONTEND_SRC_DIR}/forms/mainwindow.ui
+
+    ${FRONTEND_FORMS_DIR}/mainwindow.ui
 
     ${FRONTEND_INC_DIR}/managers/BaseManager.h
     ${FRONTEND_INC_DIR}/managers/socketmanager.h
@@ -57,18 +59,15 @@ add_library(FrontendLib
     ${FRONTEND_INC_DIR}/delegators/messagedelegate.h
     ${FRONTEND_INC_DIR}/delegators/UserDelegate.h
     ${FRONTEND_INC_DIR}/delegators/ChatItemDelegate.h
-
-
-
-
-
 )
 
 target_include_directories(FrontendLib PUBLIC
     ${FRONTEND_INC_DIR}
     ${FRONTEND_SRC_DIR}
+    ${FRONTEND_FORMS_DIR}
     ${DEBUG_PROFILING_DIR}
     {CMAKE_SOURCE_DIR}/include
+    {CMAKE_SOURCE_DIR}/forms
     {CMAKE_SOURCE_DIR}/src
     /usr/local/include
     /opt/homebrew/include
@@ -77,6 +76,7 @@ target_include_directories(FrontendLib PUBLIC
 include_directories(FrontendLib PUBLIC
     ${CMAKE_SOURCE_DIR}
     {CMAKE_SOURCE_DIR}/include
+    {CMAKE_SOURCE_DIR}/forms
 )
 
 target_link_libraries(FrontendLib PUBLIC
@@ -94,7 +94,7 @@ add_executable(Frontend
     ${FRONTEND_SRC_DIR}/main.cpp
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_INC_DIR}/mainwindow.h
-    ${FRONTEND_SRC_DIR}/forms/mainwindow.ui
+    ${FRONTEND_FORMS_DIR}/mainwindow.ui
     config/domains.txt
 )
 
