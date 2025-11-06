@@ -26,8 +26,12 @@ Thumbs.db
 *.swp
 *.tmp
 
-# private RSA keys
 keys/private.pem
 keys/*.key
 secrets/*.pem
 secrets/*.key
+
+*.qrc
+*.jpeg
+.clang-tidy
+.clang-tidy.save

@@ -6,6 +6,9 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+set(AUTH_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(AUTH_SERVICE_INCUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -13,22 +16,11 @@ find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(spdlog REQUIRED)
 
 add_executable(AuthService
-  main.cpp
-
-  src/AuthController/authcontroller.h
-  src/AuthController/authcontroller.cpp
-
-  src/AuthManager/authmanager.cpp
-  src/AuthManager/authmanager.h
-
-  src/Headers/RegisterRequest.h
-  src/Headers/AuthResponce.h
-  src/Headers/User.h
-  #src/Headers/JwtUtils.h
-  src/Headers/JwtUtils.cpp
-
-  src/Server/server.h
-  src/Server/server.cpp
+  ${AUTH_SERVICE_SRC_DIR}/main.cpp
+  ${AUTH_SERVICE_SRC_DIR}/authcontroller.cpp
+  ${AUTH_SERVICE_SRC_DIR}/authmanager.cpp
+  ${AUTH_SERVICE_SRC_DIR}/JwtUtils.cpp
+  ${AUTH_SERVICE_SRC_DIR}/server.cpp
 )
 
 
@@ -45,14 +37,7 @@ target_link_libraries(AuthService PRIVATE
 )
 
 target_include_directories(AuthService PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Headers
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Server
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AuthManager
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AuthController
-  ${CMAKE_CURRENT_SOURCE_DIR}/../RedisCache
-  ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
+  ${AUTH_SERVICE_INCUDE_DIR}/
 )
 
 include(GNUInstallDirs)

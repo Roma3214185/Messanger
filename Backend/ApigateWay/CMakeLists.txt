@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(APIGATE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(APIGATE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 find_package(Threads REQUIRED)
 include(FetchContent)
 
@@ -17,23 +20,21 @@ FetchContent_MakeAvailable(httplib)
 
 add_subdirectory(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../external/IXWebSocket
-     ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
+    ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
 )
 
 add_executable(ApiGateWay
-    main.cpp
-    src/GateWayServer/gatewayserver.cpp
-    src/ProxyClient/proxyclient.cpp
-    src/Headers/JwtUtils.cpp
-    src/WebSocketBridge/websocketbridge.h
-    src/WebSocketBridge/websocketbridge.cpp
+    ${APIGATE_SRC_DIR}/main.cpp
+    ${APIGATE_SRC_DIR}/gatewayserver.cpp
+    ${APIGATE_SRC_DIR}/proxyclient.cpp
+    ${APIGATE_SRC_DIR}/JwtUtils.cpp
+    ${APIGATE_SRC_DIR}/websocketbridge.cpp
 )
 
 target_include_directories(ApiGateWay PRIVATE
+    ${APIGATE_INCLUDE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GateWayServer
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/json/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/crow/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external
     ${httplib_SOURCE_DIR}
 )
 

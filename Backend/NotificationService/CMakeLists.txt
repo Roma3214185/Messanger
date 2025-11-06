@@ -9,6 +9,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(NOTIFICATION_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(NOTIFICATION_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -26,15 +29,11 @@ link_directories(/opt/homebrew/lib)
 
 
 add_executable(NotificationService
-  main.cpp
-  Headers/Message.h
-  NotificationManager/notificationmanager.h NotificationManager/notificationmanager.cpp
-  NetworkManager/networkmanager.h NetworkManager/networkmanager.cpp
-  SocketManager/
-  SocketManager/socketmanager.h SocketManager/socketmanager.cpp
-  Server/server.cpp
-  Headers/JwtUtils.h
-
+  ${NOTIFICATION_SERVICE_SRC_DIR}/main.cpp
+  ${NOTIFICATION_SERVICE_SRC_DIR}/managers/notificationmanager.cpp
+  ${NOTIFICATION_SERVICE_SRC_DIR}/managers/networkmanager.cpp
+  ${NOTIFICATION_SERVICE_SRC_DIR}/managers/socketmanager.cpp
+  ${NOTIFICATION_SERVICE_SRC_DIR}/server.cpp
 )
 
 target_link_libraries(NotificationService PRIVATE
@@ -50,13 +49,7 @@ target_link_libraries(NotificationService PRIVATE
 
 include_directories(
     ${httplib_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/SocketManager
-    ${CMAKE_CURRENT_SOURCE_DIR}/Headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/NetworkManager
-    ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
-    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationManager
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
-    ${CMAKE_CURRENT_SOURCE_DIR}/Server
+    ${NOTIFICATION_SERVICE_INCLUDE_DIR}/
 )
 
 include(GNUInstallDirs)

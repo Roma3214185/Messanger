@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include "MessageService/Headers/Message.h"
+#include "MessageService/include/entities/Message.h"
 #include "RedisCache.h"
 
 static void BM_SaveEntityIndividually(benchmark::State& state) {

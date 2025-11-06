@@ -3,7 +3,7 @@
 
 #include "GenericRepository.h"
 #include "IEntityBuilder.h"
-#include "MessageService/Headers/Message.h"
+#include "MessageService/include/entities/Message.h"
 #include "Meta.h"
 #include "benchmark/benchmark.h"
 

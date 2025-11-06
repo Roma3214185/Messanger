@@ -6,9 +6,9 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-#include "headers/JsonService.h"
-#include "NetworkManagers/ChatManager/chatmanager.h"
-#include "NetworkAccessManager/MockAccessManager.h"
+#include "JsonService.h"
+#include "managers/chatmanager.h"
+#include "mocks/MockAccessManager.h"
 
 class TestChatManager : public ChatManager {
   public:

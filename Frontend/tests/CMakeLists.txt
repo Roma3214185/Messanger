@@ -14,34 +14,51 @@ find_package(Catch2 3 REQUIRED)
 
 # --- Frontend source directories ---
 set(FRONTEND_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+set(FRONTEND_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set(DEBUG_PROFILING_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../DebugProfiling)
 
 # --- Build a local Frontend library for tests ---
 add_library(FrontendLib_local
-    ${FRONTEND_SRC_DIR}/Presenter/presenter.cpp
-    ${FRONTEND_SRC_DIR}/MessageModel/messagemodel.cpp
+    ${FRONTEND_SRC_DIR}/presenter.cpp
+    ${FRONTEND_SRC_DIR}/models/messagemodel.cpp
     # ${FRONTEND_SRC_DIR}/MessageDelegate/messagemedelegate.cpp
-    ${FRONTEND_SRC_DIR}/ChatModel/chatmodel.cpp
-    ${FRONTEND_SRC_DIR}/Model/model.cpp
-    ${FRONTEND_SRC_DIR}/UserModel/UserModel.cpp
-    ${FRONTEND_SRC_DIR}/DataInputService/datainputservice.cpp
-    ${FRONTEND_SRC_DIR}/UserDelegate/UserDelegate.cpp
-    ${FRONTEND_SRC_DIR}/ChatItemDelegate/ChatItemDelegate.cpp
-    ${FRONTEND_SRC_DIR}/NetworkAccessManager/NetworkAccessManager.cpp
-    ${FRONTEND_SRC_DIR}/NetworkManagers/SessionManager/sessionmanager.cpp
-    ${FRONTEND_SRC_DIR}/NetworkManagers/ChatManager/chatmanager.cpp
-    ${FRONTEND_SRC_DIR}/NetworkManagers/MessageManager/messagemanager.cpp
-    ${FRONTEND_SRC_DIR}/NetworkManagers/UserManager/usermanager.cpp
-    ${FRONTEND_SRC_DIR}/SocketManager/socketmanager.cpp
-    ${FRONTEND_SRC_DIR}/DataManager/datamanager.cpp
-    ${FRONTEND_SRC_DIR}/../src/headers/MessageListView.h
+    ${FRONTEND_SRC_DIR}/models/chatmodel.cpp
+    ${FRONTEND_SRC_DIR}/model.cpp
+    ${FRONTEND_SRC_DIR}/models/UserModel.cpp
+    ${FRONTEND_SRC_DIR}/datainputservice.cpp
+    ${FRONTEND_SRC_DIR}/delegators/UserDelegate.cpp
+    ${FRONTEND_SRC_DIR}/delegators/ChatItemDelegate.cpp
+    ${FRONTEND_SRC_DIR}/managers/NetworkAccessManager.cpp
+    ${FRONTEND_SRC_DIR}/managers/sessionmanager.cpp
+    ${FRONTEND_SRC_DIR}/managers/chatmanager.cpp
+    ${FRONTEND_SRC_DIR}/managers/messagemanager.cpp
+    ${FRONTEND_SRC_DIR}/managers/usermanager.cpp
+    ${FRONTEND_SRC_DIR}/managers/socketmanager.cpp
+    ${FRONTEND_SRC_DIR}/managers/datamanager.cpp
+    ${FRONTEND_SRC_DIR}/../include/MessageListView.h
     ${FRONTEND_SRC_DIR}/../../DebugProfiling/Debug_profiling.h
-    ${FRONTEND_SRC_DIR}/../src/headers/ISocket.h
-    ${FRONTEND_SRC_DIR}/../src/headers/BaseManager.cpp
+    ${FRONTEND_SRC_DIR}/../include/interfaces/ISocket.h
+    ${FRONTEND_SRC_DIR}/../src/managers/BaseManager.cpp
+
+    ${FRONTEND_INC_DIR}/managers/BaseManager.h
+    ${FRONTEND_INC_DIR}/managers/socketmanager.h
+    ${FRONTEND_INC_DIR}/managers/sessionmanager.h
+    ${FRONTEND_INC_DIR}/managers/chatmanager.h
+    ${FRONTEND_INC_DIR}/managers/usermanager.h
+    ${FRONTEND_INC_DIR}/managers/messagemanager.h
+    ${FRONTEND_INC_DIR}/MessageListView.h
+    ${FRONTEND_INC_DIR}/Model.h
+    ${FRONTEND_INC_DIR}/interfaces/ISocket.h
+    ${FRONTEND_INC_DIR}/models/ChatModel.h
+    ${FRONTEND_INC_DIR}/models/messagemodel.h
+    ${FRONTEND_INC_DIR}/models/chatmodel.h
+    ${FRONTEND_INC_DIR}/models/UserModel.h
+    ${FRONTEND_INC_DIR}/presenter.h
 )
 
 target_include_directories(FrontendLib_local PUBLIC
     ${FRONTEND_SRC_DIR}
+    ${FRONTEND_INC_DIR}
     ${DEBUG_PROFILING_DIR}
     /usr/local/include
     /opt/homebrew/include
