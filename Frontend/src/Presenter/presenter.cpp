@@ -24,8 +24,7 @@ Presenter::Presenter(IMainWindow* window, Model* manager)
   initialConnections();
 }
 
-void Presenter::signIn(const QString& email, const QString& password) {
-  LogInRequest login_request{.email = email, .password = password};
+void Presenter::signIn(const LogInRequest& login_request) {
   manager_->signIn(login_request);
 }
 

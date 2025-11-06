@@ -70,52 +70,24 @@ void MainWindow::setPresenter(Presenter* presenter) {
 }
 
 void MainWindow::on_upSubmitButton_clicked() {
-  auto email = ui_->upEmail->text().trimmed();
-  auto password = ui_->upPassword->text().trimmed();
-  auto tag = ui_->upTag->text().trimmed();
-  auto name = ui_->upName->text().trimmed();
+  SignUpRequest signup_request;
+  signup_request.email = ui_->upEmail->text().trimmed();
+  signup_request.password = ui_->upPassword->text().trimmed();
+  signup_request.tag = ui_->upTag->text().trimmed();
+  signup_request.name = ui_->upName->text().trimmed();
 
-  if (!DataInputService::emailValid(email)) {
-    showError("Email is invalid");
-    return;
-  }
-
-  if (!DataInputService::passwordValid(password)) {
-    showError("Password is invalid");
-    return;
-  }
-
-  if (!DataInputService::tagValid(tag)) {
-    showError("Tag is invalid");
-    return;
-  }
-
-  if (!DataInputService::nameValid(name)) {
-    showError("Name is invalid");
-    return;
-  }
-
-  SignUpRequest request{
-      .email = email, .password = password, .tag = tag, .name = name};
-
-  presenter_->signUp(request);
+  auto res = DataInputService::validateRegistrationUserInput(signup_request);
+  if(!res.valid) showError(res.message);
+  else presenter_->signUp(signup_request);
 }
 
 void MainWindow::on_inSubmitButton_clicked() {
-  auto email = ui_->inEmail->text().trimmed();
-  auto password = ui_->inPassword->text().trimmed();
-
-  if (!DataInputService::emailValid(email)) {
-    showError("Email is invalid");
-    return;
-  }
-
-  if (!DataInputService::passwordValid(password)) {
-    showError("Password is invalid");
-    return;
-  }
-
-  presenter_->signIn(email, password);
+  LogInRequest login_request;
+  login_request.email = ui_->inEmail->text().trimmed();
+  login_request.password = ui_->inPassword->text().trimmed();
+  auto res = DataInputService::validateLoginUserInput(login_request);
+  if(!res.valid) showError(res.message);
+  else presenter_->signIn(login_request);
 }
 
 void MainWindow::setMainWindow() {

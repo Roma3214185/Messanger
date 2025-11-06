@@ -3,152 +3,216 @@
 
 #include "DataInputService/datainputservice.h"
 
-namespace DISC = DataInputService::detail;
+using namespace std;
+using namespace DataInputService;
 
-TEST_CASE("Testing password checking in datainputservice", "[auth][password]") {
-  SECTION("ValidPasswordExpectedTrue") {
-    QString password = "12345678";
-    REQUIRE(DataInputService::passwordValid(password) == true);
+TEST_CASE("Name validation - UTF-8 friendly", "[name]") {
+  Config cfg;
+  cfg.kMinLenOfName = 1;
+  cfg.kMaxLenOfName = 10;
+
+  SECTION("Empty name") {
+    auto r = nameValidDetailed("", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Name is empty");
   }
 
-  SECTION("ValidPasswordExpectedTrue") {
-    QString password = "123455760";
-    REQUIRE(DataInputService::passwordValid(password) == true);
+  SECTION("Exact min length") {
+    auto r = nameValidDetailed("A", cfg);
+    REQUIRE(r.valid);
   }
 
-  SECTION("PasswordWithInvalidCharacterExpectedFalse") {
-    QString password = "12345&6789";
-    REQUIRE(DataInputService::passwordValid(password) == false);
+  SECTION("Exact max length") {
+    auto r = nameValidDetailed("abcdefghij", cfg);
+    REQUIRE(r.valid);
   }
 
-  SECTION("PasswordWithTwoInvalidCharacterExpectedFalse") {
-    QString password = "12#345&6789";
-    REQUIRE(DataInputService::passwordValid(password) == false);
+  SECTION("Too short") {
+    auto r = nameValidDetailed("", cfg);
+    REQUIRE(!r.valid);
   }
 
-  SECTION("PasswordWithEmptyCharacterExpectedFalse") {
-    QString password = "12345 36789";
-    REQUIRE(DataInputService::passwordValid(password) == false);
+  SECTION("Too long") {
+    auto r = nameValidDetailed("abcdefghijk", cfg);
+    REQUIRE(!r.valid);
   }
 
-  SECTION("PasswordWithEmpyCharacterInfrontExpectedFalse") {
-    QString password = " 1234536789";
-    REQUIRE(DataInputService::passwordValid(password) == false);
+  SECTION("Control character") {
+    auto r = nameValidDetailed("John\nDoe", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Name contains invalid character");
   }
 
-  SECTION("PasswordWithEmpyCharactersExpectedFalse") {
-    QString password = " 12345    367893";
-    REQUIRE(DataInputService::passwordValid(password) == false);
+  SECTION("Leading/trailing space") {
+    auto r = nameValidDetailed(" John", cfg);
+    REQUIRE(r.valid);
+    auto r2 = nameValidDetailed("John ", cfg);
+    REQUIRE(r2.valid);
   }
 
-  SECTION("PasswordWithNotPermittedCharacterExpectedFalse") {
-    QString password = "12345&36789";
-    REQUIRE(DataInputService::passwordValid(password) == false);
-  }
-
-  SECTION("PasswordMoreThanMaxValidLengthCharactersExpectedFalse") {
-    const int maxValidLength = DISC::kMaxPasswordLength;
-    QString password = QString(maxValidLength + 2, 'b');
-
-    REQUIRE(DataInputService::passwordValid(password) == false);
-  }
-}
-
-TEST_CASE("Testing tag in datainputservice", "[auth][tag]") {
-  SECTION("TagEmptyExpectedFalse") {
-    QString tag = "";
-    REQUIRE(DataInputService::tagValid(tag) == false);
-  }
-
-  SECTION("TagLessThanMinValidTagLenExpectedFalse") {
-    const int minValidTagLen = DISC::kMinTagLength;
-    QString tag = QString(minValidTagLen - 1, 'a');
-    REQUIRE(DataInputService::tagValid(tag) == false);
-  }
-
-  SECTION("TagStartsWithUnderlineExpectedFalse") {
-    QString tag = "_r4241";
-    REQUIRE(DataInputService::tagValid(tag) == false);
-  }
-
-  SECTION("TagWithTwoUnderlineInARowExpectedFalse") {
-    QString tag = "r__r14";
-    REQUIRE(DataInputService::tagValid(tag) == false);
-  }
-
-  SECTION("TagWithDotExpectedFalse") {
-    QString tag = "r.r13";
-    REQUIRE(DataInputService::tagValid(tag) == false);
+  SECTION("Invalid symbol") {
+    auto r = nameValidDetailed("John@", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Name contains invalid character");
   }
 }
 
-TEST_CASE("Testing email in datainputservice", "[auth][email]") {
-  SECTION("EmailWithoutDomeinExpectedFalse") {
-    QString email = "123456789";
-    REQUIRE(DataInputService::emailValid(email) == false);
+TEST_CASE("Tag validation - mixed patterns, boundaries, unicode", "[tag]") {
+  Config cfg;
+  cfg.kMinTagLength = 2;
+  cfg.kMaxTagLength = 16;
+
+  SECTION("Empty tag") {
+    auto r = tagValidDetailed("", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Tag is empty");
   }
 
-  SECTION("ValidEmailExpectedTrue") {
-    QString email = "roma@gmail.com";
-    REQUIRE(DataInputService::emailValid(email) == true);
+  SECTION("Starts with underscore") {
+    auto r = tagValidDetailed("_abc", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "First character must be letter or number");
   }
 
-  SECTION("EmailWithOnlyDomeinExpectedFalse") {
-    QString email = "@gmail.com";
-    REQUIRE(DataInputService::emailValid(email) == false);
+  SECTION("Consecutive underscores") {
+    auto r = tagValidDetailed("ab__cd", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Tag contains consecutive underscores");
   }
 
-  SECTION("EmailWithInvalidCharacterExpectedFalse") {
-    QString email = "roma*@gmail.com";
-    REQUIRE(DataInputService::emailValid(email) == false);
+  SECTION("Ends with underscore") {
+    auto r = tagValidDetailed("tag_", cfg);
+    REQUIRE(r.valid);
   }
 
-  SECTION("EmailWithInvalidDomeinExpectedFalse") {
-    QString email = "roma*@gmailcom";
-    REQUIRE(DataInputService::emailValid(email) == false);
+  SECTION("Max length tag") {
+    QString tag(cfg.kMaxTagLength, 'a');
+    auto r = tagValidDetailed(tag, cfg);
+    REQUIRE(r.valid);
   }
 
-  SECTION("EmailIsLessThanMinValidLenExpectedFalse") {
-    const int minValidEmailLen = DISC::kMinEmailLocalPartLength;
-    QString email = QString(minValidEmailLen - 1, 'a') + DISC::kEmailDomain;
-
-    REQUIRE(DataInputService::emailValid(email) == false);
+  SECTION("Unicode tag") {
+    auto r = tagValidDetailed("тег1", cfg);
+    REQUIRE(r.valid);
   }
 
-  SECTION("EmailIsMoreThanMaxValidLenExpectedFalse") {
-    const int maxValidEmailLen = DISC::kMaxEmailLocalPartLength;
-    QString email = QString(maxValidEmailLen + 1, 'a') + DISC::kEmailDomain;
-
-    REQUIRE(DataInputService::emailValid(email) == false);
+  SECTION("Mixed valid/invalid pattern") {
+    auto r = tagValidDetailed("tag_name-1.", cfg);
+    REQUIRE(r.valid);
   }
 
-  SECTION("EmailWithEmptyCharaverExpectedFalse") {
-    QString email = "rom a@gmailcom";
-    REQUIRE(DataInputService::emailValid(email) == false);
+  SECTION("Invalid symbol") {
+    auto r = tagValidDetailed("tag!name", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Tag contains invalid character");
   }
-  SECTION("EmailWithEmptyCharaverInfrontExpectedFalse") {
-    QString email = "     roma@gmailcom";
-    REQUIRE(DataInputService::emailValid(email) == false);
+}
+
+TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, boundaries", "[email]") {
+  Config cfg;
+  cfg.kMinEmailLocalPartLength = 1;
+  cfg.kMaxEmailLocalPartLength = 64;
+
+  SECTION("Simple valid") {
+    auto r = emailValidDetailed("user@gmail.com", cfg);
+    REQUIRE(r.valid);
+  }
+
+  SECTION("Plus alias") {
+    auto r = emailValidDetailed("user+alias@gmail.com", cfg);
+    REQUIRE(r.valid);
+  }
+
+  SECTION("Quoted local") {
+    auto r = emailValidDetailed("\"john..doe\"@gmail.com", cfg);
+    REQUIRE(r.valid);
+  }
+
+  SECTION("Local part too long") {
+    QString local(cfg.kMaxEmailLocalPartLength + 1, 'a');
+    auto r = emailValidDetailed(local + "@gmail.com", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Local part too long");
+  }
+
+  SECTION("Local part too short") {
+    auto r = emailValidDetailed("@gmail.com", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Local part is empty");
+  }
+
+  SECTION("Missing at") {
+    auto r = emailValidDetailed("notanemail", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Email does not contain @");
+  }
+
+  SECTION("Empty domain") {
+    auto r = emailValidDetailed("user@", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Domain is empty");
+  }
+
+  SECTION("Invalid email") {
+    auto r = emailValidDetailed("user@gmaill.com", cfg);
+    REQUIRE(!r.valid);
+    REQUIRE(r.message == "Invalid domain");
   }
 }
 
-TEST_CASE("Testing name in datainputservice", "[auth][name]") {
-  SECTION("EmptyNameExpectedFalse") {
-    QString name = "";
-    REQUIRE(DataInputService::nameValid(name) == false);
+
+TEST_CASE("Chained validation - form level", "[form]") {
+  Config cfg;
+  SECTION("Good request expected result is valid") {
+    SignUpRequest good_request{.name = "John Doe", .email = "john+dev@gmail.com", .password = "GoodP@ss1", .tag = "dev_tag"};
+    auto r = validateRegistrationUserInput(good_request, cfg);
+    LOG_WARN("Message: {}", r.message.toStdString());
+    REQUIRE(r.valid);
   }
 
-  SECTION("NameMoreThanMaxValidNameLengthExpectedFalse") {
-    const int maxValidNameLength = DISC::kMaxLenOfName;
-    QString name = QString(maxValidNameLength + 1, 'a');
-
-    REQUIRE(DataInputService::nameValid(name) == false);
+  SECTION("Request with invalid name expected valid error message") {
+    SignUpRequest bad_name_request{.name = "", .email = "john+dev@example.com", .password = "GoodP@ss1", .tag = "dev_tag"};
+    auto r2 = validateRegistrationUserInput(bad_name_request, cfg);
+    REQUIRE(!r2.valid);
+    LOG_WARN("Message: {}", r2.message.toStdString());
+    REQUIRE(r2.message == "Name is empty");
   }
 
-  SECTION("NameLessThanMinValidNameLengthExpectedFalse") {
-    const int minValidNameLength = DISC::kMinLenOfName;
-    QString name = QString(minValidNameLength - 1, 'a');
+  SECTION("Request with invalid email expected valid error message") {
+    SignUpRequest bad_email_request{.name = "John Doe", .email = "invalidemail", .password = "GoodP@ss1", .tag = "dev_tag"};
+    auto r3 = validateRegistrationUserInput(bad_email_request, cfg);
+    REQUIRE(!r3.valid);
+    LOG_WARN("Message: {}", r3.message.toStdString());
+    REQUIRE(r3.message == "Email does not contain @");
+  }
 
-    REQUIRE(DataInputService::nameValid(name) == false);
+  SECTION("Request with invalid password expected valid error message") {
+    SignUpRequest bad_password_request{.name = "John Doe", .email = "john@gmail.com", .password = "short", .tag = "dev_tag"};
+    auto r4 = validateRegistrationUserInput(bad_password_request, cfg);
+    REQUIRE(!r4.valid);
+    LOG_WARN("Message: {}", r4.message.toStdString());
+    REQUIRE(r4.message == "Password is too short");
+  }
+
+  SECTION("Request with invalid tag expected valid error message") {
+    SignUpRequest bad_tag_request{.name = "John Doe", .email = "john@gmail.com", .password = "GoodP@ss1", .tag = "_tag"};
+    auto r5 = validateRegistrationUserInput(bad_tag_request, cfg);
+    REQUIRE(!r5.valid);
+    LOG_WARN("Message from tag: {}", r5.message.toStdString());
+    REQUIRE(r5.message == "First character must be letter or number");
   }
 }
+
+TEST_CASE("Parameterized invalid passwords", "[password][param]") {
+  Config cfg;
+  cfg.kMinPasswordLength = 6;
+  cfg.kMaxPasswordLength = 12;
+
+  auto password_sample = GENERATE("short", "has space", "bad|char", "\nnewline");
+  auto r = passwordValidDetailed(password_sample, cfg);
+  REQUIRE(!r.valid);
+}
+
+
+
+
