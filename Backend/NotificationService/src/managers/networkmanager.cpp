@@ -1,4 +1,4 @@
-#include "networkmanager.h"
+#include "managers/networkmanager.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>

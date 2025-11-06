@@ -1,9 +1,9 @@
-#include "notificationmanager.h"
+#include "managers/notificationmanager.h"
 
 #include "Debug_profiling.h"
-#include "networkmanager.h"
+#include "managers/networkmanager.h"
 #include "rabbitmqclient.h"
-#include "socketmanager.h"
+#include "managers/socketmanager.h"
 
 const std::string kMessageSaved = "message_saved";
 const std::string kSaveMessage = "save_message";

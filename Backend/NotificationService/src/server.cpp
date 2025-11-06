@@ -2,7 +2,7 @@
 
 #include <crow/crow.h>
 
-#include "notificationmanager.h"
+#include "managers/notificationmanager.h"
 
 Server::Server(int port, NotificationManager& notification_manager)
     : notification_manager_(notification_manager), notification_port_(port) {

@@ -1,8 +1,8 @@
 #ifndef BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 #define BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 
-#include "Message.h"
-#include "MessageStatus.h"
+#include "entities/Message.h"
+#include "entities/MessageStatus.h"
 #include "RabbitMQClient/rabbitmqclient.h"
 #include "socketmanager.h"
 

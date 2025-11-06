@@ -2,8 +2,8 @@
 #include <crow.h>
 
 #include "Debug_profiling.h"
-#include "notificationmanager.h"
-#include "networkmanager.h"
+#include "managers/notificationmanager.h"
+#include "managers/networkmanager.h"
 #include "rabbitmqclient.h"
 #include "server.h"
 
