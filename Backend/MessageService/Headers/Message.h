@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <tuple>
+#include <crow/crow.h>
 
 #include "Meta.h"
 
@@ -106,6 +107,59 @@ inline void from_json(const nlohmann::json& json_message, Message& message) {
   json_message.at("text").get_to(message.text);
   json_message.at("timestamp").get_to(message.timestamp);
   json_message.at("local_id").get_to(message.local_id);
+}
+
+inline crow::json::wvalue to_crow_json(const Message& message) {
+  crow::json::wvalue json_message;
+  LOG_INFO(
+      "[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | "
+      "timestamp '{}'",
+      message.id, message.chat_id, message.sender_id, message.text,
+      message.timestamp);
+  json_message["id"] = message.id;
+  json_message["chat_id"] = message.chat_id;
+  json_message["sender_id"] = message.sender_id;
+  json_message["text"] = message.text;
+  json_message["timestamp"] = QDateTime::fromSecsSinceEpoch(message.timestamp)
+                                  .toString(Qt::ISODate)
+                                  .toStdString();
+  json_message["local_id"] = message.local_id;
+  LOG_INFO("Local_id for text {} is {}", message.text, message.local_id);
+  return json_message;
+}
+
+inline Message from_crow_json(const crow::json::rvalue& json_message) {
+  Message message;
+  if (json_message.count("id")) {
+    message.id = json_message["id"].i();
+  } else {
+    message.id = 0;
+  }
+
+  message.chat_id = json_message["chat_id"].i();
+  message.sender_id = json_message["sender_id"].i();
+  message.text = json_message["text"].s();
+  message.local_id = json_message["local_id"].s();
+  LOG_INFO("[Message] For text: {}, Local_id = ", message.text, message.local_id);
+
+  if (json_message.count("timestamp")) {
+    QString timestamp = QString::fromStdString(json_message["timestamp"].s());
+    QDateTime datetime = QDateTime::fromString(timestamp, Qt::ISODate);
+    if (!datetime.isValid()) {
+      message.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
+    } else {
+      message.timestamp = datetime.toSecsSinceEpoch();
+    }
+  } else {
+    message.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
+  }
+
+  LOG_INFO(
+      "[Message from json] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' "
+      "| timestamp '{}'",
+      message.id, message.chat_id, message.sender_id, message.text,
+      message.timestamp);
+  return message;
 }
 
 #endif  // BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
