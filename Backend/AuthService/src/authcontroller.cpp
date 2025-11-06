@@ -134,7 +134,7 @@ void AuthController::generateKeys() {
 
   try {
     saveInFile(kPrivateKeyFile, private_key);
-    saveInFile(kPrivateKeyFile, private_key);
+    saveInFile(kPublicKeyFile, public_key);
 
     LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
     LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
@@ -142,19 +142,6 @@ void AuthController::generateKeys() {
   } catch(...) {
     LOG_ERROR("Error saving keys");
   }
-
-  std::ofstream privFile(kPrivateKeyFile);
-  if (!privFile) throw std::runtime_error("Cannot open private_key.pem for writing");
-  privFile << private_key;
-  privFile.close();
-
-  std::ofstream publFile(kPublicKeyFile);
-  if (!publFile) throw std::runtime_error("Cannot open public_key.pem for writing");
-  publFile << public_key;
-  publFile.close();
-
-  LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
-  LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
 }
 
 void AuthController::registerUser(const crow::request& req, crow::response& responce) {
@@ -183,3 +170,6 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
     sendResponse(responce, kSuccessfulCode, userToJson(*auth_responce->user, auth_responce->token).dump());
   }
 }
+
+
+

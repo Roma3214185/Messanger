@@ -14,22 +14,16 @@ using std::string;
 OptionalResponce AuthManager::getUser(const string& token) {
   PROFILE_SCOPE("[AuthManager::getUser");
   std::optional<int> user_id_ptr = JwtUtils::verifyTokenAndGetUserId(token);
-  if (!user_id_ptr) {
-    spdlog::error("[getUser] Server can't verify token (NULLPTR)");
+  if (!user_id_ptr || *user_id_ptr == 0) {
+    LOG_ERROR("[getUser] Invalid or exprired token");
     return nullopt;
   }
   int user_id = *user_id_ptr;
-
-  if (user_id == 0) {
-    spdlog::error("[getUser] Server can't verify token (id is zero)");
-    return nullopt;
-  }
-
   LOG_INFO("[getUser] verified id = '{}'", user_id);
 
   auto finded_user = rep.findOne<User>(user_id);
   if (!finded_user) {
-    spdlog::error("User with id not founded; id = '{}'", user_id);
+    LOG_ERROR("User with id not founded; id = '{}'", user_id);
     return nullopt;
   }
 
@@ -38,15 +32,11 @@ OptionalResponce AuthManager::getUser(const string& token) {
 }
 
 OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
-  PROFILE_SCOPE("[AuthManager::loginUser");
-  spdlog::debug("Try login user, email = '{}' and 'password '{}'",
-                login_request.email, login_request.password);
   auto finded_users = rep.findByField<User>(
       "email", QString::fromStdString(login_request.email));
 
-  // find hashedPassword and check
   if (finded_users.empty()) {
-    spdlog::warn("User not found with email '{}'", login_request.email);
+    LOG_WARN("User not found with email '{}'", login_request.email);
     return nullopt;
   }
 
@@ -60,11 +50,10 @@ OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
 }
 
 OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
-  PROFILE_SCOPE("AuthManager::registerUser");
   User user_to_save{
       .username = req.name,
       .tag = req.tag,
-      .email = req.email  // u don't save password now
+      .email = req.email
   };
 
   rep.save(user_to_save);
@@ -74,9 +63,8 @@ OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
 }
 
 std::vector<User> AuthManager::findUserByTag(const string& tag) {
-  PROFILE_SCOPE("AuthManager::findUserByTag");
   auto findedUsers = rep.findByField<User>("tag", QString::fromStdString(tag));
-  // TODO(roma): make "tag" -> User::UserTag
+  // TODO(roma): make "tag" -> User::UserTag |
   return findedUsers;
 }
 
