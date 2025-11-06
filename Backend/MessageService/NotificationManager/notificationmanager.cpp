@@ -3,25 +3,6 @@
 #include "Headers/NetworkManager.h"
 #include "Headers/MessageStatus.h"
 
-inline crow::json::wvalue to_crow_json(const Message& message) {
-  crow::json::wvalue json_message;
-  LOG_INFO(
-      "[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | "
-      "timestamp '{}'",
-      message.id, message.chat_id, message.sender_id,
-      message.text, message.timestamp);
-
-  json_message["id"] = message.id;
-  json_message["chat_id"] = message.chat_id;
-  json_message["sender_id"] = message.sender_id;
-  json_message["text"] = message.text;
-  json_message["timestamp"] = QDateTime::fromSecsSinceEpoch(message.timestamp)
-                       .toString(Qt::ISODate)
-                       .toStdString();
-  json_message["local_id"] = message.local_id;
-  return json_message;
-}
-
 void NotificationManager::notifyMessageRead(int chat_id,
                                             const MessageStatus& status) {
   auto members = NetworkManager::getMembersOfChat(chat_id);

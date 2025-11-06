@@ -40,6 +40,7 @@ add_executable(MessageService
   Headers/MessageStatus.h
   MessageManager/MessageManager.cpp
   Headers/JwtUtils.h
+  Headers/JwtUtils.cpp
 
   #../GenericRepository/SQLiteDatabase.cpp
 )

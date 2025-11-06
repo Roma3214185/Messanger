@@ -9,13 +9,12 @@
 class Controller {
  public:
   Controller(crow::SimpleApp& app, ChatManager* manager);
-  void handleRoutes();
+  void createPrivateChat(const crow::request& req, crow::response& res);
+  void getAllChats(const crow::request& req, crow::response& res);
+  void getAllChatsById(const crow::request& req, crow::response& res, int chat_id);
+  void getAllChatMembers(const crow::request& req, crow::response& res, int chat_id);
 
  private:
-  void handleCreatingPrivateChat();
-  void handleGetAllChats();
-  void handleGetAllChatsById();
-  void handleGetAllChatsMembers();
 
   crow::SimpleApp& app_;
   ChatManager* manager_;

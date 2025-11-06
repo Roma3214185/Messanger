@@ -17,6 +17,9 @@ class Server {
 
  private:
   void handleRoutes();
+  void handleGetMessagesFromChat();
+
+
   crow::SimpleApp app_;
   int port_;
   ControllerPtr controller_;

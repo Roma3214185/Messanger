@@ -18,16 +18,15 @@ class Controller {
  public:
   Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
              MessageManager* manager);
-  void handleRoutes();
+  void getMessagesFromChat(const crow::request& req, int chat_id, crow::response& res);
 
  private:
   void subscribeSaveMessageStatus();
   void subscribeSaveMessage();
-  void handleGetMessagesFromChat();
   void onSendMessage(Message message);
-  std::string getToken(const crow::request& req);
   void handleSaveMessage(const std::string& payload);
   void handleSaveMessageStatus(const std::string& payload);
+  crow::json::wvalue formMessageListJson(const std::vector<Message>& messages, int current_user_id);
 
   std::mutex socket_mutex_;
   crow::SimpleApp& app_;
