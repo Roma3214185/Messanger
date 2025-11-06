@@ -1,7 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "AuthController/authcontroller.h"
+#include "authcontroller.h"
 
 class AuthManager;
 

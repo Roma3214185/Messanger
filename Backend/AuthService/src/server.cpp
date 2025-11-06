@@ -1,7 +1,7 @@
 #include "server.h"
 
 #include "Debug_profiling.h"
-#include "AuthManager/authmanager.h"
+#include "authmanager.h"
 
 Server::Server(int port, AuthManager* manager)
     : port_(port)
