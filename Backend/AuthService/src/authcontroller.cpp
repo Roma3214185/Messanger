@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "Debug_profiling.h"
-#include "RegisterRequest.h"
+#include "entities/RegisterRequest.h"
 #include "JwtUtils.h"
 
 using std::string;
@@ -170,6 +170,3 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
     sendResponse(responce, kSuccessfulCode, userToJson(*auth_responce->user, auth_responce->token).dump());
   }
 }
-
-
-

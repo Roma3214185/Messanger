@@ -6,7 +6,7 @@
 #include <string>
 
 #include "Debug_profiling.h"
-#include "RegisterRequest.h"
+#include "entities/RegisterRequest.h"
 
 using std::nullopt;
 using std::string;
