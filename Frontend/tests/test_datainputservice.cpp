@@ -160,7 +160,6 @@ TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, bo
   }
 }
 
-
 TEST_CASE("Chained validation - form level", "[form]") {
   Config cfg;
   SECTION("Good request expected result is valid") {

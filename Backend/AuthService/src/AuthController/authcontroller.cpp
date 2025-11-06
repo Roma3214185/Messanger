@@ -36,124 +36,83 @@ crow::json::wvalue userToJson(const User& user, const std::string& token = "") {
 AuthController::AuthController(crow::SimpleApp& app, AuthManager* service)
     : app_(app), service_(service) {}
 
-void AuthController::initRoutes() {
-  handleLogin();
-  handleRegister();
-  handleMe();
-  handleFindByTag();
-  handleFindById();
-  spdlog::debug("[authcontroller] routes inited");
+void AuthController::loginUser(const crow::request& req, crow::response& responce) {
+  auto body = crow::json::load(req.body);
+  if (!body) {
+    responce.code = kUserError;
+    responce.write("Invalid Json");
+    responce.end();
+    return;
+  }
+  LoginRequest login_request{
+      .email = body["email"].s(),
+      .password = body["password"].s(),
+  };
+
+  LOG_INFO("[login] user email: '{}' and user password '{}'",
+           login_request.email, login_request.password);
+
+  auto auth_res = service_->loginUser(login_request);
+
+  if (!auth_res) {
+    responce.code = kUserError;
+    responce.write("Invalid credentials");
+  } else {
+    responce.code = kSuccessfulCode;
+    responce.write(userToJson(*auth_res->user, auth_res->token).dump());
+  }
+  responce.end();
 }
 
-void AuthController::handleLogin() {
-  CROW_ROUTE(app_, "/auth/login")
-      .methods("POST"_method)([this](const crow::request& req) -> crow::response {
-        PROFILE_SCOPE("/auth/login");
-        auto body = crow::json::load(req.body);
-        if (!body) {
-          LOG_ERROR("[Login] Invalid Json");
-          return crow::response(kUserError, "Invalid JSON");
-        }
-        LoginRequest login_request{
-            .email = body["email"].s(),
-            .password = body["password"].s(),
-        };
-        LOG_INFO("[login] user email: '{}' and user password '{}'",
-                 login_request.email, login_request.password);
-
-        auto authRes = service_->loginUser(login_request);
-
-        if (!authRes) {
-          LOG_ERROR("[login] invalid credentials");
-          return crow::response(kUserError, "Invalid credentials");
-        }
-        LOG_ERROR("[login] successfull: name '{}' | id '{}' | tag '{}'",
-                  (*authRes->user).username, (*authRes->user).id,
-                  (*authRes->user).tag);
-        return crow::response(kSuccessfulCode, userToJson(*authRes->user, authRes->token));
-      });
+void AuthController::handleMe(const crow::request& req, crow::response& responce) {
+  auto authRes = verifyToken(req);
+  if (!authRes) {
+    responce.code = kUserError;
+    responce.write("Invalid or expired token");
+  } else {
+    responce.code = kSuccessfulCode;
+    responce.write(userToJson(*authRes->user, authRes->token).dump());
+  }
+  responce.end();
 }
 
-void AuthController::handleMe() {
-  CROW_ROUTE(app_, "/auth/me")
-      .methods("GET"_method)([this](const crow::request& req) -> crow::response  {
-        PROFILE_SCOPE("/auth/me");
-        auto authRes = verifyToken(req);
-        if (!authRes) {
-          LOG_ERROR("Ivalid or expired token");
-          return crow::response(kUserError, "Invalid or expired token");
-        }
-        return crow::response(userToJson(*authRes->user, authRes->token));
-      });
+void AuthController::findByTag(const crow::request& req, const std::string& tag, crow::response& responce) {
+  if (tag.empty()) {
+    responce.code = kUserError;
+    responce.write("Missing tag parametr");
+    responce.end();
+    return;
+  }
+
+  auto listOfUsers = service_->findUserByTag(tag);
+  LOG_INFO("With tag '{}' was finded '{}' users", tag,
+           listOfUsers.size());
+
+  crow::json::wvalue json_users;
+  json_users["users"] = crow::json::wvalue::list();
+
+  size_t idx = 0;
+  for (const auto& user : listOfUsers) {
+    auto userJson = userToJson(user);
+    json_users["users"][idx++] = std::move(userJson["user"]);
+  }
+
+  responce.code = kSuccessfulCode;
+  responce.write(json_users.dump());
+  responce.end();
 }
 
-void AuthController::handleRegister() {
-  CROW_ROUTE(app_, "/auth/register")
-      .methods(crow::HTTPMethod::Post)([this](const crow::request& req) -> crow::response  {
-        PROFILE_SCOPE("/auth/register");
-        auto body = crow::json::load(req.body);
-        if (!body) {
-          LOG_ERROR("[register] invalid json");
-          return crow::response(kUserError, "Invalid JSON");
-        }
-
-        auto regReq = RegisterRequest{.email = body["email"].s(),
-                                      .password = body["password"].s(),
-                                      .name = body["name"].s(),
-                                      .tag = body["tag"].s()};
-
-        auto authRes = service_->registerUser(regReq);
-        if (!authRes) {
-          LOG_ERROR("[register] User already exists");
-          return crow::response(kUserError, "User already exists");
-        }
-
-        LOG_INFO("[register] user (id='{}' ", authRes->user->id);
-        return crow::response(userToJson(*authRes->user, authRes->token));
-      });
-}
-
-void AuthController::handleFindByTag() {
-  CROW_ROUTE(app_, "/users/search")
-      .methods(crow::HTTPMethod::GET)([this](const crow::request& req) -> crow::response  {
-        PROFILE_SCOPE("[/users/search]");
-        auto tag = req.url_params.get("tag");
-        if (!tag) {
-          LOG_ERROR("Missing tag parametr");
-          return crow::response(kUserError, "Missing 'tag' parameter");
-        }
-
-        auto listOfUsers = service_->findUserByTag(tag);
-        LOG_INFO("With tag '{}' was finded '{}' users", tag,
-                 listOfUsers.size());
-
-        crow::json::wvalue res;
-        res["users"] = crow::json::wvalue::list();
-
-        size_t idx = 0;
-        for (const auto& user : listOfUsers) {
-          auto userJson = userToJson(user);
-          res["users"][idx++] = std::move(userJson["user"]);
-        }
-
-        return crow::response(kSuccessfulCode, res);
-      });
-}
-
-void AuthController::handleFindById() {
-  CROW_ROUTE(app_, "/users/<int>")
-      .methods(crow::HTTPMethod::GET)(
-          [this](const crow::request& req, int user_id) -> crow::response  {
-            PROFILE_SCOPE("/users/id");
-            auto found_user = service_->findUserById(user_id);
-            if (!found_user) {
-              LOG_ERROR("[handleById] User not found with id '{}'", user_id);
-              return crow::response{kUserError, "Users not found"};
-            }
-            LOG_INFO("[handleById] User found with id '{}' and name {}", found_user->id, found_user->username);
-            auto user_json = userToJson(*found_user);
-            return crow::response(kSuccessfulCode, user_json["user"]);
-          });
+void AuthController::findById(const crow::request& req, int user_id, crow::response& responce) {
+  auto found_user = service_->findUserById(user_id);
+  if (!found_user) {
+    responce.code = kUserError;
+    responce.write("Users not found");
+  } else {
+    auto user_json = userToJson(*found_user);
+    responce.code = kSuccessfulCode;
+    responce.write(user_json["user"].dump());
+  }
+  responce.end();
 }
 
 std::optional<AuthResponce> AuthController::verifyToken(
@@ -186,4 +145,36 @@ void AuthController::generateKeys() {
 
   LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
   LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
+}
+
+void AuthController::registerUser(const crow::request& req, crow::response& responce) {
+  auto body = crow::json::load(req.body);
+  if (!body) {
+    responce.code = kUserError;
+    responce.write("Invalid json");
+    responce.end();
+    return;
+  }
+
+  RegisterRequest register_request;
+  register_request.email = body["email"].s();
+  register_request.password = body["password"].s();
+  register_request.name = body["name"].s();
+  register_request.tag = body["tag"].s();
+
+  LOG_INFO("Registe user (email: {}) | (password : {}) | (name : {}) | (tag: {})",
+           register_request.email,
+           register_request.password,
+           register_request.name,
+           register_request.tag);
+
+  auto auth_responce = service_->registerUser(register_request);
+  if (!auth_responce) {
+    responce.code = kUserError;
+    responce.write("User already exist");
+  } else {
+    responce.code = kSuccessfulCode;
+    responce.write(userToJson(*auth_responce->user, auth_responce->token).dump());
+  }
+  responce.end();
 }
