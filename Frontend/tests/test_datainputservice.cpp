@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 
-#include "DataInputService/datainputservice.h"
+#include "../include/DataInputService.h"
 
 using namespace std;
 using namespace DataInputService;

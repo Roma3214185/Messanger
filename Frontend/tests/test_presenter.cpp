@@ -1,13 +1,15 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
-#include "../src/Presenter/presenter.h"
-#include "../src/headers/IMainWindow.h"
-#include "../src/NetworkAccessManager/MockAccessManager.h"
-#include "../src/Model/model.h"
-#include "headers/MessageListView.h"
-#include "QUrl"
-//#include "headers/MockCash.h"
+
+#include <QUrl>
 #include <QCoreApplication>
+
+#include "presenter.h"
+#include "interfaces/IMainWindow.h"
+#include "mocks/MockAccessManager.h"
+#include "model.h"
+#include "MessageListView.h"
+//#include "headers/MockCash.h"
 
 // class MockMainWindow : public IMainWindow
 // {

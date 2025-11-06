@@ -3,9 +3,9 @@
 #include <QJsonArray>
 #include <QSignalSpy>
 
-#include "headers/JsonService.h"
-#include "headers/FakeSocket.h"
-#include "SocketManager/socketmanager.h"
+#include "JsonService.h"
+#include "mocks/FakeSocket.h"
+#include "managers/socketmanager.h"
 
 TEST_CASE("Test socket") {
   FakeSocket fakesocket;

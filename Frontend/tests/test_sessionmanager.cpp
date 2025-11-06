@@ -6,10 +6,10 @@
 #include <QSignalSpy>
 #include <QMetaType>
 
-#include "NetworkManagers/SessionManager/sessionmanager.h"
-#include "NetworkAccessManager/MockAccessManager.h"
-#include "headers/SignUpRequest.h"
-#include "headers/User.h"
+#include "managers/sessionmanager.h"
+#include "mocks/MockAccessManager.h"
+#include "dto/SignUpRequest.h"
+#include "dto/User.h"
 
 const QUrl url_auth_service("http://localhost:8083/");
 const QUrl url_apigate_service("http://localhost:8084");

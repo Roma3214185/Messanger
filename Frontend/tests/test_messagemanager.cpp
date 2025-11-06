@@ -6,9 +6,9 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
-#include "NetworkManagers/MessageManager/messagemanager.h"
-#include "NetworkAccessManager/MockAccessManager.h"
-#include "headers/JsonService.h"
+#include "managers/messagemanager.h"
+#include "mocks/MockAccessManager.h"
+#include "JsonService.h"
 
 class TestMessageManager : public MessageManager {
   public:
@@ -38,7 +38,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     auto last_url = network_manager.last_request.url();
     REQUIRE(last_url.toString().startsWith("http://localhost:8081/messages/42"));
     REQUIRE(last_url.query().contains("limit=50"));
-    REQUIRE(last_url.query().contains("beforeId=100"));
+    REQUIRE(last_url.query().contains("before_id=100"));
   }
 
   SECTION("No response from server emits timeout error and returns empty list") {

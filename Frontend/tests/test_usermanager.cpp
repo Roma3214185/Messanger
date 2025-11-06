@@ -8,8 +8,8 @@
 #include <QByteArray>
 #include <QJsonArray>
 
-#include "NetworkManagers/UserManager/usermanager.h"
-#include "NetworkAccessManager/MockAccessManager.h"
+#include "managers/usermanager.h"
+#include "mocks/MockAccessManager.h"
 
 class TestUserManager : public UserManager {
   public:
