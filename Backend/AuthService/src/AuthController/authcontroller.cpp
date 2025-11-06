@@ -31,6 +31,19 @@ crow::json::wvalue userToJson(const User& user, const std::string& token = "") {
   return res;
 }
 
+void sendResponse(crow::response& res, int code, const std::string& text) {
+  res.code = code;
+  res.write(text);
+  res.end();
+}
+
+void saveInFile(const std::string& file_name, const std::string& key) {
+  std::ofstream file(file_name);
+  if (!file) throw std::runtime_error("Cannot open file for writing");
+  file << key;
+  file.close();
+}
+
 }  // namespace
 
 AuthController::AuthController(crow::SimpleApp& app, AuthManager* service)
@@ -39,9 +52,7 @@ AuthController::AuthController(crow::SimpleApp& app, AuthManager* service)
 void AuthController::loginUser(const crow::request& req, crow::response& responce) {
   auto body = crow::json::load(req.body);
   if (!body) {
-    responce.code = kUserError;
-    responce.write("Invalid Json");
-    responce.end();
+    sendResponse(responce, kUserError, "Invalid Json");
     return;
   }
   LoginRequest login_request{
@@ -55,32 +66,24 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
   auto auth_res = service_->loginUser(login_request);
 
   if (!auth_res) {
-    responce.code = kUserError;
-    responce.write("Invalid credentials");
+    sendResponse(responce, kUserError, "Invalid credentials");
   } else {
-    responce.code = kSuccessfulCode;
-    responce.write(userToJson(*auth_res->user, auth_res->token).dump());
+    sendResponse(responce, kSuccessfulCode, userToJson(*auth_res->user, auth_res->token).dump());
   }
-  responce.end();
 }
 
 void AuthController::handleMe(const crow::request& req, crow::response& responce) {
   auto authRes = verifyToken(req);
   if (!authRes) {
-    responce.code = kUserError;
-    responce.write("Invalid or expired token");
+    sendResponse(responce, kUserError, "Invalid or expired token");
   } else {
-    responce.code = kSuccessfulCode;
-    responce.write(userToJson(*authRes->user, authRes->token).dump());
+    sendResponse(responce, kSuccessfulCode, userToJson(*authRes->user, authRes->token).dump());
   }
-  responce.end();
 }
 
 void AuthController::findByTag(const crow::request& req, const std::string& tag, crow::response& responce) {
   if (tag.empty()) {
-    responce.code = kUserError;
-    responce.write("Missing tag parametr");
-    responce.end();
+    sendResponse(responce, kUserError, "Missing tag parametr");
     return;
   }
 
@@ -97,22 +100,17 @@ void AuthController::findByTag(const crow::request& req, const std::string& tag,
     json_users["users"][idx++] = std::move(userJson["user"]);
   }
 
-  responce.code = kSuccessfulCode;
-  responce.write(json_users.dump());
-  responce.end();
+  sendResponse(responce, kSuccessfulCode, json_users.dump());
 }
 
 void AuthController::findById(const crow::request& req, int user_id, crow::response& responce) {
   auto found_user = service_->findUserById(user_id);
   if (!found_user) {
-    responce.code = kUserError;
-    responce.write("Users not found");
+    sendResponse(responce, kUserError, "Users not found");
   } else {
     auto user_json = userToJson(*found_user);
-    responce.code = kSuccessfulCode;
-    responce.write(user_json["user"].dump());
+    sendResponse(responce, kSuccessfulCode, user_json["user"].dump());
   }
-  responce.end();
 }
 
 std::optional<AuthResponce> AuthController::verifyToken(
@@ -133,6 +131,18 @@ void AuthController::generateKeys() {
 
   auto [private_key, public_key] = JwtUtils::generate_rsa_keys();
   std::filesystem::create_directories(kKeysDir);
+
+  try {
+    saveInFile(kPrivateKeyFile, private_key);
+    saveInFile(kPrivateKeyFile, private_key);
+
+    LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
+    LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
+
+  } catch(...) {
+    LOG_ERROR("Error saving keys");
+  }
+
   std::ofstream privFile(kPrivateKeyFile);
   if (!privFile) throw std::runtime_error("Cannot open private_key.pem for writing");
   privFile << private_key;
@@ -150,9 +160,7 @@ void AuthController::generateKeys() {
 void AuthController::registerUser(const crow::request& req, crow::response& responce) {
   auto body = crow::json::load(req.body);
   if (!body) {
-    responce.code = kUserError;
-    responce.write("Invalid json");
-    responce.end();
+    sendResponse(responce, kUserError, "Invalid json");
     return;
   }
 
@@ -170,11 +178,8 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
 
   auto auth_responce = service_->registerUser(register_request);
   if (!auth_responce) {
-    responce.code = kUserError;
-    responce.write("User already exist");
+    sendResponse(responce, kUserError, "User already exist");
   } else {
-    responce.code = kSuccessfulCode;
-    responce.write(userToJson(*auth_responce->user, auth_responce->token).dump());
+    sendResponse(responce, kSuccessfulCode, userToJson(*auth_responce->user, auth_responce->token).dump());
   }
-  responce.end();
 }
