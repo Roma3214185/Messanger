@@ -21,44 +21,29 @@ class RedisCache : public ICacheService {
   void incr(const std::string& key) override;
   void remove(const std::string& key) override;
   bool exists(const std::string& key) override;
-
   void clearPrefix(const std::string& prefix);
 
-  template <typename T>
-  void saveEntities(const std::vector<T>& results, std::string table_name,
+  void setPipelines(const std::vector<std::string>& keys, const std::vector<nlohmann::json>& results,
                     std::chrono::minutes ttl = std::chrono::minutes(30));
 
-  template <typename T>
-  void saveEntity(const T& entity, std::string table_name,
-                  std::chrono::minutes ttl = std::chrono::minutes(30));
+  void set(const std::string& key, const nlohmann::json& value,
+           std::chrono::milliseconds ttl = std::chrono::minutes(30)) override;
 
-  template <typename T, typename Duration = std::chrono::hours>
-  void set(const std::string& key, const T& value,
-           Duration ttl = std::chrono::hours(24));
-
-  template <typename T>
-  std::optional<T> get(const std::string& key);
+  std::optional<nlohmann::json> get(const std::string& key) override;
 
  private:
   std::unique_ptr<sw::redis::Redis> redis_;
   std::mutex init_mutex_;
 
-  template <typename T>
-  std::string buildEntityKey(const T& entity, std::string table_name) const;
+  // template <typename T>
+  // std::string buildEntityKey(const T& entity, std::string table_name) const;
 
-  template <typename T>
-  long long getEntityId(const T& entity) const;
+  // template <typename T>
+  // long long getEntityId(const T& entity) const;
 
   sw::redis::Redis& getRedis();
 
-  template <typename T>
-  std::string serialize(const T& value);
-
-  template <typename T>
-  T deserialize(const std::string& str);
-
-  template <typename Duration>
-  int getTtlWithJitter(Duration ttl);
+  int getTtlWithJitter(std::chrono::seconds ttl);
 
   void logError(const std::string& action, const std::string& key,
                 const std::exception& e);
@@ -68,6 +53,5 @@ class RedisCache : public ICacheService {
   RedisCache& operator=(const RedisCache&) = delete;
 };
 
-#include "RedisCache.inl"
 
 #endif  // BACKEND_REDISCACHE_REDISCACHE_H_
