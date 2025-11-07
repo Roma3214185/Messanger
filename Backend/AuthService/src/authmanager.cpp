@@ -56,7 +56,8 @@ OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
       .email = req.email
   };
 
-  rep.save(user_to_save);
+  bool saved = rep.save(user_to_save);
+  if(!saved) return std::nullopt;
   auto token = JwtUtils::generateToken(user_to_save.id);
 
   return AuthResponce{.token = token, .user = user_to_save};

@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
     SQLiteDatabase bd;
     SqlExecutor executor(bd);
-    GenericRepository genetic_rep(executor, RedisCache::instance());
+    GenericRepository genetic_rep(bd, executor, RedisCache::instance());
 
     SaverBatcher<Message> message_saver_batcher(genetic_rep);
     SaverBatcher<MessageStatus> message_status_saver_batcher(genetic_rep);

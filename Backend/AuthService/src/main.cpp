@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     SQLiteDatabase db;
     SqlExecutor executor(db);
-    GenericRepository rep(executor, RedisCache::instance());
+    GenericRepository rep(db, executor, RedisCache::instance());
 
     AuthManager manager(rep);
 

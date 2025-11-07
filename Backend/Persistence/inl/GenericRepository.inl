@@ -1,5 +1,9 @@
 #pragma once
 
+#include "SqlBuilder.h"
+#include "RedisCache/ICacheService.h"
+#include "interfaces/ISqlExecutor.h"
+
 template <typename T>
 inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) const {
   std::any val = f.get(&entity);
@@ -24,13 +28,6 @@ inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) co
   return {};
 }
 
-
-
-#include "SqlBuilder.h"
-#include "RedisCache/ICacheService.h"
-#include "interfaces/ISqlExecutor.h"
-
-
 template <typename T>
 bool GenericRepository::save(T& entity) {
   PROFILE_SCOPE("[repository] Save");
@@ -51,28 +48,9 @@ bool GenericRepository::save(T& entity) {
   if (need_to_return_id && !updateEntityIdFromQuery(entity, query, idField))
       return false;
 
-  //TODO: signal entity added - to update cache;
-
   cache_.incr(std::string("table_generation:") + meta.table_name);
   return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 template <typename T>
 bool GenericRepository::updateEntityIdFromQuery(T& entity, QSqlQuery& query, const Field* idField) {
@@ -88,35 +66,6 @@ bool GenericRepository::updateEntityIdFromQuery(T& entity, QSqlQuery& query, con
   cache_.remove(makeKey<T>(new_id));
   return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 template <typename T>
 void GenericRepository::save(std::vector<T>& entities) {
@@ -214,40 +163,36 @@ std::future<std::optional<T>> GenericRepository::findOneWithOutCacheAsync(long l
 
 template <typename T>
 std::optional<T> GenericRepository::findOne(long long entity_id) {
-  // PROFILE_SCOPE("[repository] FindOne");
-  // const std::string key = makeKey<T>(entity_id);
-  // if (auto cache_d = cache_.get<T>(key)) {
-  //   LOG_INFO("[repository] [cache_ HIT] key = '{}'", key);
-  //   return cache_d;
-  // }
-  // LOG_INFO("[repository] cashe not hit key = '{}'", key);
+  PROFILE_SCOPE("[repository] FindOne");
+  const std::string key = makeKey<T>(entity_id);
+  if (auto cached = cache_.get(key)) {
+    LOG_INFO("[repository] [cache_ HIT] key = '{}'", key);
+    return cached;
+  }
 
-  // QSqlDatabase thread_database = database_.getThreadDatabase();
-  // auto meta = Reflection<T>::meta();
+  LOG_INFO("[repository] cashe not hit key = '{}'", key);
 
-  // QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.table_name);
-  // std::string stmtKey = std::string(meta.table_name) + ":findOne";
+  QSqlDatabase thread_database = database_.getThreadDatabase();
+  auto meta = Reflection<T>::meta();
 
-  // //auto& query = getPreparedQuery(stmtKey, sql);
-  // QSqlQuery query(thread_database);
-  // query.prepare(sql);
+  QString sql = QString("SELECT * FROM %1 WHERE id = ?").arg(meta.table_name);
+  std::string stmtKey = std::string(meta.table_name) + ":findOne";
 
-  // query.bindValue(0, entity_id);
+  QSqlQuery query(thread_database);
+  if(!executor_.execute(sql, {entity_id}, query)) {
+    LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
+              query.lastError().text().toStdString());
+    return std::nullopt;
+  }
 
-  // if (!query.exec()) {
-  //   LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
-  //             query.lastError().text().toStdString());
-  //   return std::nullopt;
-  // }
+  if (!query.next()) {
+    LOG_WARN("[repository] no rows found in '{}'", meta.table_name);
+    return std::nullopt;
+  }
 
-  // if (!query.next()) {
-  //   LOG_WARN("[repository] no rows found in '{}'", meta.table_name);
-  //   return std::nullopt;
-  // }
-
-  // T entity = buildEntity<T>(query);
-  // cache_.set(key, entity);
-  // return entity;
+  T entity = buildEntity<T>(query);
+  cache_.set(key, entity);
+  return entity;
 }
 
 template <typename T>
@@ -282,27 +227,24 @@ void GenericRepository::deleteEntity(T& entity) {
 }
 
 template <typename T>
-void GenericRepository::deleteById(long long id) {
-  // PROFILE_SCOPE("[repository] DeleteById");
-  // auto meta = Reflection<T>::meta();
-  // QString sql = QString("DELETE FROM %1 WHERE id = ?")
-  //                   .arg(QString::fromStdString(meta.table_name));
+void GenericRepository::deleteById(long long entity_id) {
+  PROFILE_SCOPE("[repository] DeleteById");
+  auto meta = Reflection<T>::meta();
+  QString sql = QString("DELETE FROM %1 WHERE id = ?")
+                    .arg(QString::fromStdString(meta.table_name));
 
-  // std::string stmKey = meta.table_name + std::string(":deleteById");
-  // // auto& query = getPreparedQuery(stmKey, sql);
-  // QSqlQuery query(database_.getThreadDatabase());
-  // query.prepare(sql);
+  std::string stmKey = meta.table_name + std::string(":deleteById");
 
-  // query.bindValue(0, id);
 
-  // if (!query.exec()) {
-  //   LOG_ERROR("[repository] Delete failed: '{}'",
-  //             query.lastError().text().toStdString());
-  //   throw std::runtime_error("Delete failed: " +
-  //                            query.lastError().text().toStdString());
-  // }
-  // cache_.incr(std::string("table_generation:") + meta.table_name);
-  // cache_.remove(makeKey<T>(id));
+  QSqlQuery query(database_.getThreadDatabase());
+  if(!executor_.execute(sql, {entity_id}, query)) {
+    LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
+              query.lastError().text().toStdString());
+    return;
+  }
+
+  cache_.incr(std::string("table_generation:") + meta.table_name);
+  cache_.remove(makeKey<T>(entity_id));
 }
 
 template <typename T>
@@ -401,13 +343,13 @@ void GenericRepository::truncate() {
 
 template <typename T>
 Query<T> GenericRepository::query() {
-  //return Query<T>(this->database_);
+  return Query<T>(this->database_);
 }
 
 template <typename T>
 T GenericRepository::buildEntity(QSqlQuery& query, BuilderType type) const {
-  //auto builder = makeBuilder<T>(type);
-  //return builder->build(query);
+  auto builder = makeBuilder<T>(type);
+  return builder->build(query);
 }
 
 template <typename T>
@@ -417,46 +359,46 @@ std::string GenericRepository::makeKey(const T& entity) const {
 
 template <typename T>
 std::string GenericRepository::makeKey(long long id) const {
-  //return "entity_cache_:" + std::string(Reflection<T>::meta().table_name) +
-  //       ":" + std::to_string(id);
+  return "entity_cache_:" + std::string(Reflection<T>::meta().table_name) +
+        ":" + std::to_string(id);
 }
 
 template <typename T>
 long long GenericRepository::getId(const T& obj) const {
-  //auto meta = Reflection<T>::meta();
-  //if (auto f = meta.find("id")) return std::any_cast<long long>(f->get(&obj));
-  //return 0;
+  auto meta = Reflection<T>::meta();
+  if (auto f = meta.find("id")) return std::any_cast<long long>(f->get(&obj));
+  return 0;
 }
 
 template <typename T>
 QStringList GenericRepository::buildUpdateParts(const Meta& meta, const T& entity,
                              QList<QVariant>& values) {
-  // QStringList sets;
-  // for (const auto& f : meta.fields) {
-  //   if (std::string(f.name) == "id" &&
-  //       std::string(meta.table_name) != "messages_status" &&
-  //       std::string(meta.table_name) != "chat_members" &&
-  //       std::string(meta.table_name) != "credentials")
-  //     continue;
-  //   sets << QString("%1 = ?").arg(f.name);
-  //   values << toVariant(f, entity);
-  // }
-  // return sets;
+  QStringList sets;
+  for (const auto& f : meta.fields) {
+    if (std::string(f.name) == "id" &&
+        std::string(meta.table_name) != "messages_status" &&
+        std::string(meta.table_name) != "chat_members" &&
+        std::string(meta.table_name) != "credentials")
+      continue;
+    sets << QString("%1 = ?").arg(f.name);
+    values << toVariant(f, entity);
+  }
+  return sets;
 }
 
 template <typename T>
 inline std::pair<QStringList, QStringList> GenericRepository::buildInsertParts(
     const Meta& meta, const T& entity, QList<QVariant>& values) {
-  // QStringList cols, ph;
-  // for (const auto& f : meta.fields) {
-  //   if (std::string(f.name) == "id" &&  //TODO(roma) make another field id for this tables
-  //       std::string(meta.table_name) != "messages_status" &&
-  //       std::string(meta.table_name) != "chat_members" &&
-  //       std::string(meta.table_name) != "credentials")
-  //     continue;
-  //   cols << f.name;
-  //   ph << "?";
-  //   values << toVariant<T>(f, entity);
-  // }
-  // return {cols, ph};
+  QStringList cols, ph;
+  for (const auto& f : meta.fields) {
+    if (std::string(f.name) == "id" &&  //TODO(roma) make another field id for this tables
+        std::string(meta.table_name) != "messages_status" &&
+        std::string(meta.table_name) != "chat_members" &&
+        std::string(meta.table_name) != "credentials")
+      continue;
+    cols << f.name;
+    ph << "?";
+    values << toVariant<T>(f, entity);
+  }
+  return {cols, ph};
 }

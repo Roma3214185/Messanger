@@ -15,9 +15,9 @@ const int kChatServicePort = 8081;
 int main(int argc, char* argv[]) {
   init_logger("ChatService");
   QCoreApplication a(argc, argv);
-  SQLiteDatabase bd;
-  SqlExecutor executor(bd);
-  GenericRepository genetic_rep(executor, RedisCache::instance());
+  SQLiteDatabase database;
+  SqlExecutor executor(database);
+  GenericRepository genetic_rep(database, executor, RedisCache::instance());
   ChatManager manager(&genetic_rep);
   Server server(kChatServicePort, &manager);
   LOG_INFO("Chat service on port '{}'", kChatServicePort);

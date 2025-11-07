@@ -56,4 +56,5 @@ SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity, bool 
               .arg(QString::fromStdString(meta.table_name))
               .arg(columns.join(", "))
               .arg(placeholders.join(", "));
+  return res;
 }

@@ -36,12 +36,13 @@ class GenericRepository {
   ISqlExecutor& executor_;
   ICacheService& cache_;
   ThreadPool* pool_;
+  IDataBase& database_;
 
   std::unordered_map<std::string, QSqlQuery>
       stmt_cache_;
 
  public:
-  explicit GenericRepository(ISqlExecutor& executor, ICacheService& cache, ThreadPool* pool_ = nullptr);
+  GenericRepository(IDataBase& database, ISqlExecutor& executor, ICacheService& cache, ThreadPool* pool_ = nullptr);
 
   void clearCache();
 
@@ -117,7 +118,7 @@ class GenericRepository {
   template <typename T>
   QVariant toVariant(const Field& f, const T& entity) const;
 
-  std::vector<QList<QVariant>> getValues() const;
+  //std::vector<QList<QVariant>> getValues() const;
 
   template <typename T>
   bool updateEntityIdFromQuery(T& entity, QSqlQuery& query, const Field* idField);

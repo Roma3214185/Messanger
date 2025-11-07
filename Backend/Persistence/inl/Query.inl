@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Persistence/Query.h"
+
 template <typename T>
 Query<T>::Query(IDataBase& db) : db(db) {
   table_name_ = Reflection<T>::meta().table_name;
@@ -47,9 +49,10 @@ std::vector<T> Query<T>::execute() const {
 
   std::string cache_key = createCacheKey(sql, generation_hash, params_hash);
 
-  if (auto cached = cache_.get<std::vector<T>>(cache_key)) {
+  if (auto entity_json = cache_.get(cache_key)) {
     LOG_INFO("[QueryCache] HIT for key '{}'", cache_key);
-    return *cached;
+    auto vector_enitities = entity_json->template get<std::vector<T>>();
+    return vector_enitities;
   }
 
   LOG_INFO("[QueryCache] NOT HITTED for key '{}'", cache_key);
@@ -72,18 +75,21 @@ std::vector<T> Query<T>::execute() const {
     return {};
   }
 
+  auto entities_jsons = std::vector<nlohmann::json>{};
+  auto entities_keys = std::vector<std::string>{};
   auto results = std::vector<T>{};
   auto meta = Reflection<T>::meta();
 
   while (query.next()) {
     T entity = buildEntity(query, meta);
+    std::string entityKey = buildEntityKey(entity);
+
     results.push_back(entity);
+    entities_jsons.push_back(entity);
+    entities_keys.push_back(entityKey);
   }
 
-  cache_.saveEntities(results, table_name_);
-
-  LOG_INFO("Result size is '{}' is setted in cashe for key '{}'",
-           results.size(), cache_key);
+  cache_.setPipelines(entities_keys, entities_jsons);
   cache_.set(cache_key, results, std::chrono::hours(24));
   return results;
 }
@@ -189,8 +195,8 @@ auto Query<T>::getGenerations() const {
   std::unordered_map<std::string, long long> generations;
   for (const auto& table : involved_tables_) {
     std::string key = "table_generation:" + table;
-    auto val = cache_.get<std::string>(key);
-    generations[table] = val ? std::stoll(*val) : 0;
+    std::optional<nlohmann::json> json_ptr = cache_.get(key);
+    generations[table] = json_ptr ? std::stoll(json_ptr->dump()) : 0;
   }
   return generations;
 }

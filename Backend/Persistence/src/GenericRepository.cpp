@@ -16,12 +16,12 @@
 //   }
 // }
 
-GenericRepository::GenericRepository(ISqlExecutor& executor, ICacheService& cache, ThreadPool* pool)
-    : executor_(executor), cache_(cache), pool_(pool) {}
+GenericRepository::GenericRepository(IDataBase& database, ISqlExecutor& executor, ICacheService& cache, ThreadPool* pool)
+    : database_(database), executor_(executor), cache_(cache), pool_(pool) {}
 
 void GenericRepository::clearCache() { } //cache_.clearCache(); }
 
-std::vector<QList<QVariant>> GenericRepository::getValues() const {
+//std::vector<QList<QVariant>> GenericRepository::getValues() const {
   // std::vector<QList<QVariant>> allValues;
   // for (auto& entity : entities) {
   //   auto values = QList<QVariant>{};
@@ -35,4 +35,4 @@ std::vector<QList<QVariant>> GenericRepository::getValues() const {
   //   allValues.push_back(values);
   // }
   // return allValues;
-}
+//}
