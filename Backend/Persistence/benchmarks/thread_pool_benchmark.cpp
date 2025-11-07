@@ -3,8 +3,7 @@
 #include <mutex>
 #include <vector>
 
-#include "GenericRepository.h"
-#include "Meta.h"
+#include "Persistence/GenericRepository.h"
 #include "benchmark/benchmark.h"
 
 static void BM_FindWithCachePercHit(benchmark::State& state) {

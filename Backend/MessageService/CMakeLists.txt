@@ -48,22 +48,13 @@ target_link_libraries(MessageService PRIVATE
   redis++
   spdlog::spdlog
   jwt-cpp
-  RedisCache
-  GenericRepository
+  #RedisCache
+  #Persistance
 )
 
 include_directories(
     ${httplib_SOURCE_DIR}
     ${MESSAGE_SERVICE_INCLUDE_DIR}/
-
-    # ${CMAKE_CURRENT_SOURCE_DIR}
-
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../GenericRepository
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../../GenericRepository
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../RedisCache
 )
 
 

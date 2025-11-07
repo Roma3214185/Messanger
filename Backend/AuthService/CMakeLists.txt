@@ -33,7 +33,7 @@ target_link_libraries(AuthService PRIVATE
   redis++
   TracyClient
   jwt-cpp
-  RedisCache
+  #RedisCache
 )
 
 target_include_directories(AuthService PRIVATE

@@ -1,11 +1,11 @@
 #include <QCoreApplication>
 
 #include "Debug_profiling.h"
-#include "GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 #include "managers/MessageManager.h"
 #include "managers/notificationmanager.h"
 #include "server.h"
-#include "GenericRepository/Batcher.h"
+#include "Persistence/Batcher.h"
 #include "RabbitMQClient/rabbitmqclient.h"
 
 const int MESSAGE_PORT = 8082;

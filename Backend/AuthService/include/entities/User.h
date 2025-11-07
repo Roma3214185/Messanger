@@ -6,7 +6,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 #include "RedisCache.h"
 
 struct User {

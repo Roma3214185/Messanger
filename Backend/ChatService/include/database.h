@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 #include "entities/Chat.h"
 
 using ChatId = int;

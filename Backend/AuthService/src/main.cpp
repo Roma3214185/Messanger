@@ -2,7 +2,7 @@
 
 #include "authmanager.h"
 #include "Debug_profiling.h"
-#include "GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 #include "server.h"
 
 const int AUTH_PORT = 8083;

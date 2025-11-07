@@ -26,6 +26,7 @@ class SQLiteDatabase : public IDataBase {
   void createMessageTable(QSqlDatabase& db);
   void createChatTable(QSqlDatabase& db);
   void createChatMemberTable(QSqlDatabase& database);
+  void createUserCredentialsTable(QSqlDatabase& database);
   void deleteTable(QSqlDatabase& database, const QString& name);
   void initializeSchema();
 

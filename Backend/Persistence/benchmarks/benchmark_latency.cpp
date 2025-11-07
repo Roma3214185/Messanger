@@ -5,7 +5,7 @@
 #include <numeric>
 #include <vector>
 
-#include "GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 
 class MessagePool {
  public:

@@ -1,7 +1,8 @@
-#include "Batcher.h"
-#include "GenericRepository.h"
-#include "ThreadPool.h"
 #include "benchmark/benchmark.h"
+
+#include "Persistence/Batcher.h"
+#include "Persistence/GenericRepository.h"
+#include "Persistence/ThreadPool.h"
 
 static void individualSaving(benchmark::State& state) {
   SQLiteDatabase db;

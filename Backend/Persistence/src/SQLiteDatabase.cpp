@@ -1,4 +1,4 @@
-#include "SQLiteDataBase.h"
+#include "Persistence/SQLiteDataBase.h"
 
 #include <QtSql/QSqlDatabase>
 
@@ -9,6 +9,7 @@ void SQLiteDatabase::initializeSchema() {
   createMessageTable(database);
   createChatTable(database);
   createChatMemberTable(database);
+  createUserCredentialsTable(database);
   LOG_INFO("Database schema initialized successfully");
 }
 
@@ -94,6 +95,24 @@ void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database){
     LOG_ERROR("Error creating chat_members", query.lastError().text().toStdString());
   }
 }
+
+void SQLiteDatabase::createUserCredentialsTable(QSqlDatabase& database){
+  QSqlQuery query(database);
+  //deleteTable(database, "credentials");
+
+  query.prepare(R"(
+        CREATE TABLE IF NOT EXISTS credentials (
+            id INTEGER,
+            hash_password TEXT NOT NULL
+        );
+    )");
+
+  if(!query.exec()) {
+    LOG_ERROR("Error creating credentials", query.lastError().text().toStdString());
+  }
+}
+
+
 
 void SQLiteDatabase::createMessageTable(QSqlDatabase& database) {
   QSqlQuery query(database);

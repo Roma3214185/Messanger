@@ -1,8 +1,8 @@
 #include <QCoreApplication>
 
-#include "GenericRepository.h"
-#include "Query.h"
-#include "ThreadPool.h"
+#include "Persistence/ThreadPool.h"
+#include "Persistence/GenericRepository.h"
+#include "Persistence/Query.h"
 #include "benchmark/benchmark.h"
 
 static void EntityWithoutCache(benchmark::State& state) {

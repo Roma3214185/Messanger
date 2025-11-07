@@ -1,5 +1,5 @@
 #include "managers/MessageManager.h"
-#include "GenericRepository/GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 
 MessageManager::MessageManager(GenericRepository* repository,
                                Batcher<Message>* message_batcher,
