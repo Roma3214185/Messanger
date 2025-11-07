@@ -67,18 +67,28 @@ struct Builder<User> {
   }
 };
 
-inline void to_json(nlohmann::json& json_user, const User& user) {
-  json_user = nlohmann::json{{"id", user.id},
-                             {"email", user.email},
-                             {"tag", user.tag},
-                             {"username", user.username}};
-}
 
-inline void from_json(const nlohmann::json& json_user, User& user) {
-  json_user.at("id").get_to(user.id);
-  json_user.at("email").get_to(user.email);
-  json_user.at("tag").get_to(user.tag);
-  json_user.at("username").get_to(user.username);
-}
+namespace nlohmann {
+
+template <>
+struct adl_serializer<User> {
+    static void from_json(const json& j, User& user) {
+      j.at("id").get_to(user.id);
+      j.at("email").get_to(user.email);
+      j.at("tag").get_to(user.tag);
+      j.at("username").get_to(user.username);
+    }
+
+    static void to_json(json& j, const User& user) {
+      j = json{
+          {"id", user.id},
+          {"email", user.email},
+          {"tag", user.tag},
+          {"username", user.username}
+      };
+    }
+};
+
+} // namespace nlohmann
 
 #endif  // BACKEND_AUTHSERVICE_SRC_HEADERS_USER_H_

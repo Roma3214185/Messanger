@@ -33,8 +33,8 @@
 #define LOG_DEBUG(...) spdlog::debug(__VA_ARGS__)
 
 class ScopedTimer {
-    std::string name_;
-    std::chrono::high_resolution_clock::time_point start_;
+  std::string name_;
+  std::chrono::high_resolution_clock::time_point start_;
 
   public:
     explicit ScopedTimer(std::string name)

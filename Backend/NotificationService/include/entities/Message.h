@@ -5,9 +5,9 @@
 
 #include <QDateTime>
 #include <string>
+#include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
-#include "nlohmann/json.hpp"
 
 struct Message {
   long long id;
@@ -18,41 +18,32 @@ struct Message {
   std::string local_id;
 };
 
-inline void to_json(nlohmann::json& j, const Message& m) {
-  j = nlohmann::json{{"id", m.id},
-                     {"chat_id", m.chat_id},
-                     {"sender_id", m.sender_id},
-                     {"text", m.text},
-                     {"timestamp", m.timestamp},
-                     {"local_id", m.local_id}
-  };
-}
+namespace nlohmann {
 
-inline void from_json(const nlohmann::json& j, Message& u) {
-  j.at("id").get_to(u.id);
-  j.at("chat_id").get_to(u.chat_id);
-  j.at("sender_id").get_to(u.sender_id);
-  j.at("text").get_to(u.text);
-  j.at("timestamp").get_to(u.timestamp);
-  j.at("local_id").get_to(u.local_id);
-}
+template <>
+struct adl_serializer<Message> {
+    static void to_json(nlohmann::json& json_message, const Message& message) {
+      json_message = nlohmann::json{
+          {"id", message.id},
+          {"chat_id", message.chat_id},
+          {"sender_id", message.sender_id},
+          {"text", message.text},
+          {"timestamp", message.timestamp},
+          {"local_id", message.local_id}
+      };
+    }
 
-inline crow::json::wvalue to_crow_json(const Message& m) {
-  crow::json::wvalue j;
-  LOG_INFO(
-      "[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | "
-      "timestamp '{}' | local_id '{}'",
-      m.id, m.chat_id, m.sender_id, m.text, m.timestamp, m.local_id);
-  j["id"] = m.id;
-  j["chat_id"] = m.chat_id;
-  j["sender_id"] = m.sender_id;
-  j["text"] = m.text;
-  j["timestamp"] = QDateTime::fromSecsSinceEpoch(m.timestamp)
-                       .toString(Qt::ISODate)
-                       .toStdString();
-  j["local_id"] = m.local_id;
-  return j;
-}
+    static void from_json(const nlohmann::json& json_message, Message& message) {
+      json_message.at("id").get_to(message.id);
+      json_message.at("chat_id").get_to(message.chat_id);
+      json_message.at("sender_id").get_to(message.sender_id);
+      json_message.at("text").get_to(message.text);
+      json_message.at("timestamp").get_to(message.timestamp);
+      json_message.at("local_id").get_to(message.local_id);
+    }
+};
+
+} // nlohmann
 
 inline Message from_crow_json(const crow::json::rvalue& j) {
   Message m;
@@ -83,6 +74,23 @@ inline Message from_crow_json(const crow::json::rvalue& j) {
       "| timestamp '{}' | local_id = {}",
       m.id, m.chat_id, m.sender_id, m.text, m.timestamp, m.local_id);
   return m;
+}
+
+inline crow::json::wvalue to_crow_json(const Message& m) {
+  crow::json::wvalue j;
+  LOG_INFO(
+      "[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | "
+      "timestamp '{}' | local_id '{}'",
+      m.id, m.chat_id, m.sender_id, m.text, m.timestamp, m.local_id);
+  j["id"] = m.id;
+  j["chat_id"] = m.chat_id;
+  j["sender_id"] = m.sender_id;
+  j["text"] = m.text;
+  j["timestamp"] = QDateTime::fromSecsSinceEpoch(m.timestamp)
+                       .toString(Qt::ISODate)
+                       .toStdString();
+  j["local_id"] = m.local_id;
+  return j;
 }
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_HEADERS_MESSAGE_H_

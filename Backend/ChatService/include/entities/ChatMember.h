@@ -69,26 +69,26 @@ struct EntityFields<ChatMember> {
     static constexpr auto& fields = ChatMemberFields;
 };
 
-[[nodiscard]] inline nlohmann::json to_json(const ChatMember& chat_member) {
-  auto json_chat_member = nlohmann::json{{"id", chat_member.id},
-                                  {"user_id", chat_member.user_id},
-                                  {"status", chat_member.status},
-                                  {"added_at", chat_member.added_at}};
-  return json_chat_member;
-}
+namespace nlohmann {
 
-inline void to_json(nlohmann::json& json_chat_member, const ChatMember& chat_member) {
-  json_chat_member = nlohmann::json{{"id", chat_member.id},
-                             {"user_id", chat_member.user_id},
-                             {"status", chat_member.status},
-                             {"added_at", chat_member.added_at}};
-}
+template <>
+struct adl_serializer<ChatMember> {
 
-inline void from_json(const nlohmann::json& json_chat_member, ChatMember& chat_member) {
-  json_chat_member.at("id").get_to(chat_member.id);
-  json_chat_member.at("user_id").get_to(chat_member.user_id);
-  json_chat_member.at("status").get_to(chat_member.status);
-  json_chat_member.at("added_at").get_to(chat_member.added_at);
-}
+  static void to_json(nlohmann::json& json_chat_member, const ChatMember& chat_member) {
+    json_chat_member = nlohmann::json{{"id", chat_member.id},
+                               {"user_id", chat_member.user_id},
+                               {"status", chat_member.status},
+                               {"added_at", chat_member.added_at}};
+  }
+
+  static void from_json(const nlohmann::json& json_chat_member, ChatMember& chat_member) {
+    json_chat_member.at("id").get_to(chat_member.id);
+    json_chat_member.at("user_id").get_to(chat_member.user_id);
+    json_chat_member.at("status").get_to(chat_member.status);
+    json_chat_member.at("added_at").get_to(chat_member.added_at);
+  }
+};
+
+}   //nlohmann
 
 #endif // CHARMEMBER_H

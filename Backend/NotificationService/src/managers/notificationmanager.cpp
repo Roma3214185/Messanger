@@ -40,8 +40,7 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
     return;
   }
 
-  Message saved_message;
-  from_json(parsed, saved_message);
+  auto saved_message = parsed.get<Message>();
 
   LOG_INFO("Received saved message id {} text '{}'", saved_message.id,
            saved_message.text);
@@ -103,8 +102,8 @@ void NotificationManager::onSendMessage(Message& message) {
   LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')",
            message.sender_id, message.chat_id, message.text);
 
-  auto to_save = nlohmann::json{{"event", "save_message"}};
-  to_json(to_save, message);
+  auto to_save = nlohmann::json(message);
+  to_save["event"] = "save_message";
   mq_client_.publish(kExchange, kSaveMessage, to_save.dump());
 }
 
@@ -136,14 +135,12 @@ void NotificationManager::sendMessageToUser(int user_id, Message& message) {
     return;
   }
 
-  nlohmann::json json_message;
-  to_json(json_message, message);
+  auto json_message = nlohmann::json(message);
   user_socket->send_text(json_message.dump());
 }
 
 void NotificationManager::saveMessageStatus(MessageStatus& status) {
-  nlohmann::json status_json;
-  to_json(status_json, status);
+  auto status_json = nlohmann::json(status);
 
   mq_client_.publish(kExchange, kSaveMessageStatus,
                      status_json.dump());

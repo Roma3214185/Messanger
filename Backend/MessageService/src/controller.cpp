@@ -64,8 +64,7 @@ void Controller::handleSaveMessage(const std::string& payload) {
     return;
   }
 
-  Message msg;
-  from_json(parsed, msg);
+  auto msg = parsed.get<Message>();
 
   LOG_INFO("Get message to save with id {} and text {}", msg.id, msg.text);
 
@@ -74,7 +73,8 @@ void Controller::handleSaveMessage(const std::string& payload) {
     if (!ok) {
       LOG_ERROR("Error saving message id {}", msg.id);
     } else {
-      mq_client_->publish(kExchange, kMessageSaved, to_json(msg).dump());
+      mq_client_->publish(kExchange, kMessageSaved, nlohmann::json(msg).dump());
+      //TODO: kMessageSaved
     }
   });
 }
@@ -108,8 +108,7 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
     return;
   }
 
-  MessageStatus status;
-  from_json(parsed, status);
+  auto status = parsed.get<MessageStatus>();
 
   pool_.enqueue([this, status]() mutable {
     bool ok = manager_->saveMessageStatus(status);
@@ -117,7 +116,7 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
       LOG_ERROR("Error saving message_status id {}", status.id);
     } else {
       mq_client_->publish(kExchange, kMessageStatusSaved,
-                          to_json(status).dump());
+                          nlohmann::json(status).dump());
     }
   });
 }

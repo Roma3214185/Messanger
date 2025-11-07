@@ -1,7 +1,7 @@
 #include "server.h"
 
 #include "controller.h"
-#include "RabbitMQClient/rabbitmqclient.h"
+#include "RabbitMQClient/RabbitMQClient.h"
 
 Server::Server(int port, MessageManager* message_manager,
                RabbitMQClient* mq_client)

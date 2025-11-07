@@ -51,7 +51,9 @@ std::vector<int> ChatManager::getMembersOfChat(int chat_id){
 }
 
 std::vector<Chat> ChatManager::getChatsOfUser(int user_id){
+  LOG_INFO("[TEMP] Trt get chats of user {}", user_id);
   auto chats_where_user_member =  repository_->findByField<ChatMember>("user_id", user_id);
+  LOG_INFO("[TEMP] Get chats of user {}: size {}", user_id, chats_where_user_member.size());
   std::vector<Chat> chats_of_user;
   for(auto chat_member: chats_where_user_member){
     int chat_id = chat_member.id;

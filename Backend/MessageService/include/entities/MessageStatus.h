@@ -73,31 +73,28 @@ struct EntityFields<MessageStatus> {
   static constexpr auto& fields = kMessageStatusFields;
 };
 
-[[nodiscard]] inline nlohmann::json to_json(
-                    const MessageStatus& message_status) {
-  auto json_message_status =
-      nlohmann::json{{"id", message_status.id},
-                     {"receiver_id", message_status.receiver_id},
-                     {"is_read", message_status.is_read},
-                     {"read_at", message_status.read_at}};
-  return json_message_status;
-}
+namespace nlohmann {
 
-inline void to_json(nlohmann::json& json_message_status,
-                    const MessageStatus& message_status) {
-  json_message_status =
-      nlohmann::json{{"id", message_status.id},
-                     {"receiver_id", message_status.receiver_id},
-                     {"is_read", message_status.is_read},
-                     {"read_at", message_status.read_at}};
-}
+template <>
+struct adl_serializer<MessageStatus> {
+  static void to_json(nlohmann::json& json_message_status,
+                      const MessageStatus& message_status) {
+    json_message_status =
+        nlohmann::json{{"id", message_status.id},
+                       {"receiver_id", message_status.receiver_id},
+                       {"is_read", message_status.is_read},
+                       {"read_at", message_status.read_at}};
+  }
 
-inline void from_json(const nlohmann::json& json_message_status,
-                      MessageStatus& message_status) {
-  json_message_status.at("id").get_to(message_status.id);
-  json_message_status.at("receiver_id").get_to(message_status.receiver_id);
-  json_message_status.at("is_read").get_to(message_status.is_read);
-  json_message_status.at("read_at").get_to(message_status.read_at);
-}
+  static void from_json(const nlohmann::json& json_message_status,
+                        MessageStatus& message_status) {
+    json_message_status.at("id").get_to(message_status.id);
+    json_message_status.at("receiver_id").get_to(message_status.receiver_id);
+    json_message_status.at("is_read").get_to(message_status.is_read);
+    json_message_status.at("read_at").get_to(message_status.read_at);
+  }
+};
+
+}  //nlohmann
 
 #endif  // BACKEND_MESSAGESERVICE_HEADERS_MESSAGESTATUS_H_

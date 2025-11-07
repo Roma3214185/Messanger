@@ -59,20 +59,21 @@ struct EntityFields<UserCredentials> {
     static constexpr auto& fields = UserCredentials;
 };
 
-[[nodiscard]] inline nlohmann::json to_json(const UserCredentials& user_credentials) {
-  auto json = nlohmann::json{{"id", user_credentials.user_id},
-                                     {"hash_password", user_credentials.hash_password}};
-  return json;
-}
+//namespace nlohmann {
 
-inline void to_json(nlohmann::json& json, const UserCredentials& user_credentials) {
-  json = nlohmann::json{{"id", user_credentials.user_id},
-                                {"hash_password", user_credentials.hash_password}};
-}
+//template <>
+//struct adl_serializer<UserCredentials> {
+  static void to_json(nlohmann::json& json, const UserCredentials& user_credentials) {
+    json = nlohmann::json{{"id", user_credentials.user_id},
+                                  {"hash_password", user_credentials.hash_password}};
+  }
 
-inline void from_json(const nlohmann::json& json, UserCredentials& user_credentials) {
-  json.at("id").get_to(user_credentials.user_id);
-  json.at("hash_password").get_to(user_credentials.hash_password);
-}
+  static void from_json(const nlohmann::json& json, UserCredentials& user_credentials) {
+    json.at("id").get_to(user_credentials.user_id);
+    json.at("hash_password").get_to(user_credentials.hash_password);
+  }
+//};
+
+//}  // nlohmann
 
 #endif // USERCREDENTIALS_H

@@ -67,7 +67,7 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
   crow::json::wvalue result;
   result["chat_id"] = *chat_id;
   result["type"] = "private";
-  result["title"] = user->name;
+  result["title"] = user->username;
   result["avatar"] = user->avatar;
   result["user_id"] = user->id;
 
@@ -114,7 +114,7 @@ void Controller::getAllChats(const crow::request& req, crow::response& res) {
       }
 
       chat_json["user"]["id"] = user->id;
-      chat_json["user"]["name"] = user->name;
+      chat_json["user"]["name"] = user->username;
       chat_json["user"]["avatar"] = user->avatar;
     }
 
@@ -163,7 +163,7 @@ void Controller::getAllChatsById(const crow::request& req, crow::response& res, 
       auto user = NetworkManager::getUserById(*other_user_id);
       if (user) {
         chat_json["user"]["id"] = user->id;
-        chat_json["user"]["name"] = user->name;
+        chat_json["user"]["name"] = user->username;
         chat_json["user"]["avatar"] = user->avatar;
       } else {
         LOG_ERROR("Other user not found for chat '{}'", chat_id);

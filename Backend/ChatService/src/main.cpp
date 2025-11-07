@@ -1,6 +1,6 @@
-#include <crow.h>
-
 #include <QCoreApplication>
+
+#include <crow.h>
 
 #include "controller.h"
 #include "database.h"
