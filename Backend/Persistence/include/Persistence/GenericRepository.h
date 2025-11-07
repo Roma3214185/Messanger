@@ -14,7 +14,7 @@
 #include <QtSql/QSqlError>
 
 #include "Debug_profiling.h"
-#include "IEntityBuilder.h"
+#include "interfaces/IEntityBuilder.h"
 #include "MessageService/include/entities/Message.h"
 #include "Meta.h"
 #include "Query.h"
@@ -27,17 +27,21 @@ using ResultList = std::vector<T>;
 template <typename T>
 using FutureResultList = std::future<std::vector<T>>;
 
+class ISqlExecutor;
+class ICacheService;
+
+
+
 class GenericRepository {
-  IDataBase& database_;
-  RedisCache& cache_ = RedisCache::instance();
+  ISqlExecutor& executor_;
+  ICacheService& cache_;
   ThreadPool* pool_;
+
   std::unordered_map<std::string, QSqlQuery>
       stmt_cache_;
 
  public:
-  explicit GenericRepository(IDataBase& database, ThreadPool* pool = nullptr);
-
-  QSqlDatabase& getThreadDatabase();
+  explicit GenericRepository(ISqlExecutor& executor, ICacheService& cache, ThreadPool* pool_ = nullptr);
 
   void clearCache();
 
@@ -112,6 +116,11 @@ class GenericRepository {
 
   template <typename T>
   QVariant toVariant(const Field& f, const T& entity) const;
+
+  std::vector<QList<QVariant>> getValues() const;
+
+  template <typename T>
+  bool updateEntityIdFromQuery(T& entity, QSqlQuery& query, const Field* idField);
 };
 
 #include "Persistence/inl/GenericRepository.inl"

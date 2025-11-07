@@ -2,7 +2,7 @@
 #include <QtSql/QSqlQuery>
 
 #include "Persistence/GenericRepository.h"
-#include "IEntityBuilder.h"
+#include "interfaces/IEntityBuilder.h"
 #include "MessageService/include/entities/Message.h"
 #include "Meta.h"
 #include "benchmark/benchmark.h"

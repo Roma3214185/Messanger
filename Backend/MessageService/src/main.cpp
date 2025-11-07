@@ -6,7 +6,10 @@
 #include "managers/notificationmanager.h"
 #include "server.h"
 #include "Persistence/Batcher.h"
-#include "RabbitMQClient/rabbitmqclient.h"
+#include "RabbitMQClient/RabbitMQClient.h"
+#include "SqlExecutor.h"
+
+
 
 const int MESSAGE_PORT = 8082;
 constexpr int kRabitMQPort = 5672;
@@ -15,8 +18,8 @@ int main(int argc, char *argv[]) {
     init_logger("MessageService");
     QCoreApplication a(argc, argv);
     SQLiteDatabase bd;
-
-    GenericRepository genetic_rep(bd);
+    SqlExecutor executor(bd);
+    GenericRepository genetic_rep(executor, RedisCache::instance());
 
     SaverBatcher<Message> message_saver_batcher(genetic_rep);
     SaverBatcher<MessageStatus> message_status_saver_batcher(genetic_rep);

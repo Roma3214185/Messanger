@@ -1,62 +1,63 @@
-#include "benchmark/benchmark.h"
+// #include "benchmark/benchmark.h"
 
-#include "Persistence/Batcher.h"
-#include "Persistence/GenericRepository.h"
-#include "Persistence/ThreadPool.h"
+// #include "Persistence/Batcher.h"
+// #include "Persistence/GenericRepository.h"
+// #include "Persistence/ThreadPool.h"
 
-static void individualSaving(benchmark::State& state) {
-  SQLiteDatabase db;
-  GenericRepository rep(db);
-  for (auto _ : state) {
-    for (int i = 0; i < state.range(0); i++) {
-      Message msg;
-      rep.save(msg);
-      benchmark::DoNotOptimize(msg);
-    }
-  }
-}
+// static void individualSaving(benchmark::State& state) {
+//   SQLiteDatabase db;
 
-static void batcherSaving(benchmark::State& state) {
-  SQLiteDatabase db("bench_conn_global");
-  GenericRepository rep(db);
+//   GenericRepository rep(db);
+//   for (auto _ : state) {
+//     for (int i = 0; i < state.range(0); i++) {
+//       Message msg;
+//       rep.save(msg);
+//       benchmark::DoNotOptimize(msg);
+//     }
+//   }
+// }
 
-  for (auto _ : state) {
-    SaverBatcher<Message> saver_batcher(rep);
-    for (int i = 0; i < state.range(0); i++) {
-      Message msg;
-      saver_batcher.saveEntity(msg);
-      benchmark::DoNotOptimize(msg);
-    }
-  }
-}
+// static void batcherSaving(benchmark::State& state) {
+//   SQLiteDatabase db("bench_conn_global");
+//   GenericRepository rep(db);
 
-static void individualDeleting(benchmark::State& state) {
-  SQLiteDatabase db;
-  GenericRepository rep(db);
-  for (auto _ : state) {
-    for (int i = 0; i < state.range(0); i++) {
-      Message msg{.id = i};
-      rep.deleteEntity(msg);
-      benchmark::DoNotOptimize(msg);
-    }
-  }
-}
+//   for (auto _ : state) {
+//     SaverBatcher<Message> saver_batcher(rep);
+//     for (int i = 0; i < state.range(0); i++) {
+//       Message msg;
+//       saver_batcher.saveEntity(msg);
+//       benchmark::DoNotOptimize(msg);
+//     }
+//   }
+// }
 
-static void batcherDeleter(benchmark::State& state) {
-  SQLiteDatabase db;
-  GenericRepository rep(db);
+// static void individualDeleting(benchmark::State& state) {
+//   SQLiteDatabase db;
+//   GenericRepository rep(db);
+//   for (auto _ : state) {
+//     for (int i = 0; i < state.range(0); i++) {
+//       Message msg{.id = i};
+//       rep.deleteEntity(msg);
+//       benchmark::DoNotOptimize(msg);
+//     }
+//   }
+// }
 
-  for (auto _ : state) {
-    DeleterBatcher<Message> deleterBatcher(rep);
-    for (int i = 0; i < state.range(0); i++) {
-      Message msg{.id = i};
-      deleterBatcher.deleteEntity(msg);
-      benchmark::DoNotOptimize(msg);
-    }
-  }
-}
+// static void batcherDeleter(benchmark::State& state) {
+//   SQLiteDatabase db;
+//   GenericRepository rep(db);
 
-BENCHMARK(individualSaving)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);
-BENCHMARK(batcherSaving)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);
-BENCHMARK(individualDeleting)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);
-BENCHMARK(batcherDeleter)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);
+//   for (auto _ : state) {
+//     DeleterBatcher<Message> deleterBatcher(rep);
+//     for (int i = 0; i < state.range(0); i++) {
+//       Message msg{.id = i};
+//       deleterBatcher.deleteEntity(msg);
+//       benchmark::DoNotOptimize(msg);
+//     }
+//   }
+// }
+
+// BENCHMARK(individualSaving)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);
+// BENCHMARK(batcherSaving)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);
+// BENCHMARK(individualDeleting)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);
+// BENCHMARK(batcherDeleter)->Arg(10)->Arg(100)->Arg(1000)->Arg(10000);

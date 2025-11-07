@@ -30,3 +30,28 @@ void RedisCache::incr(const std::string& key) {
 }
 
 void RedisCache::clearCache() { redis_->flushdb(); }
+
+RedisCache& RedisCache::instance() {
+  static RedisCache inst;
+  return inst;
+}
+
+sw::redis::Redis& RedisCache::getRedis() {
+  if (!redis_) {
+    std::scoped_lock lock(init_mutex_);
+    if (!redis_) {
+      try {
+        redis_ = std::make_unique<sw::redis::Redis>("tcp://127.0.0.1:6379");
+      } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Redis init failed: ") +
+                                 e.what());
+      }
+    }
+  }
+  return *redis_;
+}
+
+void RedisCache::logError(const std::string& action, const std::string& key,
+              const std::exception& e) {
+  LOG_ERROR("'{}' ( '{}' ): '{}'", action, key, e.what());
+}

@@ -1,6 +1,11 @@
 #include "Persistence/SQLiteDataBase.h"
 
 #include <QtSql/QSqlDatabase>
+#include <QtSql/qsqlquery.h>
+#include <qthread.h>
+#include <QtSql/QSqlError>
+
+#include "Debug_profiling.h"
 
 void SQLiteDatabase::initializeSchema() {
   QSqlDatabase database = getThreadDatabase();
@@ -112,8 +117,6 @@ void SQLiteDatabase::createUserCredentialsTable(QSqlDatabase& database){
   }
 }
 
-
-
 void SQLiteDatabase::createMessageTable(QSqlDatabase& database) {
   QSqlQuery query(database);
   //deleteTable(database, "messages");
@@ -133,37 +136,6 @@ void SQLiteDatabase::createMessageTable(QSqlDatabase& database) {
   }
 }
 
-QSqlDatabase& SQLiteDatabase::getThreadDatabase() {
-  PROFILE_SCOPE("QSqlDatabase::getThreadDatabase");
-  thread_local QSqlDatabase db;
-  thread_local bool initialized = false;
-
-  if (!initialized) {
-    static std::atomic<int> connCounter{0};
-
-    QString connection_name =
-        QString("conn_%1_%2")
-            .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()))
-            .arg(connCounter++);
-
-    db = QSqlDatabase::addDatabase("QSQLITE", connection_name);
-    db.setDatabaseName(db_path_);
-
-    if (!db.open()) {
-      throw std::runtime_error("Cannot open database for this thread");
-    }
-
-    QObject::connect(QThread::currentThread(), &QThread::finished,
-                     [connection_name]() -> void {
-                       QSqlDatabase::removeDatabase(connection_name);
-                     });
-
-    initialized = true;
-  }
-
-  return db;
-}
-
-SQLiteDatabase::SQLiteDatabase(const QString& db_path) : db_path_(db_path) {
+SQLiteDatabase::SQLiteDatabase(const QString& db_path) : IDataBase(db_path) {
   initializeSchema();
 }

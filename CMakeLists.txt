@@ -61,6 +61,7 @@ add_library(Persistence STATIC
     Backend/Persistence/src/GenericRepository.cpp
     Backend/Persistence/src/SQLiteDatabase.cpp
     Backend/Persistence/src/ThreadPool.cpp
+    Backend/Persistence/src/SqlExecutor.cpp
 )
 
 target_include_directories(Persistence
