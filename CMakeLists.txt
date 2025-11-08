@@ -64,6 +64,26 @@ add_library(Persistence STATIC
     Backend/Persistence/src/SqlExecutor.cpp
 )
 
+# set(PERSISTENCE_SRC_DIR ${CMAKE_SOURCE_DIR}/Backend/Persistence/src)
+
+# add_library(PersistenceLib_local STATIC
+#     Backend/Persistence/src/ThreadPool.cpp
+#     Backend/Persistence/src/SqlExecutor.cpp
+#    Backend/Persistence/src/ThreadPool.cpp
+#    Backend/Persistence/src/SqlExecutor.cpp
+# )
+
+# target_include_directories(PersistenceLib_local PUBLIC
+#     ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
+# )
+
+# target_link_libraries(PersistenceLib_local
+#     PUBLIC
+#         Qt6::Core
+#         Qt6::Widgets
+#         Qt6::Gui
+# )
+
 target_include_directories(Persistence
     PUBLIC
         ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
@@ -89,6 +109,7 @@ foreach(service IN ITEMS AuthService MessageService ChatService ApiGateWay Notif
 endforeach()
 
 add_subdirectory(Frontend)
+add_subdirectory(Backend/Persistence/tests)
 
 target_link_libraries(Frontend PRIVATE RabbitMQClient Persistence RedisCache prometheus-cpp-core prometheus-cpp-pull)
 target_include_directories(Frontend PRIVATE

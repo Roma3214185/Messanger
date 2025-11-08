@@ -8,6 +8,6 @@ class MockDatabase : public IDataBase {
     using IDataBase::IDataBase;
 
 
-}
+};
 
 #endif // MOCKDATABASE_H
