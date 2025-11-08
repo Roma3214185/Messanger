@@ -16,6 +16,7 @@ target_compile_definitions(Persistence PUBLIC SPDLOG_HEADER_ONLY)
 add_executable(PersistenceTests
     main.cpp
     test_genericrepository.cpp
+    test_query.cpp
 )
 
 target_include_directories(Persistence

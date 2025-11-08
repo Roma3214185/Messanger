@@ -41,6 +41,7 @@ class GenericRepository {
   GenericRepository(IDataBase& database, ISqlExecutor& executor,
                      ICacheService& cache, ThreadPool* pool_ = nullptr);
 
+  IDataBase& getDatabase() { return database_; }
   void clearCache();
 
   template <typename T>
@@ -73,9 +74,6 @@ class GenericRepository {
 
   template <typename T>
   std::vector<T> findByField(const std::string& field, const QVariant& value);
-
-  template <typename T>
-  Query<T> query();
 
   template <typename T>
   T buildEntity(QSqlQuery& query, BuilderType type = BuilderType::Generic) const;

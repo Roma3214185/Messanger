@@ -42,6 +42,11 @@ class MockCache : public ICacheService {
     int getCalls(const std::string& key) {
       return mp[key];
     }
+
+    void setPipelines(const std::vector<std::string>& keys, const std::vector<nlohmann::json>& results,
+                      std::chrono::minutes ttl = std::chrono::minutes(30)) override {
+
+    }
 };
 
 #endif // MOCKCACHE_H

@@ -1,0 +1,61 @@
+#ifndef BASEQUERY_H
+#define BASEQUERY_H
+
+#include <vector>
+
+#include "IDataBase.h"
+#include "Persistence/include/Persistence/ThreadPool.h"
+#include "RedisCache/ICacheService.h"
+#include "Persistence/include/Persistence/Query.h"
+
+template <typename T>
+class BaseQuery {
+  protected:
+    IDataBase& db_;
+    std::vector<std::string> involved_tables_;
+    inline static ThreadPool pool{4};
+    QStringList filters_;
+    QVector<QVariant> values_;
+    QString limit_clause_;
+    std::string table_name_;
+
+  public:
+    explicit BaseQuery(IDataBase& db) : db_(db) {
+      table_name_ = Reflection<T>::meta().table_name;
+      involved_tables_.push_back(table_name_);
+    }
+
+    virtual std::vector<T> execute() const = 0;
+
+    BaseQuery& where(const std::string& field, const QVariant& value) {
+      filters_.push_back(QString("%1 = ?").arg(QString::fromStdString(field)));
+      values_.push_back(value);
+      return *this;
+    }
+    BaseQuery& where(const std::string& field, const std::string& op,
+                     const QVariant& value) {
+      filters_.push_back(QString("%1 %2 ?")
+                             .arg(QString::fromStdString(field))
+                             .arg(QString::fromStdString(op)));
+      values_.push_back(value);
+      return *this;
+    }
+
+    BaseQuery& limit(int n) {
+      limit_clause_ = QString("LIMIT %1").arg(n);
+      return *this;
+    }
+};
+
+template<typename T>
+class SelectQuery;
+
+class QueryFactory{
+  public:
+    template<typename T>
+    static std::unique_ptr<SelectQuery<T>> createSelect(IDataBase& db, ICacheService& cache) {
+      return std::make_unique<SelectQuery<T>>(db, cache);
+    }
+};
+
+#endif // BASEQUERY_H

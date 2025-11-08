@@ -3,7 +3,7 @@
 #include "SqlBuilder.h"
 #include "RedisCache/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
-
+#include "Persistence/include/interfaces/BaseQuery.h"
 
 namespace {
 
@@ -123,9 +123,10 @@ inline std::future<std::optional<T>> GenericRepository::findOneAsync(long long e
 
 template <typename T>
 std::optional<T> GenericRepository::findOne(long long entity_id) {
-  auto res = query<T>().filter("id", entity_id).execute();
-  if(res.empty()) return std::nullopt;
-  return res.front();
+  auto query = QueryFactory::createSelect<T>(database_, cache_);
+  query->where("id", entity_id).limit(1);
+  auto res = query->execute();
+  return res.empty() ? std::nullopt : std::make_optional(res.front());
 }
 
 template <typename T>
@@ -167,12 +168,9 @@ std::vector<T> GenericRepository::findByField(const std::string& field,
 
 template <typename T>
 std::vector<T> GenericRepository::findByField(const std::string& field, const QVariant& value) {
-  return this->query<T>().filter(field, value).execute();
-}
-
-template <typename T>
-Query<T> GenericRepository::query() {
-  return Query<T>(this->database_);
+  auto query = QueryFactory::createSelect<T>(database_, cache_);
+  query->where(field, value).limit(1);
+  return query->execute();
 }
 
 template <typename T>

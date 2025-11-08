@@ -5,6 +5,7 @@
 #include "Persistence/Batcher.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
+#include "RedisCache/RedisCache.h"
 
 class GenericRepository;
 
@@ -21,6 +22,7 @@ class MessageManager {
     std::vector<MessageStatus> getUndeliveredMessages(int user_id);
 
 private:
+    RedisCache& cache_ = RedisCache::instance();
     GenericRepository* repository_;
     Batcher<Message>* message_batcher_;
     Batcher<MessageStatus>* messages_status_batcher_;

@@ -119,7 +119,8 @@ target_include_directories(Frontend PRIVATE
 
 add_subdirectory(Backend/Persistence/benchmarks Backend/Persistence/benchmarks_build)
 
-add_executable(Chat main.cpp media.qrc)
+add_executable(Chat main.cpp media.qrc
+    Backend/Persistence/include/interfaces/BaseQuery.h)
 
 target_link_libraries(Chat PRIVATE
     Qt6::Core Qt6::Network Qt6::Widgets Qt6::WebSockets Qt6::Gui
