@@ -40,7 +40,7 @@ bool ChatManager::addMembersToChat(int chat_id, const std::vector<int>& members_
 //bool deleteMembersFromChat(int chatId, const std::vector<int>& members_id);
 
 std::vector<int> ChatManager::getMembersOfChat(int chat_id){
-  std::vector<ChatMember> chat_members = repository_->findByField<ChatMember>("id", chat_id);
+  std::vector<ChatMember> chat_members = repository_->findByField<ChatMember>("chat_id", chat_id);
   LOG_INFO("[getMembersOfChat] for chat_id {} finded {} members", chat_id, chat_members.size());
   std::vector<int> chat_members_id;
   for(auto member: chat_members){

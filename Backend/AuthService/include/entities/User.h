@@ -6,11 +6,10 @@
 
 #include <nlohmann/json.hpp>
 
-#include "Persistence/GenericRepository.h"
-#include "RedisCache.h"
+#include "Persistence/include/Meta.h"
 
 struct User {
-  long long id;
+  long long id = 0;
   std::string username;
   std::string email;
   std::string tag;

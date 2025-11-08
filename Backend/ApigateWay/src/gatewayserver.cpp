@@ -102,13 +102,17 @@ void GatewayServer::registerRoute(const std::string& basePath,
   app_.route_dynamic(basePath + "/<path>")
   .methods("GET"_method, "POST"_method)
       ([this, &proxy, basePath, requireAuth](const crow::request& req, crow::response& res, std::string path) {
+        LOG_INFO("{}/{}", basePath, path);
         handleProxyRequest(req, res, proxy, basePath + "/" + path, requireAuth);
+        LOG_INFO("Res code:{} and res: {}", res.code, res.body);
       });
 
   app_.route_dynamic(basePath)
       .methods("GET"_method, "POST"_method)
       ([this, &proxy, basePath, requireAuth](const crow::request& req, crow::response& res) {
+        LOG_INFO("{}", basePath);
         handleProxyRequest(req, res, proxy, basePath, requireAuth);
+        LOG_INFO("Res code:{} and res: {}", res.code, res.body);
       });
 }
 

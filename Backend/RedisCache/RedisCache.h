@@ -24,7 +24,7 @@ class RedisCache : public ICacheService {
   void clearPrefix(const std::string& prefix);
 
   void setPipelines(const std::vector<std::string>& keys, const std::vector<nlohmann::json>& results,
-                    std::chrono::minutes ttl = std::chrono::minutes(30));
+                    std::chrono::minutes ttl = std::chrono::minutes(30)) override;
 
   void set(const std::string& key, const nlohmann::json& value,
            std::chrono::milliseconds ttl = std::chrono::minutes(30)) override;

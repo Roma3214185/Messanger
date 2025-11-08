@@ -11,20 +11,12 @@
 #include <string>
 #include <vector>
 
-//#include "metrics.h"
-// #include <prometheus/counter.h>
-// #include <prometheus/histogram.h>
-// #include <prometheus/exposer.h>
-// #include <prometheus/registry.h>
-// #include <memory>
-
-
 #ifdef ENABLE_TRACY
 #include "../external/tracy/public/tracy/Tracy.hpp"
 #define PROFILE_SCOPE(name) ZoneScopedN(name)
 #else
 #define PROFILE_SCOPE(name) ScopedTimer timer##__LINE__(name)
-#define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
+//#define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
 #endif
 
 #define LOG_INFO(...) spdlog::info(__VA_ARGS__)

@@ -2,6 +2,9 @@
 #define FAKESQLEXECUTOR_H
 
 #include <QString>
+#include <QSqlRecord>
+#include <QSqlField>
+
 #include "interfaces/ISqlExecutor.h"
 
 class FakeSqlExecutor : public ISqlExecutor {
@@ -9,10 +12,22 @@ class FakeSqlExecutor : public ISqlExecutor {
     QString lastSql;
     QList<QVariant> lastValues;
     bool shouldFail = false;
+    int execute_calls = 0;
+    int execute_returning_id_calls = 0;
+    int mocked_id = 5;
+
     bool execute(const QString& sql, const QList<QVariant>& values, QSqlQuery& outQuery) override {
+      ++execute_calls;
       lastSql = sql;
       lastValues = values;
       return !shouldFail;
+    }
+
+    virtual std::optional<long long> executeReturningId(const QString& sql, const QList<QVariant>& values,
+                                                  QSqlQuery& outQuery) {
+      ++execute_returning_id_calls;
+      if(!execute(sql, values, outQuery)) return std::nullopt;
+      return mocked_id;
     }
 };
 

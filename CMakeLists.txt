@@ -17,7 +17,6 @@ set(SIMPLE_AMQP_CLIENT_DIR ${CMAKE_SOURCE_DIR}/external/SimpleAmqpClient)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 set(CMAKE_OSX_ARCHITECTURES arm64)
 
-
 find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets WebSockets Gui Sql)
 find_package(SQLite3 REQUIRED)
 find_package(spdlog REQUIRED)
@@ -47,15 +46,15 @@ add_subdirectory(external/SimpleAmqpClient)
 
 add_library(Metrics STATIC DebugProfiling/metrics.cpp)
 target_include_directories(Metrics PUBLIC DebugProfiling)
-target_link_libraries(Metrics PUBLIC prometheus-cpp-core prometheus-cpp-pull ZLIB::ZLIB)
+target_link_libraries(Metrics PUBLIC prometheus-cpp-core prometheus-cpp-pull ZLIB::ZLIB Qt6::Core Qt6::Widgets Qt6::Gui)
 
 add_library(RabbitMQClient STATIC Backend/RabbitMQClient/RabbitMQClient.cpp)
 target_include_directories(RabbitMQClient PUBLIC Backend/RabbitMQClient Backend/GenericRepository ${RABBITMQC_DIR}/include ${SIMPLE_AMQP_CLIENT_DIR}/include)
-target_link_libraries(RabbitMQClient PRIVATE SimpleAmqpClient rabbitmq)
+target_link_libraries(RabbitMQClient PRIVATE SimpleAmqpClient rabbitmq Qt6::Core)
 
 add_library(RedisCache STATIC Backend/RedisCache/RedisCache.cpp)
 target_include_directories(RedisCache PUBLIC Backend/RedisCache ${DEBUG_PROFILING_DIR})
-target_link_libraries(RedisCache PUBLIC redis++ hiredis)
+target_link_libraries(RedisCache PUBLIC redis++ hiredis Qt6::Core)
 
 add_library(Persistence STATIC
     Backend/Persistence/src/GenericRepository.cpp
@@ -89,6 +88,7 @@ foreach(service IN ITEMS AuthService MessageService ChatService ApiGateWay Notif
 endforeach()
 
 add_subdirectory(Frontend)
+add_subdirectory(Backend/Persistence/tests)
 
 target_link_libraries(Frontend PRIVATE RabbitMQClient Persistence RedisCache prometheus-cpp-core prometheus-cpp-pull)
 target_include_directories(Frontend PRIVATE

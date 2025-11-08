@@ -7,39 +7,21 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
+find_package(Qt6 REQUIRED COMPONENTS Gui Test)
 find_package(spdlog REQUIRED)
 find_package(Catch2 3 REQUIRED)
 
-set(PERSISTENCE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-set(PERSISTENCE_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../Persistence/include)
-set(DEBUG_PROFILING_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../DebugProfiling)
-
-add_library(PersistenceLib_local
-    ${PERSISTENCE_SRC_DIR}/GenericRepository.cpp
-
-    mocks/MockDatabase.h
-)
-
-target_include_directories(PersistenceLib_local PUBLIC
-    ${PERSISTENCE_INC_DIR}
-    /usr/local/include
-    /opt/homebrew/include
-)
-
-target_link_libraries(PersistenceLib_local PUBLIC
-    Qt6::Widgets
-    Qt6::Network
-    Qt6::WebSockets
-    Qt6::Gui
-    spdlog::spdlog
-)
-
-target_compile_definitions(PersistenceLib_local PUBLIC SPDLOG_HEADER_ONLY)
+target_compile_definitions(Persistence PUBLIC SPDLOG_HEADER_ONLY)
 
 add_executable(PersistenceTests
     main.cpp
     test_genericrepository.cpp
+    test_query.cpp
+    mocks/MockQuery.h
+)
+
+target_include_directories(Persistence
+    PUBLIC include
 )
 
 set_target_properties(PersistenceTests PROPERTIES
@@ -51,10 +33,10 @@ set_target_properties(PersistenceTests PROPERTIES
 
 target_link_libraries(PersistenceTests
     PRIVATE
-        PersistenceLib_local
+        Persistence
         Catch2::Catch2
-        Qt6::Widgets
         Qt6::Test
+        spdlog::spdlog
 )
 
 include(CTest)
