@@ -2,6 +2,9 @@
 #define FAKESQLEXECUTOR_H
 
 #include <QString>
+#include <QSqlRecord>
+#include <QSqlField>
+
 #include "interfaces/ISqlExecutor.h"
 
 class FakeSqlExecutor : public ISqlExecutor {

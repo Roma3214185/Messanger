@@ -12,7 +12,7 @@
 #include "Meta.h"
 
 struct Message {
-  long long id;
+  long long id = 0;
   long long chat_id;
   long long sender_id;
   long long timestamp;

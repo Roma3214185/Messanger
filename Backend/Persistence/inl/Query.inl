@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Persistence/Query.h"
+#include "Persistence/include/SqlExecutor.h"
+#include <nlohmann/json.hpp>
 
 template <typename T>
 Query<T>::Query(IDataBase& db) : db(db) {
@@ -51,29 +53,35 @@ std::vector<T> Query<T>::execute() const {
 
   if (auto entity_json = cache_.get(cache_key)) {
     LOG_INFO("[QueryCache] HIT for key '{}'", cache_key);
-    auto vector_enitities = entity_json->template get<std::vector<T>>();
-    return vector_enitities;
+    auto res = entity_json->template get<std::vector<T>>();
+    LOG_INFO("[QueryCache] Parse successfull: '{}'", res.size());
+    return res;
   }
 
   LOG_INFO("[QueryCache] NOT HITTED for key '{}'", cache_key);
 
-  QSqlDatabase thread_db = db.getThreadDatabase();
-  QSqlQuery query(thread_db);
-  if (!query.prepare(sql)) {
-    qWarning() << "Prepare failed:" << query.lastError().text();
-    return {};
-  } else {
-    LOG_INFO("Preparing success");
-  }
+  // QSqlDatabase thread_db = db.getThreadDatabase();
+  // QSqlQuery query(thread_db);
+  // if (!query.prepare(sql)) {
+  //   qWarning() << "Prepare failed:" << query.lastError().text();
+  //   return {};
+  // } else {
+  //   LOG_INFO("Preparing success");
+  // }
 
-  for (int i = 0; i < values_.size(); ++i) {
-    query.bindValue(i, values_[i]);
-  }
-
-  if (!query.exec()) {
-    LOG_ERROR("Query error: {}", query.lastError().text().toStdString());
+  QSqlQuery query;
+  SqlExecutor executer(db);
+  if (!executer.execute(sql, values_, query)) {
     return {};
   }
+  // for (int i = 0; i < values_.size(); ++i) {
+  //   query.bindValue(i, values_[i]);
+  // }
+
+  // if (!query.exec()) {
+  //   LOG_ERROR("Query error: {}", query.lastError().text().toStdString());
+  //   return {};
+  // }
 
   auto entities_jsons = std::vector<nlohmann::json>{};
   auto entities_keys = std::vector<std::string>{};
@@ -87,6 +95,7 @@ std::vector<T> Query<T>::execute() const {
     results.push_back(entity);
     entities_jsons.push_back(entity);
     entities_keys.push_back(entityKey);
+    LOG_INFO("Select {}", entities_jsons.back().dump());
   }
 
   cache_.setPipelines(entities_keys, entities_jsons);

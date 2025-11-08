@@ -50,7 +50,7 @@ SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity, bool 
   res.values = values;
 
   QString row_sql = "INSERT OR REPLACE INTO %1 (%2) VALUES (%3)";
-  if(need_to_return_id) row_sql += "RETURNING id";
+  if(need_to_return_id) row_sql += " RETURNING id";
 
   res.query = row_sql
               .arg(QString::fromStdString(meta.table_name))

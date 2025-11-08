@@ -88,8 +88,8 @@ void RedisCache::set(const std::string& key, const nlohmann::json& value,
 
 std::optional<nlohmann::json> RedisCache::get(const std::string& key) {
   try {
-    std::optional<std::string> value = getRedis().get(key);
-    if (value) return nlohmann::json::parse(*value);
+    if (auto value = getRedis().get(key))
+      return nlohmann::json::parse(*value);
   } catch (const std::exception& e) {
     logError("get", key, e);
   }
@@ -104,8 +104,9 @@ void RedisCache::setPipelines(const std::vector<std::string>& keys, const std::v
     auto pipe = redis_->pipeline();
 
     for (int i = 0; i < keys.size(); i++) {
-      const std::string& key = keys[i];
-      const nlohmann::json& value = results.size() == 1 ? results[0] : results[i];
+      const std::string& key = keys.size() == 1 ? keys[0] : keys[i];
+      const nlohmann::json& value = results[i];
+      LOG_INFO("Save ({}), {}", key, value.dump());
       pipe.set(key, value.dump(), ttl);
     }
 
