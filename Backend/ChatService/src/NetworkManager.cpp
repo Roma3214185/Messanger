@@ -62,10 +62,10 @@ std::optional<User> getUserById(int otherUserId) {
 
   User findedUser{.id = obj["id"].toInt(),
                   .email = obj["email"].toString().toStdString(),
-                  .name = obj["name"].toString().toStdString(),
+                  .username = obj["name"].toString().toStdString(),
                   .tag = obj["tag"].toString().toStdString()};
 
-  qDebug() << "[INFO] getUserById success:" << findedUser.name;
+  qDebug() << "[INFO] getUserById success:" << findedUser.username;
   return findedUser;
 }
 

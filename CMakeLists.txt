@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(Chat LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOUIC ON)
@@ -16,6 +16,7 @@ set(RABBITMQC_DIR ${CMAKE_SOURCE_DIR}/external/rabbitmq-c)
 set(SIMPLE_AMQP_CLIENT_DIR ${CMAKE_SOURCE_DIR}/external/SimpleAmqpClient)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 set(CMAKE_OSX_ARCHITECTURES arm64)
+
 
 find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets WebSockets Gui Sql)
 find_package(SQLite3 REQUIRED)
@@ -56,9 +57,21 @@ add_library(RedisCache STATIC Backend/RedisCache/RedisCache.cpp)
 target_include_directories(RedisCache PUBLIC Backend/RedisCache ${DEBUG_PROFILING_DIR})
 target_link_libraries(RedisCache PUBLIC redis++ hiredis)
 
-add_library(GenericRepository STATIC Backend/GenericRepository/GenericRepository.cpp Backend/GenericRepository/SQLiteDatabase.cpp)
-target_include_directories(GenericRepository PUBLIC Backend/GenericRepository ${CMAKE_SOURCE_DIR}/Backend)
-target_link_libraries(GenericRepository PUBLIC Qt6::Core Qt6::Sql)
+add_library(Persistence STATIC
+    Backend/Persistence/src/GenericRepository.cpp
+    Backend/Persistence/src/SQLiteDatabase.cpp
+    Backend/Persistence/src/ThreadPool.cpp
+    Backend/Persistence/src/SqlExecutor.cpp
+)
+
+target_include_directories(Persistence
+    PUBLIC
+        ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/Backend/Persistence/inl
+)
+
+target_link_libraries(Persistence PUBLIC Qt6::Core Qt6::Sql)
 
 add_subdirectory(Backend/AuthService)
 add_subdirectory(Backend/MessageService)
@@ -68,22 +81,24 @@ add_subdirectory(Backend/NotificationService)
 #add_subdirectory(/Users/roma/QtProjects/Chat/prometheus-cpp)
 
 foreach(service IN ITEMS AuthService MessageService ChatService ApiGateWay NotificationService)
-    target_link_libraries(${service} PRIVATE RabbitMQClient GenericRepository RedisCache Metrics prometheus-cpp-core prometheus-cpp-pull)
-    target_include_directories(${service} PRIVATE ${DEBUG_PROFILING_DIR})
+    target_link_libraries(${service} PRIVATE RabbitMQClient Persistence RedisCache Metrics prometheus-cpp-core prometheus-cpp-pull)
+    target_include_directories(${service}
+        PRIVATE ${DEBUG_PROFILING_DIR}
+        ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
+    )
 endforeach()
 
 add_subdirectory(Frontend)
 
-target_link_libraries(Frontend PRIVATE RabbitMQClient GenericRepository RedisCache prometheus-cpp-core prometheus-cpp-pull)
-target_include_directories(Frontend PRIVATE ${DEBUG_PROFILING_DIR})
-
-add_subdirectory(Backend/GenericRepository/benchmarks Backend/GenericRepository/benchmarks_build)
-
-add_executable(Chat main.cpp media.qrc
-    DebugProfiling/ScopedRequestsTimer.h
-    #Backend/GenericRepository/SQLiteDatabase.cpp
-    #Backend/GenericRepository/Batcher.h
+target_link_libraries(Frontend PRIVATE RabbitMQClient Persistence RedisCache prometheus-cpp-core prometheus-cpp-pull)
+target_include_directories(Frontend PRIVATE
+    ${DEBUG_PROFILING_DIR}
+    ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
 )
+
+add_subdirectory(Backend/Persistence/benchmarks Backend/Persistence/benchmarks_build)
+
+add_executable(Chat main.cpp media.qrc)
 
 target_link_libraries(Chat PRIVATE
     Qt6::Core Qt6::Network Qt6::Widgets Qt6::WebSockets Qt6::Gui
@@ -95,7 +110,7 @@ target_link_libraries(Chat PRIVATE
     Tracy::TracyClient
     RabbitMQClient
     RedisCache
-    GenericRepository
+    Persistence
     prometheus-cpp-core prometheus-cpp-pull
 )
 

@@ -6,7 +6,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(MESSAGE_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -48,22 +48,13 @@ target_link_libraries(MessageService PRIVATE
   redis++
   spdlog::spdlog
   jwt-cpp
-  RedisCache
-  GenericRepository
+  #RedisCache
+  #Persistance
 )
 
 include_directories(
     ${httplib_SOURCE_DIR}
     ${MESSAGE_SERVICE_INCLUDE_DIR}/
-
-    # ${CMAKE_CURRENT_SOURCE_DIR}
-
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../RabbitMQClient
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../GenericRepository
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../GenericRepository
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../../GenericRepository
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../DebugProfiling
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../RedisCache
 )
 
 

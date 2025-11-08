@@ -4,7 +4,7 @@
 #include "Debug_profiling.h"
 #include "managers/notificationmanager.h"
 #include "managers/networkmanager.h"
-#include "rabbitmqclient.h"
+#include "RabbitMQClient/RabbitMQClient.h"
 #include "server.h"
 
 const int NOTIFICATION_PORT = 8086;

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "../DebugProfiling/Debug_profiling.h"
-#include "GenericRepository/GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 
 template <typename T>
 class SaverBatcher {

@@ -9,8 +9,18 @@ set(CMAKE_AUTORCC ON)
 set(AUTH_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(AUTH_SERVICE_INCUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    libsodium
+    GIT_REPOSITORY https://github.com/jedisct1/libsodium.git
+    GIT_TAG        stable
+)
+FetchContent_MakeAvailable(libsodium)
+
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(spdlog REQUIRED)
@@ -21,6 +31,7 @@ add_executable(AuthService
   ${AUTH_SERVICE_SRC_DIR}/authmanager.cpp
   ${AUTH_SERVICE_SRC_DIR}/JwtUtils.cpp
   ${AUTH_SERVICE_SRC_DIR}/server.cpp
+  include/PasswordService.h
 )
 
 
@@ -33,11 +44,13 @@ target_link_libraries(AuthService PRIVATE
   redis++
   TracyClient
   jwt-cpp
-  RedisCache
+  sodium
+  #RedisCache
 )
 
 target_include_directories(AuthService PRIVATE
   ${AUTH_SERVICE_INCUDE_DIR}/
+  ${libsodium_SOURCE_DIR}/src/libsodium/include
 )
 
 include(GNUInstallDirs)

@@ -20,7 +20,7 @@ bool ChatManager::addMembersToChat(int chat_id, const std::vector<int>& members_
   for(auto id: members_id){
     LOG_INFO("Add member with id {} to chat {}", id, chat_id);
     ChatMember new_member{
-      .id = chat_id,
+      .chat_id = chat_id,
       .user_id = id,
       .added_at = QDateTime::currentSecsSinceEpoch()
     };
@@ -30,7 +30,7 @@ bool ChatManager::addMembersToChat(int chat_id, const std::vector<int>& members_
   for(auto chat_member: chat_members){
     bool ok = repository_->save(chat_member);
     LOG_INFO("Member {} for chat {} is saved {}", chat_member.user_id,
-             chat_member.id, ok);
+             chat_member.chat_id, ok);
   }
   //repository_->save(chat_members);
   return true;
@@ -51,10 +51,12 @@ std::vector<int> ChatManager::getMembersOfChat(int chat_id){
 }
 
 std::vector<Chat> ChatManager::getChatsOfUser(int user_id){
+  LOG_INFO("[TEMP] Trt get chats of user {}", user_id);
   auto chats_where_user_member =  repository_->findByField<ChatMember>("user_id", user_id);
+  LOG_INFO("[TEMP] Get chats of user {}: size {}", user_id, chats_where_user_member.size());
   std::vector<Chat> chats_of_user;
   for(auto chat_member: chats_where_user_member){
-    int chat_id = chat_member.id;
+    int chat_id = chat_member.chat_id;
     auto chat = repository_->findOne<Chat>(chat_id);
     if(chat) chats_of_user.push_back(*chat);
     else LOG_ERROR("Could find chat with id {}", chat_id);

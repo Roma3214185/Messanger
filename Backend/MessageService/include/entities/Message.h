@@ -79,35 +79,32 @@ struct EntityFields<Message> {
   static constexpr auto& fields = MessageFields;
 };
 
-[[nodiscard]] inline nlohmann::json to_json(const Message& message) {
-  auto json_message = nlohmann::json{{"id", message.id},
-                                {"chat_id", message.chat_id},
-                                {"sender_id", message.sender_id},
-                                {"text", message.text},
-                                {"timestamp", message.timestamp},
-                                {"local_id", message.local_id}};
-  return json_message;
-}
+namespace nlohmann {
 
-inline void to_json(nlohmann::json& json_message, const Message& message) {
-  json_message = nlohmann::json{
-      {"id", message.id},
-      {"chat_id", message.chat_id},
-      {"sender_id", message.sender_id},
-      {"text", message.text},
-      {"timestamp", message.timestamp},
-      {"local_id", message.local_id}
-  };
-}
+template <>
+struct adl_serializer<Message> {
+  static void to_json(nlohmann::json& json_message, const Message& message) {
+    json_message = nlohmann::json{
+        {"id", message.id},
+        {"chat_id", message.chat_id},
+        {"sender_id", message.sender_id},
+        {"text", message.text},
+        {"timestamp", message.timestamp},
+        {"local_id", message.local_id}
+    };
+  }
 
-inline void from_json(const nlohmann::json& json_message, Message& message) {
-  json_message.at("id").get_to(message.id);
-  json_message.at("chat_id").get_to(message.chat_id);
-  json_message.at("sender_id").get_to(message.sender_id);
-  json_message.at("text").get_to(message.text);
-  json_message.at("timestamp").get_to(message.timestamp);
-  json_message.at("local_id").get_to(message.local_id);
-}
+  static void from_json(const nlohmann::json& json_message, Message& message) {
+    json_message.at("id").get_to(message.id);
+    json_message.at("chat_id").get_to(message.chat_id);
+    json_message.at("sender_id").get_to(message.sender_id);
+    json_message.at("text").get_to(message.text);
+    json_message.at("timestamp").get_to(message.timestamp);
+    json_message.at("local_id").get_to(message.local_id);
+  }
+};
+
+}  //nlohmann
 
 inline crow::json::wvalue to_crow_json(const Message& message) {
   crow::json::wvalue json_message;

@@ -1,8 +1,8 @@
 #ifndef MESSAGEMANAGER_H
 #define MESSAGEMANAGER_H
 
-#include "GenericRepository.h"
-#include "Batcher.h"
+#include "Persistence/GenericRepository.h"
+#include "Persistence/Batcher.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
 

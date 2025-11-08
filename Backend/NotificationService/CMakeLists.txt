@@ -6,7 +6,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(NOTIFICATION_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -46,6 +46,9 @@ target_link_libraries(NotificationService PRIVATE
   jwt-cpp
   RabbitMQClient
 )
+
+include_directories(/opt/homebrew/include)
+link_directories(/opt/homebrew/lib)
 
 include_directories(
     ${httplib_SOURCE_DIR}

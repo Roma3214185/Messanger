@@ -75,7 +75,6 @@ target_link_libraries(FrontendLib_local PUBLIC
 
 target_compile_definitions(FrontendLib_local PUBLIC SPDLOG_HEADER_ONLY)
 
-# --- Build the test executable ---
 add_executable(FrontendServiceTests
     main.cpp
     test_datainputservice.cpp

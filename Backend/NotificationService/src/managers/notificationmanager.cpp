@@ -2,8 +2,8 @@
 
 #include "Debug_profiling.h"
 #include "managers/networkmanager.h"
-#include "rabbitmqclient.h"
-#include "managers/socketmanager.h"
+#include "RabbitMQClient/RabbitMQClient.h"
+#include "managers/SocketManager.h"
 
 const std::string kMessageSaved = "message_saved";
 const std::string kSaveMessage = "save_message";
@@ -40,8 +40,7 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
     return;
   }
 
-  Message saved_message;
-  from_json(parsed, saved_message);
+  auto saved_message = parsed.get<Message>();
 
   LOG_INFO("Received saved message id {} text '{}'", saved_message.id,
            saved_message.text);
@@ -61,7 +60,7 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
     LOG_INFO("Sent message {} to user {}", saved_message.id, user_id);
 
     MessageStatus status;
-    status.id = saved_message.id;
+    status.message_id = saved_message.id;
     status.receiver_id = user_id;
     status.is_read = false;
 
@@ -89,7 +88,7 @@ void NotificationManager::userConnected(int user_id, WebsocketPtr conn) {
 
 void NotificationManager::onMarkReadMessage(Message& message, int read_by) {
   const MessageStatus message_status{
-      .id = message.id,
+      .message_id = message.id,
       .receiver_id = read_by,
       .is_read = true,
       .read_at = QDateTime::currentSecsSinceEpoch()};
@@ -103,8 +102,8 @@ void NotificationManager::onSendMessage(Message& message) {
   LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')",
            message.sender_id, message.chat_id, message.text);
 
-  auto to_save = nlohmann::json{{"event", "save_message"}};
-  to_json(to_save, message);
+  auto to_save = nlohmann::json(message);
+  to_save["event"] = "save_message";
   mq_client_.publish(kExchange, kSaveMessage, to_save.dump());
 }
 
@@ -121,7 +120,7 @@ void NotificationManager::onMessageSaved(Message& message) {
     LOG_INFO("Chat id: '{}'; member is ", message.chat_id, toUser);
 
     MessageStatus messageStatus{
-        .id = message.id, .receiver_id = toUser, .is_read = false};
+        .message_id = message.id, .receiver_id = toUser, .is_read = false};
 
     qDebug() << "For text " << message.text << " local_id " << message.local_id;
     saveMessageStatus(messageStatus);
@@ -136,14 +135,12 @@ void NotificationManager::sendMessageToUser(int user_id, Message& message) {
     return;
   }
 
-  nlohmann::json json_message;
-  to_json(json_message, message);
+  auto json_message = nlohmann::json(message);
   user_socket->send_text(json_message.dump());
 }
 
 void NotificationManager::saveMessageStatus(MessageStatus& status) {
-  nlohmann::json status_json;
-  to_json(status_json, status);
+  auto status_json = nlohmann::json(status);
 
   mq_client_.publish(kExchange, kSaveMessageStatus,
                      status_json.dump());

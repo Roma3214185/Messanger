@@ -39,8 +39,8 @@ target_link_libraries(ChatService PRIVATE
     spdlog::spdlog
     TracyClient
     RabbitMQClient
-    RedisCache
-    GenericRepository
+    #RedisCache
+    #Persistance
 )
 
 include_directories(/opt/homebrew/include)

@@ -5,7 +5,7 @@
 #include <vector>
 #include <QList>
 
-#include "GenericRepository/GenericRepository.h"
+#include "Persistence/GenericRepository.h"
 #include "entities/Chat.h"
 
 class ChatManager {

@@ -1,13 +1,15 @@
 #include <QCoreApplication>
 
-#include "GenericRepository.h"
-#include "Query.h"
-#include "ThreadPool.h"
+#include "Persistence/ThreadPool.h"
+#include "Persistence/GenericRepository.h"
+#include "Persistence/Query.h"
 #include "benchmark/benchmark.h"
+#include "SqlExecutor.h"
 
 static void EntityWithoutCache(benchmark::State& state) {
   SQLiteDatabase db;
-  GenericRepository rep(db);
+  SqlExecutor executor(db);
+  GenericRepository rep(db,executor, RedisCache::instance());
   for (auto _ : state) {
     auto results = rep.findOne<Message>(4);
     benchmark::DoNotOptimize(results);
@@ -16,7 +18,8 @@ static void EntityWithoutCache(benchmark::State& state) {
 
 static void EntityWithCache(benchmark::State& state) {
   SQLiteDatabase db;
-  GenericRepository rep(db);
+  SqlExecutor executor(db);
+  GenericRepository rep(db, executor, RedisCache::instance());
   for (auto _ : state) {
     auto results = rep.findOneWithOutCache<Message>(4);
     benchmark::DoNotOptimize(results);
@@ -26,7 +29,8 @@ static void EntityWithCache(benchmark::State& state) {
 static void EntityWithCacheAsync(benchmark::State& state) {
   ThreadPool pool(4);
   SQLiteDatabase db;
-  GenericRepository rep(db, &pool);
+  SqlExecutor executor(db);
+  GenericRepository rep(db, executor, RedisCache::instance(), &pool);
   for (auto _ : state) {
     auto future = rep.findOneAsync<Message>(4);
     auto results = future.get();
@@ -37,7 +41,8 @@ static void EntityWithCacheAsync(benchmark::State& state) {
 static void EntityWithoutCacheAsync(benchmark::State& state) {
   ThreadPool pool(4);
   SQLiteDatabase db;
-  GenericRepository rep(db, &pool);
+  SqlExecutor executor(db);
+  GenericRepository rep(db, executor, RedisCache::instance(), &pool);
   for (auto _ : state) {
     auto future = rep.findOneWithOutCacheAsync<Message>(4);
     auto results = future.get();

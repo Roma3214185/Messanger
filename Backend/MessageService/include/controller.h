@@ -8,7 +8,7 @@
 #include <crow.h>
 #include <QtSql>
 
-#include "ThreadPool.h"
+#include "Persistence/ThreadPool.h"
 
 class Message;
 class MessageManager;

@@ -21,13 +21,11 @@ set(HIREDIS_ROOT "/opt/homebrew/opt/hiredis")
 
 include_directories(
     ${HIREDIS_ROOT}/include
-    #${REDIS_PLUS_PLUS_ROOT}/include
-    ${CMAKE_SOURCE_DIR}/Backend
+    ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
 )
 
 link_directories(
     ${HIREDIS_ROOT}/lib
-    #${REDIS_PLUS_PLUS_ROOT}/lib
 )
 
 add_executable(benchmarks
@@ -39,22 +37,21 @@ add_executable(benchmarks
     preparedStatements_benchmark.cpp
     batcher_benchmark.cpp
     thread_pool_benchmark.cpp
-
-    #../SQLiteDatabase.cpp
 )
 
 add_executable(latencies
     benchmark_latency.cpp
-
-    #../SQLiteDatabase.cpp
 )
 
-target_include_directories(benchmarks PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Backend)
-target_include_directories(latencies PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Backend)
+target_include_directories(benchmarks PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Backend/Persistence/include)
+
+target_include_directories(latencies PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Backend/Persistence/include)
 
 target_link_libraries(benchmarks PRIVATE
     RedisCache
-    GenericRepository
+    Persistence
     RabbitMQClient
     benchmark::benchmark
     Qt6::Core
@@ -67,7 +64,7 @@ target_link_libraries(benchmarks PRIVATE
 
 target_link_libraries(latencies PRIVATE
     RedisCache
-    GenericRepository
+    Persistence
     RabbitMQClient
     Qt6::Core
     Qt6::Network

@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "Debug_profiling.h"
-#include "RegisterRequest.h"
+#include "entities/RegisterRequest.h"
 #include "JwtUtils.h"
 
 using std::string;
@@ -166,10 +166,8 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
   auto auth_responce = service_->registerUser(register_request);
   if (!auth_responce) {
     sendResponse(responce, kUserError, "User already exist");
+    return;
   } else {
     sendResponse(responce, kSuccessfulCode, userToJson(*auth_responce->user, auth_responce->token).dump());
   }
 }
-
-
-

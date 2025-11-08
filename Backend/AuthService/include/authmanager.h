@@ -4,8 +4,8 @@
 #include <optional>
 #include <string>
 
-#include "AuthResponce.h"
-#include "GenericRepository.h"
+#include "entities/AuthResponce.h"
+#include "Persistence/GenericRepository.h"
 
 class RegisterRequest;
 class LoginRequest;

@@ -117,4 +117,12 @@ struct Builder {
 template <typename T>
 struct EntityFields;
 
+template <typename T>
+struct EntityKey {
+    static std::string get(const T& entity) {
+      return std::to_string(entity.id);
+    }
+};
+
+
 #endif  // BACKEND_GENERICREPOSITORY_META_H_
