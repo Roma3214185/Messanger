@@ -220,8 +220,7 @@ std::size_t Query<T>::hashParams(QVector<QVariant>) const {
 
 template <typename T>
 std::string Query<T>::buildEntityKey(const T& entity) const {
-  return "entity_cache:" + table_name_ + ":" +
-         std::to_string(getEntityId(entity));
+  return "entity_cache:" + table_name_ + ":" + EntityKey<T>::get(entity);
 }
 
 template <typename T>

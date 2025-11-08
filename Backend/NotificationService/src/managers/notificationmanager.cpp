@@ -60,7 +60,7 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
     LOG_INFO("Sent message {} to user {}", saved_message.id, user_id);
 
     MessageStatus status;
-    status.id = saved_message.id;
+    status.message_id = saved_message.id;
     status.receiver_id = user_id;
     status.is_read = false;
 
@@ -88,7 +88,7 @@ void NotificationManager::userConnected(int user_id, WebsocketPtr conn) {
 
 void NotificationManager::onMarkReadMessage(Message& message, int read_by) {
   const MessageStatus message_status{
-      .id = message.id,
+      .message_id = message.id,
       .receiver_id = read_by,
       .is_read = true,
       .read_at = QDateTime::currentSecsSinceEpoch()};
@@ -120,7 +120,7 @@ void NotificationManager::onMessageSaved(Message& message) {
     LOG_INFO("Chat id: '{}'; member is ", message.chat_id, toUser);
 
     MessageStatus messageStatus{
-        .id = message.id, .receiver_id = toUser, .is_read = false};
+        .message_id = message.id, .receiver_id = toUser, .is_read = false};
 
     qDebug() << "For text " << message.text << " local_id " << message.local_id;
     saveMessageStatus(messageStatus);

@@ -8,10 +8,10 @@
 #include <string>
 #include <tuple>
 
-#include "Meta.h"
+#include "Persistence/include/Meta.h"
 
 struct MessageStatus {
-  long long id;
+  long long message_id;
   long long receiver_id;
   long long read_at = QDateTime::currentSecsSinceEpoch();
   bool is_read = false;
@@ -24,7 +24,7 @@ struct Reflection<MessageStatus> {
         .name = "MessageStatus",
         .table_name = "messages_status",
         .fields = {
-            make_field<MessageStatus, long long>("id", &MessageStatus::id),
+            make_field<MessageStatus, long long>("message_id", &MessageStatus::message_id),
             make_field<MessageStatus, long long>("receiver_id",
                                                &MessageStatus::receiver_id),
             make_field<MessageStatus, bool>("is_read", &MessageStatus::is_read),
@@ -55,7 +55,7 @@ struct Builder<MessageStatus> {
       }
     };
 
-    assign(message_status.id);
+    assign(message_status.message_id);
     assign(message_status.receiver_id);
     assign(message_status.read_at);
     assign(message_status.is_read);
@@ -64,8 +64,15 @@ struct Builder<MessageStatus> {
   }
 };
 
+template <>
+struct EntityKey<MessageStatus> {
+    static std::string get(const MessageStatus& entity) {
+      return std::to_string(entity.message_id);
+    }
+};
+
 inline constexpr auto kMessageStatusFields =
-    std::make_tuple(&MessageStatus::id, &MessageStatus::receiver_id,
+    std::make_tuple(&MessageStatus::message_id, &MessageStatus::receiver_id,
                     &MessageStatus::is_read, &MessageStatus::read_at);
 
 template <>
@@ -80,7 +87,7 @@ struct adl_serializer<MessageStatus> {
   static void to_json(nlohmann::json& json_message_status,
                       const MessageStatus& message_status) {
     json_message_status =
-        nlohmann::json{{"id", message_status.id},
+        nlohmann::json{{"message_id", message_status.message_id},
                        {"receiver_id", message_status.receiver_id},
                        {"is_read", message_status.is_read},
                        {"read_at", message_status.read_at}};
@@ -88,7 +95,7 @@ struct adl_serializer<MessageStatus> {
 
   static void from_json(const nlohmann::json& json_message_status,
                         MessageStatus& message_status) {
-    json_message_status.at("id").get_to(message_status.id);
+    json_message_status.at("message_id").get_to(message_status.message_id);
     json_message_status.at("receiver_id").get_to(message_status.receiver_id);
     json_message_status.at("is_read").get_to(message_status.is_read);
     json_message_status.at("read_at").get_to(message_status.read_at);

@@ -30,8 +30,6 @@ using FutureResultList = std::future<std::vector<T>>;
 class ISqlExecutor;
 class ICacheService;
 
-
-
 class GenericRepository {
   ISqlExecutor& executor_;
   ICacheService& cache_;

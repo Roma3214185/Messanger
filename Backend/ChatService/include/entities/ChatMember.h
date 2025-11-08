@@ -8,7 +8,7 @@
 #include "Meta.h"
 
 struct ChatMember {
-    long long id;
+    long long chat_id;
     long long user_id;
     std::string status;
     long long added_at;
@@ -21,7 +21,7 @@ struct Reflection<ChatMember> {
           .name = "chat_members",
           .table_name = "chat_members",
           .fields = {
-                     make_field<ChatMember, long long>("id", &ChatMember::id),
+                     make_field<ChatMember, long long>("chat_id", &ChatMember::chat_id),
                      make_field<ChatMember, long long>("user_id", &ChatMember::user_id),
                      make_field<ChatMember, std::string>("status", &ChatMember::status),
                      make_field<ChatMember, long long>("added_at", &ChatMember::added_at)}
@@ -51,7 +51,7 @@ struct Builder<ChatMember> {
         }
       };
 
-      assign(chat_member.id);
+      assign(chat_member.chat_id);
       assign(chat_member.user_id);
       assign(chat_member.status);
       assign(chat_member.added_at);
@@ -61,12 +61,19 @@ struct Builder<ChatMember> {
 };
 
 inline constexpr auto ChatMemberFields =
-    std::make_tuple(&ChatMember::id, &ChatMember::user_id, &ChatMember::status,
+    std::make_tuple(&ChatMember::chat_id, &ChatMember::user_id, &ChatMember::status,
                     &ChatMember::added_at);
 
 template <>
 struct EntityFields<ChatMember> {
     static constexpr auto& fields = ChatMemberFields;
+};
+
+template <>
+struct EntityKey<ChatMember> {
+    static std::string get(const ChatMember& entity) {
+      return std::to_string(entity.chat_id) + ", " + std::to_string(entity.user_id);
+    }
 };
 
 namespace nlohmann {
@@ -75,14 +82,14 @@ template <>
 struct adl_serializer<ChatMember> {
 
   static void to_json(nlohmann::json& json_chat_member, const ChatMember& chat_member) {
-    json_chat_member = nlohmann::json{{"id", chat_member.id},
+    json_chat_member = nlohmann::json{{"chat_id", chat_member.chat_id},
                                {"user_id", chat_member.user_id},
                                {"status", chat_member.status},
                                {"added_at", chat_member.added_at}};
   }
 
   static void from_json(const nlohmann::json& json_chat_member, ChatMember& chat_member) {
-    json_chat_member.at("id").get_to(chat_member.id);
+    json_chat_member.at("chat_id").get_to(chat_member.chat_id);
     json_chat_member.at("user_id").get_to(chat_member.user_id);
     json_chat_member.at("status").get_to(chat_member.status);
     json_chat_member.at("added_at").get_to(chat_member.added_at);

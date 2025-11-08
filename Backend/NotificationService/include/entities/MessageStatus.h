@@ -6,7 +6,7 @@
 #include <nlohmann/json.hpp>
 
 struct MessageStatus {
-  long long id;
+  long long message_id;
   long long receiver_id;
   bool is_read = false;
   long long read_at;
@@ -18,7 +18,7 @@ template <>
 struct adl_serializer<MessageStatus> {
     static void to_json(nlohmann::json& j, const MessageStatus& m) {
       j = nlohmann::json{
-          {"id", m.id},
+          {"message_id", m.message_id},
           {"receiver_id", m.receiver_id},
           {"is_read", m.is_read},
           {"read_at", m.read_at}
@@ -26,7 +26,7 @@ struct adl_serializer<MessageStatus> {
     }
 
     static void from_json(const nlohmann::json& j, MessageStatus& m) {
-      j.at("id").get_to(m.id);
+      j.at("message_id").get_to(m.message_id);
       j.at("receiver_id").get_to(m.receiver_id);
       j.at("is_read").get_to(m.is_read);
       j.at("read_at").get_to(m.read_at);

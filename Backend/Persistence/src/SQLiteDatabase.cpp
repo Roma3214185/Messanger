@@ -52,11 +52,11 @@ void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
 
   if (!query.exec(R"(
             CREATE TABLE IF NOT EXISTS messages_status (
-                id INT,
+                message_id INT,
                 receiver_id INTEGER,
                 is_read BOOLEAN,
                 read_at INTEGER,
-                PRIMARY KEY(id, receiver_id)
+                PRIMARY KEY(message_id, receiver_id)
             );
         )")) {
     LOG_ERROR("Failed to create messages_status table: {}",
@@ -89,10 +89,11 @@ void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database){
 
   query.prepare(R"(
         CREATE TABLE IF NOT EXISTS chat_members (
-            id INTEGER,
+            chat_id INTEGER,
             user_id INTEGER,
             status TEXT DEFAULT 'member',
-            added_at INTEGER
+            added_at INTEGER,
+            PRIMARY KEY(chat_id, user_id)
         );
     )");
 
@@ -107,7 +108,7 @@ void SQLiteDatabase::createUserCredentialsTable(QSqlDatabase& database){
 
   query.prepare(R"(
         CREATE TABLE IF NOT EXISTS credentials (
-            id INTEGER,
+            user_id INTEGER PRIMARY KEY,
             hash_password TEXT NOT NULL
         );
     )");

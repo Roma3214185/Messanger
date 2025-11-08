@@ -10,7 +10,7 @@ void NotificationManager::notifyMessageRead(int chat_id,
     if (user_sockets_.find(userId) == user_sockets_.end()) {
       crow::json::wvalue msgJson;
       msgJson["type"] = "message_read";
-      msgJson["message_id"] = status.id;
+      msgJson["message_id"] = status.message_id;
       msgJson["reader_id"] = status.receiver_id;
 
       user_sockets_[userId]->send_text(msgJson.dump());

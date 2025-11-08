@@ -7,6 +7,8 @@
 
 #include "Debug_profiling.h"
 #include "entities/RegisterRequest.h"
+#include "entities/UserCredentials.h"
+#include "PasswordService.h"
 
 using std::nullopt;
 using std::string;
@@ -44,6 +46,14 @@ OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
   LOG_INFO("User found with email '{}', id is '{}'", login_request.email,
            findedUser.id);
 
+  auto user_credentials_vector = rep.findByField<UserCredentials>("user_id", findedUser.id);
+  assert(user_credentials_vector.size() == 1);
+  auto user_credentials = user_credentials_vector.front();
+  if(!PasswordService::verify(login_request.password, user_credentials.hash_password)) {
+    LOG_ERROR("Invalid password");
+    return std::nullopt;
+  }
+
   auto token = JwtUtils::generateToken(findedUser.id);
   LOG_INFO("Generated token = '{}'", token);
   return AuthResponce{.token = token, .user = findedUser};
@@ -58,7 +68,19 @@ OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
 
   bool saved = rep.save(user_to_save);
   if(!saved) return std::nullopt;
+
   auto token = JwtUtils::generateToken(user_to_save.id);
+
+  std::string hashed_password = PasswordService::hash(req.password);
+  UserCredentials user_credentials;
+  user_credentials.user_id = user_to_save.id;
+  user_credentials.hash_password = hashed_password;
+
+  bool saved_credentials = rep.save(user_credentials);
+  if(!saved_credentials) {
+    LOG_ERROR("Server error while saving credentials");
+    return std::nullopt;
+  }
 
   return AuthResponce{.token = token, .user = user_to_save};
 }

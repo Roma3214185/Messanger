@@ -113,7 +113,7 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
   pool_.enqueue([this, status]() mutable {
     bool ok = manager_->saveMessageStatus(status);
     if (!ok) {
-      LOG_ERROR("Error saving message_status id {}", status.id);
+      LOG_ERROR("Error saving message_status id {}", status.message_id);
     } else {
       mq_client_->publish(kExchange, kMessageStatusSaved,
                           nlohmann::json(status).dump());
