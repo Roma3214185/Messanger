@@ -17,7 +17,6 @@ set(SIMPLE_AMQP_CLIENT_DIR ${CMAKE_SOURCE_DIR}/external/SimpleAmqpClient)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 set(CMAKE_OSX_ARCHITECTURES arm64)
 
-
 find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets WebSockets Gui Sql)
 find_package(SQLite3 REQUIRED)
 find_package(spdlog REQUIRED)
@@ -47,15 +46,15 @@ add_subdirectory(external/SimpleAmqpClient)
 
 add_library(Metrics STATIC DebugProfiling/metrics.cpp)
 target_include_directories(Metrics PUBLIC DebugProfiling)
-target_link_libraries(Metrics PUBLIC prometheus-cpp-core prometheus-cpp-pull ZLIB::ZLIB)
+target_link_libraries(Metrics PUBLIC prometheus-cpp-core prometheus-cpp-pull ZLIB::ZLIB Qt6::Core Qt6::Widgets Qt6::Gui)
 
 add_library(RabbitMQClient STATIC Backend/RabbitMQClient/RabbitMQClient.cpp)
 target_include_directories(RabbitMQClient PUBLIC Backend/RabbitMQClient Backend/GenericRepository ${RABBITMQC_DIR}/include ${SIMPLE_AMQP_CLIENT_DIR}/include)
-target_link_libraries(RabbitMQClient PRIVATE SimpleAmqpClient rabbitmq)
+target_link_libraries(RabbitMQClient PRIVATE SimpleAmqpClient rabbitmq Qt6::Core)
 
 add_library(RedisCache STATIC Backend/RedisCache/RedisCache.cpp)
 target_include_directories(RedisCache PUBLIC Backend/RedisCache ${DEBUG_PROFILING_DIR})
-target_link_libraries(RedisCache PUBLIC redis++ hiredis)
+target_link_libraries(RedisCache PUBLIC redis++ hiredis Qt6::Core)
 
 add_library(Persistence STATIC
     Backend/Persistence/src/GenericRepository.cpp
@@ -63,26 +62,6 @@ add_library(Persistence STATIC
     Backend/Persistence/src/ThreadPool.cpp
     Backend/Persistence/src/SqlExecutor.cpp
 )
-
-# set(PERSISTENCE_SRC_DIR ${CMAKE_SOURCE_DIR}/Backend/Persistence/src)
-
-# add_library(PersistenceLib_local STATIC
-#     Backend/Persistence/src/ThreadPool.cpp
-#     Backend/Persistence/src/SqlExecutor.cpp
-#    Backend/Persistence/src/ThreadPool.cpp
-#    Backend/Persistence/src/SqlExecutor.cpp
-# )
-
-# target_include_directories(PersistenceLib_local PUBLIC
-#     ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
-# )
-
-# target_link_libraries(PersistenceLib_local
-#     PUBLIC
-#         Qt6::Core
-#         Qt6::Widgets
-#         Qt6::Gui
-# )
 
 target_include_directories(Persistence
     PUBLIC
@@ -119,8 +98,7 @@ target_include_directories(Frontend PRIVATE
 
 add_subdirectory(Backend/Persistence/benchmarks Backend/Persistence/benchmarks_build)
 
-add_executable(Chat main.cpp media.qrc
-    Backend/Persistence/include/interfaces/BaseQuery.h)
+add_executable(Chat main.cpp media.qrc)
 
 target_link_libraries(Chat PRIVATE
     Qt6::Core Qt6::Network Qt6::Widgets Qt6::WebSockets Qt6::Gui

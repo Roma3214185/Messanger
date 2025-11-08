@@ -30,9 +30,6 @@ template <typename T>
 inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) const {
   std::any val = f.get(&entity);
 
-  LOG_INFO("'{}' type: '{}' any type '{}'", f.name, f.type.name(),
-           val.type().name());
-
   if (f.type == typeid(long long))
     return QVariant::fromValue(std::any_cast<long long>(val));
   if (f.type == typeid(std::string))
@@ -123,7 +120,7 @@ inline std::future<std::optional<T>> GenericRepository::findOneAsync(long long e
 
 template <typename T>
 std::optional<T> GenericRepository::findOne(long long entity_id) {
-  auto query = QueryFactory::createSelect<T>(database_, cache_);
+  auto query = QueryFactory::createSelect<T>(executor_, cache_);
   query->where("id", entity_id).limit(1);
   auto res = query->execute();
   return res.empty() ? std::nullopt : std::make_optional(res.front());
@@ -168,8 +165,8 @@ std::vector<T> GenericRepository::findByField(const std::string& field,
 
 template <typename T>
 std::vector<T> GenericRepository::findByField(const std::string& field, const QVariant& value) {
-  auto query = QueryFactory::createSelect<T>(database_, cache_);
-  query->where(field, value).limit(1);
+  auto query = QueryFactory::createSelect<T>(executor_, cache_);
+  query->where(field, value);
   return query->execute();
 }
 

@@ -22,8 +22,8 @@ std::optional<std::vector<T>> SelectQuery<T>::tryLoadFromCache(const std::string
 }
 
 template <typename T>
-SelectQuery<T>::SelectQuery(IDataBase& db, ICacheService& cache)
-    : BaseQuery<T>(db), cache_(cache) { }
+SelectQuery<T>::SelectQuery(ISqlExecutor& executor, ICacheService& cache)
+    : BaseQuery<T>(executor), cache_(cache) { }
 
 template <typename T>
 std::vector<T> SelectQuery<T>::execute() const {
@@ -43,9 +43,8 @@ std::vector<T> SelectQuery<T>::execute() const {
 
 template <typename T>
 QSqlQuery SelectQuery<T>::runDatabaseQuery(const QString& sql) const {
-  SqlExecutor executer(this->db_);
   QSqlQuery query;
-  if (!executer.execute(sql, this->values_, query)) {
+  if (!this->executor_.execute(sql, this->values_, query)) {
     LOG_ERROR("[QueryExecutor] SQL execution failed: '{}'", sql.toStdString());
   }
   return query;
@@ -101,27 +100,27 @@ std::future<std::vector<T>> SelectQuery<T>::executeWithoutCacheAsync() const {
 
 template <typename T>
 std::vector<T> SelectQuery<T>::executeWithoutCache() const {
-  QString sql = buildSelectQuery();
-  QSqlDatabase threadDb =
-      this->db_.getThreadDatabase();
+  // QString sql = buildSelectQuery();
+  // QSqlDatabase threadDb =
+  //     this->db_.getThreadDatabase();
 
-  QSqlQuery query(threadDb);
-  query.prepare(sql);
-  for (int i = 0; i < this->values_.size(); ++i) query.bindValue(i, this->values_[i]);
+  // QSqlQuery query(threadDb);
+  // query.prepare(sql);
+  // for (int i = 0; i < this->values_.size(); ++i) query.bindValue(i, this->values_[i]);
 
-  if (!query.exec()) {
-    LOG_ERROR("Query error: {}", query.lastError().text().toStdString());
-    return {};
-  }
+  // if (!query.exec()) {
+  //   LOG_ERROR("Query error: {}", query.lastError().text().toStdString());
+  //   return {};
+  // }
 
-  std::vector<T> results;
-  auto meta = Reflection<T>::meta();
-  while (query.next()) {
-    results.push_back(buildEntity(query, meta));
-  }
+  // std::vector<T> results;
+  // auto meta = Reflection<T>::meta();
+  // while (query.next()) {
+  //   results.push_back(buildEntity(query, meta));
+  // }
 
-  LOG_INFO("Result size is '{}'", results.size());
-  return results;
+  // LOG_INFO("Result size is '{}'", results.size());
+  // return results;
 }
 
 template <typename T>

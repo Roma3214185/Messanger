@@ -1,6 +1,7 @@
 #include "managers/MessageManager.h"
 #include "Persistence/GenericRepository.h"
 #include "Persistence/include/interfaces/BaseQuery.h"
+#include "Persistence/include/SqlExecutor.h"
 
 MessageManager::MessageManager(GenericRepository* repository,
                                Batcher<Message>* message_batcher,
@@ -19,8 +20,9 @@ std::optional<Message> MessageManager::getMessage(int message_id) {
 
 std::optional<MessageStatus> MessageManager::getMessageStatus(int message_id,
                                                               int receiver_id) {
-  auto custom_query = QueryFactory::createSelect<MessageStatus>(repository_->getDatabase(), cache_);
-  custom_query->where("id", message_id)
+  SqlExecutor executor(repository_->getDatabase());
+  auto custom_query = QueryFactory::createSelect<MessageStatus>(executor, cache_);
+  custom_query->where("message_id", message_id)
                .where("receiver_id", receiver_id)
                .limit(1);
 
@@ -41,7 +43,8 @@ std::optional<int> MessageManager::getChatId(int message_id) {
 
 std::vector<Message> MessageManager::getChatMessages(int chat_id, int limit,
                                                      int before_id) {
-  auto custom_query = QueryFactory::createSelect<Message>(repository_->getDatabase(), cache_);
+  SqlExecutor executor(repository_->getDatabase());
+  auto custom_query = QueryFactory::createSelect<Message>(executor, cache_);
   custom_query->where("chat_id", chat_id).limit(limit);
   custom_query->orderBy("timestamp", "DESC");
 
@@ -57,7 +60,8 @@ std::vector<Message> MessageManager::getChatMessages(int chat_id, int limit,
 }
 
 std::vector<MessageStatus> MessageManager::getUndeliveredMessages(int user_id) {
-  auto custom_query = QueryFactory::createSelect<MessageStatus>(repository_->getDatabase(), cache_);
+  SqlExecutor executor(repository_->getDatabase());
+  auto custom_query = QueryFactory::createSelect<MessageStatus>(executor, cache_);
   custom_query->where("receiver_id", user_id)
                 .where("is_read", "0");
   return custom_query->execute();

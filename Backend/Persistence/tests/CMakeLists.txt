@@ -17,6 +17,7 @@ add_executable(PersistenceTests
     main.cpp
     test_genericrepository.cpp
     test_query.cpp
+    mocks/MockQuery.h
 )
 
 target_include_directories(Persistence

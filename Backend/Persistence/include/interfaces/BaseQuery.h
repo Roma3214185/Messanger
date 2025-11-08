@@ -3,15 +3,16 @@
 
 #include <vector>
 
-#include "IDataBase.h"
+#include "Persistence/include/interfaces/ISqlExecutor.h"
 #include "Persistence/include/Persistence/ThreadPool.h"
 #include "RedisCache/ICacheService.h"
 #include "Persistence/include/Persistence/Query.h"
+#include "Persistence/include/Meta.h"
 
 template <typename T>
 class BaseQuery {
   protected:
-    IDataBase& db_;
+    ISqlExecutor& executor_;
     std::vector<std::string> involved_tables_;
     inline static ThreadPool pool{4};
     QStringList filters_;
@@ -20,7 +21,7 @@ class BaseQuery {
     std::string table_name_;
 
   public:
-    explicit BaseQuery(IDataBase& db) : db_(db) {
+    explicit BaseQuery(ISqlExecutor& executor) : executor_(executor) {
       table_name_ = Reflection<T>::meta().table_name;
       involved_tables_.push_back(table_name_);
     }
@@ -53,8 +54,8 @@ class SelectQuery;
 class QueryFactory{
   public:
     template<typename T>
-    static std::unique_ptr<SelectQuery<T>> createSelect(IDataBase& db, ICacheService& cache) {
-      return std::make_unique<SelectQuery<T>>(db, cache);
+    static std::unique_ptr<SelectQuery<T>> createSelect(ISqlExecutor& executor, ICacheService& cache) {
+      return std::make_unique<SelectQuery<T>>(executor, cache);
     }
 };
 
