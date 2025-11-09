@@ -9,7 +9,6 @@ Checks: >
   -modernize-use-trailing-return-type
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
-AnalyzeTemporaryDtors: true
 FormatStyle: file
 CheckOptions:
   - key: modernize-use-auto.MinTypeNameLength
