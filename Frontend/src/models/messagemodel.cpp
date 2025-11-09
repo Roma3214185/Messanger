@@ -30,7 +30,7 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
     case SendedStatusRole:
       return msg.status_sended;
     case ReadedStatusRole:
-      return false;  //TODO(roma) implement reading status(readed_cnt ?= 2
+      return false;  // TODO(roma) implement reading status(readed_cnt ?= 2
     default:
       return QVariant();
   }
@@ -50,33 +50,31 @@ std::optional<Message> MessageModel::getFirstMessage() {
   return messages_.front();
 }
 
-void MessageModel::addMessage(const Message& msg,
-                              const User& user, bool in_front) {
+void MessageModel::addMessage(const Message& msg, const User& user, bool in_front) {
   LOG_INFO("Msg id {} ans local_id {}", msg.id, msg.local_id.toStdString());
   users_by_message_id_[msg.id] = user;
 
-  auto it = std::find_if(messages_.begin(), messages_.end(), [&] (const auto& other){
-    return msg.local_id == other.local_id; //|| msg.id == other.id;
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto& other) {
+    return msg.local_id == other.local_id;  //|| msg.id == other.id;
   });
 
   if (it != messages_.end()) {
-    LOG_INFO("Message already exist with id {} ans local id {}", it->id, it->local_id.toStdString());
+    LOG_INFO(
+        "Message already exist with id {} ans local id {}", it->id, it->local_id.toStdString());
 
-    if(msg.local_id != it->local_id || (it->id != 0 && msg.id != it->id)) {
+    if (msg.local_id != it->local_id || (it->id != 0 && msg.id != it->id)) {
       LOG_ERROR("Invalid siruation with ids");
       return;
     }
 
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-    it->id = msg.id;
-    it->text = msg.text;
-    it->timestamp = msg.timestamp;
+    it->id            = msg.id;
+    it->text          = msg.text;
+    it->timestamp     = msg.timestamp;
     it->status_sended = true;
     endInsertRows();
     return;
-
   }
-
 
   beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
   if (in_front) {
@@ -100,9 +98,12 @@ void MessageModel::clear() {
 }
 
 QHash<int, QByteArray> MessageModel::roleNames() const {
-  return {{UsernameRole, "username"},      {TextRole, "text"},
-          {AvatarRole, "avatar"},          {TimestampRole, "timestamp"},
-          {ReceiverIdTole, "receiver_id"}, {SenderIdRole, "sender_id"}};
+  return {{UsernameRole, "username"},
+          {TextRole, "text"},
+          {AvatarRole, "avatar"},
+          {TimestampRole, "timestamp"},
+          {ReceiverIdTole, "receiver_id"},
+          {SenderIdRole, "sender_id"}};
 }
 
 int MessageModel::rowCount(const QModelIndex& parent) const {

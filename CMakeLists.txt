@@ -34,6 +34,8 @@ add_subdirectory(Backend/NotificationService)
 add_subdirectory(Frontend)
 
 # tests
-add_subdirectory(Frontend/tests)
+include(CTest)
+enable_testing()
 add_subdirectory(common/Persistence/tests)
+add_subdirectory(Frontend/tests)
 

@@ -1,19 +1,18 @@
 #include "presenter.h"
 
-#include <QtConcurrent/QtConcurrent>
 #include <QJsonObject>
+#include <QtConcurrent/QtConcurrent>
 
 #include "Debug_profiling.h"
-#include "models/messagemodel.h"
-#include "model.h"
-#include "interfaces/IMainWindow.h"
+#include "JsonService.h"
 #include "MessageListView.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
-#include "JsonService.h"
+#include "interfaces/IMainWindow.h"
+#include "model.h"
+#include "models/messagemodel.h"
 
-Presenter::Presenter(IMainWindow* window, Model* manager)
-    : view_(window), manager_(manager) {
+Presenter::Presenter(IMainWindow* window, Model* manager) : view_(window), manager_(manager) {
   view_->setChatModel(manager->getChatModel());
   view_->setUserModel(manager->getUserModel());
   manager_->checkToken();
@@ -24,17 +23,15 @@ Presenter::Presenter(IMainWindow* window, Model* manager)
   initialConnections();
 }
 
-void Presenter::signIn(const LogInRequest& login_request) {
-  manager_->signIn(login_request);
-}
+void Presenter::signIn(const LogInRequest& login_request) { manager_->signIn(login_request); }
 
 void Presenter::signUp(const SignUpRequest& req) { manager_->signUp(req); }
 
 void Presenter::initialConnections() {
   connect(manager_, &Model::userCreated, this, &Presenter::setUser);
   connect(manager_, &Model::newResponce, this, &Presenter::onNewResponce);
-  connect(manager_, &Model::chatAdded, this,
-          [this](int chatId) { manager_->fillChatHistory(chatId); });
+  connect(
+      manager_, &Model::chatAdded, this, [this](int chatId) { manager_->fillChatHistory(chatId); });
   connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
 
   if (!message_list_view_.get()) {
@@ -42,24 +39,23 @@ void Presenter::initialConnections() {
     throw std::runtime_error("Nullptr in Presenter::connections");
   }
 
-  connect(message_list_view_.get(), &MessageListView::scrollChanged, this,
-          &Presenter::onScroll);
+  connect(message_list_view_.get(), &MessageListView::scrollChanged, this, &Presenter::onScroll);
   connect(manager_, &Model::chatUpdated, this, &Presenter::onChatUpdated);
 }
 
-void Presenter::onNewResponce(QJsonObject& json_object){
-  QString type = json_object["type"].toString();
-  const QString openedType = "opened";
+void Presenter::onNewResponce(QJsonObject& json_object) {
+  QString       type           = json_object["type"].toString();
+  const QString openedType     = "opened";
   const QString newMessageType = "new_message";
 
-  if(type == openedType) {
+  if (type == openedType) {
     LOG_INFO("Open type");
     manager_->initSocket(*current_user_id_);
-  }else if(type == newMessageType){
+  } else if (type == newMessageType) {
     LOG_INFO("New Message type");
     auto new_message = JsonService::getMessageFromJson(json_object);
     newMessage(new_message);
-  } else{
+  } else {
     LOG_ERROR("Invalid type");
   }
 }
@@ -91,24 +87,22 @@ void Presenter::onScroll(int value) {
       message_list_view_->sizeHintForRow(0) * newMessages.size());
 }
 
-void Presenter::onErrorOccurred(const QString& error) {
-  view_->showError(error);
-}
+void Presenter::onErrorOccurred(const QString& error) { view_->showError(error); }
 
 void Presenter::setUser(const User& user, const QString& token) {
   PROFILE_SCOPE("Presenter::setUser");
   LOG_INFO("Set user name: '{}' | email '{}' | tag '{}' id '{}'",
-           user.name.toStdString(), user.email.toStdString(),
-           user.tag.toStdString(), user.id);
-
+           user.name.toStdString(),
+           user.email.toStdString(),
+           user.tag.toStdString(),
+           user.id);
 
   view_->setUser(user);
   setId(user.id);
   manager_->saveToken(token);
 
   auto chats = manager_->loadChats();
-  LOG_INFO("In presenter loaded '{}' chats for user id '{}'", chats.size(),
-           user.id);
+  LOG_INFO("In presenter loaded '{}' chats for user id '{}'", chats.size(), user.id);
 
   for (const auto& chat : chats) {
     manager_->addChat(chat);
@@ -126,11 +120,13 @@ void Presenter::onChatClicked(int chat_id) { openChat(chat_id); }
 
 void Presenter::newMessage(Message& msg) {
   if (msg.senderId == current_user_id_) msg.readed_by_me = true;
-  LOG_INFO("New messages for chat {} :({}) with local_id {}", msg.chatId,
-           msg.text.toStdString(), msg.local_id.toStdString());
+  LOG_INFO("New messages for chat {} :({}) with local_id {}",
+           msg.chatId,
+           msg.text.toStdString(),
+           msg.local_id.toStdString());
 
   if (current_chat_id_.has_value() && current_chat_id_ == msg.chatId) {
-    int max = message_list_view_->getMaximumMessageScrollBar();
+    int max   = message_list_view_->getMaximumMessageScrollBar();
     int value = message_list_view_->getMessageScrollBarValue();
     manager_->addMessageToChat(msg.chatId, msg, false);
     LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
@@ -193,13 +189,14 @@ void Presenter::sendButtonClicked(const QString& text_to_send) {
     return;
   }
 
-  Message message_to_send{.chatId = *current_chat_id_,
-                          .senderId = *current_user_id_,
-                          .text = text_to_send,
+  Message message_to_send{.chatId        = *current_chat_id_,
+                          .senderId      = *current_user_id_,
+                          .text          = text_to_send,
                           .status_sended = false,
-                          .timestamp = QDateTime::currentDateTime(),
-                          .local_id = QUuid::createUuid().toString()};
-  LOG_INFO("Set for message {} local_id {}", message_to_send.text.toStdString(),
+                          .timestamp     = QDateTime::currentDateTime(),
+                          .local_id      = QUuid::createUuid().toString()};
+  LOG_INFO("Set for message {} local_id {}",
+           message_to_send.text.toStdString(),
            message_to_send.local_id.toStdString());
   newMessage(message_to_send);
   manager_->sendMessage(message_to_send);

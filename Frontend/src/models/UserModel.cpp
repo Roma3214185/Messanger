@@ -11,7 +11,8 @@ int UserModel::rowCount(const QModelIndex& parent) const {
 
 void UserModel::addUser(const User& user) {
   beginInsertRows(QModelIndex(), users_.size(), users_.size());
-  LOG_INFO("User model add user ({}) with email: {}", user.name.toStdString(), user.email.toStdString());
+  LOG_INFO(
+      "User model add user ({}) with email: {}", user.name.toStdString(), user.email.toStdString());
   users_.push_back(user);
   endInsertRows();
 }

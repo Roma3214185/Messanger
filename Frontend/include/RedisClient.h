@@ -21,9 +21,7 @@ class RedisClient : public ICache {
     return takenOpt;
   }
 
-  void saveToken(const Key& key, const Token& token) override {
-    redis.set(key, token);
-  }
+  void saveToken(const Key& key, const Token& token) override { redis.set(key, token); }
 
   void deleteToken(const Key& key) override { redis.del(key); }
 

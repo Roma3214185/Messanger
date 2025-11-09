@@ -10,11 +10,11 @@ struct MessageDrawData {
   QString text;
   QString avatar_path;
   QString timestamp;
-  int sender_id;
-  int receiver_id;
-  bool is_mine;
-  bool is_sended;
-  bool is_readed;
+  int     sender_id;
+  int     receiver_id;
+  bool    is_mine;
+  bool    is_sended;
+  bool    is_readed;
 };
 
 struct UserDrawData {
@@ -24,11 +24,11 @@ struct UserDrawData {
 };
 
 struct ChatDrawData {
-  QString title;
-  QString last_message;
-  QString avatar_path;
+  QString   title;
+  QString   last_message;
+  QString   avatar_path;
   QDateTime time;
-  int unread;
+  int       unread;
 };
 
 #endif  // DRAWDATA_H

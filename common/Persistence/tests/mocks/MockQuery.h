@@ -1,7 +1,7 @@
 #ifndef MOCKQUERY_H
 #define MOCKQUERY_H
 
-//#include <QSqlQuery>
+// #include <QSqlQuery>
 
 // class MockQuery : public QSqlQuery {
 //   public:
@@ -26,4 +26,4 @@
 //     int index_;
 // };
 
-#endif // MOCKQUERY_H
+#endif  // MOCKQUERY_H

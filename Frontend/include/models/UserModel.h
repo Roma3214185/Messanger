@@ -10,20 +10,14 @@ class UserModel : public QAbstractListModel {
  public:
   using ListOfUsers = QVector<User>;
 
-  enum Roles {
-    UserIdRole = Qt::UserRole + 1,
-    NameRole,
-    TagRole,
-    EmailTimeRole,
-    AvatarRole
-  };
+  enum Roles { UserIdRole = Qt::UserRole + 1, NameRole, TagRole, EmailTimeRole, AvatarRole };
 
   explicit UserModel(QObject* parent = nullptr);
-  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-  QVariant data(const QModelIndex& index, int role) const override;
+  int                    rowCount(const QModelIndex& parent = QModelIndex()) const override;
+  QVariant               data(const QModelIndex& index, int role) const override;
   QHash<int, QByteArray> roleNames() const override;
-  void addUser(const User& user);
-  void clear();
+  void                   addUser(const User& user);
+  void                   clear();
 
  private:
   ListOfUsers users_;

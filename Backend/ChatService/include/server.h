@@ -1,13 +1,13 @@
 #ifndef BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_
 #define BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_
 
-#include <memory>
-
 #include <crow/crow.h>
 
+#include <memory>
+
+#include "chatmanager.h"
 #include "controller.h"
 #include "database.h"
-#include "chatmanager.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
 
@@ -24,10 +24,10 @@ class Server {
   void handleGetAllChatsById();
   void handleGetAllChatsMembers();
 
-  int port_;
-  ChatManager* manager_;
+  int             port_;
+  ChatManager*    manager_;
   crow::SimpleApp app_;
-  ControllerPtr controller_;
+  ControllerPtr   controller_;
 };
 
 #endif  // BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_

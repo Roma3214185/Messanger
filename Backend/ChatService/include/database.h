@@ -8,25 +8,25 @@
 #include "GenericRepository.h"
 #include "entities/Chat.h"
 
-using ChatId = int;
-using UserId = int;
+using ChatId         = int;
+using UserId         = int;
 using OptionalChatId = std::optional<int>;
-using OptionalChat = std::optional<Chat>;
+using OptionalChat   = std::optional<Chat>;
 using OptionalUserId = std::optional<UserId>;
 
 class DataBase {
  public:
-  void clearDataBase();
-  OptionalChatId createPrivateChat();
-  bool addMembersToChat(int chat_id, const std::vector<int>& members_id);
-  bool initialDb();
-  bool deleteChat(int chat_id);
-  bool deleteMembersFromChat(int chatId, const std::vector<int>& members_id);
+  void                      clearDataBase();
+  OptionalChatId            createPrivateChat();
+  bool                      addMembersToChat(int chat_id, const std::vector<int>& members_id);
+  bool                      initialDb();
+  bool                      deleteChat(int chat_id);
+  bool                      deleteMembersFromChat(int chatId, const std::vector<int>& members_id);
   std::optional<QList<int>> getMembersOfChat(int chat_id);
-  QList<Chat> getChatsOfUser(int chat_id);
-  int getMembersCount(int chat_id);
-  OptionalUserId getOtherMemberId(int chat_id, int user_id);
-  OptionalChat getChatById(int chat_id);
+  QList<Chat>               getChatsOfUser(int chat_id);
+  int                       getMembersCount(int chat_id);
+  OptionalUserId            getOtherMemberId(int chat_id, int user_id);
+  OptionalChat              getChatById(int chat_id);
 
  private:
   QSqlDatabase getThreadDatabase();

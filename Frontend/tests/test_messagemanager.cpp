@@ -1,36 +1,37 @@
-#include <catch2/catch_all.hpp>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QTimer>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
-#include <QTimer>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
+#include <catch2/catch_all.hpp>
 
+#include "JsonService.h"
 #include "managers/messagemanager.h"
 #include "mocks/MockAccessManager.h"
-#include "JsonService.h"
 
 class TestMessageManager : public MessageManager {
-  public:
-    using MessageManager::MessageManager;
+ public:
+  using MessageManager::MessageManager;
 
-    QList<Message> onGetChatMessages(QNetworkReply* reply) {
-      return MessageManager::onGetChatMessages(reply);
-    }
+  QList<Message> onGetChatMessages(QNetworkReply* reply) {
+    return MessageManager::onGetChatMessages(reply);
+  }
 };
 
 TEST_CASE("Test MessageManager getChatMessages") {
-  MockReply mock_reply;
+  MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl url("http://localhost:8081");
-  constexpr int timeout_ms = 30;
-  TestMessageManager message_manager(&network_manager, url, timeout_ms);
+  QUrl                     url("http://localhost:8081");
+  constexpr int            timeout_ms = 30;
+  TestMessageManager       message_manager(&network_manager, url, timeout_ms);
 
   // Prepare valid JSON data
   QJsonArray messages_array{
-      QJsonObject{{"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}},
-      QJsonObject{{"id", 2}, {"sender_id", 11}, {"text", "Hi"}, {"timestamp", "2025-11-03T12:01:00Z"}}
-  };
+      QJsonObject{
+          {"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}},
+      QJsonObject{
+          {"id", 2}, {"sender_id", 11}, {"text", "Hi"}, {"timestamp", "2025-11-03T12:01:00Z"}}};
   QByteArray valid_json = QJsonDocument(messages_array).toJson();
 
   SECTION("Expected correct endpoint URL with query params") {
@@ -43,7 +44,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
 
   SECTION("No response from server emits timeout error and returns empty list") {
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    auto future = message_manager.getChatMessages("token", 77, 0, 10);
+    auto       future = message_manager.getChatMessages("token", 77, 0, 10);
 
     // Wait for timeout
     QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, timeout_ms + 5);
@@ -73,7 +74,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
 
   SECTION("Invalid JSON (not array) returns empty list and emits error") {
     QByteArray invalid_json = R"({"message": "not an array"})";
-    auto reply = new MockReply();
+    auto       reply        = new MockReply();
     reply->setData(invalid_json);
     network_manager.setReply(reply);
 
@@ -114,18 +115,18 @@ TEST_CASE("Test MessageManager getChatMessages") {
 }
 
 TEST_CASE("Test MessageManager::onGetChatMessages directly") {
-  MockReply mock_reply;
+  MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl url("http://localhost:8081");
-  constexpr int timeout_ms = 30;
-  TestMessageManager message_manager(&network_manager, url, timeout_ms);
+  QUrl                     url("http://localhost:8081");
+  constexpr int            timeout_ms = 30;
+  TestMessageManager       message_manager(&network_manager, url, timeout_ms);
 
   SECTION("Network error triggers error signal and returns empty list") {
     auto reply = new MockReply();
     reply->setMockError(QNetworkReply::TimeoutError, "timed out");
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    auto result = message_manager.onGetChatMessages(reply);
+    auto       result = message_manager.onGetChatMessages(reply);
 
     REQUIRE(result.isEmpty());
     REQUIRE(spyError.count() == 1);
@@ -138,7 +139,7 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
     reply->setData("not valid json");
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    auto result = message_manager.onGetChatMessages(reply);
+    auto       result = message_manager.onGetChatMessages(reply);
 
     REQUIRE(result.isEmpty());
     REQUIRE(spyError.count() == 1);
@@ -147,14 +148,12 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   }
 
   SECTION("Valid JSON returns correct message list") {
-    QJsonArray arr{
-        QJsonObject{{"id", 10}, {"sender_id", 1}, {"text", "msg"}, {"timestamp", "t"}}
-    };
-    auto reply = new MockReply();
+    QJsonArray arr{QJsonObject{{"id", 10}, {"sender_id", 1}, {"text", "msg"}, {"timestamp", "t"}}};
+    auto       reply = new MockReply();
     reply->setData(QJsonDocument(arr).toJson());
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    auto result = message_manager.onGetChatMessages(reply);
+    auto       result = message_manager.onGetChatMessages(reply);
 
     REQUIRE(spyError.count() == 0);
     REQUIRE(result.size() == 1);

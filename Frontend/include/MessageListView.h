@@ -12,12 +12,11 @@ class MessageListView : public QListView {
   Q_OBJECT
  public:
   explicit MessageListView(QWidget* parent = nullptr) : QListView(parent) {
-    connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this,
-            [=](int value) {
-              if (value == 0) {
-                Q_EMIT scrollChanged(value);
-              }
-            });
+    connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this, [=](int value) {
+      if (value == 0) {
+        Q_EMIT scrollChanged(value);
+      }
+    });
 
     QListView::setFocusPolicy(Qt::NoFocus);
     QListView::setSelectionMode(QAbstractItemView::NoSelection);
@@ -29,20 +28,15 @@ class MessageListView : public QListView {
   void setMessageModel(MessageModel* model) { QListView::setModel(model); }
 
   void scrollToBottom() {
-    QTimer::singleShot(20, this, [this]() {
-      setMessageScrollBarValue(getMaximumMessageScrollBar());
-    });
+    QTimer::singleShot(
+        20, this, [this]() { setMessageScrollBarValue(getMaximumMessageScrollBar()); });
   }
 
-  int getMaximumMessageScrollBar() {
-    return this->verticalScrollBar()->maximum();
-  }
+  int getMaximumMessageScrollBar() { return this->verticalScrollBar()->maximum(); }
 
   int getMessageScrollBarValue() { return this->verticalScrollBar()->value(); }
 
-  void setMessageScrollBarValue(int value) {
-    this->verticalScrollBar()->setValue(value);
-  }
+  void setMessageScrollBarValue(int value) { this->verticalScrollBar()->setValue(value); }
 
  Q_SIGNALS:
   void scrollChanged(int value);

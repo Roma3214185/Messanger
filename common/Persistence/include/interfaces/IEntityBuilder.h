@@ -4,15 +4,15 @@
 #include <QtSql/qsqlquery.h>
 
 #include <memory>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 #include "Meta.h"
 
 template <typename T>
 class IEntityBuilder {
  public:
-  virtual ~IEntityBuilder() = default;
+  virtual ~IEntityBuilder()               = default;
   virtual T build(QSqlQuery& query) const = 0;
 };
 
@@ -21,7 +21,7 @@ class MetaEntityBuilder : public IEntityBuilder<T> {
  public:
   T build(QSqlQuery& query) const override {
     const auto& meta = Reflection<T>::meta();
-    T entity;
+    T           entity;
     for (const auto& f : meta.fields) {
       QVariant v = query.value(f.name);
       if (!v.isValid()) continue;
@@ -60,15 +60,10 @@ using BuilderFactoryFn = std::function<std::unique_ptr<IEntityBuilder<T>>()>;
 
 template <typename T>
 std::unordered_map<BuilderType, BuilderFactoryFn<T>> builderMap = {
-    {BuilderType::Meta,
-     [] { return std::make_unique<MetaEntityBuilder<T>>(); }},
-    {BuilderType::Fast,
-     [] { return std::make_unique<FastEntityBuilder<T>>(); }},
+    {BuilderType::Meta, [] { return std::make_unique<MetaEntityBuilder<T>>(); }},
+    {BuilderType::Fast, [] { return std::make_unique<FastEntityBuilder<T>>(); }},
     {BuilderType::Generic,
-     [] {
-       return std::make_unique<
-           GenericFastEntityBuilder<T, EntityFields<T>::fields>>();
-     }},
+     [] { return std::make_unique<GenericFastEntityBuilder<T, EntityFields<T>::fields>>(); }},
 };
 
 template <typename T>

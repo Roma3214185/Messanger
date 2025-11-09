@@ -1,15 +1,15 @@
 #include <QCoreApplication>
 
-#include "ThreadPool.h"
 #include "GenericRepository.h"
 #include "Query.h"
-#include "benchmark/benchmark.h"
 #include "SqlExecutor.h"
+#include "ThreadPool.h"
+#include "benchmark/benchmark.h"
 
 static void EntityWithoutCache(benchmark::State& state) {
-  SQLiteDatabase db;
-  SqlExecutor executor(db);
-  GenericRepository rep(db,executor, RedisCache::instance());
+  SQLiteDatabase    db;
+  SqlExecutor       executor(db);
+  GenericRepository rep(db, executor, RedisCache::instance());
   for (auto _ : state) {
     auto results = rep.findOne<Message>(4);
     benchmark::DoNotOptimize(results);
@@ -27,12 +27,12 @@ static void EntityWithoutCache(benchmark::State& state) {
 // }
 
 static void EntityWithCacheAsync(benchmark::State& state) {
-  ThreadPool pool(4);
-  SQLiteDatabase db;
-  SqlExecutor executor(db);
+  ThreadPool        pool(4);
+  SQLiteDatabase    db;
+  SqlExecutor       executor(db);
   GenericRepository rep(db, executor, RedisCache::instance(), &pool);
   for (auto _ : state) {
-    auto future = rep.findOneAsync<Message>(4);
+    auto future  = rep.findOneAsync<Message>(4);
     auto results = future.get();
     benchmark::DoNotOptimize(results);
   }
@@ -51,9 +51,9 @@ static void EntityWithCacheAsync(benchmark::State& state) {
 // }
 
 BENCHMARK(EntityWithoutCache)->Iterations(100);
-//BENCHMARK(EntityWithCache)->Iterations(100);
+// BENCHMARK(EntityWithCache)->Iterations(100);
 BENCHMARK(EntityWithCacheAsync)->Iterations(100);
-//BENCHMARK(EntityWithoutCacheAsync)->Iterations(100);
+// BENCHMARK(EntityWithoutCacheAsync)->Iterations(100);
 
 // cmake .. -DCMAKE_BUILD_TYPE=Release
 // cmake --build . --target benchmarks

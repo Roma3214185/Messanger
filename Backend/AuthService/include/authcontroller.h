@@ -22,7 +22,7 @@ class AuthController {
   std::optional<AuthResponce> verifyToken(const crow::request& req);
 
   crow::SimpleApp& app_;
-  AuthManager* service_;
+  AuthManager*     service_;
 };
 
 #endif  // AUTHCONTROLLER_H

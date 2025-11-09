@@ -2,20 +2,21 @@
 #define NOTIFICATION_SERVICE_HEADERS_JWTUTILS_H
 
 #include <jwt-cpp/jwt.h>
+
 #include <optional>
+
 #include "Debug_profiling.h"
 
-const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
-inline constexpr const char* kIssuer = "auth_service";
+const std::string            kKeysDir       = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+const std::string            kPublicKeyFile = kKeysDir + "public_key.pem";
+inline constexpr const char* kIssuer        = "auth_service";
 
 namespace {
 
 std::string readFile(const std::string& path) {
   std::ifstream file(path);
   if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
-  return std::string((std::istreambuf_iterator<char>(file)),
-                     std::istreambuf_iterator<char>());
+  return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 }
 
 }  // namespace
@@ -24,7 +25,7 @@ namespace JwtUtils {
 
 std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   try {
-    auto decoded = jwt::decode(token);
+    auto        decoded    = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
 
     auto verifier = jwt::verify()
@@ -43,7 +44,6 @@ std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   }
 }
 
-}  // namespace TokenService
+}  // namespace JwtUtils
 
-#endif // NOTIFICATION_SERVICE_HEADERS_JWTUTILS_H
-
+#endif  // NOTIFICATION_SERVICE_HEADERS_JWTUTILS_H

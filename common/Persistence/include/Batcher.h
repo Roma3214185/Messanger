@@ -10,22 +10,22 @@
 template <typename T>
 class SaverBatcher {
  private:
-  std::vector<T> batcher_;
-  std::mutex mtx_;
-  std::condition_variable cv_;
-  GenericRepository& rep_;
-  ThreadPool pool_;
-  const int batch_size_;
+  std::vector<T>                  batcher_;
+  std::mutex                      mtx_;
+  std::condition_variable         cv_;
+  GenericRepository&              rep_;
+  ThreadPool                      pool_;
+  const int                       batch_size_;
   const std::chrono::milliseconds flush_interval_;
 
   std::atomic<bool> running_{true};
-  std::thread flush_thread_;
+  std::thread       flush_thread_;
 
  public:
-  SaverBatcher(
-      GenericRepository& repository, int batch_size = 500,
-      std::chrono::milliseconds interval = std::chrono::milliseconds(100),
-      int thread_pool_size = 4)
+  SaverBatcher(GenericRepository&        repository,
+               int                       batch_size       = 500,
+               std::chrono::milliseconds interval         = std::chrono::milliseconds(100),
+               int                       thread_pool_size = 4)
       : rep_(repository),
         pool_(thread_pool_size),
         batch_size_(batch_size),
@@ -74,37 +74,36 @@ class SaverBatcher {
   void flushLoop() {
     std::unique_lock<std::mutex> lock(mtx_);
     while (running_.load()) {
-      cv_.wait_for(lock, flush_interval_,
-                   [this]() { return !running_.load(); });
+      cv_.wait_for(lock, flush_interval_, [this]() { return !running_.load(); });
       lock.unlock();
       flush();
       lock.lock();
     }
   }
 
-  SaverBatcher(const SaverBatcher&) = delete;
+  SaverBatcher(const SaverBatcher&)            = delete;
   SaverBatcher& operator=(const SaverBatcher&) = delete;
 };
 
 template <typename T>
 class DeleterBatcher {
  private:
-  std::vector<T> batcher_;
-  std::mutex mtx_;
-  std::condition_variable cv_;
-  GenericRepository& rep_;
-  ThreadPool pool_;
-  const int batch_size_;
+  std::vector<T>                  batcher_;
+  std::mutex                      mtx_;
+  std::condition_variable         cv_;
+  GenericRepository&              rep_;
+  ThreadPool                      pool_;
+  const int                       batch_size_;
   const std::chrono::milliseconds flush_interval_;
 
   std::atomic<bool> running_{true};
-  std::thread flush_thread_;
+  std::thread       flush_thread_;
 
  public:
-  DeleterBatcher(
-      GenericRepository& repository, int batch_size = 500,
-      std::chrono::milliseconds interval = std::chrono::milliseconds(100),
-      int thread_pool_size = 4)
+  DeleterBatcher(GenericRepository&        repository,
+                 int                       batch_size       = 500,
+                 std::chrono::milliseconds interval         = std::chrono::milliseconds(100),
+                 int                       thread_pool_size = 4)
       : rep_(repository),
         pool_(thread_pool_size),
         batch_size_(batch_size),
@@ -171,20 +170,19 @@ class DeleterBatcher {
   void flushLoop() {
     std::unique_lock<std::mutex> lock(mtx_);
     while (running_.load()) {
-      cv_.wait_for(lock, flush_interval_,
-                   [this]() { return !running_.load(); });
+      cv_.wait_for(lock, flush_interval_, [this]() { return !running_.load(); });
       lock.unlock();
       flush();
       lock.lock();
     }
   }
 
-  DeleterBatcher(const DeleterBatcher&) = delete;
+  DeleterBatcher(const DeleterBatcher&)            = delete;
   DeleterBatcher& operator=(const DeleterBatcher&) = delete;
 };
 template <typename T>
 class Batcher {
-  SaverBatcher<T>& saverBatcher;
+  SaverBatcher<T>&   saverBatcher;
   DeleterBatcher<T>& deleterBatcher;
 
  public:

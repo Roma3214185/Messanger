@@ -66,28 +66,28 @@
 int main(int argc, char** argv) {
   QCoreApplication app(argc, argv);
 
-//   SQLiteDatabase db;
-//   GenericRepository repo(db);
-//   MessagePool pool;
-//   ThreadPool tp(4);
+  //   SQLiteDatabase db;
+  //   GenericRepository repo(db);
+  //   MessagePool pool;
+  //   ThreadPool tp(4);
 
-//   int iterations = 10000;
+  //   int iterations = 10000;
 
-//   measureLatency(
-//       [&]() {
-//         Message msg;
-//         msg.text = "Hello world";
+  //   measureLatency(
+  //       [&]() {
+  //         Message msg;
+  //         msg.text = "Hello world";
 
-//         auto fut = tp.enqueue([&msg, &repo, &pool]() {
-//           repo.save(msg);
-//           // pool.release(msg);
-//         });
+  //         auto fut = tp.enqueue([&msg, &repo, &pool]() {
+  //           repo.save(msg);
+  //           // pool.release(msg);
+  //         });
 
-//         fut.get();
-//       },
-//       iterations);
+  //         fut.get();
+  //       },
+  //       iterations);
 
-//   return 0;
+  //   return 0;
 }
 
 // // cmake .. -DCMAKE_BUILD_TYPE=Release

@@ -16,7 +16,7 @@
 #define PROFILE_SCOPE(name) ZoneScopedN(name)
 #else
 #define PROFILE_SCOPE(name) ScopedTimer timer##__LINE__(name)
-//#define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
+// #define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
 #endif
 
 #define LOG_INFO(...) spdlog::info(__VA_ARGS__)
@@ -25,26 +25,24 @@
 #define LOG_DEBUG(...) spdlog::debug(__VA_ARGS__)
 
 class ScopedTimer {
-  std::string name_;
+  std::string                                    name_;
   std::chrono::high_resolution_clock::time_point start_;
 
-  public:
-    explicit ScopedTimer(std::string name)
-        : name_(std::move(name)),
-        start_(std::chrono::high_resolution_clock::now()) {
-      spdlog::info("[TIMER START] {}", name_);
+ public:
+  explicit ScopedTimer(std::string name)
+      : name_(std::move(name)), start_(std::chrono::high_resolution_clock::now()) {
+    spdlog::info("[TIMER START] {}", name_);
+  }
+
+  ~ScopedTimer() noexcept {
+    auto   end              = std::chrono::high_resolution_clock::now();
+    double duration_seconds = std::chrono::duration<double>(end - start_).count();
+
+    try {
+      spdlog::info("[TIMER END] {} took {:.3f} s", name_, duration_seconds);
+    } catch (...) {
+      LOG_ERROR("Error in destructor");
     }
-
-    ~ScopedTimer() noexcept {
-      auto end = std::chrono::high_resolution_clock::now();
-      double duration_seconds =
-          std::chrono::duration<double>(end - start_).count();
-
-      try {
-        spdlog::info("[TIMER END] {} took {:.3f} s", name_, duration_seconds);
-      } catch (...) {
-        LOG_ERROR("Error in destructor");
-      }
     // if (record_metrics_) {
     //   auto& metrics = GlobalMetrics::metrics();
     //   metrics.request_counter.Increment();
@@ -61,24 +59,22 @@ class ScopedTimer {
 //     }, nullptr);
 // }
 
-inline void measure_network_call(const std::string& name,
-                                 const std::function<void()>& func) {
+inline void measure_network_call(const std::string& name, const std::function<void()>& func) {
   auto start = std::chrono::high_resolution_clock::now();
   func();
   auto end = std::chrono::high_resolution_clock::now();
-  spdlog::info(
-      "[NETWORK] {} took {} ms", name,
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-          .count());
+  spdlog::info("[NETWORK] {} took {} ms",
+               name,
+               std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 }
 
 inline void init_logger(const std::string& service_name) {
   try {
-    constexpr size_t kMaxLogFileSize = 5 * 1024 * 1024;  // 5 MB
-    constexpr size_t kMaxLogFiles = 3;
-    const std::string kLogDirectory = "logs/";
-    const std::string kLogExtension = ".log";
-    const std::string kLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%l] [%n] %v";
+    constexpr size_t  kMaxLogFileSize = 5 * 1024 * 1024;  // 5 MB
+    constexpr size_t  kMaxLogFiles    = 3;
+    const std::string kLogDirectory   = "logs/";
+    const std::string kLogExtension   = ".log";
+    const std::string kLogPattern     = "[%Y-%m-%d %H:%M:%S.%e] [%l] [%n] %v";
 
     std::string filename = kLogDirectory + service_name + kLogExtension;
 
@@ -87,8 +83,7 @@ inline void init_logger(const std::string& service_name) {
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
         filename, kMaxLogFileSize, kMaxLogFiles));
 
-    auto logger = std::make_shared<spdlog::logger>(service_name, sinks.begin(),
-                                                   sinks.end());
+    auto logger = std::make_shared<spdlog::logger>(service_name, sinks.begin(), sinks.end());
     spdlog::set_default_logger(logger);
     spdlog::set_pattern(kLogPattern);
     spdlog::set_level(spdlog::level::info);

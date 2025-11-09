@@ -1,13 +1,13 @@
 #include "managers/messagemanager.h"
 
-#include <QNetworkReply>
-#include <QJsonDocument>
 #include <QJsonArray>
+#include <QJsonDocument>
+#include <QNetworkReply>
 #include <QUrlQuery>
 
 #include "Debug_profiling.h"
-#include "interfaces/INetworkAccessManager.h"
 #include "JsonService.h"
+#include "interfaces/INetworkAccessManager.h"
 
 namespace {
 
@@ -20,25 +20,27 @@ auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkReques
 
 }  // namespace
 
-QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_token, int chat_id, int before_id, int limit) {
+QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_token,
+                                                        int            chat_id,
+                                                        int            before_id,
+                                                        int            limit) {
   PROFILE_SCOPE("ChatManager::getChatMessages");
 
   QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(chat_id)));
-  LOG_INFO("For chatId '{}' limit is '{}' and beforeId '{}'", chat_id, limit,
-           before_id);
+  LOG_INFO("For chatId '{}' limit is '{}' and beforeId '{}'", chat_id, limit, before_id);
   QUrlQuery query;
   query.addQueryItem("limit", QString::number(limit));
   query.addQueryItem("before_id", QString::number(before_id));
   endpoint.setQuery(query);
-  auto request = getRequestWithToken(endpoint, current_token);
-  auto* reply = network_manager_->get(request); //TODO(roma): make function getReplyGetChatMessages();
+  auto  request = getRequestWithToken(endpoint, current_token);
+  auto* reply =
+      network_manager_->get(request);  // TODO(roma): make function getReplyGetChatMessages();
 
   return handleReplyWithTimeout<QList<Message>>(
       reply,
       [this](QNetworkReply* server_reply) { return onGetChatMessages(server_reply); },
       timeout_ms_,
-      QList<Message>{}
-      );
+      QList<Message>{});
 }
 
 QList<Message> MessageManager::onGetChatMessages(QNetworkReply* reply) {
@@ -46,8 +48,7 @@ QList<Message> MessageManager::onGetChatMessages(QNetworkReply* reply) {
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
   if (reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onGetChatMessages] Network error: '{}'",
-              reply->errorString().toStdString());
+    LOG_ERROR("[onGetChatMessages] Network error: '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred("[network] " + reply->errorString());
     return {};
   }

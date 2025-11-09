@@ -25,20 +25,18 @@ void Server::handleSocketRoutes() {
         LOG_INFO("Websocket is connected");
         conn.send_text(json.dump());
       })
-      .onclose([&](crow::websocket::connection& conn, const std::string& reason,
-                   uint16_t code) {
-        LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason,
-                 code);
+      .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
+        LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason, code);
         notification_manager_.deleteConnections(&conn);
       })
-      .onmessage([&](crow::websocket::connection& conn, const std::string& data,
-                     bool is_binary) {
+      .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
         handleSocketOnMessage(conn, data, is_binary);
       });
 }
 
 void Server::handleSocketOnMessage(crow::websocket::connection& conn,
-                                   const std::string& data, bool is_binary) {
+                                   const std::string&           data,
+                                   bool                         is_binary) {
   auto message_ptr = crow::json::load(data);
   LOG_INFO("HANDLE SOCKET ON MESSAGE {}", data);
   if (!message_ptr) {
@@ -60,7 +58,7 @@ void Server::handleSocketOnMessage(crow::websocket::connection& conn,
     notification_manager_.onSendMessage(message);
   } else if (message_ptr["type"].s() == "mark_read") {
     auto message = from_crow_json(message_ptr);
-    int read_by = message_ptr["receiver_id"].i();
+    int  read_by = message_ptr["receiver_id"].i();
     notification_manager_.onMarkReadMessage(message, read_by);
   } else {
     LOG_ERROR("[onMessage] Invalid type");

@@ -1,8 +1,9 @@
 #include "SQLiteDataBase.h"
 
-#include <QtSql/QSqlDatabase>
 #include <QtSql/qsqlquery.h>
 #include <qthread.h>
+
+#include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
 
 #include "Debug_profiling.h"
@@ -20,7 +21,7 @@ void SQLiteDatabase::initializeSchema() {
 
 void SQLiteDatabase::createUserTable(QSqlDatabase& database) {
   QSqlQuery query(database);
-  //deleteTable(database, "users");
+  // deleteTable(database, "users");
 
   if (!query.exec(R"(
             CREATE TABLE IF NOT EXISTS users (
@@ -30,8 +31,7 @@ void SQLiteDatabase::createUserTable(QSqlDatabase& database) {
                 username TEXT NOT NULL
             );
         )")) {
-    LOG_ERROR("Failed to create users table: {}",
-              query.lastError().text().toStdString());
+    LOG_ERROR("Failed to create users table: {}", query.lastError().text().toStdString());
   }
 }
 
@@ -48,7 +48,7 @@ void SQLiteDatabase::deleteTable(QSqlDatabase& database, const QString& name) {
 
 void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
   QSqlQuery query(database);
-  //deleteTable(database, "messages_status");
+  // deleteTable(database, "messages_status");
 
   if (!query.exec(R"(
             CREATE TABLE IF NOT EXISTS messages_status (
@@ -59,14 +59,13 @@ void SQLiteDatabase::createMessageStatusTable(QSqlDatabase& database) {
                 PRIMARY KEY(message_id, receiver_id)
             );
         )")) {
-    LOG_ERROR("Failed to create messages_status table: {}",
-              query.lastError().text().toStdString());
+    LOG_ERROR("Failed to create messages_status table: {}", query.lastError().text().toStdString());
   }
 }
 
-void SQLiteDatabase::createChatTable(QSqlDatabase& database){
+void SQLiteDatabase::createChatTable(QSqlDatabase& database) {
   QSqlQuery query(database);
-  //deleteTable(database, "chats");
+  // deleteTable(database, "chats");
 
   query.prepare(R"(
         CREATE TABLE IF NOT EXISTS chats (
@@ -78,14 +77,14 @@ void SQLiteDatabase::createChatTable(QSqlDatabase& database){
         );
     )");
 
-  if(!query.exec()){
+  if (!query.exec()) {
     LOG_ERROR("Error creating chats {}", query.lastError().text().toStdString());
   }
 }
 
-void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database){
+void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database) {
   QSqlQuery query(database);
-  //deleteTable(database, "chat_members");
+  // deleteTable(database, "chat_members");
 
   query.prepare(R"(
         CREATE TABLE IF NOT EXISTS chat_members (
@@ -97,14 +96,14 @@ void SQLiteDatabase::createChatMemberTable(QSqlDatabase& database){
         );
     )");
 
-  if(!query.exec()) {
+  if (!query.exec()) {
     LOG_ERROR("Error creating chat_members", query.lastError().text().toStdString());
   }
 }
 
-void SQLiteDatabase::createUserCredentialsTable(QSqlDatabase& database){
+void SQLiteDatabase::createUserCredentialsTable(QSqlDatabase& database) {
   QSqlQuery query(database);
-  //deleteTable(database, "credentials");
+  // deleteTable(database, "credentials");
 
   query.prepare(R"(
         CREATE TABLE IF NOT EXISTS credentials (
@@ -113,14 +112,14 @@ void SQLiteDatabase::createUserCredentialsTable(QSqlDatabase& database){
         );
     )");
 
-  if(!query.exec()) {
+  if (!query.exec()) {
     LOG_ERROR("Error creating credentials", query.lastError().text().toStdString());
   }
 }
 
 void SQLiteDatabase::createMessageTable(QSqlDatabase& database) {
   QSqlQuery query(database);
-  //deleteTable(database, "messages");
+  // deleteTable(database, "messages");
 
   if (!query.exec(R"(
             CREATE TABLE IF NOT EXISTS messages (
@@ -132,11 +131,8 @@ void SQLiteDatabase::createMessageTable(QSqlDatabase& database) {
                 local_id TEXT
             );
         )")) {
-    LOG_ERROR("Failed to create messages_status table: {}",
-              query.lastError().text().toStdString());
+    LOG_ERROR("Failed to create messages_status table: {}", query.lastError().text().toStdString());
   }
 }
 
-SQLiteDatabase::SQLiteDatabase(const QString& db_path) : IDataBase(db_path) {
-  initializeSchema();
-}
+SQLiteDatabase::SQLiteDatabase(const QString& db_path) : IDataBase(db_path) { initializeSchema(); }

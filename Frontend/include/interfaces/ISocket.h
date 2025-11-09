@@ -7,15 +7,15 @@
 class ISocket : public QObject {
   Q_OBJECT
 
-  public:
-    virtual ~ISocket() = default;
-    virtual void open(const QUrl& url) = 0;
-    virtual void sendTextMessage(const QString& msg) = 0;
-    virtual void close() = 0;
+ public:
+  virtual ~ISocket()                               = default;
+  virtual void open(const QUrl& url)               = 0;
+  virtual void sendTextMessage(const QString& msg) = 0;
+  virtual void close()                             = 0;
 
-  Q_SIGNALS:
-    void connected();
-    void textMessageReceived(const QString& message);
+ Q_SIGNALS:
+  void connected();
+  void textMessageReceived(const QString& message);
 };
 
-#endif // ISOCKET_H
+#endif  // ISOCKET_H
