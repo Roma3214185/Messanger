@@ -1,4 +1,4 @@
-#include "Persistence/GenericRepository.h"
+#include "GenericRepository.h"
 
 // QSqlQuery& GenericRepository::getPreparedQuery(const std::string& stmtKey, const QString& sql) {
 //   QSqlDatabase threaddatabase_ = database_.getThreadDatabase();
@@ -20,19 +20,3 @@ GenericRepository::GenericRepository(IDataBase& database, ISqlExecutor& executor
     : database_(database), executor_(executor), cache_(cache), pool_(pool) {}
 
 void GenericRepository::clearCache() { } //cache_.clearCache(); }
-
-//std::vector<QList<QVariant>> GenericRepository::getValues() const {
-  // std::vector<QList<QVariant>> allValues;
-  // for (auto& entity : entities) {
-  //   auto values = QList<QVariant>{};
-  //   auto [columns, placeholders] = buildInsertParts(meta, entity, values);
-
-  //   if (allColumns.empty()) {
-  //     allColumns = QStringList();
-  //     for (const auto& c : columns) allColumns << c;
-  //   }
-
-  //   allValues.push_back(values);
-  // }
-  // return allValues;
-//}

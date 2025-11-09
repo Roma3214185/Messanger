@@ -1,14 +1,13 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 
-#include "Persistence/include/Persistence/Query.h"
-#include "Persistence/include/interfaces/BaseQuery.h"
+#include "interfaces/BaseQuery.h"
 #include "mocks/MockCache.h"
 #include "mocks/FakeSqlExecutor.h"
 #include "mocks/MockDatabase.h"
 #include "MessageService/include/entities/Message.h"
 #include "MessageService/include/entities/MessageStatus.h"
-#include "Persistence/Query.h"
+#include "Query.h"
 
 TEST_CASE("Test select query create right sql command") {
   MockCache cache;

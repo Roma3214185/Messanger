@@ -1,4 +1,4 @@
-#include "Persistence/SQLiteDataBase.h"
+#include "SQLiteDataBase.h"
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/qsqlquery.h>

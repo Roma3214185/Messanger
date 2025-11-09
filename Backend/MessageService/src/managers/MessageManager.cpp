@@ -1,7 +1,7 @@
 #include "managers/MessageManager.h"
-#include "Persistence/GenericRepository.h"
-#include "Persistence/include/interfaces/BaseQuery.h"
-#include "Persistence/include/SqlExecutor.h"
+#include "GenericRepository.h"
+#include "interfaces/BaseQuery.h"
+#include "SqlExecutor.h"
 
 MessageManager::MessageManager(GenericRepository* repository,
                                Batcher<Message>* message_batcher,

@@ -1,5 +1,5 @@
-#include "Persistence/GenericRepository.h"
-#include "Persistence/SQLiteDataBase.h"
+#include "GenericRepository.h"
+#include "SQLiteDataBase.h"
 #include "benchmark/benchmark.h"
 
 // static void PrepareQuery(benchmark::State& state) {

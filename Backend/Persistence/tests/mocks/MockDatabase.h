@@ -1,7 +1,7 @@
 #ifndef MOCKDATABASE_H
 #define MOCKDATABASE_H
 
-#include "Persistence/SQLiteDataBase.h"
+#include "SQLiteDataBase.h"
 
 class MockDatabase : public IDataBase {
   public:
