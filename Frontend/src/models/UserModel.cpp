@@ -1,6 +1,6 @@
 #include "models/UserModel.h"
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 
 UserModel::UserModel(QObject* parent) : QAbstractListModel(parent) {}
 

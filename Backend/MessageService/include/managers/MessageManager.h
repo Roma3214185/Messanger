@@ -5,7 +5,7 @@
 #include "Batcher.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
-#include "RedisCache/RedisCache.h"
+#include "RedisCache.h"
 
 class GenericRepository;
 

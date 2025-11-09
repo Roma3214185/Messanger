@@ -1,6 +1,6 @@
 #include "managers/datamanager.h"
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 
 ChatPtr DataManager::getPrivateChatWithUser(int user_id){
   for (auto [_, chat] : chats_by_id_) {

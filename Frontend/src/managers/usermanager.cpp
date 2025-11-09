@@ -6,7 +6,7 @@
 #include <QTimer>
 #include <QPromise>
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 #include "JsonService.h"
 #include "interfaces/INetworkAccessManager.h"
 

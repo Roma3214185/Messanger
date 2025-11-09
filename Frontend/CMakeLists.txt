@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 project(Frontend LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOUIC ON)
@@ -16,22 +16,18 @@ set(FRONTEND_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(FRONTEND_FORMS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/forms)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 
-add_library(FrontendLib
+add_library(FrontendLib STATIC
     ${FRONTEND_SRC_DIR}/presenter.cpp
     ${FRONTEND_SRC_DIR}/model.cpp
     ${FRONTEND_SRC_DIR}/datainputservice.cpp
-
     ${FRONTEND_SRC_DIR}/models/messagemodel.cpp
     ${FRONTEND_SRC_DIR}/models/chatmodel.cpp
     ${FRONTEND_SRC_DIR}/models/UserModel.cpp
-
     ${FRONTEND_SRC_DIR}/delegators/messagedelegate.cpp
     ${FRONTEND_SRC_DIR}/delegators/UserDelegate.cpp
     ${FRONTEND_SRC_DIR}/delegators/ChatItemDelegate.cpp
     ${FRONTEND_SRC_DIR}/managers/NetworkAccessManager.cpp
-
     ${FRONTEND_SRC_DIR}/managers/sessionmanager.cpp
-
     ${FRONTEND_SRC_DIR}/managers/chatmanager.cpp
     ${FRONTEND_SRC_DIR}/managers/messagemanager.cpp
     ${FRONTEND_SRC_DIR}/managers/usermanager.cpp
@@ -61,29 +57,18 @@ add_library(FrontendLib
     ${FRONTEND_INC_DIR}/delegators/ChatItemDelegate.h
 )
 
-target_include_directories(FrontendLib PUBLIC
-    ${FRONTEND_INC_DIR}
-    ${FRONTEND_SRC_DIR}
-    ${FRONTEND_FORMS_DIR}
-    ${DEBUG_PROFILING_DIR}
-    {CMAKE_SOURCE_DIR}/include
-    {CMAKE_SOURCE_DIR}/forms
-    {CMAKE_SOURCE_DIR}/src
-    /usr/local/include
-    /opt/homebrew/include
-)
-
-include_directories(FrontendLib PUBLIC
-    ${CMAKE_SOURCE_DIR}
-    {CMAKE_SOURCE_DIR}/include
-    {CMAKE_SOURCE_DIR}/forms
+target_include_directories(FrontendLib
+    PUBLIC
+        ${FRONTEND_INC_DIR}
+        ${FRONTEND_SRC_DIR}
+        ${FRONTEND_FORMS_DIR}
+        ${DEBUG_PROFILING_DIR}
 )
 
 target_link_libraries(FrontendLib PUBLIC
     Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
-    spdlog::spdlog
-    redis++
-    hiredis
+    Metrics
+    RedisCache
 )
 
 target_compile_definitions(FrontendLib PUBLIC SPDLOG_HEADER_ONLY)
@@ -98,9 +83,7 @@ add_executable(Frontend
     config/domains.txt
 )
 
-target_link_libraries(Frontend PRIVATE FrontendLib)
-
-add_subdirectory(tests)
+target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
 
 set_target_properties(Frontend PROPERTIES
     BUILD_WITH_INSTALL_RPATH ON

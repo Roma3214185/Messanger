@@ -35,10 +35,11 @@ target_link_libraries(ChatService PRIVATE
     Qt${QT_VERSION_MAJOR}::Sql
     Crow::Crow
     jwt-cpp
-    hiredis
-    spdlog::spdlog
-    TracyClient
+    # hiredis
+    # spdlog::spdlog
+    # TracyClient
     RabbitMQClient
+    Entities
     #RedisCache
     #Persistance
 )

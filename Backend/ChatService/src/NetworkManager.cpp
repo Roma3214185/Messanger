@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "entities/User.h"
+
 const int APIGATEWAY_PORT = 8084;
 const int AUTHSERVICE_PORT = 8083;
 

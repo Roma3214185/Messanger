@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QTextStream>
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 #include "dto/SignUpRequest.h"
 
 struct ValidationResult {

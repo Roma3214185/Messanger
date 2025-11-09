@@ -3,7 +3,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QJsonObject>
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 #include "models/messagemodel.h"
 #include "model.h"
 #include "interfaces/IMainWindow.h"

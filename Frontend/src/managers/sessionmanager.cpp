@@ -7,7 +7,7 @@
 #include <QJsonDocument>
 
 #include "interfaces/INetworkAccessManager.h"
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 #include "JsonService.h"
 #include "dto/User.h"
 #include "dto/SignUpRequest.h"

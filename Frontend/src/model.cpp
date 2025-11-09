@@ -148,7 +148,7 @@ auto Model::getPrivateChatWithUser(int user_id) -> ChatPtr {
 
   LOG_INFO("Private chat for this user '{}' not found", user_id);
   auto chat = createPrivateChat(user_id);
-  LOG_INFO("Private chat for this user '{}' is created, id '{}'", chat->chat_id);
+  LOG_INFO("Private chat for this user '{}' is created, id '{}'", chat->chat_id, user_id);
   addChatInFront(chat);  // (!) emit chatAdded -> load chat history if exist
   return chat;
 }

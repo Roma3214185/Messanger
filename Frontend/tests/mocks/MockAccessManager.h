@@ -5,7 +5,7 @@
 
 #include "interfaces/INetworkAccessManager.h"
 #include "MockReply.h"
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 
 class MockNetworkAccessManager : public INetworkAccessManager {
  public:
