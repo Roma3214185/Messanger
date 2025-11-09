@@ -2,7 +2,7 @@
 
 #include "authmanager.h"
 #include "Debug_profiling.h"
-#include "Persistence/GenericRepository.h"
+#include "GenericRepository.h"
 #include "server.h"
 #include "SqlExecutor.h"
 #include "RedisCache.h"

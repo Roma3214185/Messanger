@@ -4,13 +4,16 @@
 #include <string>
 #include <vector>
 
-#include "Persistence/include/interfaces/BaseQuery.h"
+#include "interfaces/BaseQuery.h"
 #include "RedisCache/ICacheService.h"
 
 struct Meta;
 
 template <typename T>
 struct Reflection;
+
+template <typename T>
+struct BaseQuery;
 
 template <typename T>
 class SelectQuery : public BaseQuery<T> {

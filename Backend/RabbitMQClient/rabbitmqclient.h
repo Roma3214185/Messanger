@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <memory>
 #include "SimpleAmqpClient/SimpleAmqpClient.h"
-#include "Persistence/include/Persistence/ThreadPool.h"
+#include "ThreadPool.h"
 #include "Debug_profiling.h"
 
 class RabbitMQClient {

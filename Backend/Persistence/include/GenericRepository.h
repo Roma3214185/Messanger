@@ -45,7 +45,7 @@ class GenericRepository {
   void clearCache();
 
   template <typename T>
-  [[nodiscard]] bool save(T& entity);
+  bool save(T& entity);
 
   template <typename T>
   bool save(std::vector<T>& entity);

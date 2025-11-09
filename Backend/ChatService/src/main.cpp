@@ -7,7 +7,7 @@
 #include "Debug_profiling.h"
 #include "server.h"
 #include "chatmanager.h"
-#include "Persistence/GenericRepository.h"
+#include "GenericRepository.h"
 #include "SqlExecutor.h"
 
 const int kChatServicePort = 8081;

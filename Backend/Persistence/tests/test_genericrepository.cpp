@@ -1,7 +1,9 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 
-#include "Persistence/GenericRepository.h"
+//#include "../../Persistence/include/GenericRepository.h"
+#include "GenericRepository.h"
+//#include "Persistence/include/GenericRepository.h"
 #include "mocks/MockDatabase.h"
 #include "mocks/FakeSqlExecutor.h"
 #include "mocks/MockCache.h"

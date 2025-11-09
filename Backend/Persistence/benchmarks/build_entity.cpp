@@ -1,7 +1,7 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 
-#include "Persistence/GenericRepository.h"
+#include "GenericRepository.h"
 #include "interfaces/IEntityBuilder.h"
 #include "MessageService/include/entities/Message.h"
 #include "Meta.h"

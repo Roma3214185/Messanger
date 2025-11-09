@@ -1,8 +1,8 @@
 #include <QCoreApplication>
 
 #include "benchmark/benchmark.h"
-#include "Persistence/GenericRepository.h"
-#include "Persistence/Query.h"
+#include "GenericRepository.h"
+#include "Query.h"
 
 int main(int argc, char** argv) {
     QCoreApplication app(argc, argv);

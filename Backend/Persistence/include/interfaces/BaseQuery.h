@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "Persistence/include/interfaces/ISqlExecutor.h"
-#include "Persistence/include/Persistence/ThreadPool.h"
+#include "ThreadPool.h"
 #include "RedisCache/ICacheService.h"
-#include "Persistence/include/Persistence/Query.h"
+#include "Query.h"
 #include "Persistence/include/Meta.h"
 
 template <typename T>

@@ -1,8 +1,8 @@
 #include <QCoreApplication>
 
-#include "Persistence/ThreadPool.h"
-#include "Persistence/GenericRepository.h"
-#include "Persistence/Query.h"
+#include "ThreadPool.h"
+#include "GenericRepository.h"
+#include "Query.h"
 #include "benchmark/benchmark.h"
 #include "SqlExecutor.h"
 

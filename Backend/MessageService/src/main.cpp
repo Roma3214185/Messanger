@@ -1,11 +1,11 @@
 #include <QCoreApplication>
 
 #include "Debug_profiling.h"
-#include "Persistence/GenericRepository.h"
+#include "GenericRepository.h"
 #include "managers/MessageManager.h"
 #include "managers/notificationmanager.h"
 #include "server.h"
-#include "Persistence/Batcher.h"
+#include "Batcher.h"
 #include "RabbitMQClient/RabbitMQClient.h"
 #include "SqlExecutor.h"
 

@@ -24,7 +24,7 @@ class FakeSqlExecutor : public ISqlExecutor {
     }
 
     virtual std::optional<long long> executeReturningId(const QString& sql, const QList<QVariant>& values,
-                                                  QSqlQuery& outQuery) {
+                                                  QSqlQuery& outQuery) override {
       ++execute_returning_id_calls;
       if(!execute(sql, values, outQuery)) return std::nullopt;
       return mocked_id;

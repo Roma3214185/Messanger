@@ -49,11 +49,12 @@ target_include_directories(Metrics PUBLIC DebugProfiling)
 target_link_libraries(Metrics PUBLIC prometheus-cpp-core prometheus-cpp-pull ZLIB::ZLIB Qt6::Core Qt6::Widgets Qt6::Gui)
 
 add_library(RabbitMQClient STATIC Backend/RabbitMQClient/RabbitMQClient.cpp)
-target_include_directories(RabbitMQClient PUBLIC Backend/RabbitMQClient Backend/GenericRepository ${RABBITMQC_DIR}/include ${SIMPLE_AMQP_CLIENT_DIR}/include)
+target_include_directories(RabbitMQClient PUBLIC Backend/RabbitMQClient Backend/GenericRepository
+    ${RABBITMQC_DIR}/include ${SIMPLE_AMQP_CLIENT_DIR}/include ${CMAKE_SOURCE_DIR}/Backend/Persistence/include)
 target_link_libraries(RabbitMQClient PRIVATE SimpleAmqpClient rabbitmq Qt6::Core)
 
 add_library(RedisCache STATIC Backend/RedisCache/RedisCache.cpp)
-target_include_directories(RedisCache PUBLIC Backend/RedisCache ${DEBUG_PROFILING_DIR})
+target_include_directories(RedisCache PUBLIC Backend/RedisCache ${DEBUG_PROFILING_DIR} ${CMAKE_SOURCE_DIR}/Backend/Persistence/include)
 target_link_libraries(RedisCache PUBLIC redis++ hiredis Qt6::Core)
 
 add_library(Persistence STATIC
@@ -77,7 +78,6 @@ add_subdirectory(Backend/MessageService)
 add_subdirectory(Backend/ChatService)
 add_subdirectory(Backend/ApigateWay)
 add_subdirectory(Backend/NotificationService)
-#add_subdirectory(/Users/roma/QtProjects/Chat/prometheus-cpp)
 
 foreach(service IN ITEMS AuthService MessageService ChatService ApiGateWay NotificationService)
     target_link_libraries(${service} PRIVATE RabbitMQClient Persistence RedisCache Metrics prometheus-cpp-core prometheus-cpp-pull)
@@ -88,7 +88,13 @@ foreach(service IN ITEMS AuthService MessageService ChatService ApiGateWay Notif
 endforeach()
 
 add_subdirectory(Frontend)
+
 add_subdirectory(Backend/Persistence/tests)
+target_link_libraries(PersistenceTests PRIVATE Persistence)
+target_include_directories(PersistenceTests PRIVATE
+    ${DEBUG_PROFILING_DIR}
+    ${CMAKE_SOURCE_DIR}/Backend/Persistence/include
+)
 
 target_link_libraries(Frontend PRIVATE RabbitMQClient Persistence RedisCache prometheus-cpp-core prometheus-cpp-pull)
 target_include_directories(Frontend PRIVATE

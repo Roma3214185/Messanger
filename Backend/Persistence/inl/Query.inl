@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Persistence/Query.h"
-#include "Persistence/include/SqlExecutor.h"
 #include <nlohmann/json.hpp>
+
+#include "Query.h"
+#include "SqlExecutor.h"
+#include "Meta.h"
 
 template <typename T>
 std::optional<std::vector<T>> SelectQuery<T>::tryLoadFromCache(const std::string& key) const {

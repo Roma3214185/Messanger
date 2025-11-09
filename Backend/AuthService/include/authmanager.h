@@ -5,7 +5,7 @@
 #include <string>
 
 #include "entities/AuthResponce.h"
-#include "Persistence/GenericRepository.h"
+#include "GenericRepository.h"
 
 class RegisterRequest;
 class LoginRequest;
