@@ -15,9 +15,7 @@ class MockCache : public ICache {
     return std::nullopt;
   }
 
-  void saveToken(const Key& key, const Token& token) override {
-    cache_[key] = token;
-  }
+  void saveToken(const Key& key, const Token& token) override { cache_[key] = token; }
 
   void deleteToken(const Key& key) override { cache_.erase(key); }
 

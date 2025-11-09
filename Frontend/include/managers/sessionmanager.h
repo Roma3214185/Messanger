@@ -13,19 +13,19 @@ class User;
 class SignUpRequest;
 
 class SessionManager : public BaseManager {
-    Q_OBJECT
-  public:
-    using BaseManager::BaseManager;
+  Q_OBJECT
+ public:
+  using BaseManager::BaseManager;
 
-    void signIn(const LogInRequest& login_request);
-    void signUp(const SignUpRequest& signup_request);
-    void authenticateWithToken(const QString& token);
+  void signIn(const LogInRequest& login_request);
+  void signUp(const SignUpRequest& signup_request);
+  void authenticateWithToken(const QString& token);
 
-  protected:
-    virtual void onReplyFinished(QNetworkReply* reply);
+ protected:
+  virtual void onReplyFinished(QNetworkReply* reply);
 
-  Q_SIGNALS:
-    void userCreated(const User& user, const QString& token);
+ Q_SIGNALS:
+  void userCreated(const User& user, const QString& token);
 };
 
-#endif // SESSIONMANAGER_H
+#endif  // SESSIONMANAGER_H

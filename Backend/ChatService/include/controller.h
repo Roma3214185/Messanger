@@ -3,8 +3,8 @@
 
 #include <crow/crow.h>
 
-#include "database.h"
 #include "chatmanager.h"
+#include "database.h"
 
 class Controller {
  public:
@@ -15,9 +15,8 @@ class Controller {
   void getAllChatMembers(const crow::request& req, crow::response& res, int chat_id);
 
  private:
-
   crow::SimpleApp& app_;
-  ChatManager* manager_;
+  ChatManager*     manager_;
 };
 
 #endif  // CONTROLLER_H

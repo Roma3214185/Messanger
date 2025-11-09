@@ -8,22 +8,20 @@ std::string readFile(const std::string& path) {
   LOG_INFO("Read file {}", path);
   std::ifstream file(path);
   if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
-  return std::string((std::istreambuf_iterator<char>(file)),
-                     std::istreambuf_iterator<char>());
+  return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 }
 
 }  // namespace
 
-
 namespace JwtUtils {
 
-const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
-inline constexpr const char* kIssuer = "auth_service";
+const std::string            kKeysDir       = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+const std::string            kPublicKeyFile = kKeysDir + "public_key.pem";
+inline constexpr const char* kIssuer        = "auth_service";
 
 std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   try {
-    auto decoded = jwt::decode(token);
+    auto        decoded    = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
 
     auto verifier = jwt::verify()
@@ -42,4 +40,4 @@ std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
   }
 }
 
-}  // namespace TokenService
+}  // namespace JwtUtils

@@ -6,9 +6,9 @@
 #include <string>
 
 #include "Debug_profiling.h"
+#include "PasswordService.h"
 #include "entities/RegisterRequest.h"
 #include "entities/UserCredentials.h"
-#include "PasswordService.h"
 
 using std::nullopt;
 using std::string;
@@ -34,8 +34,7 @@ OptionalResponce AuthManager::getUser(const string& token) {
 }
 
 OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
-  auto finded_users = rep.findByField<User>(
-      "email", QString::fromStdString(login_request.email));
+  auto finded_users = rep.findByField<User>("email", QString::fromStdString(login_request.email));
 
   if (finded_users.empty()) {
     LOG_WARN("User not found with email '{}'", login_request.email);
@@ -43,13 +42,12 @@ OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
   }
 
   auto findedUser = finded_users.front();
-  LOG_INFO("User found with email '{}', id is '{}'", login_request.email,
-           findedUser.id);
+  LOG_INFO("User found with email '{}', id is '{}'", login_request.email, findedUser.id);
 
   auto user_credentials_vector = rep.findByField<UserCredentials>("user_id", findedUser.id);
   assert(user_credentials_vector.size() == 1);
   auto user_credentials = user_credentials_vector.front();
-  if(!PasswordService::verify(login_request.password, user_credentials.hash_password)) {
+  if (!PasswordService::verify(login_request.password, user_credentials.hash_password)) {
     LOG_ERROR("Invalid password");
     return std::nullopt;
   }
@@ -60,24 +58,20 @@ OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
 }
 
 OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
-  User user_to_save{
-      .username = req.name,
-      .tag = req.tag,
-      .email = req.email
-  };
+  User user_to_save{.username = req.name, .tag = req.tag, .email = req.email};
 
   bool saved = rep.save(user_to_save);
-  if(!saved) return std::nullopt;
+  if (!saved) return std::nullopt;
 
   auto token = JwtUtils::generateToken(user_to_save.id);
 
-  std::string hashed_password = PasswordService::hash(req.password);
+  std::string     hashed_password = PasswordService::hash(req.password);
   UserCredentials user_credentials;
-  user_credentials.user_id = user_to_save.id;
+  user_credentials.user_id       = user_to_save.id;
   user_credentials.hash_password = hashed_password;
 
   bool saved_credentials = rep.save(user_credentials);
-  if(!saved_credentials) {
+  if (!saved_credentials) {
     LOG_ERROR("Server error while saving credentials");
     return std::nullopt;
   }

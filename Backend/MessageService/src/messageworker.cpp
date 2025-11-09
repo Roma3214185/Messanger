@@ -1,6 +1,7 @@
-//#include "messageworker.h"
+// #include "messageworker.h"
 
-// MessageWorker::MessageWorker(RabbitMQClient& mq, MessageManager& manager, NotificationManager& notifService)
+// MessageWorker::MessageWorker(RabbitMQClient& mq, MessageManager& manager, NotificationManager&
+// notifService)
 //     : mq_(mq)
 //     , msgManager(manager)
 //     , notifService(notifService)

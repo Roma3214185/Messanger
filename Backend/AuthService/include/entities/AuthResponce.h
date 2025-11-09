@@ -7,7 +7,7 @@
 #include "entities/User.h"
 
 struct AuthResponce {
-  std::string token;
+  std::string         token;
   std::optional<User> user;
 };
 

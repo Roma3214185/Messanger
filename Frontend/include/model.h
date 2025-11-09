@@ -5,8 +5,8 @@
 #include <QUrl>
 #include <QWebSocket>
 #include <memory>
-#include <unordered_map>
 #include <optional>
+#include <unordered_map>
 
 class ChatBase;
 class MessageModel;
@@ -28,21 +28,24 @@ class SocketManager;
 class DataManager;
 class ISocket;
 
-using ChatId = int;
-using ChatPtr = std::shared_ptr<ChatBase>;
+using ChatId          = int;
+using ChatPtr         = std::shared_ptr<ChatBase>;
 using MessageModelPtr = std::shared_ptr<MessageModel>;
 
 class Model : public QObject {
-    Q_OBJECT
+  Q_OBJECT
 
  public:
-  explicit Model(const QUrl& url, INetworkAccessManager* net_manager, ICache* cache, ISocket* socket);
+  explicit Model(const QUrl&            url,
+                 INetworkAccessManager* net_manager,
+                 ICache*                cache,
+                 ISocket*               socket);
   ~Model();
 
-  ChatModel* getChatModel() const;
-  UserModel* getUserModel() const;
+  ChatModel*                    getChatModel() const;
+  UserModel*                    getUserModel() const;
   [[nodiscard]] MessageModelPtr createMessageModel(int chat_id);
-  MessageModel* getMessageModel(int chat_id);
+  MessageModel*                 getMessageModel(int chat_id);
 
   void checkToken();
   void signIn(const LogInRequest& login_request);
@@ -50,30 +53,30 @@ class Model : public QObject {
   void initSocket(int user_id);
   void connectSocket();
 
-  [[nodiscard]] ChatPtr loadChat(int chat_id);
+  [[nodiscard]] ChatPtr     loadChat(int chat_id);
   [[nodiscard]] QList<User> findUsers(const QString& text);
-  std::optional<User> getUser(int user_id);
-  ChatPtr createPrivateChat(int user_id);
+  std::optional<User>       getUser(int user_id);
+  ChatPtr                   createPrivateChat(int user_id);
 
   QList<Message> getChatMessages(int chat_id, int limit = 20);
 
-  void sendMessage(const Message& msg);
+  void                         sendMessage(const Message& msg);
   [[nodiscard]] QList<ChatPtr> loadChats();
-  void authenticateWithToken(const QString& token);
-  void fillChatHistory(int chat_id);
-  void addChat(const ChatPtr& chat);
-  void addChatInFront(const ChatPtr& chat);
-  void createChat(int chat_id);
-  void addMessageToChat(int chat_id, const Message& msg, bool in_front = false);
-  void deleteToken() const;
+  void                         authenticateWithToken(const QString& token);
+  void                         fillChatHistory(int chat_id);
+  void                         addChat(const ChatPtr& chat);
+  void                         addChatInFront(const ChatPtr& chat);
+  void                         createChat(int chat_id);
+  void    addMessageToChat(int chat_id, const Message& msg, bool in_front = false);
+  void    deleteToken() const;
   ChatPtr getPrivateChatWithUser(int user_id);
-  void saveToken(const QString& token);
-  void clearAllChats();
-  void clearAllMessages();
-  void logout();
+  void    saveToken(const QString& token);
+  void    clearAllChats();
+  void    clearAllMessages();
+  void    logout();
   ChatPtr getChat(int chat_id);
 
-  int getNumberOfExistingChats() const;
+  int         getNumberOfExistingChats() const;
   QModelIndex indexByChatId(int chat_id);
   static void setCurrentId(int current_id);
 
@@ -95,11 +98,11 @@ class Model : public QObject {
   std::unique_ptr<UserModel> user_model_;
 
   SessionManager* session_manager_;
-  ChatManager* chat_manager_;
+  ChatManager*    chat_manager_;
   MessageManager* message_manager_;
-  UserManager* user_manager_;
-  SocketManager* socket_manager_;
-  DataManager* data_manager_;
+  UserManager*    user_manager_;
+  SocketManager*  socket_manager_;
+  DataManager*    data_manager_;
 };
 
 #endif  // MODEL_H

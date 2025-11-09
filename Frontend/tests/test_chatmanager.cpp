@@ -1,53 +1,44 @@
-#include <catch2/catch_all.hpp>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QTimer>
 #include <QtTest/QSignalSpy>
 #include <QtTest/QTest>
-#include <QTimer>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonArray>
+#include <catch2/catch_all.hpp>
 
 #include "JsonService.h"
 #include "managers/chatmanager.h"
 #include "mocks/MockAccessManager.h"
 
 class TestChatManager : public ChatManager {
-  public:
-    using ChatManager::ChatManager;
+ public:
+  using ChatManager::ChatManager;
 
-    QList<ChatPtr> onLoadChats(QNetworkReply* reply) {
-      return ChatManager::onLoadChats(reply);
-    }
+  QList<ChatPtr> onLoadChats(QNetworkReply* reply) { return ChatManager::onLoadChats(reply); }
 
-    ChatPtr onChatLoaded(QNetworkReply* reply) {
-      return ChatManager::onChatLoaded(reply);
-    }
+  ChatPtr onChatLoaded(QNetworkReply* reply) { return ChatManager::onChatLoaded(reply); }
 
-    ChatPtr onCreatePrivateChat(QNetworkReply* reply) {
-      return ChatManager::onCreatePrivateChat(reply);
-    }
+  ChatPtr onCreatePrivateChat(QNetworkReply* reply) {
+    return ChatManager::onCreatePrivateChat(reply);
+  }
 };
 
 TEST_CASE("Test ChatManager loadChats") {
-  MockReply mock_reply;
+  MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl url("http://localhost:8081");
-  constexpr int times_out = 20;
-  TestChatManager chat_manager(&network_manager, url, times_out);
-  QJsonObject chat_obj{
-      {"type", "private"},
-      {"id", 43},
-      {"user", QJsonObject{
-                   {"id", 123},
-                   {"name", "Chat43"},
-                   {"avatar", "path/to/avatar"}
-               }}
-  };
+  QUrl                     url("http://localhost:8081");
+  constexpr int            times_out = 20;
+  TestChatManager          chat_manager(&network_manager, url, times_out);
+  QJsonObject              chat_obj{
+                   {"type", "private"},
+                   {"id", 43},
+                   {"user", QJsonObject{{"id", 123}, {"name", "Chat43"}, {"avatar", "path/to/avatar"}}}};
 
   QJsonArray chat_array;
   chat_array.append(chat_obj);
 
-  QJsonObject root{ {"chats", chat_array} };
-  QByteArray valid_json_data = QJsonDocument(root).toJson();
+  QJsonObject root{{"chats", chat_array}};
+  QByteArray  valid_json_data = QJsonDocument(root).toJson();
 
   SECTION("Expected correct endpoint URL") {
     chat_manager.loadChats("token");
@@ -56,7 +47,7 @@ TEST_CASE("Test ChatManager loadChats") {
 
   SECTION("No response from server emits error and returns empty list") {
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    auto future = chat_manager.loadChats("token");
+    auto       future = chat_manager.loadChats("token");
 
     QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, times_out + 1);
     REQUIRE(future.result().isEmpty());
@@ -97,7 +88,7 @@ TEST_CASE("Test ChatManager loadChats") {
 
   SECTION("Invalid JSON returns empty list with error") {
     QByteArray invalid_json = "not json";
-    auto reply = new MockReply();
+    auto       reply        = new MockReply();
     reply->setData(invalid_json);
     network_manager.setReply(reply);
 
@@ -113,21 +104,16 @@ TEST_CASE("Test ChatManager loadChats") {
 }
 
 TEST_CASE("Test ChatManager loadChat") {
-  MockReply mock_reply;
+  MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl url("http://localhost:8081");
-  constexpr int times_out = 20;
-  TestChatManager chat_manager(&network_manager, url, times_out);
+  QUrl                     url("http://localhost:8081");
+  constexpr int            times_out = 20;
+  TestChatManager          chat_manager(&network_manager, url, times_out);
 
   QJsonObject chat_obj{
       {"type", "private"},
       {"id", 42},
-      {"user", QJsonObject{
-                   {"id", 123},
-                   {"name", "Chat42"},
-                   {"avatar", "path/to/avatar"}
-               }}
-  };
+      {"user", QJsonObject{{"id", 123}, {"name", "Chat42"}, {"avatar", "path/to/avatar"}}}};
 
   QByteArray valid_json = QJsonDocument(chat_obj).toJson();
 
@@ -159,7 +145,7 @@ TEST_CASE("Test ChatManager loadChat") {
     network_manager.setReply(reply);
     QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
-   auto future = chat_manager.loadChat("token", 42);
+    auto future = chat_manager.loadChat("token", 42);
     QCoreApplication::processEvents();
     auto chat = future.result();
     REQUIRE(chat != nullptr);
@@ -184,18 +170,14 @@ TEST_CASE("Test ChatManager loadChat") {
 }
 
 TEST_CASE("Test ChatManager createPrivateChat") {
-  MockReply mock_reply;
+  MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl url("http://localhost:8081");
-  constexpr int times_out = 20;
-  TestChatManager chat_manager(&network_manager, url, times_out);
+  QUrl                     url("http://localhost:8081");
+  constexpr int            times_out = 20;
+  TestChatManager          chat_manager(&network_manager, url, times_out);
 
-  QJsonObject chat_obj{
-      {"type", "private"},
-      {"chat_id", 101},
-      {"title", "PrivateChat101"}
-  };
-  QByteArray valid_json = QJsonDocument(chat_obj).toJson();
+  QJsonObject chat_obj{{"type", "private"}, {"chat_id", 101}, {"title", "PrivateChat101"}};
+  QByteArray  valid_json = QJsonDocument(chat_obj).toJson();
 
   SECTION("Correct POST request URL and body") {
     chat_manager.createPrivateChat("token", 5);
@@ -238,7 +220,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
-    int before = spyError.count();
+    int        before = spyError.count();
     QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
@@ -250,12 +232,8 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   }
 
   SECTION("Chat type is not PRIVATE returns nullptr and emits error") {
-    QJsonObject invalid_chat_obj{
-        {"chat_id", 102},
-        {"chat_type", "GROUP"},
-        {"name", "GroupChat"}
-    };
-    auto reply = new MockReply();
+    QJsonObject invalid_chat_obj{{"chat_id", 102}, {"chat_type", "GROUP"}, {"name", "GroupChat"}};
+    auto        reply = new MockReply();
     reply->setData(QJsonDocument(invalid_chat_obj).toJson());
     network_manager.setReply(reply);
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);

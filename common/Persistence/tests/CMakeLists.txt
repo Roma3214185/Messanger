@@ -41,5 +41,6 @@ target_include_directories(PersistenceTests
 )
 
 include(CTest)
+enable_testing()
 include(Catch)
-#catch_discover_tests(PersistenceTests)
+catch_discover_tests(PersistenceTests)

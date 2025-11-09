@@ -4,15 +4,15 @@
 #include <QString>
 
 class ITheme {
-  public:
-    virtual QString getStyleSheet() = 0;
-    virtual ~ITheme() = default;
+ public:
+  virtual QString getStyleSheet() = 0;
+  virtual ~ITheme()               = default;
 };
 
 class LightTheme : public ITheme {
-  public:
-    QString getStyleSheet() override {
-      return QString(R"(
+ public:
+  QString getStyleSheet() override {
+    return QString(R"(
         QWidget {
             background-color: #eaf4ff;
             color: #1b1b1b;
@@ -97,13 +97,13 @@ class LightTheme : public ITheme {
             height: 0px;
         }
     )");
-    }
+  }
 };
 
 class DarkTheme : public ITheme {
-  public:
-    QString getStyleSheet() override {
-      return QString(R"(
+ public:
+  QString getStyleSheet() override {
+    return QString(R"(
         QWidget {
             background-color: #0f1c2b;
             color: #e0e6f0;
@@ -189,8 +189,7 @@ class DarkTheme : public ITheme {
             height: 0px;
         }
     )");
-    }
+  }
 };
 
-
-#endif // ITHEME_H
+#endif  // ITHEME_H

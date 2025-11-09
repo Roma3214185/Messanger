@@ -34,7 +34,7 @@ std::string getMethod(const crow::HTTPMethod& method) {
 
 }  // namespace
 
-constexpr int kInvalidTokenCode = 401;
+constexpr int kInvalidTokenCode    = 401;
 constexpr int kRateLimitExceedCode = 429;
 
 GatewayServer::GatewayServer(int port)
@@ -43,21 +43,20 @@ GatewayServer::GatewayServer(int port)
       authProxy_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
       chatProxy_(getenv_or("PRODUCT_SERVICE_URL", "http://localhost:8081")),
       messageProxy_(getenv_or("ORDER_SERVICE_URL", "http://localhost:8082")),
-      notificationProxy_(
-          getenv_or("PAYMENT_SERVICE_URL", "http://localhost:8086")),
+      notificationProxy_(getenv_or("PAYMENT_SERVICE_URL", "http://localhost:8086")),
       exposer_(std::make_unique<prometheus::Exposer>("0.0.0.0:8089")),
       registry_(std::make_shared<prometheus::Registry>()),
       request_counter_family_(prometheus::BuildCounter()
                                   .Name("api_gateway_requests_total")
                                   .Help("Total number of requests")
                                   .Register(*registry_)),
-      request_latency_(
-          prometheus::BuildHistogram()
-              .Name("api_gateway_request_duration_seconds")
-              .Help("Request duration in seconds")
-              .Register(*registry_)
-              .Add({}, prometheus::Histogram::BucketBoundaries{
-                           0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10})) {
+      request_latency_(prometheus::BuildHistogram()
+                           .Name("api_gateway_request_duration_seconds")
+                           .Help("Request duration in seconds")
+                           .Register(*registry_)
+                           .Add({},
+                                prometheus::Histogram::BucketBoundaries{
+                                    0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10})) {
   exposer_->RegisterCollectable(registry_);
   registerRoutes();
 }
@@ -70,12 +69,10 @@ void GatewayServer::run() {
 string GatewayServer::extractToken(const crow::request& req) const {
   string authHeader = req.get_header_value("Authorization");
   if (authHeader.empty()) return {};
-  return (authHeader.rfind("Bearer ", 0) == 0) ? authHeader.substr(7)
-                                               : authHeader;
+  return (authHeader.rfind("Bearer ", 0) == 0) ? authHeader.substr(7) : authHeader;
 }
 
-bool GatewayServer::checkRateLimit(const crow::request& req,
-                                   crow::response& res) {
+bool GatewayServer::checkRateLimit(const crow::request& req, crow::response& res) {
   string ip = req.remote_ip_address;
   if (!rateLimiter_.allow(ip)) {
     res.code = kRateLimitExceedCode;
@@ -97,38 +94,37 @@ void GatewayServer::registerRoutes() {
 }
 
 void GatewayServer::registerRoute(const std::string& basePath,
-                                  ProxyClient& proxy,
-                                  bool requireAuth) {
+                                  ProxyClient&       proxy,
+                                  bool               requireAuth) {
   app_.route_dynamic(basePath + "/<path>")
-  .methods("GET"_method, "POST"_method)
-      ([this, &proxy, basePath, requireAuth](const crow::request& req, crow::response& res, std::string path) {
+      .methods("GET"_method,
+               "POST"_method)([this, &proxy, basePath, requireAuth](
+                                  const crow::request& req, crow::response& res, std::string path) {
         LOG_INFO("{}/{}", basePath, path);
         handleProxyRequest(req, res, proxy, basePath + "/" + path, requireAuth);
         LOG_INFO("Res code:{} and res: {}", res.code, res.body);
       });
 
-  app_.route_dynamic(basePath)
-      .methods("GET"_method, "POST"_method)
-      ([this, &proxy, basePath, requireAuth](const crow::request& req, crow::response& res) {
+  app_.route_dynamic(basePath).methods("GET"_method, "POST"_method)(
+      [this, &proxy, basePath, requireAuth](const crow::request& req, crow::response& res) {
         LOG_INFO("{}", basePath);
         handleProxyRequest(req, res, proxy, basePath, requireAuth);
         LOG_INFO("Res code:{} and res: {}", res.code, res.body);
       });
 }
 
-void GatewayServer::handleProxyRequest(
-    const crow::request& req,
-    crow::response& res,
-    ProxyClient& proxy,
-    const std::string& path,
-    bool requireAuth) {
-  std::string method = getMethod(req.method);
+void GatewayServer::handleProxyRequest(const crow::request& req,
+                                       crow::response&      res,
+                                       ProxyClient&         proxy,
+                                       const std::string&   path,
+                                       bool                 requireAuth) {
+  std::string          method = getMethod(req.method);
   ScopedRequestMetrics metrics(request_counter_family_, request_latency_, path, method);
   PROFILE_SCOPE(path.c_str());
 
   if (requireAuth) {
-    std::string token = extractToken(req);
-    auto userIdPtr = JwtUtils::verifyTokenAndGetUserId(token);
+    std::string token     = extractToken(req);
+    auto        userIdPtr = JwtUtils::verifyTokenAndGetUserId(token);
     if (!userIdPtr) {
       LOG_ERROR("Invalid token for path {}", path);
       res.code = kInvalidTokenCode;
@@ -149,24 +145,23 @@ void GatewayServer::registerWebSocketRoutes() {
   auto wsBridge = std::make_shared<WebSocketBridge>("ws://127.0.0.1:8086/ws");
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
-      .onopen([wsBridge](crow::websocket::connection& client) {
-        wsBridge->onClientConnect(client);
-      })
+      .onopen(
+          [wsBridge](crow::websocket::connection& client) { wsBridge->onClientConnect(client); })
       .onmessage([wsBridge](crow::websocket::connection& client, const std::string& data, bool) {
         wsBridge->onClientMessage(client, data);
       })
-      .onclose([wsBridge](crow::websocket::connection& client, const std::string& reason, uint16_t code) {
-        wsBridge->onClientClose(client, reason, code);
-      });
+      .onclose([wsBridge](crow::websocket::connection& client,
+                          const std::string&           reason,
+                          uint16_t code) { wsBridge->onClientClose(client, reason, code); });
 }
 
 void GatewayServer::registerHealthCheck() {
   CROW_ROUTE(app_, "/healthz")([](const crow::request&, crow::response& res) {
-    json info = {
-        {"status", "ok"},
-        {"timestamp", std::chrono::duration_cast<std::chrono::milliseconds>(
-                          std::chrono::system_clock::now().time_since_epoch())
-                          .count()}};
+    json info = {{"status", "ok"},
+                 {"timestamp",
+                  std::chrono::duration_cast<std::chrono::milliseconds>(
+                      std::chrono::system_clock::now().time_since_epoch())
+                      .count()}};
     res.set_header("Content-Type", "application/json");
     res.write(info.dump());
     res.end();

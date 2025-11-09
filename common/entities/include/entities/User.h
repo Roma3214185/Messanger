@@ -2,14 +2,13 @@
 #define BACKEND_AUTHSERVICE_SRC_HEADERS_USER_H_
 
 #include <cstdint>
-#include <string>
-
 #include <nlohmann/json.hpp>
+#include <string>
 
 #include "Meta.h"
 
 struct User {
-  long long id = 0;
+  long long   id = 0;
   std::string username;
   std::string email;
   std::string tag;
@@ -19,13 +18,12 @@ struct User {
 template <>
 struct Reflection<User> {
   static Meta meta() {
-    return {
-        .name = "User",
-        .table_name = "users",
-        .fields = {make_field<User, long long>("id", &User::id),
-                   make_field<User, std::string>("username", &User::username),
-                   make_field<User, std::string>("tag", &User::tag),
-                   make_field<User, std::string>("email", &User::email)}};
+    return {.name       = "User",
+            .table_name = "users",
+            .fields     = {make_field<User, long long>("id", &User::id),
+                           make_field<User, std::string>("username", &User::username),
+                           make_field<User, std::string>("tag", &User::tag),
+                           make_field<User, std::string>("email", &User::email)}};
   }
 };
 
@@ -41,10 +39,10 @@ template <>
 struct Builder<User> {
   static User build(QSqlQuery& query) {
     User user;
-    int i = 0;
+    int  i = 0;
 
     auto assign = [&](auto& field) {
-      using TField = std::decay_t<decltype(field)>;
+      using TField   = std::decay_t<decltype(field)>;
       QVariant value = query.value(i++);
       if constexpr (std::is_same_v<TField, long long>)
         field = value.toLongLong();
@@ -67,28 +65,23 @@ struct Builder<User> {
   }
 };
 
-
 namespace nlohmann {
 
 template <>
 struct adl_serializer<User> {
-    static void from_json(const json& j, User& user) {
-      j.at("id").get_to(user.id);
-      j.at("email").get_to(user.email);
-      j.at("tag").get_to(user.tag);
-      j.at("username").get_to(user.username);
-    }
+  static void from_json(const json& j, User& user) {
+    j.at("id").get_to(user.id);
+    j.at("email").get_to(user.email);
+    j.at("tag").get_to(user.tag);
+    j.at("username").get_to(user.username);
+  }
 
-    static void to_json(json& j, const User& user) {
-      j = json{
-          {"id", user.id},
-          {"email", user.email},
-          {"tag", user.tag},
-          {"username", user.username}
-      };
-    }
+  static void to_json(json& j, const User& user) {
+    j = json{
+        {"id", user.id}, {"email", user.email}, {"tag", user.tag}, {"username", user.username}};
+  }
 };
 
-} // namespace nlohmann
+}  // namespace nlohmann
 
 #endif  // BACKEND_AUTHSERVICE_SRC_HEADERS_USER_H_

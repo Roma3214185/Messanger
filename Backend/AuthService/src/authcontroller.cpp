@@ -4,12 +4,12 @@
 #include <utility>
 
 #include "Debug_profiling.h"
-#include "entities/RegisterRequest.h"
 #include "JwtUtils.h"
+#include "entities/RegisterRequest.h"
 
 using std::string;
 
-constexpr int kUserError = 400;
+constexpr int kUserError      = 400;
 constexpr int kSuccessfulCode = 200;
 
 namespace {
@@ -19,15 +19,19 @@ crow::json::wvalue userToJson(const User& user, const std::string& token = "") {
   if (!token.empty()) {
     res["token"] = token;
   }
-  res["user"]["id"] = user.id;
+  res["user"]["id"]    = user.id;
   res["user"]["email"] = user.email;
-  res["user"]["name"] = user.username;
-  res["user"]["tag"] = user.tag;
+  res["user"]["name"]  = user.username;
+  res["user"]["tag"]   = user.tag;
 
   LOG_INFO(
       "[user][id] = '{}' | [email] = '{}' | "
       "[name] = '{}' | [tag] = '{}', token = '{}'",
-      user.id, user.username, user.email, user.tag, token);
+      user.id,
+      user.username,
+      user.email,
+      user.tag,
+      token);
   return res;
 }
 
@@ -56,12 +60,13 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
     return;
   }
   LoginRequest login_request{
-      .email = body["email"].s(),
+      .email    = body["email"].s(),
       .password = body["password"].s(),
   };
 
   LOG_INFO("[login] user email: '{}' and user password '{}'",
-           login_request.email, login_request.password);
+           login_request.email,
+           login_request.password);
 
   auto auth_res = service_->loginUser(login_request);
 
@@ -81,22 +86,23 @@ void AuthController::handleMe(const crow::request& req, crow::response& responce
   }
 }
 
-void AuthController::findByTag(const crow::request& req, const std::string& tag, crow::response& responce) {
+void AuthController::findByTag(const crow::request& req,
+                               const std::string&   tag,
+                               crow::response&      responce) {
   if (tag.empty()) {
     sendResponse(responce, kUserError, "Missing tag parametr");
     return;
   }
 
   auto listOfUsers = service_->findUserByTag(tag);
-  LOG_INFO("With tag '{}' was finded '{}' users", tag,
-           listOfUsers.size());
+  LOG_INFO("With tag '{}' was finded '{}' users", tag, listOfUsers.size());
 
   crow::json::wvalue json_users;
   json_users["users"] = crow::json::wvalue::list();
 
   size_t idx = 0;
   for (const auto& user : listOfUsers) {
-    auto userJson = userToJson(user);
+    auto userJson              = userToJson(user);
     json_users["users"][idx++] = std::move(userJson["user"]);
   }
 
@@ -113,8 +119,7 @@ void AuthController::findById(const crow::request& req, int user_id, crow::respo
   }
 }
 
-std::optional<AuthResponce> AuthController::verifyToken(
-  const crow::request& req) {
+std::optional<AuthResponce> AuthController::verifyToken(const crow::request& req) {
   auto token = req.get_header_value("Authorization");
   if (token.empty()) {
     LOG_ERROR("Token empty");
@@ -125,9 +130,9 @@ std::optional<AuthResponce> AuthController::verifyToken(
 }
 
 void AuthController::generateKeys() {
-  const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+  const std::string kKeysDir        = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
   const std::string kPrivateKeyFile = "private_key.pem";
-  const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
+  const std::string kPublicKeyFile  = kKeysDir + "public_key.pem";
 
   auto [private_key, public_key] = JwtUtils::generate_rsa_keys();
   std::filesystem::create_directories(kKeysDir);
@@ -138,8 +143,7 @@ void AuthController::generateKeys() {
 
     LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
     LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
-
-  } catch(...) {
+  } catch (...) {
     LOG_ERROR("Error saving keys");
   }
 }
@@ -152,10 +156,10 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
   }
 
   RegisterRequest register_request;
-  register_request.email = body["email"].s();
+  register_request.email    = body["email"].s();
   register_request.password = body["password"].s();
-  register_request.name = body["name"].s();
-  register_request.tag = body["tag"].s();
+  register_request.name     = body["name"].s();
+  register_request.tag      = body["tag"].s();
 
   LOG_INFO("Registe user (email: {}) | (password : {}) | (name : {}) | (tag: {})",
            register_request.email,
@@ -168,6 +172,7 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
     sendResponse(responce, kUserError, "User already exist");
     return;
   } else {
-    sendResponse(responce, kSuccessfulCode, userToJson(*auth_responce->user, auth_responce->token).dump());
+    sendResponse(
+        responce, kSuccessfulCode, userToJson(*auth_responce->user, auth_responce->token).dump());
   }
 }

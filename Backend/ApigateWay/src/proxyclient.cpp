@@ -10,15 +10,15 @@ ProxyClient::ProxyClient(const string& url) : baseUrl(url) {
     host = host.substr(8);
 
   hostWithPort = host;
-  cli = make_unique<httplib::Client>(host.c_str());
+  cli          = make_unique<httplib::Client>(host.c_str());
   cli->set_read_timeout(5, 0);
   cli->set_connection_timeout(5, 0);
 }
 
-pair<int, string> ProxyClient::post_json(
-    const string& path, const json& body,
-    const vector<pair<string, string>>& headers) {
-  auto s = body.dump();
+pair<int, string> ProxyClient::post_json(const string&                       path,
+                                         const json&                         body,
+                                         const vector<pair<string, string>>& headers) {
+  auto             s = body.dump();
   httplib::Headers h;
   h.emplace("Content-Type", "application/json");
   for (auto& p : headers) h.emplace(p.first, p.second);
@@ -27,10 +27,10 @@ pair<int, string> ProxyClient::post_json(
   return {(int)res->status, res->body};
 }
 
-pair<int, string> ProxyClient::forward(
-    const crow::request& req, const string& path, const string& method,
-    const vector<pair<string, string>>& extra_headers) {
-
+pair<int, string> ProxyClient::forward(const crow::request&                req,
+                                       const string&                       path,
+                                       const string&                       method,
+                                       const vector<pair<string, string>>& extra_headers) {
   httplib::Headers headers;
 
   // Передаємо всі заголовки від клієнта
@@ -44,7 +44,7 @@ pair<int, string> ProxyClient::forward(
   }
 
   string full_path = path;
-  auto keys = req.url_params.keys();
+  auto   keys      = req.url_params.keys();
   if (!keys.empty()) {
     full_path += "?";
     bool first = true;
@@ -61,17 +61,16 @@ pair<int, string> ProxyClient::forward(
   cout << "PATH: " << full_path << endl;
 
   string content_type = req.get_header_value("content-type");
-  if (content_type.empty()) content_type = "application/json"; // або default
+  if (content_type.empty()) content_type = "application/json";  // або default
 
-  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr),
-                      httplib::Error::Unknown);
+  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
   if (method == "GET")
     res = cli->Get(full_path.c_str(), headers);
   else if (method == "DELETE")
     res = cli->Delete(full_path.c_str(), headers);
   else if (method == "PUT")
     res = cli->Put(full_path.c_str(), headers, req.body, content_type.c_str());
-  else // POST
+  else  // POST
     res = cli->Post(full_path.c_str(), headers, req.body, content_type.c_str());
 
   if (!res) {
@@ -80,4 +79,3 @@ pair<int, string> ProxyClient::forward(
 
   return {static_cast<int>(res->status), res->body};
 }
-

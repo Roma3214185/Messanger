@@ -1,41 +1,40 @@
 #include "delegators/chatitemdelegate.h"
 
-void ChatItemDelegate::paint(QPainter* painter,
+void ChatItemDelegate::paint(QPainter*                   painter,
                              const QStyleOptionViewItem& option,
-                             const QModelIndex& index) const {
+                             const QModelIndex&          index) const {
   painter->save();
   auto chat = extractChatData(index);
   drawAll(painter, option, chat);
   painter->restore();
 }
 
-void ChatItemDelegate::drawBackgroundState(
-    QPainter* painter, const QRect& rect,
-    const QStyleOptionViewItem& option) const {
-
+void ChatItemDelegate::drawBackgroundState(QPainter*                   painter,
+                                           const QRect&                rect,
+                                           const QStyleOptionViewItem& option) const {
   if (option.state & QStyle::State_Selected) {
     QColor bg = option.palette.color(QPalette::Base);
-    int r = qMin(bg.red() + 38, 255);
-    int g = qMin(bg.green() + 38, 255);
-    int b = qMin(bg.blue() + 38, 255);
+    int    r  = qMin(bg.red() + 38, 255);
+    int    g  = qMin(bg.green() + 38, 255);
+    int    b  = qMin(bg.blue() + 38, 255);
     painter->fillRect(option.rect, QColor(r, g, b));
   }
 }
 
 ChatDrawData ChatItemDelegate::extractChatData(const QModelIndex& index) const {
   ChatDrawData data;
-  data.title = index.data(ChatModel::TitleRole).toString();
+  data.title        = index.data(ChatModel::TitleRole).toString();
   data.last_message = index.data(ChatModel::LastMessageRole).toString();
-  data.avatar_path = index.data(ChatModel::AvatarRole).toString();
-  data.time = index.data(ChatModel::LastMessageTimeRole).toDateTime();
-  data.unread = index.data(ChatModel::UnreadRole).toInt();
+  data.avatar_path  = index.data(ChatModel::AvatarRole).toString();
+  data.time         = index.data(ChatModel::LastMessageTimeRole).toDateTime();
+  data.unread       = index.data(ChatModel::UnreadRole).toInt();
   return data;
 }
 
-void ChatItemDelegate::drawAll(QPainter* painter,
+void ChatItemDelegate::drawAll(QPainter*                   painter,
                                const QStyleOptionViewItem& option,
-                               const ChatDrawData& chat) const {
-  QRect rect = option.rect.normalized();
+                               const ChatDrawData&         chat) const {
+  QRect   rect                    = option.rect.normalized();
   QString refactored_last_message = refactorLastMessage(chat.last_message);
 
   drawBackgroundState(painter, rect, option);
@@ -46,31 +45,34 @@ void ChatItemDelegate::drawAll(QPainter* painter,
   // drawUnread(painter, rect,  chat.unread);
 }
 
-void ChatItemDelegate::drawAvatar(QPainter* painter, const QRect& rect,
+void ChatItemDelegate::drawAvatar(QPainter*      painter,
+                                  const QRect&   rect,
                                   const QPixmap& avatar) const {
   constexpr int kAvataSize = 40;
-  QRect avatar_rect(rect.left() + 5, rect.top() + 5, kAvataSize,
-                    kAvataSize);
-  painter->drawPixmap(avatar_rect, avatar.scaled(kAvataSize, kAvataSize,
-                                                 Qt::KeepAspectRatio,
-                                                 Qt::SmoothTransformation));
+  QRect         avatar_rect(rect.left() + 5, rect.top() + 5, kAvataSize, kAvataSize);
+  painter->drawPixmap(
+      avatar_rect,
+      avatar.scaled(kAvataSize, kAvataSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
-void ChatItemDelegate::drawNameOfChat(QPainter* painter, const QRect& rect,
+void ChatItemDelegate::drawNameOfChat(QPainter*      painter,
+                                      const QRect&   rect,
                                       const QString& username) const {
   constexpr int kNameFont = 12;
   painter->setFont(QFont("Arial", kNameFont, QFont::Bold));
   painter->drawText(rect.left() + 55, rect.top() + 20, username);
 }
 
-void ChatItemDelegate::drawLastMessage(QPainter* painter, const QRect& rect,
+void ChatItemDelegate::drawLastMessage(QPainter*      painter,
+                                       const QRect&   rect,
                                        const QString& text) const {
   constexpr int kLastMessageFont = 9;
   painter->setFont(QFont("Arial", kLastMessageFont));
   painter->drawText(rect.left() + 55, rect.top() + 40, text);
 }
 
-void ChatItemDelegate::drawTimestamp(QPainter* painter, const QRect& rect,
+void ChatItemDelegate::drawTimestamp(QPainter*        painter,
+                                     const QRect&     rect,
                                      const QDateTime& timestamp) const {
   constexpr int kTimestampFont = 8;
   painter->setFont(QFont("Arial", kTimestampFont));
@@ -78,15 +80,13 @@ void ChatItemDelegate::drawTimestamp(QPainter* painter, const QRect& rect,
   painter->drawText(rect.right() - 50, rect.top() + 20, time_str);
 }
 
-void ChatItemDelegate::drawUnread(QPainter* painter, const QRect& rect,
-                                  const int unread) const {
+void ChatItemDelegate::drawUnread(QPainter* painter, const QRect& rect, const int unread) const {
   if (unread <= 0) return;
 
   constexpr int kUnreadLabelSize = 20;
   constexpr int kUnreadLabelFont = 8;
 
-  QRect circle_rect(rect.right() - 25, rect.center().y() - 10,
-                    kUnreadLabelSize, kUnreadLabelSize);
+  QRect circle_rect(rect.right() - 25, rect.center().y() - 10, kUnreadLabelSize, kUnreadLabelSize);
   painter->setBrush(Qt::red);
   painter->setPen(Qt::NoPen);
   painter->drawEllipse(circle_rect);
@@ -102,7 +102,7 @@ QString ChatItemDelegate::refactorLastMessage(const QString& msg) const {
   }
 
   constexpr int kMaxMessageLen = 25;
-  constexpr int kNumDots = 3;
+  constexpr int kNumDots       = 3;
 
   if (msg.length() >= kMaxMessageLen) {
     return msg.left(kMaxMessageLen - kNumDots) + QString(kNumDots, QChar('.'));
@@ -112,10 +112,10 @@ QString ChatItemDelegate::refactorLastMessage(const QString& msg) const {
 }
 
 QSize ChatItemDelegate::sizeHint(const QStyleOptionViewItem& option,
-                                 const QModelIndex& index) const {
+                                 const QModelIndex&          index) const {
   Q_UNUSED(option);
   Q_UNUSED(index);
-  constexpr int kChatItemWidth = 250;
+  constexpr int kChatItemWidth  = 250;
   constexpr int kChatItemHeight = 60;
   return QSize(kChatItemWidth, kChatItemHeight);
 }

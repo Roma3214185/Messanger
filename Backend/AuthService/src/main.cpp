@@ -1,29 +1,28 @@
 #include <QCoreApplication>
 
-#include "authmanager.h"
 #include "Debug_profiling.h"
 #include "GenericRepository.h"
-#include "server.h"
-#include "SqlExecutor.h"
 #include "RedisCache.h"
+#include "SqlExecutor.h"
+#include "authmanager.h"
+#include "server.h"
 
 const int AUTH_PORT = 8083;
 
 void genereteKeys();
 
-int main(int argc, char *argv[]) {
-    QCoreApplication a(argc, argv);
-    init_logger("AuthService");
+int main(int argc, char* argv[]) {
+  QCoreApplication a(argc, argv);
+  init_logger("AuthService");
 
-    SQLiteDatabase db;
-    SqlExecutor executor(db);
-    GenericRepository rep(db, executor, RedisCache::instance());
+  SQLiteDatabase    db;
+  SqlExecutor       executor(db);
+  GenericRepository rep(db, executor, RedisCache::instance());
 
-    AuthManager manager(rep);
+  AuthManager manager(rep);
 
-    Server server(AUTH_PORT, &manager);
-    server.run();
+  Server server(AUTH_PORT, &manager);
+  server.run();
 
-    return 0;
+  return 0;
 }
-

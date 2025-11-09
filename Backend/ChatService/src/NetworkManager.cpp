@@ -8,13 +8,15 @@
 
 #include "entities/User.h"
 
-const int APIGATEWAY_PORT = 8084;
+const int APIGATEWAY_PORT  = 8084;
 const int AUTHSERVICE_PORT = 8083;
 
 namespace NetworkManager {
 
 std::pair<int, std::string> forward(
-    const std::string& body, const std::string& path, const std::string& method,
+    const std::string&                                      body,
+    const std::string&                                      path,
+    const std::string&                                      method,
     const std::vector<std::pair<std::string, std::string>>& extra_headers) {
   httplib::Headers headers;
   for (const auto& h : extra_headers) {
@@ -24,8 +26,7 @@ std::pair<int, std::string> forward(
   httplib::Client cli("localhost", AUTHSERVICE_PORT);
   cli.set_connection_timeout(5, 0);
 
-  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr),
-                      httplib::Error::Unknown);
+  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
 
   if (method == "GET")
     res = cli.Get(path.c_str(), headers);
@@ -45,7 +46,7 @@ std::pair<int, std::string> forward(
 
 std::optional<User> getUserById(int otherUserId) {
   std::string path = "/users/" + std::to_string(otherUserId);
-  auto res = forward("", path, "GET");
+  auto        res  = forward("", path, "GET");
 
   if (res.first != 200) {
     qDebug() << "[ERROR] getUserById failed:" << res.first;
@@ -62,10 +63,10 @@ std::optional<User> getUserById(int otherUserId) {
 
   auto obj = jsonResponse.object();
 
-  User findedUser{.id = obj["id"].toInt(),
-                  .email = obj["email"].toString().toStdString(),
+  User findedUser{.id       = obj["id"].toInt(),
+                  .email    = obj["email"].toString().toStdString(),
                   .username = obj["name"].toString().toStdString(),
-                  .tag = obj["tag"].toString().toStdString()};
+                  .tag      = obj["tag"].toString().toStdString()};
 
   qDebug() << "[INFO] getUserById success:" << findedUser.username;
   return findedUser;

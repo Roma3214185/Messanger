@@ -1,28 +1,27 @@
 #ifndef BACKEND_GENERICREPOSITORY_META_H_
 #define BACKEND_GENERICREPOSITORY_META_H_
 
+#include <QDateTime>
+#include <QtSql/QSqlQuery>
 #include <any>
 #include <functional>
+#include <string>
 #include <tuple>
 #include <type_traits>
 #include <vector>
-#include <string>
-
-#include <QDateTime>
-#include <QtSql/QSqlQuery>
 
 #include "Debug_profiling.h"
 
 struct Field {
-  const char* name;
-  const std::type_info& type;
-  std::function<std::any(const void*)> get;
+  const char*                                 name;
+  const std::type_info&                       type;
+  std::function<std::any(const void*)>        get;
   std::function<void(void*, const std::any&)> set;
 };
 
 struct Meta {
-  const char* name;
-  const char* table_name;
+  const char*        name;
+  const char*        table_name;
   std::vector<Field> fields;
 
   const Field* find(const std::string& n) const {
@@ -36,7 +35,7 @@ template <class T, class M>
 Field make_field(const char* name, M T::* member) {
   return Field{.name = name,
                .type = typeid(M),
-               .get = [member](const void* obj) -> std::any {
+               .get  = [member](const void* obj) -> std::any {
                  const T* element = static_cast<const T*>(obj);
                  return element->*member;
                },
@@ -53,21 +52,18 @@ Field make_field(const char* name, M T::* member) {
                        if (val.type() == typeid(QDateTime)) {
                          element->*member = std::any_cast<QDateTime>(val);
                        } else if (val.type() == typeid(long long)) {
-                         element->*member = QDateTime::fromSecsSinceEpoch(
-                             std::any_cast<long long>(val));
+                         element->*member =
+                             QDateTime::fromSecsSinceEpoch(std::any_cast<long long>(val));
                        } else if (val.type() == typeid(int)) {
-                         element->*member = QDateTime::fromSecsSinceEpoch(
-                             std::any_cast<int>(val));
+                         element->*member = QDateTime::fromSecsSinceEpoch(std::any_cast<int>(val));
                        } else {
-                         LOG_ERROR("Invalid type for QDateTime: '{}'",
-                                   val.type().name());
+                         LOG_ERROR("Invalid type for QDateTime: '{}'", val.type().name());
                        }
                      } else {
                        if (!val.has_value()) return;
                        if constexpr (std::is_same_v<M, std::string>) {
                          if (val.type() == typeid(const char*))
-                           (element->*member) =
-                               std::string(std::any_cast<const char*>(val));
+                           (element->*member) = std::string(std::any_cast<const char*>(val));
                          else
                            (element->*member) = std::any_cast<M>(val);
                        } else {
@@ -80,12 +76,12 @@ Field make_field(const char* name, M T::* member) {
 template <typename T, typename FieldTuple>
 struct FastBuilder {
   static T build(QSqlQuery& query, const FieldTuple& fields) {
-    T entity;
+    T   entity;
     int i = 0;
 
     auto assign = [&](auto ptr) {
       using MemberType = std::decay_t<decltype(entity.*ptr)>;
-      QVariant value = query.value(i++);
+      QVariant value   = query.value(i++);
       if constexpr (std::is_same_v<MemberType, long long>)
         entity.*ptr = value.toLongLong();
       else if constexpr (std::is_same_v<MemberType, int>)
@@ -119,10 +115,7 @@ struct EntityFields;
 
 template <typename T>
 struct EntityKey {
-    static std::string get(const T& entity) {
-      return std::to_string(entity.id);
-    }
+  static std::string get(const T& entity) { return std::to_string(entity.id); }
 };
-
 
 #endif  // BACKEND_GENERICREPOSITORY_META_H_

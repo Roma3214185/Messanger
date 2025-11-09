@@ -50,5 +50,5 @@
 // BENCHMARK(QueryWithCacheAsync)->Iterations(100);
 // BENCHMARK(QueryWithoutCacheAsync)->Iterations(100);
 
-//cmake .. -DCMAKE_BUILD_TYPE=Release
-//cmake --build . --target benchmarks
+// cmake .. -DCMAKE_BUILD_TYPE=Release
+// cmake --build . --target benchmarks

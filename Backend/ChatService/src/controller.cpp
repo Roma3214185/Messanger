@@ -7,8 +7,8 @@
 using std::optional;
 using std::string;
 
-constexpr int kUserError = 400;
-constexpr int kServerError = 500;
+constexpr int kUserError       = 400;
+constexpr int kServerError     = 500;
 constexpr int kSuccessfullCode = 200;
 
 namespace {
@@ -19,18 +19,14 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
   res.end();
 }
 
-}  //namespace
+}  // namespace
 
-Controller::Controller(crow::SimpleApp& app, ChatManager* manager)
-    : app_(app), manager_(manager) {
-
-}
+Controller::Controller(crow::SimpleApp& app, ChatManager* manager) : app_(app), manager_(manager) {}
 
 void Controller::createPrivateChat(const crow::request& req, crow::response& res) {
   auto auth_header = req.get_header_value("Authorization");
 
-  optional<int> my_id =
-      JwtUtils::verifyTokenAndGetUserId(auth_header);
+  optional<int> my_id = JwtUtils::verifyTokenAndGetUserId(auth_header);
   if (!my_id) {
     sendResponse(res, kUserError, "Invalid or expired token");
     return;
@@ -42,8 +38,8 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
     return;
   }
 
-  int user_id = body["user_id"].i();
-  optional<User> user = NetworkManager::getUserById(user_id);
+  int            user_id = body["user_id"].i();
+  optional<User> user    = NetworkManager::getUserById(user_id);
 
   if (!user) {
     sendResponse(res, kUserError, "User not found");
@@ -59,7 +55,7 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
   LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
 
   std::vector members{*my_id, user_id};
-  bool wasAddedMembers = manager_->addMembersToChat(*chat_id, members);
+  bool        wasAddedMembers = manager_->addMembersToChat(*chat_id, members);
   if (!wasAddedMembers) {
     sendResponse(res, kServerError, "Failed to add users to chat");
     return;
@@ -67,17 +63,17 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
 
   crow::json::wvalue result;
   result["chat_id"] = *chat_id;
-  result["type"] = "private";
-  result["title"] = user->username;
-  result["avatar"] = user->avatar;
+  result["type"]    = "private";
+  result["title"]   = user->username;
+  result["avatar"]  = user->avatar;
   result["user_id"] = user->id;
 
   sendResponse(res, kSuccessfullCode, result.dump());
 }
 
 void Controller::getAllChats(const crow::request& req, crow::response& res) {
-  string token = req.get_header_value("Authorization");
-  auto user_id = JwtUtils::verifyTokenAndGetUserId(token);
+  string token   = req.get_header_value("Authorization");
+  auto   user_id = JwtUtils::verifyTokenAndGetUserId(token);
   if (!user_id) {
     sendResponse(res, kUserError, "Invalid or expired token");
     return;
@@ -92,12 +88,12 @@ void Controller::getAllChats(const crow::request& req, crow::response& res) {
   int i = 0;
   for (const auto& chat : chats) {
     crow::json::wvalue chat_json;
-    chat_json["id"] = chat.id;
+    chat_json["id"]   = chat.id;
     chat_json["type"] = chat.is_group ? "group" : "private";
 
     if (chat.is_group) {
-      chat_json["name"] = chat.name;
-      chat_json["avatar"] = chat.avatar;
+      chat_json["name"]         = chat.name;
+      chat_json["avatar"]       = chat.avatar;
       chat_json["member_count"] = manager_->getMembersCount(chat.id);
     } else {
       auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
@@ -114,8 +110,8 @@ void Controller::getAllChats(const crow::request& req, crow::response& res) {
         return;
       }
 
-      chat_json["user"]["id"] = user->id;
-      chat_json["user"]["name"] = user->username;
+      chat_json["user"]["id"]     = user->id;
+      chat_json["user"]["name"]   = user->username;
       chat_json["user"]["avatar"] = user->avatar;
     }
 
@@ -147,24 +143,23 @@ void Controller::getAllChatsById(const crow::request& req, crow::response& res, 
     return;
   }
 
-  const auto& chat = *chat_opt;
+  const auto&        chat = *chat_opt;
   crow::json::wvalue chat_json;
 
-  chat_json["id"] = chat.id;
+  chat_json["id"]   = chat.id;
   chat_json["type"] = chat.is_group ? "group" : "private";
 
   if (chat.is_group) {
-    chat_json["name"] = chat.name;
-    chat_json["avatar"] = chat.avatar;
+    chat_json["name"]         = chat.name;
+    chat_json["avatar"]       = chat.avatar;
     chat_json["member_count"] = manager_->getMembersCount(chat.id);
-
   } else {  // private
     auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
     if (other_user_id) {
       auto user = NetworkManager::getUserById(*other_user_id);
       if (user) {
-        chat_json["user"]["id"] = user->id;
-        chat_json["user"]["name"] = user->username;
+        chat_json["user"]["id"]     = user->id;
+        chat_json["user"]["name"]   = user->username;
         chat_json["user"]["avatar"] = user->avatar;
       } else {
         LOG_ERROR("Other user not found for chat '{}'", chat_id);
@@ -178,16 +173,14 @@ void Controller::getAllChatsById(const crow::request& req, crow::response& res, 
 }
 
 void Controller::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
-  std::vector<int> list_of_members =
-      manager_->getMembersOfChat(chat_id);
+  std::vector<int> list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");
     sendResponse(res, kServerError, "Error in db.getMembersOfChat");
     return;
   }
 
-  LOG_INFO("Db return '{}' members for chat '{}'",
-           list_of_members.size(), chat_id);
+  LOG_INFO("Db return '{}' members for chat '{}'", list_of_members.size(), chat_id);
   crow::json::wvalue ans;
   ans["members"] = crow::json::wvalue::list();
 

@@ -1,14 +1,34 @@
 Checks: >
-  *, 
-  -clang-analyzer-alpha.*, 
-  google-*, 
-  -llvm-*, 
-  -llvmlibc-*,
-  -cppcoreguidelines-avoid-magic-numbers
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  bugprone-*,
+  -cppcoreguidelines-pro-type-vararg,
+  -modernize-use-trailing-return-type
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: true
+FormatStyle: file
 CheckOptions:
-  - key:             google-readability-identifier-naming.VariableCase
-    value:           lower_case
-  - key:             google-readability-identifier-naming.FunctionCase
-    value:           CamelCase
-  - key:             google-readability-identifier-naming.ClassCase
-    value:           CamelCase
+  - key: modernize-use-auto.MinTypeNameLength
+    value: 0
+  - key: modernize-loop-convert.MinConfidence
+    value: reasonable
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: "_"
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: kUpperCamelCase
+  - key: performance-unnecessary-value-param.IgnoreTemplates
+    value: true
+  - key: readability-magic-numbers.IgnoredNumericLiterals
+    value: "0,1,2,-1"

@@ -7,10 +7,10 @@
 
 #include "dto/ChatBase.h"
 
-using ChatPtr = std::shared_ptr<ChatBase>;
+using ChatPtr     = std::shared_ptr<ChatBase>;
 using ListOfChats = QList<ChatPtr>;
 using std::optional;
-using ChatIndex = size_t;
+using ChatIndex         = size_t;
 using OptionalChatIndex = std::optional<ChatIndex>;
 
 class ChatModel : public QAbstractListModel {
@@ -28,12 +28,11 @@ class ChatModel : public QAbstractListModel {
 
   explicit ChatModel(QObject* parent = nullptr);
 
-  int rowCount(const QModelIndex& parent) const override;
-  QVariant data(const QModelIndex& index, int role) const override;
+  int                    rowCount(const QModelIndex& parent) const override;
+  QVariant               data(const QModelIndex& index, int role) const override;
   QHash<int, QByteArray> roleNames() const override;
-  void addChat(const ChatPtr& chat);
-  void updateChat(int chat_id, const QString& last_message,
-                  const QDateTime& time);
+  void                   addChat(const ChatPtr& chat);
+  void updateChat(int chat_id, const QString& last_message, const QDateTime& time);
   void addChatInFront(ChatPtr& chat);
   void realocateChatInFront(int chat_id);
   void clear();

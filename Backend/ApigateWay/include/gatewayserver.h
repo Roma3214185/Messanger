@@ -3,12 +3,13 @@
 
 #include <crow.h>
 #include <ixwebsocket/IXWebSocket.h>
+
 #include <string>
 
-#include "ScopedRequestsTimer.h"
 #include "JwtUtils.h"
-#include "ratelimiter.h"
+#include "ScopedRequestsTimer.h"
 #include "proxyclient.h"
+#include "ratelimiter.h"
 
 class GatewayServer {
  public:
@@ -17,7 +18,7 @@ class GatewayServer {
 
  private:
   crow::SimpleApp app_;
-  int port_;
+  int             port_;
 
   RateLimiter rateLimiter_;
   ProxyClient authProxy_;
@@ -25,27 +26,25 @@ class GatewayServer {
   ProxyClient messageProxy_;
   ProxyClient notificationProxy_;
 
-  std::unique_ptr<prometheus::Exposer> exposer_;
+  std::unique_ptr<prometheus::Exposer>  exposer_;
   std::shared_ptr<prometheus::Registry> registry_;
 
   prometheus::Family<prometheus::Counter>& request_counter_family_;
-  prometheus::Histogram& request_latency_;
+  prometheus::Histogram&                   request_latency_;
 
   void handleProxyRequest(const crow::request& req,
-                                        crow::response& res,
-                                        ProxyClient& proxy,
-                                        const std::string& path,
-                                        bool requireAuth);
+                          crow::response&      res,
+                          ProxyClient&         proxy,
+                          const std::string&   path,
+                          bool                 requireAuth);
 
-  void registerRoute(const std::string& basePath,
-                                    ProxyClient& proxy,
-                                    bool requireAuth = true);
+  void registerRoute(const std::string& basePath, ProxyClient& proxy, bool requireAuth = true);
 
   void registerRoutes();
   void registerHealthCheck();
   void registerWebSocketRoutes();
 
-  bool checkRateLimit(const crow::request& req, crow::response& res);
+  bool        checkRateLimit(const crow::request& req, crow::response& res);
   std::string extractToken(const crow::request& req) const;
 };
 

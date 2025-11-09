@@ -8,17 +8,17 @@
 
 #include "Debug_profiling.h"
 
-using UserId = int;
-using StatusCode = int;
+using UserId       = int;
+using StatusCode   = int;
 using ResponceBody = std::string;
-using Responce = std::pair<StatusCode, ResponceBody>;
+using Responce     = std::pair<StatusCode, ResponceBody>;
 
 class NetworkManager {
  public:
-  Responce forward(const std::string& body, const std::string& path,
-                   const std::string& method,
-                   const std::vector<std::pair<std::string, std::string>>&
-                       extra_headers = {});
+  Responce        forward(const std::string&                                      body,
+                          const std::string&                                      path,
+                          const std::string&                                      method,
+                          const std::vector<std::pair<std::string, std::string>>& extra_headers = {});
   QVector<UserId> getMembersOfChat(int chat_id);
 };
 

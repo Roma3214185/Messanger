@@ -47,7 +47,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void on_logoutButton_clicked();
   void on_pushButton_clicked(bool checked);
 
-private:
+ private:
   void setMainWindow();
   void setSignInPage();
   void setSignUpPage();
@@ -57,8 +57,8 @@ private:
   void setupUI();
 
   std::unique_ptr<ITheme> currentTheme;
-  Ui::MainWindow* ui_;
-  Presenter* presenter_;
+  Ui::MainWindow*         ui_;
+  Presenter*              presenter_;
 };
 
 #endif  // MAINWINDOW_H

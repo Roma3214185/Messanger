@@ -8,8 +8,7 @@
 #include <optional>
 
 QSqlDatabase DataBase::getThreadDatabase() {
-  const QString connName =
-      QString("connection_%1").arg((quintptr)QThread::currentThreadId());
+  const QString connName = QString("connection_%1").arg((quintptr)QThread::currentThreadId());
 
   QSqlDatabase db;
   if (QSqlDatabase::contains(connName)) {
@@ -21,8 +20,8 @@ QSqlDatabase DataBase::getThreadDatabase() {
 
   if (!db.isOpen()) {
     if (!db.open()) {
-      qCritical() << "[ERROR] Cannot open DB in thread:"
-                  << QThread::currentThread() << db.lastError().text();
+      qCritical() << "[ERROR] Cannot open DB in thread:" << QThread::currentThread()
+                  << db.lastError().text();
 
       throw std::runtime_error("Cannot open database");
     }
@@ -54,10 +53,10 @@ bool DataBase::executeQuery(QSqlQuery& query, Args&&... args) {
 }
 
 Chat DataBase::getChatFromQuery(QSqlQuery& query, int chat_id) {
-  return Chat{.id = chat_id,
+  return Chat{.id       = chat_id,
               .is_group = query.value("is_group").toInt() == 1,
-              .name = query.value("name").toString().toStdString(),
-              .avatar = query.value("avatar").toString().toStdString()};
+              .name     = query.value("name").toString().toStdString(),
+              .avatar   = query.value("avatar").toString().toStdString()};
 }
 
 void DataBase::clearDataBase() {
@@ -102,7 +101,7 @@ bool DataBase::addMembersToChat(int chat_id, const std::vector<int>& members_id)
 
 bool DataBase::deleteChat(int chat_id) {
   QSqlDatabase db = getThreadDatabase();
-  QSqlQuery query(db), query2(db);
+  QSqlQuery    query(db), query2(db);
   query.prepare("DELETE FROM chat_members WHERE chat_id = ?");
 
   if (!executeQuery(query, chat_id)) {
@@ -113,8 +112,7 @@ bool DataBase::deleteChat(int chat_id) {
   return executeQuery(query2, chat_id);
 }
 
-bool DataBase::deleteMembersFromChat(int chat_id,
-                                     const std::vector<int>& members_id) {
+bool DataBase::deleteMembersFromChat(int chat_id, const std::vector<int>& members_id) {
   QSqlDatabase db = getThreadDatabase();
 
   for (int user_id : members_id) {
@@ -162,7 +160,7 @@ bool DataBase::initialDb() {
 
 std::optional<QList<int>> DataBase::getMembersOfChat(int chatId) {
   QSqlDatabase db = getThreadDatabase();
-  QSqlQuery query(db);
+  QSqlQuery    query(db);
   query.prepare("SELECT user_id FROM chat_members WHERE chat_id=?");
 
   if (!executeQuery(query, chatId)) {
@@ -180,7 +178,7 @@ std::optional<QList<int>> DataBase::getMembersOfChat(int chatId) {
 
 QList<Chat> DataBase::getChatsOfUser(int user_id) {
   QSqlDatabase db = getThreadDatabase();
-  QSqlQuery query(db);
+  QSqlQuery    query(db);
   query.prepare("SELECT chat_id FROM chat_members WHERE user_id=?");
   if (!executeQuery(query, user_id)) {
     return {};
@@ -203,8 +201,7 @@ QList<Chat> DataBase::getChatsOfUser(int user_id) {
     if (query2.next()) {
       Chat chat = getChatFromQuery(query2, chat_id);
       chats.append(chat);
-      qDebug() << "[INFO] Loaded chat id=" << chat_id
-               << " isGroup=" << chat.is_group;
+      qDebug() << "[INFO] Loaded chat id=" << chat_id << " isGroup=" << chat.is_group;
     }
   }
 
@@ -213,7 +210,7 @@ QList<Chat> DataBase::getChatsOfUser(int user_id) {
 
 OptionalChat DataBase::getChatById(int chat_id) {
   QSqlDatabase db = getThreadDatabase();
-  QSqlQuery query2(db);
+  QSqlQuery    query2(db);
   query2.prepare("SELECT is_group, name, avatar FROM chats WHERE id=?");
 
   if (!executeQuery(query2, chat_id)) {

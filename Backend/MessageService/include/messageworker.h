@@ -10,7 +10,8 @@
 // class MessageWorker
 // {
 // public:
-//     MessageWorker(RabbitMQClient& mq, MessageManager& manager, NotificationManager& notifService);
+//     MessageWorker(RabbitMQClient& mq, MessageManager& manager, NotificationManager&
+//     notifService);
 
 //     void handleEvent(const std::string& msg);
 
@@ -20,4 +21,4 @@
 //     NotificationManager& notifService;
 // };
 
-#endif // MESSAGEWORKER_H
+#endif  // MESSAGEWORKER_H

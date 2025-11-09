@@ -5,19 +5,20 @@
 #include <QJsonObject>
 
 Responce NetworkManager::forward(
-    const std::string& body, const std::string& path, const std::string& method,
+    const std::string&                                      body,
+    const std::string&                                      path,
+    const std::string&                                      method,
     const std::vector<std::pair<std::string, std::string>>& extra_headers) {
   httplib::Headers headers;
   for (const auto& h : extra_headers) {
     headers.emplace(h.first, h.second);
   }
 
-  const int CHAT_SERVICE = 8081;
+  const int       CHAT_SERVICE = 8081;
   httplib::Client cli("localhost", CHAT_SERVICE);
   cli.set_connection_timeout(5, 0);
 
-  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr),
-                      httplib::Error::Unknown);
+  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
 
   if (method == "GET") {
     res = cli.Get(path.c_str(), headers);
@@ -38,12 +39,11 @@ Responce NetworkManager::forward(
 
 QVector<UserId> NetworkManager::getMembersOfChat(int chat_id) {
   QVector<UserId> members;
-  std::string path = "/chats/" + std::to_string(chat_id) + "/members";
+  std::string     path = "/chats/" + std::to_string(chat_id) + "/members";
 
   auto res = forward("", path, "GET");
   if (res.first != 200) {
-    LOG_ERROR("GetMembersOfChat failed '{}' and reason: '{}' ", res.first,
-              res.second);
+    LOG_ERROR("GetMembersOfChat failed '{}' and reason: '{}' ", res.first, res.second);
     return members;
   }
 

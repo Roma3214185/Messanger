@@ -11,7 +11,7 @@ class RateLimiter {
   using IP = std::string;
 
   struct Entry {
-    int requests = 0;
+    int                                   requests = 0;
     std::chrono::steady_clock::time_point windowStart{};
   };
 
@@ -22,7 +22,7 @@ class RateLimiter {
 
   bool allow(const std::string& ip) {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto now = std::chrono::steady_clock::now();
+    auto                        now = std::chrono::steady_clock::now();
 
     auto& entry = entries_[ip];
     if (isNewWindow(entry, now)) {
@@ -39,20 +39,18 @@ class RateLimiter {
   }
 
  private:
-  EntriesMap entries_;
-  std::mutex mutex_;
-  int maxRequests;
+  EntriesMap           entries_;
+  std::mutex           mutex_;
+  int                  maxRequests;
   std::chrono::seconds window;
 
-  bool isNewWindow(const Entry& entry,
-                   const std::chrono::steady_clock::time_point& now) const {
-    return entry.windowStart == std::chrono::steady_clock::time_point {} ||
+  bool isNewWindow(const Entry& entry, const std::chrono::steady_clock::time_point& now) const {
+    return entry.windowStart == std::chrono::steady_clock::time_point{} ||
            (now - entry.windowStart) > window;
   }
 
-  void resetEntry(Entry& entry,
-                  const std::chrono::steady_clock::time_point& now) {
-    entry.requests = 1;
+  void resetEntry(Entry& entry, const std::chrono::steady_clock::time_point& now) {
+    entry.requests    = 1;
     entry.windowStart = now;
   }
 };

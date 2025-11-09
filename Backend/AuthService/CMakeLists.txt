@@ -25,7 +25,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(libsodium)
 
-
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(SQLite3 REQUIRED)
 

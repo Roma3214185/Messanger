@@ -1,10 +1,10 @@
 #ifndef BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 #define BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 
-#include "entities/Message.h"
-#include "entities/MessageStatus.h"
 #include "RabbitMQClient.h"
 #include "SocketManager.h"
+#include "entities/Message.h"
+#include "entities/MessageStatus.h"
 
 class NetworkManager;
 class RabbitMQClient;
@@ -15,7 +15,8 @@ class NotificationManager {
   NetworkManager& network_manager_;
 
  public:
-  NotificationManager(RabbitMQClient& mq_client, SocketsManager& sock_manager,
+  NotificationManager(RabbitMQClient& mq_client,
+                      SocketsManager& sock_manager,
                       NetworkManager& network_manager);
   void notifyMessageRead(int chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, int user_id);
@@ -27,7 +28,7 @@ class NotificationManager {
   void onMessageStatusSaved();
   void onMessageSaved(Message& message);
   void sendMessageToUser(int user_id, Message& message);
-  //void saveMessage(Message& message);
+  // void saveMessage(Message& message);
   void saveMessageStatus(MessageStatus& message);
   void onUserSaved();
 

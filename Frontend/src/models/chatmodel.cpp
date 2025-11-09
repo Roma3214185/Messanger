@@ -48,22 +48,22 @@ void ChatModel::addChat(const ChatPtr& chat) {
 
 void ChatModel::sortChats() {
   beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
-  std::sort(chats_.begin(), chats_.end(),
-            [&](const auto& chat1, const auto& chat2) {
-              // if(Private) return for created time
-              //  else retunr for joined time
-              return chat1->last_message_time > chat2->last_message_time;
-            });
+  std::sort(chats_.begin(), chats_.end(), [&](const auto& chat1, const auto& chat2) {
+    // if(Private) return for created time
+    //  else retunr for joined time
+    return chat1->last_message_time > chat2->last_message_time;
+  });
   endInsertRows();
 }
 
-void ChatModel::updateChat(const int chat_id, const QString& last_message,
+void ChatModel::updateChat(const int        chat_id,
+                           const QString&   last_message,
                            const QDateTime& time /*, int unread = 0,*/) {
   int i = 0;
   for (; i < chats_.size(); i++) {
     if (chats_[i]->chat_id == chat_id) {
-      chats_[i]->last_message = last_message;
-      chats_[i]->unread = 0;  // unread++;
+      chats_[i]->last_message      = last_message;
+      chats_[i]->unread            = 0;  // unread++;
       chats_[i]->last_message_time = time;
       break;
     }

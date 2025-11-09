@@ -1,26 +1,26 @@
 #ifndef BACKEND_GENERICREPOSITORY_GENERICREPOSITORY_H_
 #define BACKEND_GENERICREPOSITORY_GENERICREPOSITORY_H_
 
-#include <functional>
-#include <vector>
-#include <unordered_map>
-#include <utility>
-#include <string>
-
 #include <QtSql/qsqlquery.h>
+
 #include <QDateTime>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlDriver>
 #include <QtSql/QSqlError>
+#include <functional>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "Debug_profiling.h"
-#include "interfaces/IEntityBuilder.h"
 #include "Meta.h"
 #include "Query.h"
 #include "RedisCache.h"
 #include "SQLiteDataBase.h"
-#include "ThreadPool.h"
 #include "SqlBuilder.h"
+#include "ThreadPool.h"
+#include "interfaces/IEntityBuilder.h"
 
 template <typename T>
 using ResultList = std::vector<T>;
@@ -31,17 +31,19 @@ class ISqlExecutor;
 class ICacheService;
 
 class GenericRepository {
-  ISqlExecutor& executor_;
+  ISqlExecutor&  executor_;
   ICacheService& cache_;
-  ThreadPool* pool_;
-  IDataBase& database_;
+  ThreadPool*    pool_;
+  IDataBase&     database_;
 
  public:
-  GenericRepository(IDataBase& database, ISqlExecutor& executor,
-                     ICacheService& cache, ThreadPool* pool_ = nullptr);
+  GenericRepository(IDataBase&     database,
+                    ISqlExecutor&  executor,
+                    ICacheService& cache,
+                    ThreadPool*    pool_ = nullptr);
 
   IDataBase& getDatabase() { return database_; }
-  void clearCache();
+  void       clearCache();
 
   template <typename T>
   bool save(T& entity);
@@ -68,8 +70,7 @@ class GenericRepository {
   void deleteBatch(std::vector<T>& id);
 
   template <typename T>
-  std::vector<T> findByField(const std::string& field,
-                             const std::string& value);
+  std::vector<T> findByField(const std::string& field, const std::string& value);
 
   template <typename T>
   std::vector<T> findByField(const std::string& field, const QVariant& value);
@@ -91,8 +92,11 @@ class GenericRepository {
   QVariant toVariant(const Field& f, const T& entity) const;
 
   template <typename T>
-  bool executeStatement(const SqlStatement& stmt, const Field* idField, T& entity,
-                        QSqlQuery& query, bool need_to_return_id);
+  bool executeStatement(const SqlStatement& stmt,
+                        const Field*        idField,
+                        T&                  entity,
+                        QSqlQuery&          query,
+                        bool                need_to_return_id);
 };
 
 #include "GenericRepository.inl"

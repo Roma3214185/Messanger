@@ -1,11 +1,8 @@
 #include "SqlExecutor.h"
 
-SqlExecutor::SqlExecutor(IDataBase& database)
-    : database_(database) {}
+SqlExecutor::SqlExecutor(IDataBase& database) : database_(database) {}
 
-bool SqlExecutor::execute(const QString& sql,
-             const QList<QVariant>& values,
-             QSqlQuery& outQuery) {
+bool SqlExecutor::execute(const QString& sql, const QList<QVariant>& values, QSqlQuery& outQuery) {
   PROFILE_SCOPE("[SqlExecutor] Execute");
 
   auto tread_db = database_.getThreadDatabase();
@@ -16,31 +13,28 @@ bool SqlExecutor::execute(const QString& sql,
 
   outQuery = QSqlQuery(tread_db);
   if (!outQuery.prepare(sql)) {
-    LOG_ERROR("[SqlExecutor] Prepare failed: '{}'",
-              outQuery.lastError().text().toStdString());
+    LOG_ERROR("[SqlExecutor] Prepare failed: '{}'", outQuery.lastError().text().toStdString());
     return false;
   }
 
-  for (int i = 0; i < values.size(); ++i)
-    outQuery.bindValue(i, values[i]);
+  for (int i = 0; i < values.size(); ++i) outQuery.bindValue(i, values[i]);
 
   LOG_INFO("[SqlExecutor] Executing SQL: {}", sql.toStdString());
 
   if (!outQuery.exec()) {
-    LOG_ERROR("[SqlExecutor] Exec failed: '{}'",
-              outQuery.lastError().text().toStdString());
+    LOG_ERROR("[SqlExecutor] Exec failed: '{}'", outQuery.lastError().text().toStdString());
     return false;
   }
 
-  LOG_INFO("[SqlExecutor] Success: affected rows = {}",
-           outQuery.numRowsAffected());
+  LOG_INFO("[SqlExecutor] Success: affected rows = {}", outQuery.numRowsAffected());
 
   return true;
 }
 
-std::optional<long long> SqlExecutor::executeReturningId(const QString& sql, const QList<QVariant>& values,
-                                                   QSqlQuery& outQuery) {
-  if(!execute(sql, values, outQuery)) return std::nullopt;
+std::optional<long long> SqlExecutor::executeReturningId(const QString&         sql,
+                                                         const QList<QVariant>& values,
+                                                         QSqlQuery&             outQuery) {
+  if (!execute(sql, values, outQuery)) return std::nullopt;
 
   if (!outQuery.next()) {
     LOG_WARN("No row returned for SQL returning ID: {}", sql.toStdString());

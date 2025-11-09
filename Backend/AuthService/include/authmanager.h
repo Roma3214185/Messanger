@@ -4,24 +4,24 @@
 #include <optional>
 #include <string>
 
-#include "entities/AuthResponce.h"
 #include "GenericRepository.h"
+#include "entities/AuthResponce.h"
 
 class RegisterRequest;
 class LoginRequest;
 class AuthResponce;
 
 using OptionalResponce = std::optional<AuthResponce>;
-using OptionalUser = std::optional<User>;
+using OptionalUser     = std::optional<User>;
 
 class AuthManager {
  public:
   AuthManager(GenericRepository& repository);
-  OptionalResponce getUser(const std::string& token);
-  OptionalResponce loginUser(const LoginRequest& login_request);
-  OptionalResponce registerUser(const RegisterRequest& req);
+  OptionalResponce  getUser(const std::string& token);
+  OptionalResponce  loginUser(const LoginRequest& login_request);
+  OptionalResponce  registerUser(const RegisterRequest& req);
   std::vector<User> findUserByTag(const std::string& tag);
-  OptionalUser findUserById(int user_id);
+  OptionalUser      findUserById(int user_id);
 
  private:
   GenericRepository rep;

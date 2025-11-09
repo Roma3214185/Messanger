@@ -4,10 +4,8 @@
 #include "SQLiteDataBase.h"
 
 class MockDatabase : public IDataBase {
-  public:
-    using IDataBase::IDataBase;
-
-
+ public:
+  using IDataBase::IDataBase;
 };
 
-#endif // MOCKDATABASE_H
+#endif  // MOCKDATABASE_H

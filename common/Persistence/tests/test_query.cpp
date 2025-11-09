@@ -2,16 +2,16 @@
 #include <catch2/catch_all.hpp>
 
 #include "Query.h"
-#include "interfaces/BaseQuery.h"
-#include "mocks/MockCache.h"
-#include "mocks/FakeSqlExecutor.h"
-#include "mocks/MockDatabase.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
+#include "interfaces/BaseQuery.h"
+#include "mocks/FakeSqlExecutor.h"
+#include "mocks/MockCache.h"
+#include "mocks/MockDatabase.h"
 
 TEST_CASE("Test select query create right sql command") {
-  MockCache cache;
-  MockDatabase database;
+  MockCache       cache;
+  MockDatabase    database;
   FakeSqlExecutor executor;
 
   SECTION("Select message by id") {
@@ -48,7 +48,8 @@ TEST_CASE("Test select query create right sql command") {
     query->where("id", 10);
     query->where("chat_id", 3);
     query->orderBy("timestamp");
-    QString valid_sql = "SELECT * FROM messages WHERE id = ? AND chat_id = ? ORDER BY timestamp ASC";
+    QString valid_sql =
+        "SELECT * FROM messages WHERE id = ? AND chat_id = ? ORDER BY timestamp ASC";
 
     query->execute();
     REQUIRE(executor.lastSql == valid_sql);
@@ -59,7 +60,8 @@ TEST_CASE("Test select query create right sql command") {
     query->where("id", 10);
     query->where("chat_id", "<", 3);
     query->orderBy("timestamp");
-    QString valid_sql = "SELECT * FROM messages WHERE id = ? AND chat_id < ? ORDER BY timestamp ASC";
+    QString valid_sql =
+        "SELECT * FROM messages WHERE id = ? AND chat_id < ? ORDER BY timestamp ASC";
 
     query->execute();
     REQUIRE(executor.lastSql == valid_sql);
@@ -81,7 +83,7 @@ TEST_CASE("Test select query create right sql command") {
     auto query2 = QueryFactory::createSelect<Message>(executor, cache);
     query2->limit(5);
 
-    int before_set = cache.set_calls;
+    int before_set      = cache.set_calls;
     int before_pipeline = cache.set_pipeline_calls;
 
     query1->execute();
@@ -97,7 +99,7 @@ TEST_CASE("Test select query create right sql command") {
     auto query2 = QueryFactory::createSelect<Message>(executor, cache);
     query2->limit(4);
 
-    int before_set = cache.set_calls;
+    int before_set      = cache.set_calls;
     int before_pipeline = cache.set_pipeline_calls;
 
     query1->execute();
@@ -106,35 +108,30 @@ TEST_CASE("Test select query create right sql command") {
     REQUIRE(cache.set_calls == before_set + 1);
     REQUIRE(cache.set_pipeline_calls == before_pipeline + 1);
   }
-
-
 }
 
 template <typename T>
 struct MockSelectedQuery : public SelectQuery<T> {
-    using SelectQuery<T>::SelectQuery;
+  using SelectQuery<T>::SelectQuery;
 
-    std::string createCacheKey(QString sql, int generation_hash,
-                               int params_hash) const {
-      return SelectQuery<T>::createCacheKey(sql, generation_hash, params_hash);
-    }
+  std::string createCacheKey(QString sql, int generation_hash, int params_hash) const {
+    return SelectQuery<T>::createCacheKey(sql, generation_hash, params_hash);
+  }
 };
 
 TEST_CASE("Test creating keys") {
-  MockCache cache;
-  FakeSqlExecutor executor;
+  MockCache                  cache;
+  FakeSqlExecutor            executor;
   MockSelectedQuery<Message> selected_query(executor, cache);
 
   SECTION("Create valid query key") {
-    QString sql = "SELECT * FROM users WHERE id = 3";
-    int generation_hash = 12002;
-    int params_hash = 1222;
+    QString     sql             = "SELECT * FROM users WHERE id = 3";
+    int         generation_hash = 12002;
+    int         params_hash     = 1222;
     std::string expected_key = "query_cache:SELECT * FROM users WHERE id = 3:gen=12002:params=1222";
 
     std::string created_key = selected_query.createCacheKey(sql, generation_hash, params_hash);
 
     REQUIRE(created_key == expected_key);
   }
-
 }
-

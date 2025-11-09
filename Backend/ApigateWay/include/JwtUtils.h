@@ -2,15 +2,15 @@
 #define APIGATE_SERVICE_HEADERS_JWTUTILS_H
 
 #include <jwt-cpp/jwt.h>
-#include <optional>
-#include "Debug_profiling.h"
 
+#include <optional>
+
+#include "Debug_profiling.h"
 
 namespace JwtUtils {
 
 std::optional<int> verifyTokenAndGetUserId(const std::string& token);
 
-}  // namespace TokenService
+}  // namespace JwtUtils
 
-#endif // APIGATE_SERVICE_HEADERS_JWTUTILS_H
-
+#endif  // APIGATE_SERVICE_HEADERS_JWTUTILS_H
