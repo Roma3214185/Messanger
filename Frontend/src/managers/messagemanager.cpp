@@ -5,7 +5,7 @@
 #include <QJsonArray>
 #include <QUrlQuery>
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 #include "interfaces/INetworkAccessManager.h"
 #include "JsonService.h"
 

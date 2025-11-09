@@ -6,10 +6,8 @@
 #include "managers/notificationmanager.h"
 #include "server.h"
 #include "Batcher.h"
-#include "RabbitMQClient/RabbitMQClient.h"
+#include "RabbitMQClient.h"
 #include "SqlExecutor.h"
-
-
 
 const int MESSAGE_PORT = 8082;
 constexpr int kRabitMQPort = 5672;

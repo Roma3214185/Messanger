@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-#include "User.h"
+#include "entities/User.h"
 
 struct AuthResponce {
   std::string token;

@@ -41,15 +41,14 @@ add_executable(MessageService
 )
 
 target_link_libraries(MessageService PRIVATE
-  Qt${QT_VERSION_MAJOR}::Core
-  Qt${QT_VERSION_MAJOR}::WebSockets
-  Qt${QT_VERSION_MAJOR}::Sql
+  # Qt${QT_VERSION_MAJOR}::Core
+  # Qt${QT_VERSION_MAJOR}::WebSockets
+  # Qt${QT_VERSION_MAJOR}::Sql
   Crow::Crow
+  Entities
+  RabbitMQClient
   redis++
-  spdlog::spdlog
   jwt-cpp
-  #RedisCache
-  #Persistance
 )
 
 include_directories(

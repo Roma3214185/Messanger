@@ -2,7 +2,7 @@
 
 #include "Debug_profiling.h"
 #include "managers/networkmanager.h"
-#include "RabbitMQClient/RabbitMQClient.h"
+#include "RabbitMQClient.h"
 #include "managers/SocketManager.h"
 
 const std::string kMessageSaved = "message_saved";

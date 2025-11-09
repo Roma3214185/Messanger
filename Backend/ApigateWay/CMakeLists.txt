@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(APIGATE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(APIGATE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(BOOST_ROOT "/opt/homebrew/opt/boost@1.89")
 
 find_package(Threads REQUIRED)
 include(FetchContent)
@@ -36,13 +37,15 @@ target_include_directories(ApiGateWay PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/../external
     ${httplib_SOURCE_DIR}
+    ${BOOST_ROOT}/include
+    /opt/homebrew/include
 )
 
 target_link_libraries(ApiGateWay PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
     ixwebsocket
-    spdlog::spdlog
     jwt-cpp
+    Metrics
 )
 
 set_target_properties(ApiGateWay PROPERTIES

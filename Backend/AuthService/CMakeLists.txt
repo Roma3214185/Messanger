@@ -12,8 +12,12 @@ set(AUTH_SERVICE_INCUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include(FetchContent)
+link_directories(
+    /usr/local/lib
+    /opt/homebrew/lib
+)
 
+include(FetchContent)
 FetchContent_Declare(
     libsodium
     GIT_REPOSITORY https://github.com/jedisct1/libsodium.git
@@ -23,7 +27,7 @@ FetchContent_MakeAvailable(libsodium)
 
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
-find_package(spdlog REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 add_executable(AuthService
   ${AUTH_SERVICE_SRC_DIR}/main.cpp
@@ -31,21 +35,15 @@ add_executable(AuthService
   ${AUTH_SERVICE_SRC_DIR}/authmanager.cpp
   ${AUTH_SERVICE_SRC_DIR}/JwtUtils.cpp
   ${AUTH_SERVICE_SRC_DIR}/server.cpp
-  include/PasswordService.h
 )
-
 
 target_link_libraries(AuthService PRIVATE
   Qt${QT_VERSION_MAJOR}::Core
-  Qt${QT_VERSION_MAJOR}::Sql
   Crow::Crow
   SQLite::SQLite3
-  spdlog::spdlog
-  redis++
-  TracyClient
   jwt-cpp
   sodium
-  #RedisCache
+  Entities
 )
 
 target_include_directories(AuthService PRIVATE

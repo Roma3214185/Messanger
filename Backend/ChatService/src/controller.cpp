@@ -2,6 +2,7 @@
 
 #include "NetworkManager.h"
 #include "TokenService.h"
+#include "entities/User.h"
 
 using std::optional;
 using std::string;

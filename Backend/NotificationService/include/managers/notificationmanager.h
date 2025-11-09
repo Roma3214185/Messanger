@@ -3,7 +3,7 @@
 
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
-#include "RabbitMQClient/RabbitMQClient.h"
+#include "RabbitMQClient.h"
 #include "SocketManager.h"
 
 class NetworkManager;

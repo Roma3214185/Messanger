@@ -2,7 +2,7 @@
 
 #include <QJsonArray>
 
-#include "DebugProfiling/Debug_profiling.h"
+#include "Debug_profiling.h"
 #include "JsonService.h"
 #include "interfaces/ISocket.h"
 

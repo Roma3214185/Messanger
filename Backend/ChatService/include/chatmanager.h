@@ -11,7 +11,6 @@
 class ChatManager {
   public:
     ChatManager(GenericRepository* repository);
-
     std::optional<int> createPrivateChat();
     bool addMembersToChat(int chat_id, const std::vector<int>& members_id);
     //bool deleteChat(int chat_id);
@@ -21,6 +20,7 @@ class ChatManager {
     int getMembersCount(int chat_id);
     std::optional<int> getOtherMemberId(int chat_id, int user_id);
     std::optional<Chat> getChatById(int chat_id);
+
   private:
     GenericRepository* repository_;
 };
