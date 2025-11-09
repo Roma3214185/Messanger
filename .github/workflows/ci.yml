@@ -1,0 +1,26 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis
+      - name: Configure
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+      - name: Build
+        run: cd build && cmake --build . --parallel
+      - name: Run tests
+        run: cd build && ctest --output-on-failure
