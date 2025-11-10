@@ -17,31 +17,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          submodules: recursive   # better to explicitly fetch nested submodules
-          fetch-depth: 0          # full history needed for submodules
+          submodules: recursive
+          fetch-depth: 0
 
-      # 2️⃣ Install dependencies
+      # 2️⃣ Install Homebrew dependencies
       - name: Install dependencies
         run: |
           set -eux
           brew update
-          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio
+          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio \
+                       openssl@3 jsoncons doxygen vulkan-headers
 
+      # 3️⃣ Build Redis++ locally (no sudo)
+      - name: Build Redis++
+        run: |
           git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git
           cd redis-plus-plus
           mkdir build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-          make -j$(sysctl -n hw.logicalcpu)
-          sudo make install
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/local
+          cmake --build . --parallel
+          cmake --install .
+          cd ../..  # back to repo root
+          export CMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH"
 
-      # 3️⃣ Setup build directory
+      # 4️⃣ Configure CMake
       - name: Configure CMake
         run: |
           mkdir -p build
           cd build
-          export CMAKE_PREFIX_PATH="/opt/homebrew/opt/qt6/lib/cmake:$CMAKE_PREFIX_PATH"
+          export CMAKE_PREFIX_PATH="/opt/homebrew/opt/qt6/lib/cmake:$HOME/local:$CMAKE_PREFIX_PATH"
           export OPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3
-          export DYLD_LIBRARY_PATH="/opt/homebrew/opt/openssl@3/lib:$DYLD_LIBRARY_PATH"
+          export DYLD_LIBRARY_PATH="/opt/homebrew/opt/qt6/lib:/opt/homebrew/opt/openssl@3/lib:$DYLD_LIBRARY_PATH"
           cmake .. \
             -DPROM_CORE_LIB=/opt/homebrew/lib/libprometheus-cpp-core.a \
             -DPROM_PULL_LIB=/opt/homebrew/lib/libprometheus-cpp-pull.a \
@@ -50,15 +56,15 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -Wno-dev
 
-      # 4️⃣ Build project
+      # 5️⃣ Build project
       - name: Build
         run: cmake --build build --parallel --verbose
 
-      # 5️⃣ Run tests
+      # 6️⃣ Run tests
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      # 6️⃣ Run clang-format check
+      # 7️⃣ Run clang-format check
       - name: Check code formatting
         run: |
           clang-format --version
