@@ -43,6 +43,17 @@ jobs:
           cd ../..
           export CMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH"
 
+      - name: Build Redis++
+        run: |
+          git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git
+          cd redis-plus-plus
+          mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/local
+          cmake --build . --parallel
+          cmake --install .
+          cd ../..
+          export CMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH"
+
       # 4️⃣ Configure CMake
       - name: Configure CMake
         run: |

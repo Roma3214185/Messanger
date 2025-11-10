@@ -14,6 +14,7 @@ add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
 add_subdirectory(external/crow)
 add_subdirectory(external/jwt-cpp)
 add_subdirectory(external/tracy)
+add_subdirectory(external/rabbitmq-c)
 add_subdirectory(external/SimpleAmqpClient)
 
 # my libraries
