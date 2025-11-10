@@ -19,8 +19,8 @@ jobs:
       # 2️⃣ Install dependencies
       - name: Install dependencies
         run: |
-        brew update
-        brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis redis-plus-plus rabbitmq-c
+          brew update
+          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis redis-plus-plus rabbitmq-c
 
       # 3️⃣ Setup build directory
       - name: Configure CMake
