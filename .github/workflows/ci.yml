@@ -10,17 +10,36 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # 1️⃣ Checkout repository with submodules
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      # 2️⃣ Install dependencies
       - name: Install dependencies
         run: |
-          brew update
-          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis
-      - name: Configure
+        brew update
+        brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis redis-plus-plus rabbitmq-c
+
+      # 3️⃣ Setup build directory
+      - name: Configure CMake
         run: |
-          mkdir build
+          mkdir -p build
           cd build
-          cmake ..
+          cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      # 4️⃣ Build project
       - name: Build
-        run: cd build && cmake --build . --parallel
+        run: cmake --build build --parallel
+
+      # 5️⃣ Run tests
       - name: Run tests
-        run: cd build && ctest --output-on-failure
+        run: ctest --test-dir build --output-on-failure
+
+      # 6️⃣ Run clang-format check
+      - name: Check code formatting
+        run: |
+          clang-format --version
+          git diff --exit-code $(git ls-files '*.cpp' '*.h')
