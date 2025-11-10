@@ -13,17 +13,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          submodules: true
-          fetch-depth: 0
+          submodules: recursive   # better to explicitly fetch nested submodules
+          fetch-depth: 0          # full history needed for submodules
 
       # 2️⃣ Install dependencies
       - name: Install dependencies
         run: |
+          set -eux  # print commands, exit on errors, fail on undefined vars
+
+          # Update Homebrew and install main dependencies
           brew update
-          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis
-          rabbitmq-c
+          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c
+
+          # Install redis-plus-plus via tap
           brew tap karlov/redis-plus-plus
           brew install redis-plus-plus
+
+          # Export environment variables for CMake to find libraries
+          export LDFLAGS="-L/opt/homebrew/opt/sqlite/lib -L/opt/homebrew/opt/rabbitmq-c/lib"
+          export CPPFLAGS="-I/opt/homebrew/opt/sqlite/include -I/opt/homebrew/opt/rabbitmq-c/include"
+          export PKG_CONFIG_PATH="/opt/homebrew/opt/sqlite/lib/pkgconfig:/opt/homebrew/opt/rabbitmq-c/lib/pkgconfig"
+          export PATH="/opt/homebrew/opt/sqlite/bin:$PATH"
 
       # 3️⃣ Setup build directory
       - name: Configure CMake
