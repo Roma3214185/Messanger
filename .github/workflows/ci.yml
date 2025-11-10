@@ -37,6 +37,8 @@ jobs:
           cd build
           export CMAKE_PREFIX_PATH="/opt/homebrew/opt/qt6/lib/cmake:$CMAKE_PREFIX_PATH"
           cmake .. \
+            -DPROM_CORE_LIB=/opt/homebrew/lib/libprometheus-cpp-core.a \
+            -DPROM_PULL_LIB=/opt/homebrew/lib/libprometheus-cpp-pull.a \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -Wno-dev
 
