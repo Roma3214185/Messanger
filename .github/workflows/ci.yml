@@ -35,10 +35,9 @@ jobs:
         run: |
           mkdir -p build
           cd build
+          export CMAKE_PREFIX_PATH="/opt/homebrew/opt/qt6/lib/cmake:$CMAKE_PREFIX_PATH"
           cmake .. \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt6/lib/cmake \
-            -DIXWEBSOCKET_BUILD_EXAMPLES=OFF \
             -Wno-dev
 
       # 4️⃣ Build project
