@@ -9,7 +9,7 @@
 	url = https://github.com/alanxz/SimpleAmqpClient.git
 [submodule "external/crow"]
 	path = external/crow
-	url = https://github.com/ipkn/crow.git
+	url = https://github.com/CrowCp/crow.git
 [submodule "external/json"]
 	path = external/json
 	url = https://github.com/nlohmann/json.git
