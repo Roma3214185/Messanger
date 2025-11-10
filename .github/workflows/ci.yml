@@ -42,19 +42,24 @@ jobs:
 
       # 4️⃣ Configure CMake
       - name: Configure CMake
-        run: |
-          mkdir -p build
-          cd build
-          export CMAKE_PREFIX_PATH="/opt/homebrew/opt/qt6/lib/cmake:$HOME/local:$CMAKE_PREFIX_PATH"
-          export OPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3
-          export DYLD_LIBRARY_PATH="/opt/homebrew/opt/qt6/lib:/opt/homebrew/opt/openssl@3/lib:$DYLD_LIBRARY_PATH"
-          cmake .. \
-            -DPROM_CORE_LIB=/opt/homebrew/lib/libprometheus-cpp-core.a \
-            -DPROM_PULL_LIB=/opt/homebrew/lib/libprometheus-cpp-pull.a \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -Wno-dev
+              run: |
+                mkdir -p build
+                cd build
+                export CMAKE_PREFIX_PATH="/opt/homebrew/opt/qt6/lib/cmake:$HOME/local:$CMAKE_PREFIX_PATH"
+                export OPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3
+                export DYLD_LIBRARY_PATH="/opt/homebrew/opt/qt6/lib:/opt/homebrew/opt/openssl@3/lib:$DYLD_LIBRARY_PATH"
+                cmake .. \
+                  -DPROM_CORE_LIB=/opt/homebrew/lib/libprometheus-cpp-core.a \
+                  -DPROM_PULL_LIB=/opt/homebrew/lib/libprometheus-cpp-pull.a \
+                  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+                  -DCMAKE_BUILD_TYPE=Release \
+                  -DJWT_BUILD_EXAMPLES=OFF \
+                  -DTRACY_ENABLE=ON \
+                  -DTRACY_CALLSTACK=OFF \
+                  -DTRACY_LIBUNWIND_BACKTRACE=OFF \
+                  -DTRACY_BUILD_EXAMPLES=OFF \
+                  -Wno-dev
 
       # 5️⃣ Build project
       - name: Build
