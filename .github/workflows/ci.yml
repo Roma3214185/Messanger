@@ -44,7 +44,7 @@ jobs:
 
       # 4️⃣ Build project
       - name: Build
-        run: cmake --build build --parallel --output-on-failure --verbose
+        run: cmake --build build --parallel --verbose
 
       # 5️⃣ Run tests
       - name: Run tests
