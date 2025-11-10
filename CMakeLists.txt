@@ -16,6 +16,8 @@ add_subdirectory(external/jwt-cpp)
 add_subdirectory(external/tracy)
 add_subdirectory(external/rabbitmq-c)
 add_subdirectory(external/SimpleAmqpClient)
+add_subdirectory(external/IXWebSocket)
+add_subdirectory(external/prometheus-cpp)
 
 # my libraries
 add_subdirectory(common/Entities build_entites)

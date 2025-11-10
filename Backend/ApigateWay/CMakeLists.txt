@@ -19,10 +19,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
-add_subdirectory(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../external/IXWebSocket
-    ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
-)
+# add_subdirectory(
+#     ${CMAKE_CURRENT_SOURCE_DIR}/../../external/IXWebSocket
+#     ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
+# )
 
 add_executable(ApiGateWay
     ${APIGATE_SRC_DIR}/main.cpp
@@ -35,7 +35,7 @@ add_executable(ApiGateWay
 target_include_directories(ApiGateWay PRIVATE
     ${APIGATE_INCLUDE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../external
+    #${CMAKE_CURRENT_SOURCE_DIR}/../external
     ${httplib_SOURCE_DIR}
     ${BOOST_ROOT}/include
     /opt/homebrew/include
