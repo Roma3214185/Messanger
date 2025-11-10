@@ -4,3 +4,6 @@
 [submodule "prometheus-cpp"]
 	path = prometheus-cpp
 	url = https://github.com/jupp0r/prometheus-cpp.git
+[submodule "external/SimpleAmqpClient"]
+	path = external/SimpleAmqpClient
+	url = https://github.com/alanxz/SimpleAmqpClient.git
