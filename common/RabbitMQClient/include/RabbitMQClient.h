@@ -8,9 +8,9 @@
 #include <thread>
 #include <unordered_set>
 #include <vector>
+#include <SimpleAmqpClient/SimpleAmqpClient.h>
 
 #include "Debug_profiling.h"
-#include "SimpleAmqpClient/SimpleAmqpClient.h"
 #include "ThreadPool.h"
 
 class RabbitMQClient {

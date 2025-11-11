@@ -18,5 +18,6 @@ target_include_directories(Entities INTERFACE
 target_link_libraries(Entities INTERFACE
     Qt6::Core Persistence
     nlohmann_json
+    Crow::Crow
 )
 
