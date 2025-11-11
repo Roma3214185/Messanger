@@ -10,6 +10,8 @@ set(APIGATE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(BOOST_ROOT "/opt/homebrew/opt/boost@1.89")
 
 find_package(Threads REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -47,6 +49,7 @@ target_link_libraries(ApiGateWay PRIVATE
     ixwebsocket
     jwt-cpp
     Metrics
+    nlohmann_json::nlohmann_json
 )
 
 set_target_properties(ApiGateWay PROPERTIES

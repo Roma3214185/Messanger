@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(nlohmann_json REQUIRED)
+
 
 find_path(HIREDIS_INCLUDE_DIR hiredis/hiredis.h PATHS /opt/homebrew/include)
 find_library(HIREDIS_LIBRARY NAMES hiredis PATHS /opt/homebrew/lib)
@@ -25,4 +27,5 @@ target_link_libraries(RedisCache PUBLIC
     ${REDISPP_LIBRARY}
     Metrics
     Qt6::Core
+    nlohmann_json::nlohmann_json
 )

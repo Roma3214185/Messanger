@@ -24,6 +24,7 @@ FetchContent_MakeAvailable(httplib)
 
 find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
 find_package(spdlog REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 link_directories(/opt/homebrew/lib)
 
@@ -43,6 +44,7 @@ target_link_libraries(NotificationService PRIVATE
   Crow::Crow
   redis++
   spdlog::spdlog
+  nlohmann_json::nlohmann_json
   jwt-cpp
   RabbitMQClient
 )

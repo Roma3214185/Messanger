@@ -19,9 +19,9 @@ add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
 # Submodules
 # -------------------------
 add_subdirectory(external/crow)
+add_subdirectory(external/IXWebSocket)
 add_subdirectory(external/jwt-cpp)
 add_subdirectory(external/tracy)
-add_subdirectory(external/IXWebSocket)
 add_subdirectory(external/SimpleAmqpClient)
 add_subdirectory(external/prometheus-cpp)
 

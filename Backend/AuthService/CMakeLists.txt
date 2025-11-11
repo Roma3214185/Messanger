@@ -27,6 +27,7 @@ FetchContent_MakeAvailable(libsodium)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(SQLite3 REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 add_executable(AuthService
   ${AUTH_SERVICE_SRC_DIR}/main.cpp
@@ -43,6 +44,7 @@ target_link_libraries(AuthService PRIVATE
   jwt-cpp
   sodium
   Entities
+  nlohmann_json::nlohmann_json
 )
 
 target_include_directories(AuthService PRIVATE

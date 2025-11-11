@@ -28,7 +28,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3
+          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json
 
       # 3️⃣ Build and install Redis++ locally
       - name: Build Redis++
