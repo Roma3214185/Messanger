@@ -41,10 +41,15 @@ jobs:
       - name: Bootstrap vcpkg
         run: ./external/vcpkg/bootstrap-vcpkg.sh
 
-      # 5️⃣ Install dependencies via vcpkg
+      # 2️⃣ Install dependencies
       - name: Install dependencies
         run: |
-          ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 hiredis rabbitmq-c sqlite3
+          set -eux
+          # Homebrew dependencies
+          brew update
+          brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache
+          # vcpkg dependencies
+          ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 hiredis sqlite3
 
       # 6️⃣ Cache Redis++ (still built locally)
       - name: Cache Redis++
