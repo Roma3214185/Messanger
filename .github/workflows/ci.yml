@@ -9,30 +9,18 @@ jobs:
     runs-on: macos-latest
 
     env:
-      OPENSSL_ROOT_DIR: /opt/homebrew/opt/openssl@3
-      BOOST_ROOT: /opt/homebrew/opt/boost
-      BOOST_INCLUDEDIR: /opt/homebrew/opt/boost/include
-      BOOST_LIBRARYDIR: /opt/homebrew/opt/boost/lib
-      DYLD_LIBRARY_PATH: /opt/homebrew/opt/boost/lib:/opt/homebrew/opt/openssl@3/lib
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 500M
 
     steps:
-      # 1️⃣ Checkout repo with submodules
+      # 1️⃣ Checkout repository and submodules (vcpkg included)
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # 2️⃣ Install dependencies via Homebrew
-      - name: Install dependencies
-        run: |
-          set -eux
-          brew update
-          brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache
-
-      # 3️⃣ Setup ccache
+      # 2️⃣ Setup ccache for faster rebuilds
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
@@ -41,7 +29,24 @@ jobs:
             ${{ runner.os }}-build-
           max-size: 500M
 
-      # 4️⃣ Build and install Redis++ locally (cached)
+      # 3️⃣ Cache vcpkg installed libraries
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: external/vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}
+
+      # 4️⃣ Bootstrap vcpkg
+      - name: Bootstrap vcpkg
+        run: ./external/vcpkg/bootstrap-vcpkg.sh
+
+      # 5️⃣ Install dependencies via vcpkg
+      - name: Install dependencies
+        run: |
+          ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 hiredis rabbitmq-c sqlite3
+
+      # 6️⃣ Cache Redis++ (still built locally)
       - name: Cache Redis++
         id: cache-redispp
         uses: actions/cache@v4
@@ -61,32 +66,28 @@ jobs:
           cd ../..
           echo "✅ Redis++ installed to $HOME/local"
 
-      # 5️⃣ Configure CMake
+      # 7️⃣ Configure CMake (with vcpkg toolchain)
       - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DCMAKE_PREFIX_PATH="$HOME/local:/opt/homebrew/opt/qt6/lib/cmake:$CMAKE_PREFIX_PATH" \
-            -DHIREDIS_INCLUDE_DIR=/opt/homebrew/include \
-            -DHIREDIS_LIBRARY=/opt/homebrew/lib/libhiredis.a \
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
             -DREDISPP_INCLUDE_DIR=$HOME/local/include \
             -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
-            -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3 \
-            -DBOOST_ROOT=/opt/homebrew/opt/boost \
             -DTRACY_ENABLE=ON \
             -Wno-dev
 
-      # 6️⃣ Build project (with ccache)
+      # 8️⃣ Build project (with parallelism + ccache)
       - name: Build
         run: cmake --build build --parallel
 
-      # 7️⃣ Run tests
+      # 9️⃣ Run tests
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      # 8️⃣ Check code formatting
+      # 🔟 Check code formatting
       - name: Check code formatting
         run: |
           clang-format --version

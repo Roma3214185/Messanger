@@ -15,6 +15,9 @@ set(CMAKE_PREFIX_PATH "/opt/homebrew" ${CMAKE_PREFIX_PATH})
 
 add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
 
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    CACHE STRING "Vcpkg toolchain file")
+
 # -------------------------
 # Submodules
 # -------------------------
