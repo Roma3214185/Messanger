@@ -8,7 +8,8 @@
 #include <thread>
 #include <unordered_set>
 #include <vector>
-#include <SimpleAmqpClient/SimpleAmqpClient.h>
+
+#include <../../../external/SimpleAmqpClient/src/SimpleAmqpClient/SimpleAmqpClient.h>
 
 #include "Debug_profiling.h"
 #include "ThreadPool.h"

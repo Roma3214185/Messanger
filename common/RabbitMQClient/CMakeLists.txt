@@ -12,14 +12,13 @@ add_library(RabbitMQClient STATIC src/rabbitmqclient.cpp)
 target_include_directories(RabbitMQClient
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/external/SimpleAmqpClient/src
 
 )
 
 target_link_libraries(RabbitMQClient
     PUBLIC
-        rabbitmq::rabbitmq
         SimpleAmqpClient
+        rabbitmq::rabbitmq
         Qt6::Core
         Persistence
         Metrics
