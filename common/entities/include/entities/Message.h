@@ -1,7 +1,7 @@
 #ifndef BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 #define BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 
-#include <crow/crow.h>
+#include <crow.h>
 
 #include <QDateTime>
 #include <QString>
