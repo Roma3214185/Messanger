@@ -1,9 +1,7 @@
 #ifndef BACKEND_APIGATEWAY_SRC_PROXYCLIENT_PROXYCLIENT_H_
 #define BACKEND_APIGATEWAY_SRC_PROXYCLIENT_PROXYCLIENT_H_
 
-#include <../../external/crow/include/crow.h>
 #include <crow.h>
-#include <crow/crow.h>
 #include <httplib.h>
 
 #include <memory>
