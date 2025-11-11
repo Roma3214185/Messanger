@@ -14,73 +14,60 @@ jobs:
       BOOST_INCLUDEDIR: /opt/homebrew/opt/boost/include
       BOOST_LIBRARYDIR: /opt/homebrew/opt/boost/lib
       DYLD_LIBRARY_PATH: /opt/homebrew/opt/boost/lib:/opt/homebrew/opt/openssl@3/lib
-      CMAKE_BUILD_PARALLEL_LEVEL: 8
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 500M
 
     steps:
-      # 1️⃣ Checkout repository + submodules
+      # 1️⃣ Checkout repo with submodules
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # 2️⃣ Cache Homebrew
-      - name: Cache Homebrew
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/Homebrew
-            /opt/homebrew/Cellar
-            /opt/homebrew/Caskroom
-            /opt/homebrew/bin
-          key: ${{ runner.os }}-brew-${{ hashFiles('.github/workflows/ci.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-brew-
-
-      # 3️⃣ Install dependencies
+      # 2️⃣ Install dependencies via Homebrew
       - name: Install dependencies
         run: |
           set -eux
           brew update
           brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache
 
-      # 4️⃣ Setup ccache
+      # 3️⃣ Setup ccache
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v2.1
+        uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ runner.os }}-ccache
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+          max-size: 500M
 
-      # 5️⃣ Cache CMake and Redis++
-      - name: Cache build and Redis++
+      # 4️⃣ Build and install Redis++ locally (cached)
+      - name: Cache Redis++
+        id: cache-redispp
         uses: actions/cache@v4
         with:
-          path: |
-            build
-            $HOME/local
-          key: ${{ runner.os }}-cmake-${{ hashFiles('CMakeLists.txt', '**/CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-cmake-
+          path: ~/local
+          key: redispp-${{ runner.os }}-v1
 
-      # 6️⃣ Build and install Redis++ (only if not cached)
-      - name: Build Redis++ (cached)
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Build Redis++
+        if: steps.cache-redispp.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git redis-plus-plus
           cd redis-plus-plus
-          mkdir -p build && cd build
+          mkdir build && cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/local
           cmake --build . --parallel
           cmake --install .
           cd ../..
           echo "✅ Redis++ installed to $HOME/local"
 
-      # 7️⃣ Configure CMake
-      - name: Configure project
+      # 5️⃣ Configure CMake
+      - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_PREFIX_PATH="$HOME/local:/opt/homebrew/opt/qt6/lib/cmake:$CMAKE_PREFIX_PATH" \
             -DHIREDIS_INCLUDE_DIR=/opt/homebrew/include \
             -DHIREDIS_LIBRARY=/opt/homebrew/lib/libhiredis.a \
@@ -88,18 +75,18 @@ jobs:
             -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
             -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3 \
             -DBOOST_ROOT=/opt/homebrew/opt/boost \
-            -DTRACY_ENABLE=OFF \
+            -DTRACY_ENABLE=ON \
             -Wno-dev
 
-      # 8️⃣ Build project (parallel)
-      - name: Build project
+      # 6️⃣ Build project (with ccache)
+      - name: Build
         run: cmake --build build --parallel
 
-      # 9️⃣ Run tests (optional)
+      # 7️⃣ Run tests
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      # 🔟 Check code formatting (optional)
+      # 8️⃣ Check code formatting
       - name: Check code formatting
         run: |
           clang-format --version
