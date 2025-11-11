@@ -26,7 +26,7 @@ add_executable(FrontendServiceTests
 add_custom_command(TARGET FrontendServiceTests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/Frontend/config
-        $<TARGET_FILE_DIR:Frontend>/config
+        $<TARGET_FILE_DIR:FrontendServiceTests>/config
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES
