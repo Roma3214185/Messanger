@@ -1,6 +1,6 @@
 #include "server.h"
 
-#include <crow/crow.h>
+#include <crow.h>
 
 #include "managers/notificationmanager.h"
 

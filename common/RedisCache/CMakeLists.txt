@@ -1,27 +1,31 @@
 cmake_minimum_required(VERSION 3.22)
 project(RedisCache LANGUAGES CXX)
 
-set(HIREDIS_INCLUDE_DIR /opt/homebrew/opt/hiredis/include)
-set(HIREDIS_LIBRARY /opt/homebrew/opt/hiredis/lib/libhiredis.a) # <-- static
-set(REDISPP_LIBRARY /opt/homebrew/lib/libredis++.a)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(nlohmann_json REQUIRED)
+
+
+find_path(HIREDIS_INCLUDE_DIR hiredis/hiredis.h PATHS /opt/homebrew/include)
+find_library(HIREDIS_LIBRARY NAMES hiredis PATHS /opt/homebrew/lib)
+
+find_path(REDISPP_INCLUDE_DIR sw/redis++/redis++.h PATHS $HOME/local/include)
+find_library(REDISPP_LIBRARY NAMES redis++ PATHS $HOME/local/lib)
 
 add_library(RedisCache STATIC src/RedisCache.cpp)
 
 target_include_directories(RedisCache PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${HIREDIS_INCLUDE_DIR}
-    /opt/homebrew/include
+    ${REDISPP_INCLUDE_DIR}
 )
 
-target_link_libraries(RedisCache
-    PUBLIC
-        Metrics
-        Qt6::Core
-        ${REDISPP_LIBRARY}
-        ${HIREDIS_LIBRARY}
+target_link_libraries(RedisCache PUBLIC
+    ${HIREDIS_LIBRARY}
+    ${REDISPP_LIBRARY}
+    Metrics
+    Qt6::Core
+    nlohmann_json::nlohmann_json
 )

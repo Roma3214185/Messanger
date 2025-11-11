@@ -1,7 +1,7 @@
 #ifndef BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_
 #define BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_
 
-#include <crow/crow.h>
+#include <crow.h>
 
 #include <memory>
 

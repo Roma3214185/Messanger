@@ -4,3 +4,18 @@
 [submodule "prometheus-cpp"]
 	path = prometheus-cpp
 	url = https://github.com/jupp0r/prometheus-cpp.git
+[submodule "external/SimpleAmqpClient"]
+	path = external/SimpleAmqpClient
+	url = https://github.com/alanxz/SimpleAmqpClient.git
+[submodule "external/crow"]
+	path = external/crow
+	url = https://github.com/CrowCpp/crow.git
+[submodule "external/jwt-cpp"]
+	path = external/jwt-cpp
+	url = https://github.com/Thalhammer/jwt-cpp.git
+[submodule "external/prometheus-cpp"]
+	path = external/prometheus-cpp
+	url = https://github.com/jupp0r/prometheus-cpp.git
+[submodule "external/tracy"]
+	path = external/tracy
+	url = https://github.com/wolfpld/tracy.git

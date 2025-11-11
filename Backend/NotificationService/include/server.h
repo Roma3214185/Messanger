@@ -1,7 +1,7 @@
 #ifndef BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_
 #define BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_
 
-#include <crow/crow.h>
+#include <crow.h>
 
 class NotificationManager;
 

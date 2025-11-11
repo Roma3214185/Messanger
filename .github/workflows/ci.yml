@@ -8,36 +8,67 @@ jobs:
   build-and-test:
     runs-on: macos-latest
 
+    env:
+      OPENSSL_ROOT_DIR: /opt/homebrew/opt/openssl@3
+      BOOST_ROOT: /opt/homebrew/opt/boost
+      BOOST_INCLUDEDIR: /opt/homebrew/opt/boost/include
+      BOOST_LIBRARYDIR: /opt/homebrew/opt/boost/lib
+      DYLD_LIBRARY_PATH: /opt/homebrew/opt/boost/lib:/opt/homebrew/opt/openssl@3/lib
+
     steps:
-      # 1️⃣ Checkout repository with submodules
+      # 1️⃣ Checkout repo with submodules
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
           fetch-depth: 0
 
-      # 2️⃣ Install dependencies
+      # 2️⃣ Install dependencies via Homebrew
       - name: Install dependencies
         run: |
-        brew update
-        brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis redis-plus-plus rabbitmq-c
+          set -eux
+          brew update
+          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json
 
-      # 3️⃣ Setup build directory
+      # 3️⃣ Build and install Redis++ locally
+      - name: Build Redis++
+        run: |
+          git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git redis-plus-plus
+          cd redis-plus-plus
+          mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/local
+          cmake --build . --parallel
+          cmake --install .
+          cd ../..
+          echo "Redis++ installed to $HOME/local"
+
+      # 4️⃣ Configure project
       - name: Configure CMake
         run: |
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_PREFIX_PATH="$HOME/local:/opt/homebrew/opt/qt6/lib/cmake:$CMAKE_PREFIX_PATH" \
+            -DHIREDIS_INCLUDE_DIR=/opt/homebrew/include \
+            -DHIREDIS_LIBRARY=/opt/homebrew/lib/libhiredis.a \
+            -DREDISPP_INCLUDE_DIR=$HOME/local/include \
+            -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
+            -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3 \
+            -DBOOST_ROOT=/opt/homebrew/opt/boost \
+            -DTRACY_ENABLE=ON \
+            -Wno-dev
 
-      # 4️⃣ Build project
+      # 5️⃣ Build project
       - name: Build
-        run: cmake --build build --parallel
+        run: cmake --build build --parallel --verbose
 
-      # 5️⃣ Run tests
+      # 6️⃣ Run tests
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      # 6️⃣ Run clang-format check
+      # 7️⃣ Check code formatting
       - name: Check code formatting
         run: |
           clang-format --version

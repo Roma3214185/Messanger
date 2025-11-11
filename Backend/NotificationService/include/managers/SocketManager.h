@@ -1,7 +1,7 @@
 #ifndef SOCKETMANAGER_H
 #define SOCKETMANAGER_H
 
-#include <crow/crow.h>
+#include <crow.h>
 
 using WebsocketPtr     = crow::websocket::connection*;
 using UserId           = int;

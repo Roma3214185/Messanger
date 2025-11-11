@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <crow/crow.h>
+#include <crow.h>
 
 #include "chatmanager.h"
 #include "database.h"

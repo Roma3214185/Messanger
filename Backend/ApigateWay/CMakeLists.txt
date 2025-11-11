@@ -10,6 +10,8 @@ set(APIGATE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(BOOST_ROOT "/opt/homebrew/opt/boost@1.89")
 
 find_package(Threads REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -19,10 +21,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
-add_subdirectory(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../external/IXWebSocket
-    ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
-)
+# add_subdirectory(
+#     ${CMAKE_CURRENT_SOURCE_DIR}/../../external/IXWebSocket
+#     ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
+# )
 
 add_executable(ApiGateWay
     ${APIGATE_SRC_DIR}/main.cpp
@@ -35,7 +37,7 @@ add_executable(ApiGateWay
 target_include_directories(ApiGateWay PRIVATE
     ${APIGATE_INCLUDE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../external
+    #${CMAKE_CURRENT_SOURCE_DIR}/../external
     ${httplib_SOURCE_DIR}
     ${BOOST_ROOT}/include
     /opt/homebrew/include
@@ -43,9 +45,11 @@ target_include_directories(ApiGateWay PRIVATE
 
 target_link_libraries(ApiGateWay PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
+    Crow::Crow
     ixwebsocket
     jwt-cpp
     Metrics
+    nlohmann_json::nlohmann_json
 )
 
 set_target_properties(ApiGateWay PROPERTIES

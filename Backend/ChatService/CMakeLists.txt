@@ -3,9 +3,7 @@ project(ChatService LANGUAGES CXX)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(spdlog REQUIRED)
-
-set(CHAT_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(CHAT_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+find_package(nlohmann_json REQUIRED)
 
 include(FetchContent)
 
@@ -15,6 +13,10 @@ FetchContent_Declare(
     GIT_TAG v0.11.2
 )
 FetchContent_MakeAvailable(httplib)
+
+set(CHAT_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(CHAT_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+find_package(nlohmann_json REQUIRED)
 
 add_executable(ChatService
     ${CHAT_SERVICE_SRC_DIR}/main.cpp
@@ -35,13 +37,9 @@ target_link_libraries(ChatService PRIVATE
     Qt${QT_VERSION_MAJOR}::Sql
     Crow::Crow
     jwt-cpp
-    # hiredis
-    # spdlog::spdlog
-    # TracyClient
+    nlohmann_json::nlohmann_json
     RabbitMQClient
     Entities
-    #RedisCache
-    #Persistance
 )
 
 include_directories(/opt/homebrew/include)
