@@ -80,7 +80,12 @@ add_executable(Frontend
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
-    config/domains.txt
+)
+
+add_custom_command(TARGET Frontend POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/Frontend/config
+        $<TARGET_FILE_DIR:Frontend>/config
 )
 
 target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
