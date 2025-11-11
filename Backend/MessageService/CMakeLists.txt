@@ -48,7 +48,6 @@ target_link_libraries(MessageService PRIVATE
   Crow::Crow
   Entities
   RabbitMQClient
-  redis++
   jwt-cpp
   nlohmann_json::nlohmann_json
 )

@@ -42,7 +42,6 @@ target_link_libraries(NotificationService PRIVATE
   Qt${QT_VERSION_MAJOR}::WebSockets
   Qt${QT_VERSION_MAJOR}::Sql
   Crow::Crow
-  redis++
   spdlog::spdlog
   nlohmann_json::nlohmann_json
   jwt-cpp
