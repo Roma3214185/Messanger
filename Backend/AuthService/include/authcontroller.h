@@ -1,7 +1,7 @@
 #ifndef AUTHCONTROLLER_H
 #define AUTHCONTROLLER_H
 
-#include <crow/crow.h>
+#include <crow.h>
 
 #include "authmanager.h"
 
