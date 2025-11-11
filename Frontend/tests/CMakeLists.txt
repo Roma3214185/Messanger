@@ -38,8 +38,8 @@ target_link_libraries(FrontendServiceTests
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test
-        /opt/homebrew/lib/libprometheus-cpp-core.a
-        /opt/homebrew/lib/libprometheus-cpp-pull.a
+        prometheus-cpp::core
+        prometheus-cpp::pull
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES AUTOMOC ON)

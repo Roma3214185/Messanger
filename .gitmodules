@@ -19,9 +19,6 @@
 [submodule "external/prometheus-cpp"]
 	path = external/prometheus-cpp
 	url = https://github.com/jupp0r/prometheus-cpp.git
-[submodule "external/rabbitmq-c"]
-	path = external/rabbitmq-c
-	url = https://github.com/alanxz/rabbitmq-c.git
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy.git

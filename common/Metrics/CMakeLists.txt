@@ -8,9 +8,6 @@ find_package(Qt6 REQUIRED COMPONENTS Core Sql Widgets Gui)
 find_package(ZLIB REQUIRED)
 find_package(spdlog)
 
-find_library(PROM_CORE_LIB libprometheus-cpp-core.a PATHS /opt/homebrew/lib)
-find_library(PROM_PULL_LIB libprometheus-cpp-pull.a PATHS /opt/homebrew/lib)
-
 add_library(Metrics STATIC
     src/metrics.cpp
 )
@@ -21,8 +18,8 @@ target_include_directories(Metrics
 )
 
 target_link_libraries(Metrics
-    ${PROM_CORE_LIB}
-    ${PROM_PULL_LIB}
+    prometheus-cpp::core
+    prometheus-cpp::pull
     ZLIB::ZLIB Qt6::Core Qt6::Widgets Qt6::Gui
     spdlog::spdlog
 )
