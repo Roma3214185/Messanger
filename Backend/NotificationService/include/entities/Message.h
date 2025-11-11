@@ -1,7 +1,7 @@
 #ifndef BACKEND_NOTIFICATIONSERVICE_HEADERS_MESSAGE_H_
 #define BACKEND_NOTIFICATIONSERVICE_HEADERS_MESSAGE_H_
 
-#include <crow/crow.h>
+#include <crow.h>
 
 #include <QDateTime>
 #include <nlohmann/json.hpp>
