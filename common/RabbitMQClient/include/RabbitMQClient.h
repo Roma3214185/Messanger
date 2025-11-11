@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include <../../../external/SimpleAmqpClient/src/SimpleAmqpClient/SimpleAmqpClient.h>
+#include <SimpleAmqpClient/SimpleAmqpClient.h>
 
 #include "Debug_profiling.h"
 #include "ThreadPool.h"
