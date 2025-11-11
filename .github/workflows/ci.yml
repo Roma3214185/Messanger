@@ -10,40 +10,39 @@ jobs:
 
     env:
       OPENSSL_ROOT_DIR: /opt/homebrew/opt/openssl@3
-      CMAKE_PREFIX_PATH: /opt/homebrew/opt/qt6/lib/cmake:/opt/homebrew/opt/openssl@3
       BOOST_ROOT: /opt/homebrew/opt/boost
       BOOST_INCLUDEDIR: /opt/homebrew/opt/boost/include
       BOOST_LIBRARYDIR: /opt/homebrew/opt/boost/lib
       DYLD_LIBRARY_PATH: /opt/homebrew/opt/boost/lib:/opt/homebrew/opt/openssl@3/lib
 
     steps:
-      # 1️⃣ Checkout repository with submodules
+      # 1️⃣ Checkout repo with submodules
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # 2️⃣ Install dependencies
+      # 2️⃣ Install dependencies via Homebrew
       - name: Install dependencies
         run: |
           set -eux
           brew update
           brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3
 
-      # 3️⃣ Build Redis++ locally
+      # 3️⃣ Build and install Redis++ locally
       - name: Build Redis++
         run: |
-          git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git
+          git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git redis-plus-plus
           cd redis-plus-plus
           mkdir build && cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/local
           cmake --build . --parallel
           cmake --install .
           cd ../..
-          export CMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH"
+          echo "Redis++ installed to $HOME/local"
 
-      # 4️⃣ Configure CMake
+      # 4️⃣ Configure project
       - name: Configure CMake
         run: |
           mkdir -p build

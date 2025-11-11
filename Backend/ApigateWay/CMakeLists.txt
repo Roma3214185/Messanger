@@ -43,6 +43,7 @@ target_include_directories(ApiGateWay PRIVATE
 
 target_link_libraries(ApiGateWay PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
+    Crow::Crow
     ixwebsocket
     jwt-cpp
     Metrics
