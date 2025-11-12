@@ -107,15 +107,15 @@ jobs:
       - name: Generate coverage
         run: |
           set -eux
-          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent
-          lcov --remove coverage.info '/usr/*' '*/external/*' '*/_deps/*' '*/include/*' --output-file coverage.info --ignore-errors inconsistent
+          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format
+          lcov --remove coverage.info '/usr/*' '*/external/*' '*/_deps/*' '*/include/*' --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format
           ls -l coverage.info
 
       # 1️⃣2️⃣ Generate HTML coverage report
       - name: Generate HTML coverage report
         run: |
           if [ -f coverage.info ]; then
-            genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing
+            genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing,format
           else
             echo "⚠️ coverage.info not found, skipping genhtml"
           fi
