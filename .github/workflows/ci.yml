@@ -78,12 +78,13 @@ jobs:
             | xargs clang-format -i
           echo "✅ clang-format applied to all files"
 
-      # 8️⃣ Configure CMake
+      # 8️⃣ Configure CMake (Debug + coverage)
       - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_FLAGS="--coverage" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="--coverage -O0" \
+            -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
@@ -103,18 +104,20 @@ jobs:
       # 1️⃣1️⃣ Generate coverage
       - name: Generate coverage
         run: |
-          set +e
-          lcov --capture --directory build --output-file coverage.info \
-               --ignore-errors inconsistent,unused,gcov,format,unsupported
-          lcov --remove coverage.info '*/Meta.h' '/usr/*' '/opt/homebrew/*' '*/_deps/*' '*/external/*' \
-               --output-file coverage.info --ignore-errors inconsistent,unused,gcov,format,unsupported
-          lcov --list coverage.info || true
+          set -eux
+          lcov --directory build --capture --output-file coverage.info || true
+          lcov --remove coverage.info '/usr/*' '*/external/*' '*/_deps/*' --output-file coverage.info || true
+          ls -l coverage.info
 
       # 1️⃣2️⃣ Generate HTML coverage report
       - name: Generate HTML coverage report
-        run: genhtml coverage.info \
-          --output-directory coverage-report \
-          --ignore-errors inconsistent,corrupt,unsupported, missing
+        if: ${{ steps.generate-coverage.outcome == 'success' }}
+        run: |
+          if [ -f coverage.info ]; then
+            genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing
+          else
+            echo "⚠️ coverage.info not found, skipping genhtml"
+          fi
 
       # 1️⃣3️⃣ Upload HTML coverage as artifact
       - name: Upload coverage HTML
