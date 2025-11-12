@@ -95,8 +95,7 @@ jobs:
       - name: Install clang-format
         run: brew install clang-format
 
-      # 🔟 Check code formatting
       - name: Check code formatting
         run: |
-          clang-format --version
-          git diff --exit-code $(git ls-files '*.cpp' '*.h')
+          echo "Checking clang-format..."
+          git diff --exit-code $(find . -type f \( -name "*.cpp" -o -name "*.h" \))
