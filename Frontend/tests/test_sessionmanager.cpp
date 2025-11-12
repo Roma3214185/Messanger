@@ -3,8 +3,8 @@
 #include <QMetaType>
 #include <QSignalSpy>
 #include <QUrl>
+#include <catch2/catch_all.hpp>
 
-#include "catch2/catch_all.hpp"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "managers/sessionmanager.h"

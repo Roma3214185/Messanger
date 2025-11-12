@@ -14,14 +14,15 @@ class DataManager {
  public:
   ChatPtr         getPrivateChatWithUser(int user_id);
   MessageModelPtr getMessageModel(int chat_id);
-  void            addMessageModel(int chat_id, MessageModelPtr message_model);
   ChatPtr         getChat(int chat_id);
   int             getNumberOfExistingChats() const;
   void            clearAllChats();
   void            clearAllMessageModels();
-  void            addChat(ChatPtr chat);
+  void            addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
 
- private:
+ protected:
+  int             getNumberOfExistingModels() const;
+
   ChatMap         chats_by_id_;
   MessageModelMap message_models_by_chat_id_;
 };
