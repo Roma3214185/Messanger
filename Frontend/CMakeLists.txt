@@ -72,6 +72,9 @@ target_link_libraries(FrontendLib PUBLIC
 )
 
 target_compile_definitions(FrontendLib PUBLIC SPDLOG_HEADER_ONLY)
+target_compile_definitions(FrontendLib
+    PRIVATE CONFIG_DOMAINS_PATH="${CMAKE_SOURCE_DIR}/Frontend/config/domains.txt"
+)
 
 add_library(Frontend::Lib ALIAS FrontendLib)
 
