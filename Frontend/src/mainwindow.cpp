@@ -16,10 +16,15 @@
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
 #include "presenter.h"
+#include "presenter.h"
 
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui_(new Ui::MainWindow) {
+MainWindow::MainWindow(Model* model, QWidget* parent)
+    : QMainWindow(parent)
+    , ui_(new Ui::MainWindow)
+    , presenter_(std::make_unique<Presenter>(this, model)) {
   ui_->setupUi(this);
 
+  presenter_->initialise();
   setDelegators();
   seupConnections();
   setupUI();
@@ -58,8 +63,6 @@ void MainWindow::setMessageListView(QListView* list_view) {
 }
 
 MainWindow::~MainWindow() { delete ui_; }
-
-void MainWindow::setPresenter(Presenter* presenter) { this->presenter_ = presenter; }
 
 void MainWindow::on_upSubmitButton_clicked() {
   SignUpRequest signup_request;

@@ -8,58 +8,26 @@
 #include "mocks/MockAccessManager.h"
 #include "model.h"
 #include "presenter.h"
-// #include "headers/MockCash.h"
-
-// class MockMainWindow : public IMainWindow
-// {
-// public:
-//     void setUser(User user) override { setUser_calls++; }
-//     void setChatWindow(MessageModel* model) override { setChatWindow_calls++;
-//     } void setChatModel(ChatModel* model) override { setChatModel_calls++; }
-//     void setUserModel(UserModel* userModel) override { setUserModel_calls++;
-//     } void clearFindUserEdit() override { clearFindUserEdit_calls++; }
-
-//     int setUser_calls = 0;
-//     int setChatWindow_calls = 0;
-//     int setChatModel_calls = 0;
-//     int setUserModel_calls = 0;
-//     int clearFindUserEdit_calls = 0;
-// };
-
-// class PresenterTest : public Presenter {
-// public:
-//     PresenterTest(IMainWindow* window, Model* manager)
-//         : Presenter(window, manager) {}
-//     using Presenter::setUser;
-// };
+#include "mocks/MockMainWindow.h"
+#include "mocks/MockCache.h"
+#include "mocks/FakeSocket.h"
 
 TEST_CASE("Test presenter communication with other classes", "[presenter]") {
-  SECTION("A") { REQUIRE(1 == 1); }
-  //     int argc = 0;
-  //     char* argv[] = {};
-  //     QCoreApplication app(argc, argv);
+  auto* reply = new MockReply();
+  MockNetworkAccessManager netManager(reply);
+  FakeSocket fake_socket;
+  QUrl url("");
+  MockCache cache;
+  Model model(url, &netManager, &cache, &fake_socket);
+  MockMainWindow window;
+  Presenter presenter(&window, &model);
 
-  // MockNetworkAccessManager netManager;
-  // QUrl url("");
-  // MockCash cash;
-  // Model model(url, &netManager, &cash);
-  // MockMainWindow window;
-  // PresenterTest presenter(&window, &model);
+  // SECTION("Initialise function tries to check existing token") {
+  //   int before_calls_cash_get = cache.get_calls;
+  //   presenter.initialise();
 
-  // SECTION("TestSetUser") {
-  //     User user{
-  //         .name = "ROMA"
-  //     };
-  //     QString token = "token";
-  //     int before_view_setUser = window.setUser_calls;
-  //     auto* reply = new MockReply();
-  //     reply->setData(R"({"user":{"name":"ROMA"}})");
-  //     netManager.setReply(reply);
-
-  //     SECTION("TestUserExpectedOneCallInWindow") {
-  //         presenter.setUser(user, token);
-  //         int after_view_setUser = window.setUser_calls;
-  //         REQUIRE(before_view_setUser == after_view_setUser - 1);
-  //     }
+  //   REQUIRE(cache.get_calls == before_calls_cash_get + 1);
   // }
+
+
 }

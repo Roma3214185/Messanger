@@ -247,4 +247,36 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     auto args = spyError.takeFirst();
     REQUIRE(args.at(0).toString() == "Error in model create private chat returned group chat");
   }
+
+  SECTION("On load chats receive reply with error expected emit ErrorOccurred with right message") {
+    QString mock_error_message = "connection refused";
+    auto reply_with_error = new MockReply();
+    reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, mock_error_message);
+
+    QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
+    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+
+    chat_manager.onLoadChats(reply_with_error);
+
+    REQUIRE(spyError.count() == 1);
+
+    auto args = spyError.takeFirst();
+    REQUIRE(args.at(0).toString() == mock_error_message);
+  }
+
+  SECTION("On chat loaded receive reply with error expected emit ErrorOccurred with right message") {
+    QString mock_error_message = "error occured";
+    auto reply_with_error = new MockReply();
+    reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, mock_error_message);
+
+    QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
+    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+
+    chat_manager.onChatLoaded(reply_with_error);
+
+    REQUIRE(spyError.count() == 1);
+
+    auto args = spyError.takeFirst();
+    REQUIRE(args.at(0).toString() == mock_error_message);
+  }
 }

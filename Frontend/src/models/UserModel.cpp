@@ -10,6 +10,15 @@ int UserModel::rowCount(const QModelIndex& parent) const {
 }
 
 void UserModel::addUser(const User& user) {
+  if(user.id <= 0) throw std::runtime_error("Invalid user id");
+
+  for(auto existing_user: users_) {
+    if(existing_user.id == user.id) {
+      LOG_ERROR("User with id {} already exist", user.id);
+      return;
+    }
+  }
+
   beginInsertRows(QModelIndex(), users_.size(), users_.size());
   LOG_INFO(
       "User model add user ({}) with email: {}", user.name.toStdString(), user.email.toStdString());
@@ -34,7 +43,7 @@ QVariant UserModel::data(const QModelIndex& index, int role) const {
       return user.name;
     case UserModel::Roles::TagRole:
       return user.tag;
-    case UserModel::Roles::EmailTimeRole:
+    case UserModel::Roles::EmailRole:
       return user.email;
     case UserModel::Roles::AvatarRole:
       return user.avatarPath;
@@ -47,6 +56,6 @@ QHash<int, QByteArray> UserModel::roleNames() const {
   return {{UserModel::Roles::UserIdRole, "chat_id"},
           {UserModel::Roles::NameRole, "name"},
           {UserModel::Roles::TagRole, "tag"},
-          {UserModel::Roles::EmailTimeRole, "email"},
+          {UserModel::Roles::EmailRole, "email"},
           {UserModel::Roles::AvatarRole, "avatar"}};
 }

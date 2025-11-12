@@ -37,4 +37,53 @@ struct GroupChat : public ChatBase {
 
 inline ChatBase::~ChatBase() = default;
 
+class ChatFactory {
+  public:
+    static std::shared_ptr<ChatBase> createPrivateChat(
+        int chat_id,
+        const QString& title,
+        const QString& user_tag,
+        int user_id,
+        const QString& status,
+        const QString& last_message = {},
+        const QDateTime& last_message_time = QDateTime(),
+        const QString& avatar_path = {}
+        ) {
+      auto chat = std::make_shared<PrivateChat>();
+      chat->chat_id = chat_id;
+      chat->title = title;
+      chat->user_tag = user_tag;
+      chat->user_id = user_id;
+      chat->status = status;
+      chat->last_message = last_message;
+      chat->last_message_time = last_message_time;
+      chat->avatar_path = avatar_path;
+      return chat;
+    }
+
+    static std::shared_ptr<ChatBase> createGroupChat(
+        int chat_id,
+        const QString& title,
+        int member_count,
+        const QStringList& member_tags,
+        const QVector<int>& members_id,
+        const QStringList& avatar_paths,
+        const QString& last_message = {},
+        const QDateTime& last_message_time = QDateTime(),
+        const QString& avatar_path = {}
+        ) {
+      auto chat = std::make_shared<GroupChat>();
+      chat->chat_id = chat_id;
+      chat->title = title;
+      chat->member_count = member_count;
+      chat->member_tags = member_tags;
+      chat->members_id = members_id;
+      chat->avatar_paths = avatar_paths;
+      chat->last_message = last_message;
+      chat->last_message_time = last_message_time;
+      chat->avatar_path = avatar_path;
+      return chat;
+    }
+};
+
 #endif  // CHATBASE_H

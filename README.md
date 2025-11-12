@@ -72,11 +72,75 @@ codecov -f coverage.info
 ```
 
 ## Usage
-- Launch the Messenger app: `./build/MessengerApp`  
-- Register a new account or log in  
-- Start private or group chats  
-- Send text messages, images, or files  
-- Receive notifications for incoming messages  
+
+The project consists of multiple microservices and a standalone Qt frontend application.  
+Each component must be built and launched separately.
+
+### 1. Run Redis and RabbitMQ
+Make sure Redis and RabbitMQ servers are running locally (or in Docker):
+```bash
+brew services start redis
+brew services start rabbitmq
+```
+### 2. Launch Backend Microservices
+
+Each service can be built and started individually from its directory:
+
+#### AuthService
+Handles user registration, login, and JWT generation.
+```bash
+cd Backend/AuthService
+./build/AuthService
+```
+
+#### ChatService
+Manages chat creation, members, and persistence.
+```bash
+cd Backend/ChatService
+./build/ChatService
+```
+
+### MessageService
+Processes message sending, routing, and delivery.
+```bash
+cd Backend/MessageService
+./build/MessageService
+```
+
+### NotificationService
+Sends real-time notifications via WebSockets.
+```bash
+cd Backend/NotificationService
+./build/NotificationService
+```
+
+### ApiGateway
+Acts as the main entry point for frontend requests.
+It handles routing, authentication, and load balancing.
+```bash
+cd Backend/ApigateWay
+./build/ApiGateway
+```
+
+### 3. Launch Frontend
+The Qt-based frontend communicates with the API Gateway.
+```bash
+cd Frontend
+./build/Frontend
+```
+After launching:
+Register or log in.
+Send and receive messages in real time.
+
+- Logs: Each service uses spdlog for structured logging.
+- Metrics: Prometheus-compatible metrics are exposed via /metrics endpoints.
+
+### 4. Running tests
+All tests are integrated with CTest.
+You can run them after building the project:
+```bash
+ctest --test-dir build --output-on-failure
+```
 
 ## Project Structure
 ```bash
@@ -370,13 +434,6 @@ Directory structure:
 - **Testing & Coverage:** Catch2, lcov, Codecov  
 - **Build System:** CMake + Ninja  
 - **Code Formatting:** clang-format, clang-tidy, cpplint
-
-## Contributing
-1. Fork the repository  
-2. Create a feature branch (`git checkout -b feature-name`)  
-3. Commit changes (`git commit -m "Add feature"`)  
-4. Push to branch (`git push origin feature-name`)  
-5. Open a pull request  
 
 ## Links
 - **C++ CI:**(https://github.com/roma3214185/messanger/actions/workflows/ci.yml/badge.svg)

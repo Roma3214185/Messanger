@@ -26,7 +26,6 @@ TEST_CASE("Test MessageManager getChatMessages") {
   constexpr int            timeout_ms = 30;
   TestMessageManager       message_manager(&network_manager, url, timeout_ms);
 
-  // Prepare valid JSON data
   QJsonArray messages_array{
       QJsonObject{
           {"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}},

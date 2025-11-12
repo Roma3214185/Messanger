@@ -184,10 +184,7 @@ MessageModel* Model::getMessageModel(int chat_id) {
 }
 
 MessageModelPtr Model::createMessageModel(int chat_id) {
-  PROFILE_SCOPE("Model::createMessageModel");
-  auto message_model = std::make_shared<MessageModel>();
-  data_manager_->addMessageModel(chat_id, message_model);
-  return message_model;
+  return data_manager_->getMessageModel(chat_id);
 }
 
 void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
@@ -339,8 +336,7 @@ void Model::fillChatHistory(int chat_id) {
   PROFILE_SCOPE("Model::fillChatHistory");
   auto message_history = getChatMessages(chat_id);
   LOG_INFO("[fillChatHistory] For chat '{}' loaded '{}' messages", chat_id, message_history.size());
-  auto message_model = std::make_shared<MessageModel>(this);
-  data_manager_->addMessageModel(chat_id, message_model);
+  auto message_model = data_manager_->getMessageModel(chat_id);
 
   if (message_history.empty()) {
     return;
