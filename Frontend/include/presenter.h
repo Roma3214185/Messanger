@@ -26,6 +26,7 @@ class Presenter : public QObject {
 
   void signIn(const LogInRequest& login_request);
   void initialise();
+  void setMessageListView(IMessageListView* message_list_view);
   void signUp(const SignUpRequest& req);
   void onChatClicked(const int chat_id);
   void findUserRequest(const QString& text);
@@ -44,11 +45,11 @@ class Presenter : public QObject {
   void onChatUpdated(int chat_id);
   void onNewResponce(QJsonObject& json_object);
 
-  IMainWindow*                     view_;
-  Model*                           manager_;
-  std::unique_ptr<MessageListView> message_list_view_;
-  OptionalInt                      current_chat_id_;
-  OptionalInt                      current_user_id_;
+  IMainWindow*       view_;
+  Model*             manager_;
+  IMessageListView*  message_list_view_;
+  OptionalInt        current_chat_id_;
+  OptionalInt        current_user_id_;
 };
 
 #endif  // PRESENTER_H

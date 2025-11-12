@@ -44,7 +44,6 @@ class Model : public QObject {
 
   ChatModel*                    getChatModel() const;
   UserModel*                    getUserModel() const;
-  [[nodiscard]] MessageModelPtr createMessageModel(int chat_id);
   MessageModel*                 getMessageModel(int chat_id);
 
   void checkToken();

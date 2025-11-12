@@ -11,6 +11,7 @@
 #include "interfaces/IMainWindow.h"
 #include "model.h"
 #include "models/messagemodel.h"
+#include "interfaces/IMessageListView.h"
 
 Presenter::Presenter(IMainWindow* window, Model* manager) : view_(window), manager_(manager) {}
 
@@ -19,11 +20,14 @@ void Presenter::initialise() {
   view_->setUserModel(manager_->getUserModel());
   manager_->checkToken();
 
-  message_list_view_ = std::make_unique<MessageListView>();
-  view_->setMessageListView(message_list_view_.get());
-
   initialConnections();
 }
+
+void Presenter::setMessageListView(IMessageListView* message_list_view) {
+  message_list_view_ = message_list_view;
+  view_->setMessageListView(static_cast<QListView*>(message_list_view_));
+}
+
 void Presenter::signIn(const LogInRequest& login_request) { manager_->signIn(login_request); }
 
 void Presenter::signUp(const SignUpRequest& req) { manager_->signUp(req); }
@@ -35,12 +39,12 @@ void Presenter::initialConnections() {
       manager_, &Model::chatAdded, this, [this](int chatId) { manager_->fillChatHistory(chatId); });
   connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
 
-  if (!message_list_view_.get()) {
+  if (!message_list_view_) {
     LOG_ERROR("MessageListView is nullptr in initial connections");
     throw std::runtime_error("Nullptr in Presenter::connections");
   }
 
-  connect(message_list_view_.get(), &MessageListView::scrollChanged, this, &Presenter::onScroll);
+  connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter::onScroll);
   connect(manager_, &Model::chatUpdated, this, &Presenter::onChatUpdated);
 }
 
@@ -154,9 +158,13 @@ void Presenter::findUserRequest(const QString& text) {
 void Presenter::openChat(int chat_id) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
   current_chat_id_ = chat_id;
+  LOG_INFO("1");
   message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
+  LOG_INFO("2");
   message_list_view_->scrollToBottom();
+  LOG_INFO("3");
   auto chat = manager_->getChat(chat_id);
+  LOG_INFO("4");
   view_->setChatWindow(chat);
 }
 

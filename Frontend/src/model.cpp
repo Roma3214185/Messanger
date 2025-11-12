@@ -177,14 +177,11 @@ MessageModel* Model::getMessageModel(int chat_id) {
   PROFILE_SCOPE("Model::getMessageModel");
   auto message_model = data_manager_->getMessageModel(chat_id);
   if (!message_model) {
-    createMessageModel(chat_id);
+    LOG_ERROR("Message model is nullptr for id {}", chat_id);
+    throw std::runtime_error("Nullptr messagemodel");
   }
 
-  return data_manager_->getMessageModel(chat_id).get();  // can't be nullptr
-}
-
-MessageModelPtr Model::createMessageModel(int chat_id) {
-  return data_manager_->getMessageModel(chat_id);
+  return message_model.get();
 }
 
 void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
