@@ -13,7 +13,7 @@ jobs:
       CCACHE_MAXSIZE: 500M
 
     steps:
-      # 1️⃣ Checkout repository and submodules
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -81,10 +81,12 @@ jobs:
       # 8️⃣ Configure CMake (Debug + coverage)
       - name: Configure CMake
         run: |
+          rm -rf build
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_CXX_FLAGS="--coverage -O0" \
             -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
+            -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
@@ -105,13 +107,12 @@ jobs:
       - name: Generate coverage
         run: |
           set -eux
-          lcov --directory build --capture --output-file coverage.info || true
-          lcov --remove coverage.info '/usr/*' '*/external/*' '*/_deps/*' --output-file coverage.info || true
+          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent
+          lcov --remove coverage.info '/usr/*' '*/external/*' '*/_deps/*' '*/include/*' --output-file coverage.info --ignore-errors inconsistent
           ls -l coverage.info
 
       # 1️⃣2️⃣ Generate HTML coverage report
       - name: Generate HTML coverage report
-        if: ${{ steps.generate-coverage.outcome == 'success' }}
         run: |
           if [ -f coverage.info ]; then
             genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing
