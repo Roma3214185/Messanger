@@ -17,6 +17,7 @@ class RealSocket : public ISocket {
   void open(const QUrl& url) override { socket_->open(url); }
   void sendTextMessage(const QString& msg) override { socket_->sendTextMessage(msg); }
   void close() override { socket_->close(); }
+  void disconnect() override { socket_->disconnect(); }
 };
 
 #endif  // REALSOCKET_H

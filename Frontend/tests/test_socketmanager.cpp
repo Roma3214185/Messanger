@@ -40,4 +40,46 @@ TEST_CASE("Test socket") {
 
     REQUIRE(message_from_socket == message_to_send);
   }
+
+  SECTION("Socket is sending init message expected send message") {
+    int user_id = 2;
+    int before = fakesocket.sendTextMessage_calls;
+    socket_manager.initSocket(user_id);
+
+    REQUIRE(fakesocket.sendTextMessage_calls == before + 1);
+
+    auto sended_message = fakesocket.last_sended_message;
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(sended_message.toUtf8(), &parseError);
+
+    REQUIRE(parseError.error == QJsonParseError::NoError);
+    REQUIRE(doc.isObject());
+
+    QJsonObject obj = doc.object();
+
+    REQUIRE(obj.contains("type"));
+    REQUIRE(obj.contains("user_id"));
+    REQUIRE(obj["type"].toString() == "init");
+    REQUIRE(obj["user_id"].toInt() == user_id);
+  }
+
+  SECTION("Socket close expected calls close() and disconnect()") {
+    int before_close_calls = fakesocket.close_calls;
+    int before_disconnect_calls = fakesocket.disconnect_calls;
+
+    socket_manager.close();
+
+    REQUIRE(fakesocket.close_calls == before_close_calls + 1);
+    REQUIRE(fakesocket.disconnect_calls == before_disconnect_calls + 1);
+  }
+
+  SECTION("Socket send message") {
+    QString message_to_send = "Hi!This is test message";
+
+    socket_manager.sendText(message_to_send);
+
+    REQUIRE(fakesocket.last_sended_message == message_to_send);
+  }
+
 }
