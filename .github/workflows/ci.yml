@@ -103,11 +103,12 @@ jobs:
       # 1️⃣1️⃣ Generate coverage
       - name: Generate coverage
         run: |
+          set +e
           lcov --capture --directory build --output-file coverage.info \
-               --ignore-errors inconsistent,unused,gcov,format,unsupported || true
-          lcov --remove coverage.info '/usr/*' '/opt/homebrew/*' '*/_deps/*' '*/external/*' \
+               --ignore-errors inconsistent,unused,gcov,format,unsupported
+          lcov --remove coverage.info '*/Meta.h' '/usr/*' '/opt/homebrew/*' '*/_deps/*' '*/external/*' \
                --output-file coverage.info --ignore-errors inconsistent,unused,gcov,format,unsupported
-          lcov --list coverage.info
+          lcov --list coverage.info || true
 
       # 1️⃣2️⃣ Generate HTML coverage report
       - name: Generate HTML coverage report
