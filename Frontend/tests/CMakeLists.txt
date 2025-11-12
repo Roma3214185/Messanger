@@ -23,6 +23,7 @@ add_executable(FrontendServiceTests
     test_chatmanager.cpp
     test_datamanager.cpp
     test_chatitemdelegate.cpp
+    test_usermodel.cpp
 )
 
 add_custom_command(TARGET FrontendServiceTests POST_BUILD

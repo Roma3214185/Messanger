@@ -9,7 +9,6 @@ struct TestChatItemDelegate : public ChatItemDelegate {
     using ChatItemDelegate::refactorLastMessage;
 };
 
-
 TEST_CASE("ChatItemDelegate::refactorLastMessage") {
   ChatItemStyle style;
   TestChatItemDelegate delegate(nullptr, style);
