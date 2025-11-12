@@ -107,12 +107,9 @@ jobs:
       - name: Generate coverage
         run: |
           set -eux
-          lcov --capture --directory build --base-directory . --output-file coverage.info \
-               --ignore-errors inconsistent,unsupported,gcov,format,unused,corrupt,missing
-          lcov --remove coverage.info '/usr/*' "$PWD/external/*" "$PWD/build/_deps/*" \
-               '*/mocs_compilation.cpp' \
-               --output-file coverage.info \
-               --ignore-errors inconsistent,unsupported,gcov,format,unused,corrupt,missing
+          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/include/*' --output-file coverage.info \
+            --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
           ls -l coverage.info
 
       # 1️⃣2️⃣ Generate HTML coverage report
