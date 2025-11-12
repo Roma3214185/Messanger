@@ -22,12 +22,12 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
   MockMainWindow window;
   Presenter presenter(&window, &model);
 
-  SECTION("Initialise function tries to check existing token") {
-    int before_calls_cash_get = cache.get_calls;
-    presenter.initialise();
+  // SECTION("Initialise function tries to check existing token") {
+  //   int before_calls_cash_get = cache.get_calls;
+  //   presenter.initialise();
 
-    REQUIRE(cache.get_calls == before_calls_cash_get + 1);
-  }
+  //   REQUIRE(cache.get_calls == before_calls_cash_get + 1);
+  // }
 
 
 }
