@@ -103,8 +103,8 @@ jobs:
       # 1️⃣1️⃣ Generate coverage
       - name: Generate coverage
         run: |
-          lcov --capture --directory build --output-file coverage.info --ignore-errors inconsistent,unused,gcov
-          lcov --remove coverage.info '/usr/*' --output-file coverage.info --ignore-errors inconsistent,unused,gcov
+          lcov --capture --directory build --output-file coverage.info --ignore-errors inconsistent,unused,gcov,format
+          lcov --remove coverage.info '/usr/*' --output-file coverage.info --ignore-errors inconsistent,unused,gcov,format
           lcov --list coverage.info
 
       # 1️⃣2️⃣ Generate HTML coverage report
