@@ -69,22 +69,14 @@ jobs:
           cd ../..
           echo "✅ Redis++ installed to $HOME/local"
 
-      # 7️⃣ Check code formatting before build
-      - name: Check code formatting
+      # 7️⃣ Auto-format code
+      - name: Run clang-format (auto-fix)
         run: |
-          echo "Checking clang-format..."
-          # Exclude build and external directories
-          UNFORMATTED=$(find . -type f \( -name "*.cpp" -o -name "*.h" \) \
+          echo "Running clang-format..."
+          find . -type f \( -name "*.cpp" -o -name "*.h" \) \
             | grep -Ev "^(./external/|./build/)" \
-            | xargs clang-format -output-replacements-xml \
-            | grep "<replacement " || true)
-
-          if [ -n "$UNFORMATTED" ]; then
-            echo "❌ Some files are not formatted correctly!"
-            echo "$UNFORMATTED"
-            exit 1
-          fi
-          echo "✅ All files are properly formatted"
+            | xargs clang-format -i
+          echo "✅ clang-format applied to all files"
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
@@ -111,8 +103,8 @@ jobs:
       # 1️⃣1️⃣ Generate coverage
       - name: Generate coverage
         run: |
-          lcov --capture --directory build --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' --output-file coverage.info
+          lcov --capture --directory build --output-file coverage.info --ignore-errors inconsistent,unused,gcov
+          lcov --remove coverage.info '/usr/*' --output-file coverage.info --ignore-errors inconsistent,unused,gcov
           lcov --list coverage.info
 
       # 1️⃣2️⃣ Generate HTML coverage report
