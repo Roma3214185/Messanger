@@ -21,9 +21,10 @@
 MainWindow::MainWindow(Model* model, QWidget* parent)
     : QMainWindow(parent)
     , ui_(new Ui::MainWindow)
-    , presenter_(std::make_unique<Presenter>(this, model)){
+    , presenter_(std::make_unique<Presenter>(this, model)) {
   ui_->setupUi(this);
 
+  presenter_->initialise();
   setDelegators();
   seupConnections();
   setupUI();

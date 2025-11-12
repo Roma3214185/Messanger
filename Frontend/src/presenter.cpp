@@ -12,9 +12,11 @@
 #include "model.h"
 #include "models/messagemodel.h"
 
-Presenter::Presenter(IMainWindow* window, Model* manager) : view_(window), manager_(manager) {
-  view_->setChatModel(manager->getChatModel());
-  view_->setUserModel(manager->getUserModel());
+Presenter::Presenter(IMainWindow* window, Model* manager) : view_(window), manager_(manager) {}
+
+void Presenter::initialise() {
+  view_->setChatModel(manager_->getChatModel());
+  view_->setUserModel(manager_->getUserModel());
   manager_->checkToken();
 
   message_list_view_ = std::make_unique<MessageListView>();
@@ -22,7 +24,6 @@ Presenter::Presenter(IMainWindow* window, Model* manager) : view_(window), manag
 
   initialConnections();
 }
-
 void Presenter::signIn(const LogInRequest& login_request) { manager_->signIn(login_request); }
 
 void Presenter::signUp(const SignUpRequest& req) { manager_->signUp(req); }

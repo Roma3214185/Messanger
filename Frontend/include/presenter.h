@@ -25,6 +25,7 @@ class Presenter : public QObject {
   Presenter(IMainWindow* window, Model* manager);
 
   void signIn(const LogInRequest& login_request);
+  void initialise();
   void signUp(const SignUpRequest& req);
   void onChatClicked(const int chat_id);
   void findUserRequest(const QString& text);
