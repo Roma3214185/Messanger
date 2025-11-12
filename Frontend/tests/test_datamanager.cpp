@@ -34,6 +34,18 @@ TEST_CASE("Test datamanager works with chats") {
     REQUIRE(data_manager.getNumberOfExistingChats() == 0);
   }
 
+  SECTION("Get existing private chat with user") {
+    data_manager.addChat(private_chat1);
+    data_manager.addChat(private_chat2);
+    data_manager.addChat(private_chat3);
+    data_manager.addChat(private_chat4);
+
+    auto returned_chat = data_manager.getPrivateChatWithUser(6);
+
+    REQUIRE(returned_chat != nullptr);
+    REQUIRE(returned_chat->title == private_chat3->title);
+  }
+
   SECTION("Get existing chat expected return same chat") {
     data_manager.addChat(private_chat1);
 
