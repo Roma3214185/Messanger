@@ -114,7 +114,7 @@ jobs:
       - name: Generate HTML coverage report
         run: genhtml coverage.info \
           --output-directory coverage-report \
-          --ignore-errors inconsistent,corrupt,unsupported
+          --ignore-errors inconsistent,corrupt,unsupported, missing
 
       # 1️⃣3️⃣ Upload HTML coverage as artifact
       - name: Upload coverage HTML
