@@ -104,13 +104,9 @@ jobs:
       - name: Generate coverage
         run: |
           lcov --capture --directory build --output-file coverage.info \
-               --ignore-errors inconsistent,unused,gcov,format,unsupported
-
-          # Exclude system headers and all third-party libs
+               --ignore-errors inconsistent,unused,gcov,format,unsupported || true
           lcov --remove coverage.info '/usr/*' '/opt/homebrew/*' '*/_deps/*' '*/external/*' \
-               --output-file coverage.info \
-               --ignore-errors inconsistent,unused,gcov,format,unsupported
-
+               --output-file coverage.info --ignore-errors inconsistent,unused,gcov,format,unsupported
           lcov --list coverage.info
 
       # 1️⃣2️⃣ Generate HTML coverage report
