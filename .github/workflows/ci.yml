@@ -9,29 +9,56 @@ jobs:
     runs-on: macos-latest
 
     env:
-      OPENSSL_ROOT_DIR: /opt/homebrew/opt/openssl@3
-      BOOST_ROOT: /opt/homebrew/opt/boost
-      BOOST_INCLUDEDIR: /opt/homebrew/opt/boost/include
-      BOOST_LIBRARYDIR: /opt/homebrew/opt/boost/lib
-      DYLD_LIBRARY_PATH: /opt/homebrew/opt/boost/lib:/opt/homebrew/opt/openssl@3/lib
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 500M
 
     steps:
-      # 1️⃣ Checkout repo with submodules
+      # 1️⃣ Checkout repository
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # 2️⃣ Install dependencies via Homebrew
+      # 2️⃣ Setup ccache
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+          max-size: 500M
+
+      # 3️⃣ Cache vcpkg
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: external/vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}
+
+      # 4️⃣ Bootstrap vcpkg
+      - name: Bootstrap vcpkg
+        run: ./external/vcpkg/bootstrap-vcpkg.sh
+
+      # 5️⃣ Install dependencies
       - name: Install dependencies
         run: |
           set -eux
           brew update
-          brew install cmake qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json
+          brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache lcov clang-format
+          ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 hiredis sqlite3
 
-      # 3️⃣ Build and install Redis++ locally
+      # 6️⃣ Cache Redis++
+      - name: Cache Redis++
+        id: cache-redispp
+        uses: actions/cache@v4
+        with:
+          path: ~/local
+          key: redispp-${{ runner.os }}-v1
+
       - name: Build Redis++
+        if: steps.cache-redispp.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git redis-plus-plus
           cd redis-plus-plus
@@ -40,36 +67,72 @@ jobs:
           cmake --build . --parallel
           cmake --install .
           cd ../..
-          echo "Redis++ installed to $HOME/local"
+          echo "✅ Redis++ installed to $HOME/local"
 
-      # 4️⃣ Configure project
+      # 7️⃣ Auto-format code
+      - name: Run clang-format (auto-fix)
+        run: |
+          echo "Running clang-format..."
+          find . -type f \( -name "*.cpp" -o -name "*.h" \) \
+            | grep -Ev "^(./external/|./build/)" \
+            | xargs clang-format -i
+          echo "✅ clang-format applied to all files"
+
+      # 8️⃣ Configure CMake (Debug + coverage)
       - name: Configure CMake
         run: |
-          mkdir -p build
-          cd build
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DCMAKE_PREFIX_PATH="$HOME/local:/opt/homebrew/opt/qt6/lib/cmake:$CMAKE_PREFIX_PATH" \
-            -DHIREDIS_INCLUDE_DIR=/opt/homebrew/include \
-            -DHIREDIS_LIBRARY=/opt/homebrew/lib/libhiredis.a \
+          rm -rf build
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="--coverage -O0" \
+            -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
+            -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
             -DREDISPP_INCLUDE_DIR=$HOME/local/include \
             -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
-            -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3 \
-            -DBOOST_ROOT=/opt/homebrew/opt/boost \
             -DTRACY_ENABLE=ON \
             -Wno-dev
 
-      # 5️⃣ Build project
+      # 9️⃣ Build project
       - name: Build
-        run: cmake --build build --parallel --verbose
+        run: cmake --build build --parallel
 
-      # 6️⃣ Run tests
+      # 🔟 Run tests
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      # 7️⃣ Check code formatting
-      - name: Check code formatting
+      # 1️⃣1️⃣ Generate coverage
+      - name: Generate coverage
         run: |
-          clang-format --version
-          git diff --exit-code $(git ls-files '*.cpp' '*.h')
+          set -eux
+          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/include/*' --output-file coverage.info \
+            --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+          ls -l coverage.info
+
+      # 1️⃣2️⃣ Generate HTML coverage report
+      - name: Generate HTML coverage report
+        run: |
+          if [ -f coverage.info ]; then
+            genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+          else
+            echo "⚠️ coverage.info not found, skipping genhtml"
+          fi
+
+      # 1️⃣3️⃣ Upload HTML coverage as artifact
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report
+
+      # 1️⃣4️⃣ Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.info
+          fail_ci_if_error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

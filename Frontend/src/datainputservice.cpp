@@ -23,35 +23,27 @@ static int utf8Length(const QString& str) {
   return len;
 }
 
-static QSet<QString> g_validDomains;
-static QMutex        g_domainMutex;
-static bool          g_domainsLoaded = false;
-
-static void loadValidDomainsOnce(const QString& path) {
-  QMutexLocker locker(&g_domainMutex);
-  if (g_domainsLoaded) return;
-
-  QFile file(path);
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    LOG_ERROR("Can't open file with valid domains: {}", path.toStdString());
+inline void loadDomains(const Config& cfg) {
+  if (!cfg.kDomains.isEmpty()) {
     return;
   }
 
-  QTextStream in(&file);
-  while (!in.atEnd()) {
-    QString domain = in.readLine().trimmed();
-    if (!domain.isEmpty()) g_validDomains.insert(domain.toLower());
+  QFile file(cfg.kConfigDomainsPath);
+  if (file.open(QIODevice::ReadOnly)) {
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+      QString line = in.readLine().trimmed();
+      if (!line.isEmpty()) cfg.kDomains.append(line);
+    }
+  } else {
+    qWarning() << "Cannot open domains file:" << cfg.kConfigDomainsPath;
   }
-
-  g_domainsLoaded = true;
-  LOG_INFO("Loaded {} valid domains", g_validDomains.size());
 }
 
 static bool isValidDomain(const QString& domain, const Config& cfg) {
-  if (!g_domainsLoaded) loadValidDomainsOnce(cfg.kConfigDomainsRoad);
-
+  loadDomains(cfg);
   const QString normalized = domain.toLower();
-  return g_validDomains.contains(normalized);
+  return cfg.kDomains.contains(normalized);
 }
 
 ValidationResult nameValidDetailed(const QString& name, const Config& cfg) {

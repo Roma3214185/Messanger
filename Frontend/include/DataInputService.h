@@ -26,7 +26,8 @@ struct Config {
 
   size_t  kMinEmailLocalPartLength = 4;
   size_t  kMaxEmailLocalPartLength = 64;
-  QString kConfigDomainsRoad       = "/Users/roma/QtProjects/Chat/Frontend/config/domains.txt";
+  QString kConfigDomainsPath       = "/Users/roma/QtProjects/Chat/Frontend/config/domains.txt";
+  mutable QList<QString> kDomains;
 };
 
 namespace DataInputService {

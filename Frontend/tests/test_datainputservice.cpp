@@ -2,6 +2,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "../include/DataInputService.h"
+#include "Debug_profiling.h"
 
 using namespace std;
 using namespace DataInputService;
@@ -10,6 +11,7 @@ TEST_CASE("Name validation - UTF-8 friendly", "[name]") {
   Config cfg;
   cfg.kMinLenOfName = 1;
   cfg.kMaxLenOfName = 10;
+  cfg.kDomains      = {"gmail.com"};
 
   SECTION("Empty name") {
     auto r = nameValidDetailed("", cfg);
@@ -61,6 +63,7 @@ TEST_CASE("Tag validation - mixed patterns, boundaries, unicode", "[tag]") {
   Config cfg;
   cfg.kMinTagLength = 2;
   cfg.kMaxTagLength = 16;
+  cfg.kDomains      = {"gmail.com"};
 
   SECTION("Empty tag") {
     auto r = tagValidDetailed("", cfg);
@@ -113,14 +116,17 @@ TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, bo
   Config cfg;
   cfg.kMinEmailLocalPartLength = 1;
   cfg.kMaxEmailLocalPartLength = 64;
+  cfg.kDomains                 = {"gmail.com"};
 
   SECTION("Simple valid") {
     auto r = emailValidDetailed("user@gmail.com", cfg);
+    LOG_INFO("ERROR {}", r.message.toStdString());
     REQUIRE(r.valid);
   }
 
   SECTION("Plus alias") {
     auto r = emailValidDetailed("user+alias@gmail.com", cfg);
+    LOG_INFO("ERROR {}", r.message.toStdString());
     REQUIRE(r.valid);
   }
 
@@ -163,6 +169,8 @@ TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, bo
 
 TEST_CASE("Chained validation - form level", "[form]") {
   Config cfg;
+  cfg.kDomains = {"gmail.com"};
+
   SECTION("Good request expected result is valid") {
     SignUpRequest good_request{.name     = "John Doe",
                                .email    = "john+dev@gmail.com",
@@ -214,6 +222,7 @@ TEST_CASE("Parameterized invalid passwords", "[password][param]") {
   Config cfg;
   cfg.kMinPasswordLength = 6;
   cfg.kMaxPasswordLength = 12;
+  cfg.kDomains           = {"gmail.com"};
 
   auto password_sample = GENERATE("short", "has space", "bad|char", "\nnewline");
   auto r               = passwordValidDetailed(password_sample, cfg);

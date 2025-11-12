@@ -72,6 +72,9 @@ target_link_libraries(FrontendLib PUBLIC
 )
 
 target_compile_definitions(FrontendLib PUBLIC SPDLOG_HEADER_ONLY)
+target_compile_definitions(FrontendLib
+    PRIVATE CONFIG_DOMAINS_PATH="${CMAKE_SOURCE_DIR}/Frontend/config/domains.txt"
+)
 
 add_library(Frontend::Lib ALIAS FrontendLib)
 
@@ -80,7 +83,12 @@ add_executable(Frontend
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
-    config/domains.txt
+)
+
+add_custom_command(TARGET Frontend POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/Frontend/config
+        $<TARGET_FILE_DIR:Frontend>/config
 )
 
 target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
