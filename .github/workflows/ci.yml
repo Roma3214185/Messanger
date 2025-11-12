@@ -92,6 +92,9 @@ jobs:
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
+      - name: Install clang-format
+        run: brew install clang-format
+
       # 🔟 Check code formatting
       - name: Check code formatting
         run: |
