@@ -64,5 +64,4 @@ TEST_CASE("Test user model") {
 
     REQUIRE(user_model.rowCount() == 0);
   }
-
 }

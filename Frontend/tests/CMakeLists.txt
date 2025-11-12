@@ -24,6 +24,7 @@ add_executable(FrontendServiceTests
     test_datamanager.cpp
     test_chatitemdelegate.cpp
     test_usermodel.cpp
+    mocks/MockMainWindow.h
 )
 
 add_custom_command(TARGET FrontendServiceTests POST_BUILD

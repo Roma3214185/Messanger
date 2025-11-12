@@ -22,10 +22,9 @@ class MainWindow : public QMainWindow, public IMainWindow {
   Q_OBJECT
 
  public:
-  explicit MainWindow(QWidget* parent = nullptr);
+  explicit MainWindow(Model* model, QWidget* parent = nullptr);
   ~MainWindow();
 
-  void setPresenter(Presenter* presenter);
   void setUser(const User& user) override;
   void setChatWindow(std::shared_ptr<ChatBase> chat) override;
   void setChatModel(ChatModel* model) override;
@@ -56,9 +55,9 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void seupConnections();
   void setupUI();
 
-  std::unique_ptr<ITheme> currentTheme;
-  Ui::MainWindow*         ui_;
-  Presenter*              presenter_;
+  std::unique_ptr<ITheme>    currentTheme;
+  Ui::MainWindow*            ui_;
+  std::unique_ptr<Presenter> presenter_;
 };
 
 #endif  // MAINWINDOW_H
