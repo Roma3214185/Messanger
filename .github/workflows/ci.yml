@@ -13,14 +13,14 @@ jobs:
       CCACHE_MAXSIZE: 500M
 
     steps:
-      # 1️⃣ Checkout repository and submodules (vcpkg included)
+      # 1️⃣ Checkout repository and submodules
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # 2️⃣ Setup ccache for faster rebuilds
+      # 2️⃣ Setup ccache
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
@@ -29,7 +29,7 @@ jobs:
             ${{ runner.os }}-build-
           max-size: 500M
 
-      # 3️⃣ Cache vcpkg installed libraries
+      # 3️⃣ Cache vcpkg
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
@@ -41,17 +41,15 @@ jobs:
       - name: Bootstrap vcpkg
         run: ./external/vcpkg/bootstrap-vcpkg.sh
 
-      # 2️⃣ Install dependencies
+      # 5️⃣ Install dependencies
       - name: Install dependencies
         run: |
           set -eux
-          # Homebrew dependencies
           brew update
-          brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache
-          # vcpkg dependencies
+          brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache lcov g++ clang-format
           ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 hiredis sqlite3
 
-      # 6️⃣ Cache Redis++ (still built locally)
+      # 6️⃣ Cache Redis++
       - name: Cache Redis++
         id: cache-redispp
         uses: actions/cache@v4
@@ -71,11 +69,29 @@ jobs:
           cd ../..
           echo "✅ Redis++ installed to $HOME/local"
 
-      # 7️⃣ Configure CMake (with vcpkg toolchain)
+      # 7️⃣ Check code formatting before build
+      - name: Check code formatting
+        run: |
+          echo "Checking clang-format..."
+          # Exclude build and external directories
+          UNFORMATTED=$(find . -type f \( -name "*.cpp" -o -name "*.h" \) \
+            | grep -Ev "^(./external/|./build/)" \
+            | xargs clang-format -output-replacements-xml \
+            | grep "<replacement " || true)
+
+          if [ -n "$UNFORMATTED" ]; then
+            echo "❌ Some files are not formatted correctly!"
+            echo "$UNFORMATTED"
+            exit 1
+          fi
+          echo "✅ All files are properly formatted"
+
+      # 8️⃣ Configure CMake
       - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS="--coverage" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
@@ -84,18 +100,37 @@ jobs:
             -DTRACY_ENABLE=ON \
             -Wno-dev
 
-      # 8️⃣ Build project (with parallelism + ccache)
+      # 9️⃣ Build project
       - name: Build
         run: cmake --build build --parallel
 
-      # 9️⃣ Run tests
+      # 🔟 Run tests
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      - name: Install clang-format
-        run: brew install clang-format
-
-      - name: Check code formatting
+      # 1️⃣1️⃣ Generate coverage
+      - name: Generate coverage
         run: |
-          echo "Checking clang-format..."
-          git diff --exit-code $(find . -type f \( -name "*.cpp" -o -name "*.h" \))
+          lcov --capture --directory build --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' --output-file coverage.info
+          lcov --list coverage.info
+
+      # 1️⃣2️⃣ Generate HTML coverage report
+      - name: Generate HTML coverage report
+        run: genhtml coverage.info --output-directory coverage-report
+
+      # 1️⃣3️⃣ Upload HTML coverage as artifact
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage-report
+
+      # 1️⃣4️⃣ Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.info
+          fail_ci_if_error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

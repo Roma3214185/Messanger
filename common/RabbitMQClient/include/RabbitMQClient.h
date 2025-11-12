@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SimpleAmqpClient/SimpleAmqpClient.h>
+
 #include <atomic>
 #include <functional>
 #include <memory>
@@ -8,8 +10,6 @@
 #include <thread>
 #include <unordered_set>
 #include <vector>
-
-#include <SimpleAmqpClient/SimpleAmqpClient.h>
 
 #include "Debug_profiling.h"
 #include "ThreadPool.h"

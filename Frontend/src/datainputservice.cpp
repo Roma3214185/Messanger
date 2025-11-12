@@ -29,12 +29,11 @@ inline void loadDomains(const Config& cfg) {
   }
 
   QFile file(cfg.kConfigDomainsPath);
-  if(file.open(QIODevice::ReadOnly)) {
+  if (file.open(QIODevice::ReadOnly)) {
     QTextStream in(&file);
-    while(!in.atEnd()) {
+    while (!in.atEnd()) {
       QString line = in.readLine().trimmed();
-      if (!line.isEmpty())
-        cfg.kDomains.append(line);
+      if (!line.isEmpty()) cfg.kDomains.append(line);
     }
   } else {
     qWarning() << "Cannot open domains file:" << cfg.kConfigDomainsPath;
