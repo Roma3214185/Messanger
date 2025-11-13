@@ -24,7 +24,7 @@ class DataManager {
   void            clearAllUsers();
   void            clearAllMessageModels();
   void            addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
-  void            saveUser(UserId, User);
+  void            saveUser(User);
   void            clearAll();
   OptionalUser    getUser(UserId);
 
