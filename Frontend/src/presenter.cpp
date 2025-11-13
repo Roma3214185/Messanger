@@ -84,7 +84,7 @@ void Presenter::onScroll(int value) {
   if (newMessages.empty()) return;
 
   for (const auto& newMsg : newMessages) {
-    manager_->addMessageToChat(chatId, newMsg, true);
+    manager_->addMessageToChat(chatId, newMsg); //TODO: make pipeline
   }
 
   message_list_view_->verticalScrollBar()->setValue(
@@ -135,14 +135,13 @@ void Presenter::newMessage(Message& msg) {
            msg.text.toStdString(),
            msg.local_id.toStdString());
 
-  if (current_chat_id_.has_value() && current_chat_id_ == msg.chatId) {
-    int max   = message_list_view_->getMaximumMessageScrollBar();
-    int value = message_list_view_->getMessageScrollBarValue();
-    manager_->addMessageToChat(msg.chatId, msg, false);
-    LOG_INFO("In scrollBar max = '{}' and value = '{}'", max, value);
-    if (max == value) message_list_view_->scrollToBottom();
-  } else {
-    manager_->addMessageToChat(msg.chatId, msg, false);
+  int max   = message_list_view_->getMaximumMessageScrollBar();
+  int value = message_list_view_->getMessageScrollBarValue();
+
+  manager_->addMessageToChat(msg.chatId, msg);
+
+  if (current_chat_id_.has_value() && current_chat_id_ == msg.chatId && max == value) {
+    message_list_view_->scrollToBottom();
   }
 }
 

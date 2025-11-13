@@ -6,6 +6,7 @@
 #include <QPixmap>
 
 #include "dto/ChatBase.h"
+#include "dto/Message.h"
 
 using ChatPtr     = std::shared_ptr<ChatBase>;
 using ListOfChats = QList<ChatPtr>;
@@ -32,7 +33,7 @@ class ChatModel : public QAbstractListModel {
   QVariant               data(const QModelIndex& index, int role) const override;
   QHash<int, QByteArray> roleNames() const override;
   void                   addChat(const ChatPtr& chat);
-  void updateChat(int chat_id, const QString& last_message, const QDateTime& time);
+  void updateChatInfo(int chat_id, const std::optional<Message>& last_message);
   void addChatInFront(ChatPtr& chat);
   void realocateChatInFront(int chat_id);
   void clear();

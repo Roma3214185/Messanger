@@ -151,12 +151,12 @@ auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
 
   auto message_model = data_manager_->getMessageModel(chat_id);
   if (message_model) {
-    auto firstMessage = message_model->getFirstMessage();
-    if (firstMessage) {
+    auto oldestMessage = message_model->getOldestMessage();
+    if (oldestMessage) {
       LOG_INFO("Last message with id '{}' and text '{}'",
-               firstMessage->id,
-               firstMessage->text.toStdString());
-      before_id = firstMessage->id;
+               oldestMessage->id,
+               oldestMessage->text.toStdString());
+      before_id = oldestMessage->id;
     }
   }
 
@@ -177,7 +177,7 @@ MessageModel* Model::getMessageModel(int chat_id) {
   return message_model.get();
 }
 
-void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
+void Model::addMessageToChat(int chat_id, const Message& msg) {
   PROFILE_SCOPE("Model::addMessageToChat");
   auto chat = data_manager_->getChat(chat_id);
   if (!chat) {
@@ -197,26 +197,25 @@ void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
       LOG_ERROR("Server can't find info about user {}", msg.senderId);
       return;
     }
+    data_manager_->saveUser(*user_from_server);
     user = user_from_server;
   } else {
     getUserAsync(msg.senderId);
   }
 
-  if (in_front) {
-    message_model->addMessage(msg, *user, true);
-  } else {
-    message_model->addMessage(msg, *user, false); //TODO: updateChatInfo(id, Message);
-    chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
-  }
+  message_model->addMessage(msg, *user);
+  auto last_chat_message = message_model->getLastMessage();
+  assert(last_chat_message != std::nullopt);
+  chat_model_->updateChatInfo(chat_id, *last_chat_message);
 }
 
 void Model::addOfflineMessageToChat(int chat_id, User user, const Message& msg) {
   auto message_model = data_manager_->getMessageModel(chat_id);
-  if(!message_model) {
+  if(!message_model) {   // TODO: make one function add message(offline + online)
     LOG_ERROR("Invalid message_model");
     return;
   }
-  message_model->addMessage(msg, user, true);
+  message_model->addMessage(msg, user);
 }
 
 void Model::addChatInFront(const ChatPtr& chat) {
@@ -363,8 +362,6 @@ void Model::fillChatHistory(int chat_id) {
     return;
   }
 
-  chat_model_->updateChat(chat_id, message_history.front().text, message_history.front().timestamp);
-
   for (auto message : message_history) {
     auto user = getUser(message.senderId);
     if (!user) {
@@ -373,8 +370,11 @@ void Model::fillChatHistory(int chat_id) {
       LOG_INFO("[fillChatHistory] For message '{}' user is '{}'", message.id, user->id);
     }
 
-    message_model->addMessage(message, *user, true);
+    message_model->addMessage(message, *user);
   }
+
+  auto last_message = message_model->getLastMessage();
+  chat_model_->updateChatInfo(chat_id, last_message);
 }
 
 auto Model::getChatModel() const -> ChatModel* { return chat_model_.get(); }

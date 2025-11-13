@@ -34,14 +34,15 @@ class MessageModel : public QAbstractListModel {
   [[nodiscard]] int                    rowCount() const { return rowCount(QModelIndex()); }
   [[nodiscard]] QVariant               data(const QModelIndex& index, int role) const override;
   [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
-  void addMessage(const Message& msg, const User& user, bool in_front = true);
+  void addMessage(const Message& msg, const User& user);
   void clear();
   [[nodiscard]] std::optional<Message> getLastMessage();
-  [[nodiscard]] std::optional<Message> getFirstMessage();
+  [[nodiscard]] std::optional<Message> getOldestMessage();
   static void                          setCurrentUserId(int user_id);
   void                                 resetCurrentUseId();
 
  private:
+  void  sortMessagesByTimestamp();
   ListOfMessages            messages_;
   MessagesByChatId          messages_by_chat_id;
   UsersByMessageId          users_by_message_id_;

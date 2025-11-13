@@ -68,7 +68,7 @@ class Model : public QObject {
   void                         addChat(const ChatPtr& chat);
   void                         addChatInFront(const ChatPtr& chat);
   void                         createChat(int chat_id);
-  void    addMessageToChat(int chat_id, const Message& msg, bool in_front = false);
+  void    addMessageToChat(int chat_id, const Message& msg);
   void    addOfflineMessageToChat(int chat_id, User, const Message&);
   void    deleteToken() const;
   ChatPtr getPrivateChatWithUser(int user_id);

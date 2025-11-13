@@ -86,7 +86,7 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     REQUIRE(fake_socket.sendTextMessage_calls == before + 1);
   }
 
-  SECTION("Send empty message expected message not send") {
+  SECTION("Send empty message expected message won't be send") {
     QString message_to_send = "";
     int before = fake_socket.sendTextMessage_calls;
     presenter.sendButtonClicked(message_to_send);
@@ -105,9 +105,10 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
   first_message.text = "Roma";
   first_message.chatId = chat_id;
   first_message.local_id = "1local";
+  first_message.timestamp = QDateTime::currentDateTime();
   message_model->addMessage(first_message, user);
 
-  SECTION("Test presenter receive new messages expected adding this message to model") {
+  SECTION("Presenter receive new messages expected adding this message to model") {
     Message new_message;
     new_message.id = 4;
     new_message.text = "Roma";
@@ -121,7 +122,48 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     REQUIRE(message_model->rowCount() == before + 1);
   }
 
+  SECTION("Presenter receive new messages expected this message will be last message") {
+    int chat_id = 2;
+    Message new_message;
+    new_message.id = 4;
+    new_message.text = "Roma";
+    new_message.chatId = chat_id;
+    new_message.senderId = 8;
+    new_message.local_id = "2local";
+    new_message.timestamp = first_message.timestamp.addDays(1);
+    int before = message_model->rowCount();
 
+    presenter.newMessage(new_message);
 
+    REQUIRE(message_model->rowCount() == before + 1);
 
+    auto returned_message = message_model->getLastMessage();
+    REQUIRE(returned_message != std::nullopt);
+    REQUIRE(returned_message->id == new_message.id);
+    REQUIRE(returned_message->text == new_message.text);
+    REQUIRE(returned_message->chatId == new_message.chatId);
+    REQUIRE(returned_message->senderId == new_message.senderId);
+  }
+
+  SECTION("Test presenter receive new messages before the oldest expected this message will be oldest") {
+    Message new_message;
+    new_message.id = 4;
+    new_message.text = "Roma";
+    new_message.chatId = 2;
+    new_message.senderId = 8;
+    new_message.local_id = "2local";
+    new_message.timestamp = first_message.timestamp.addDays(-1);
+    int before = message_model->rowCount();
+
+    presenter.newMessage(new_message);
+
+    REQUIRE(message_model->rowCount() == before + 1);
+
+    auto returned_message = message_model->getOldestMessage();
+    REQUIRE(returned_message != std::nullopt);
+    REQUIRE(returned_message->id == new_message.id);
+    REQUIRE(returned_message->text == new_message.text);
+    REQUIRE(returned_message->chatId == new_message.chatId);
+    REQUIRE(returned_message->senderId == new_message.senderId);
+  }
 }

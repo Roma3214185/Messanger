@@ -56,15 +56,16 @@ void ChatModel::sortChats() {
   endInsertRows();
 }
 
-void ChatModel::updateChat(const int        chat_id,
-                           const QString&   last_message,
-                           const QDateTime& time /*, int unread = 0,*/) {
+void ChatModel::updateChatInfo(const int        chat_id,
+                           const std::optional<Message>&  message
+                           /*, TODO: int unread = 0,*/) {
+  if(message == std::nullopt) return;
   int i = 0;
   for (; i < chats_.size(); i++) {
     if (chats_[i]->chat_id == chat_id) {
-      chats_[i]->last_message      = last_message;
+      chats_[i]->last_message      = message->text;
       chats_[i]->unread            = 0;  // unread++;
-      chats_[i]->last_message_time = time;
+      chats_[i]->last_message_time = message->timestamp;
       break;
     }
   }
