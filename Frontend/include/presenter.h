@@ -38,11 +38,11 @@ class Presenter : public QObject {
 
  protected:
   void setCurrentChatId(int chat_id);
+  void newMessage(Message& message);
 
  private:
   void initialConnections();
   void setUser(const User& user, const QString& token);
-  void newMessage(Message& message);
   void openChat(int chat_id);
   void onErrorOccurred(const QString& error);
   void onChatUpdated(int chat_id);

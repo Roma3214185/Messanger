@@ -63,6 +63,7 @@ class Model : public QObject {
   void                         sendMessage(const Message& msg);
   [[nodiscard]] QList<ChatPtr> loadChats();
   void                         authenticateWithToken(const QString& token);
+  void                         getUserAsync(int user_id);
   void                         fillChatHistory(int chat_id);
   void                         addChat(const ChatPtr& chat);
   void                         addChatInFront(const ChatPtr& chat);

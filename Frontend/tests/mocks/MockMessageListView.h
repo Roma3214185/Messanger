@@ -5,23 +5,28 @@
 
 class MockMessageListView : public IMessageListView {
   public:
-    virtual void setMessageModel(MessageModel* model) override {
+    MockMessageListView(int value, int max) : value_(value), max_(max) {}
+    int value_;
+    int max_;
+    int call_scroll_to_bottom = 0;
+
+    void setMessageModel(MessageModel* model) override {
 
     }
 
-    virtual void scrollToBottom() override {
-
+    void scrollToBottom() override {
+      ++call_scroll_to_bottom;
     }
 
-    virtual int getMaximumMessageScrollBar() const override {
-
+    int getMaximumMessageScrollBar() const override {
+      return max_;
     }
 
-    virtual int getMessageScrollBarValue() const override {
-
+    int getMessageScrollBarValue() const override {
+      return value_;
     }
 
-    virtual void setMessageScrollBarValue(int value) override {
+    void setMessageScrollBarValue(int value) override {
 
     }
 };

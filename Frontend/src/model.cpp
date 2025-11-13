@@ -188,21 +188,24 @@ void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
   }
 
   auto message_model = data_manager_->getMessageModel(chat_id);
-  auto user          = getUser(msg.senderId);
+  auto user = data_manager_->getUser(msg.senderId);
 
-  if (!user || !message_model) {
-    LOG_ERROR("Use with id '{}' isn't exist (or message model)", msg.senderId);
-    Q_EMIT errorOccurred(
-        QString("(maybe messagemodel) message_modelServer doesn't return info about user id(") +
-        QString::fromStdString(std::to_string(msg.senderId)));
-    return;
+  if (!user) {
+    LOG_INFO("There is no info about user {} in cache", msg.senderId);
+    auto user_from_server = getUser(msg.senderId);
+    if(!user_from_server) {
+      LOG_ERROR("Server can't find info about user {}", msg.senderId);
+      return;
+    }
+    user = user_from_server;
+  } else {
+    getUserAsync(msg.senderId);
   }
 
   if (in_front) {
     message_model->addMessage(msg, *user, true);
-    // chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
   } else {
-    message_model->addMessage(msg, *user, false);
+    message_model->addMessage(msg, *user, false); //TODO: updateChatInfo(id, Message);
     chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
   }
 }
@@ -251,6 +254,25 @@ void Model::sendMessage(const Message& msg) {
 auto Model::getUser(int user_id) -> optional<User> {
   auto future = user_manager_->getUser(user_id);
   return waitForFuture(future);
+}
+
+void Model::getUserAsync(int user_id) {
+  QFuture<std::optional<User>> future = user_manager_->getUser(user_id);
+
+  auto *watcher = new QFutureWatcher<std::optional<User>>(this);
+  connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher, user_id]() {
+    auto userOpt = watcher->result();
+    watcher->deleteLater();
+
+    if (!userOpt) {
+      LOG_ERROR("Can't get info about user {}", user_id);
+      return;
+    }
+
+    data_manager_->saveUser(*userOpt);
+  });
+
+  watcher->setFuture(future);
 }
 
 auto Model::getNumberOfExistingChats() const -> int {

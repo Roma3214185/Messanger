@@ -19,6 +19,7 @@ class TestPresenter : public Presenter {
   public:
     using Presenter::Presenter;
     using Presenter::setCurrentChatId;
+    using Presenter::newMessage;
 };
 
 TEST_CASE("Test presenter communication with other classes", "[presenter]") {
@@ -30,7 +31,7 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
   DataManager data_manager;
   Model model(url, &netManager, &cache, &fake_socket, &data_manager);
   MockMainWindow window;
-  MockMessageListView message_list_view;
+  MockMessageListView message_list_view(2, 2);
   TestPresenter presenter(&window, &model);
   presenter.setMessageListView(&message_list_view);
 
@@ -91,6 +92,33 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     presenter.sendButtonClicked(message_to_send);
 
     REQUIRE(fake_socket.sendTextMessage_calls == before);
+  }
+
+  User user;
+  user.id = 8;
+  auto private_chat4 = ChatFactory::createPrivateChat(chat_id, "r", "3", 8, "2");
+  auto message_model = std::make_shared<MessageModel>();
+  data_manager.addChat(private_chat4, message_model);
+  data_manager.saveUser(user);
+  Message first_message;
+  first_message.id = 1;
+  first_message.text = "Roma";
+  first_message.chatId = chat_id;
+  first_message.local_id = "1local";
+  message_model->addMessage(first_message, user);
+
+  SECTION("Test presenter receive new messages expected adding this message to model") {
+    Message new_message;
+    new_message.id = 4;
+    new_message.text = "Roma";
+    new_message.chatId = 2;
+    new_message.senderId = 8;
+    new_message.local_id = "2local";
+    int before = message_model->rowCount();
+
+    presenter.newMessage(new_message);
+
+    REQUIRE(message_model->rowCount() == before + 1);
   }
 
 
