@@ -4,12 +4,10 @@ A modern, secure, and high-performance C++ messaging application designed for re
 
 ## Table of Contents
 - [Features](#features)
-- [Demo](#demo)
 - [Installation & Build](#installation--build)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
 - [Technologies](#technologies)
-- [Contributing](#contributing)
 - [Links](#links)
 
 ## Features

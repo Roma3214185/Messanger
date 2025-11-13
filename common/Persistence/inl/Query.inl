@@ -46,7 +46,7 @@ std::vector<T> SelectQuery<T>::execute() const {
 template <typename T>
 QSqlQuery SelectQuery<T>::runDatabaseQuery(const QString& sql) const {
   QSqlQuery query;
-  if (!this->executor_.execute(sql, this->values_, query)) {
+  if (!this->executor_.execute(sql, query, this->values_)) {
     LOG_ERROR("[QueryExecutor] SQL execution failed: '{}'", sql.toStdString());
   }
   return query;

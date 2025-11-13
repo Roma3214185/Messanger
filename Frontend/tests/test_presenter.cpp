@@ -3,6 +3,7 @@
 #include <QUrl>
 #include <catch2/catch_all.hpp>
 #include <QSignalSpy>
+#include <QJsonObject>
 
 #include "MessageListView.h"
 #include "interfaces/IMainWindow.h"
@@ -20,6 +21,7 @@ class TestPresenter : public Presenter {
     using Presenter::Presenter;
     using Presenter::setCurrentChatId;
     using Presenter::newMessage;
+    using Presenter::onNewResponce;
 };
 
 TEST_CASE("Test presenter communication with other classes", "[presenter]") {
@@ -40,6 +42,13 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     presenter.initialise();
 
     REQUIRE(cache.get_calls == before_calls_cash_get + 1);
+  }
+
+  SECTION("Presenter receive responce but currend_user_id == nullopt expected throw exception") {
+    QJsonObject json;
+    json["type"] = "opened";
+
+    REQUIRE_THROWS(presenter.onNewResponce(json));
   }
 
   SECTION("On chat clicked expected window->setChatWindow call") {
@@ -165,5 +174,15 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     REQUIRE(returned_message->text == new_message.text);
     REQUIRE(returned_message->chatId == new_message.chatId);
     REQUIRE(returned_message->senderId == new_message.senderId);
+  }
+
+  SECTION("Presenter receive responce socket connection opened expected send initial socket message") {
+    QJsonObject json;
+    json["type"] = "opened";
+    int before_calls = fake_socket.sendTextMessage_calls;
+
+    presenter.onNewResponce(json);
+
+    REQUIRE(fake_socket.sendTextMessage_calls == before_calls + 1);
   }
 }
