@@ -32,8 +32,8 @@ A modern, secure, and high-performance C++ messaging application designed for re
 ### Build Steps
 Clone the repository:
 ```bash
-git clone --recurse-submodules https://github.com/yourusername/messenger-app.git
-cd messenger-app
+git clone --recurse-submodules https://github.com/Roma3214185/Messanger.git
+cd Messanger
 
 brew update
 brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache lcov clang-format
@@ -428,6 +428,7 @@ Directory structure:
 ## Technologies
 - **Language:** C++17 / C++20  
 - **GUI:** Qt6  
+- **Web Framework / HTTP API:** Crow (REST API backend)
 - **Networking:** ASIO, RabbitMQ, Redis++  
 - **Database:** SQLite3  
 - **Logging:** spdlog  

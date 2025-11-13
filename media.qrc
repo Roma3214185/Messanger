@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/user">
-        <file>default_avatar.jpeg</file>
-    </qresource>
-</RCC>
