@@ -6,24 +6,34 @@
 
 using ChatId          = int;
 using ChatPtr         = std::shared_ptr<ChatBase>;
+using MessageId       = int;
+using UserId          = int;
 using MessageModelPtr = std::shared_ptr<MessageModel>;
 using ChatMap         = std::unordered_map<ChatId, ChatPtr>;
-using MessageModelMap = std::unordered_map<ChatId, MessageModelPtr>;
+using MessageModelMap = std::unordered_map<MessageId, MessageModelPtr>;
+using UserMap         = std::unordered_map<UserId, User>;
+using OptionalUser    = std::optional<User>;
 
 class DataManager {
  public:
-  ChatPtr         getPrivateChatWithUser(int user_id);
-  MessageModelPtr getMessageModel(int chat_id);
-  ChatPtr         getChat(int chat_id);
+  ChatPtr         getPrivateChatWithUser(UserId);
+  MessageModelPtr getMessageModel(ChatId);
+  ChatPtr         getChat(ChatId);
   int             getNumberOfExistingChats() const;
   void            clearAllChats();
+  void            clearAllUsers();
   void            clearAllMessageModels();
   void            addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
+  void            saveUser(UserId, User);
+  void            clearAll();
+  OptionalUser    getUser(UserId);
 
  protected:
   int             getNumberOfExistingModels() const;
+  int             getNumberOfExistingUsers() const;
 
   ChatMap         chats_by_id_;
+  UserMap         users_by_id_;
   MessageModelMap message_models_by_chat_id_;
 };
 

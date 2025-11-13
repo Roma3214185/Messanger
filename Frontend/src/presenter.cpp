@@ -102,6 +102,7 @@ void Presenter::setUser(const User& user, const QString& token) {
            user.tag.toStdString(),
            user.id);
 
+  current_user = user;
   view_->setUser(user);
   setId(user.id);
   manager_->saveToken(token);
@@ -119,6 +120,10 @@ void Presenter::setUser(const User& user, const QString& token) {
 void Presenter::setId(int user_id) {
   current_user_id_ = user_id;
   manager_->setCurrentId(user_id);
+}
+
+void Presenter::setCurrentChatId(int chat_id) {
+  current_chat_id_ = chat_id;
 }
 
 void Presenter::onChatClicked(int chat_id) { openChat(chat_id); }
@@ -157,14 +162,10 @@ void Presenter::findUserRequest(const QString& text) {
 
 void Presenter::openChat(int chat_id) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
-  current_chat_id_ = chat_id;
-  LOG_INFO("1");
+  setCurrentChatId(chat_id);
   message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
-  LOG_INFO("2");
   message_list_view_->scrollToBottom();
-  LOG_INFO("3");
   auto chat = manager_->getChat(chat_id);
-  LOG_INFO("4");
   view_->setChatWindow(chat);
 }
 
@@ -190,11 +191,12 @@ void Presenter::onUserClicked(int user_id, bool is_user) {
 }
 
 void Presenter::sendButtonClicked(const QString& text_to_send) {
-  if (text_to_send.isEmpty() || !current_chat_id_) {
-    if (text_to_send.isEmpty())
-      LOG_WARN("Presenter receive to send empty text");
-    else
-      onErrorOccurred("Presenter doesn't have opened chat");
+  if(!current_chat_id_) {
+    throw std::runtime_error("There is no opened chat");
+  }
+
+  if (text_to_send.isEmpty()) {
+    LOG_WARN("Presenter receive to send empty text");
     return;
   }
 
@@ -207,7 +209,8 @@ void Presenter::sendButtonClicked(const QString& text_to_send) {
   LOG_INFO("Set for message {} local_id {}",
            message_to_send.text.toStdString(),
            message_to_send.local_id.toStdString());
-  newMessage(message_to_send);
+  manager_->addOfflineMessageToChat(message_to_send.chatId, current_user, message_to_send);
+  message_list_view_->scrollToBottom();
   manager_->sendMessage(message_to_send);
 }
 

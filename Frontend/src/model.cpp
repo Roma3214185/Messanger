@@ -55,17 +55,17 @@ T waitForFuture(QFuture<T>& future) {
 
 }  // namespace
 
-Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, ISocket* socket)
+Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, ISocket* socket, DataManager* data_manager)
     : cache_(cash),
       chat_model_(std::make_unique<ChatModel>()),
       user_model_(std::make_unique<UserModel>()),
       current_token_(""),
-      data_manager_(new DataManager()),
-      session_manager_(new SessionManager(netManager, url)),
-      chat_manager_(new ChatManager(netManager, url)),
-      message_manager_(new MessageManager(netManager, url)),
-      user_manager_(new UserManager(netManager, url)),
-      socket_manager_(new SocketManager(socket, url)) {
+      session_manager_(std::make_unique<SessionManager>(netManager, url)),
+      chat_manager_(std::make_unique<ChatManager>(netManager, url)),
+      message_manager_(std::make_unique<MessageManager>(netManager, url)),
+      user_manager_(std::make_unique<UserManager>(netManager, url)),
+      socket_manager_(std::make_unique<SocketManager>(socket, url)),
+      data_manager_(data_manager) {
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'", url.toString().toStdString());
 
   setupConnections();
@@ -76,18 +76,11 @@ void Model::setupConnections() {
     Q_EMIT chatUpdated(chatId);
   });
 
-  connect(session_manager_, &SessionManager::userCreated, this, &Model::userCreated);
-  connect(socket_manager_, &SocketManager::newTextFromSocket, this, &Model::onMessageReceived);
+  connect(session_manager_.get(), &SessionManager::userCreated, this, &Model::userCreated);
+  connect(socket_manager_.get(), &SocketManager::newTextFromSocket, this, &Model::onMessageReceived);
 }
 
-Model::~Model() {
-  delete session_manager_;
-  delete chat_manager_;
-  delete message_manager_;
-  delete user_manager_;
-  delete socket_manager_;
-  delete data_manager_;
-}
+Model::~Model() {}
 
 auto Model::indexByChatId(int chat_id) -> QModelIndex {
   std::optional<int> idx = chat_model_->findIndexByChatId(chat_id);
@@ -194,7 +187,7 @@ void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
     addChatInFront(chat);
   }
 
-  auto message_model = data_manager_->getMessageModel(chat_id);  // TODO: what if nullptr??
+  auto message_model = data_manager_->getMessageModel(chat_id);
   auto user          = getUser(msg.senderId);
 
   if (!user || !message_model) {
@@ -212,6 +205,15 @@ void Model::addMessageToChat(int chat_id, const Message& msg, bool in_front) {
     message_model->addMessage(msg, *user, false);
     chat_model_->updateChat(chat_id, msg.text, msg.timestamp);
   }
+}
+
+void Model::addOfflineMessageToChat(int chat_id, User user, const Message& msg) {
+  auto message_model = data_manager_->getMessageModel(chat_id);
+  if(!message_model) {
+    LOG_ERROR("Invalid message_model");
+    return;
+  }
+  message_model->addMessage(msg, user, true);
 }
 
 void Model::addChatInFront(const ChatPtr& chat) {

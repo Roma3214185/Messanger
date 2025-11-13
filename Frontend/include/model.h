@@ -39,7 +39,8 @@ class Model : public QObject {
   explicit Model(const QUrl&            url,
                  INetworkAccessManager* net_manager,
                  ICache*                cache,
-                 ISocket*               socket);
+                 ISocket*               socket,
+                 DataManager* data_manager);
   ~Model();
 
   ChatModel*                    getChatModel() const;
@@ -67,6 +68,7 @@ class Model : public QObject {
   void                         addChatInFront(const ChatPtr& chat);
   void                         createChat(int chat_id);
   void    addMessageToChat(int chat_id, const Message& msg, bool in_front = false);
+  void    addOfflineMessageToChat(int chat_id, User, const Message&);
   void    deleteToken() const;
   ChatPtr getPrivateChatWithUser(int user_id);
   void    saveToken(const QString& token);
@@ -96,11 +98,11 @@ class Model : public QObject {
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
 
-  SessionManager* session_manager_;
-  ChatManager*    chat_manager_;
-  MessageManager* message_manager_;
-  UserManager*    user_manager_;
-  SocketManager*  socket_manager_;
+  std::unique_ptr<SessionManager> session_manager_;
+  std::unique_ptr<ChatManager>    chat_manager_;
+  std::unique_ptr<MessageManager> message_manager_;
+  std::unique_ptr<UserManager>    user_manager_;
+  std::unique_ptr<SocketManager>  socket_manager_;
   DataManager*    data_manager_;
 };
 

@@ -36,6 +36,9 @@ class Presenter : public QObject {
   void onScroll(int value);
   void setId(int id);
 
+ protected:
+  void setCurrentChatId(int chat_id);
+
  private:
   void initialConnections();
   void setUser(const User& user, const QString& token);
@@ -50,6 +53,7 @@ class Presenter : public QObject {
   IMessageListView*  message_list_view_;
   OptionalInt        current_chat_id_;
   OptionalInt        current_user_id_;
+  User               current_user;
 };
 
 #endif  // PRESENTER_H
