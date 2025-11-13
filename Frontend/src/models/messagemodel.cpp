@@ -45,12 +45,12 @@ std::optional<Message> MessageModel::getLastMessage() {
   return messages_.back();
 }
 
-std::optional<Message> MessageModel::getFirstMessage() {
+std::optional<Message> MessageModel::getOldestMessage() {
   if (messages_.empty()) return std::nullopt;
   return messages_.front();
 }
 
-void MessageModel::addMessage(const Message& msg, const User& user, bool in_front) {
+void MessageModel::addMessage(const Message& msg, const User& user) {
   LOG_INFO("Msg id {} ans local_id {}", msg.id, msg.local_id.toStdString());
   users_by_message_id_[msg.id] = user;
 
@@ -77,13 +77,15 @@ void MessageModel::addMessage(const Message& msg, const User& user, bool in_fron
   }
 
   beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-  if (in_front) {
-    messages_.push_front(msg);
-  } else {
-    messages_.push_back(msg);
-  }
-
+  messages_.push_front(msg);
+  sortMessagesByTimestamp();
   endInsertRows();
+}
+
+void MessageModel::sortMessagesByTimestamp() {
+  std::sort(messages_.begin(), messages_.end(), [](const auto& first_message, const auto& second_message){
+    return first_message.timestamp < second_message.timestamp;
+  });
 }
 
 void MessageModel::clear() {

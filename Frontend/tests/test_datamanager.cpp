@@ -1,9 +1,11 @@
 #include <catch2/catch_all.hpp>
 
 #include "managers/datamanager.h"
+#include "Debug_profiling.h"
 
 struct TestDataManager : public DataManager {
     using DataManager::getNumberOfExistingModels;
+    using DataManager::getNumberOfExistingUsers;
 };
 
 TEST_CASE("Test datamanager works with chats") {
@@ -110,5 +112,62 @@ TEST_CASE("Test datamanager works with chats") {
     data_manager.clearAllMessageModels();
 
     REQUIRE(data_manager.getNumberOfExistingModels() == 0);
+  }
+
+  SECTION("Add valid user expected works") {
+    User valid_user;
+    valid_user.id = 4;
+    data_manager.saveUser(valid_user);
+
+    REQUIRE(data_manager.getNumberOfExistingUsers() == 1);
+  }
+
+  SECTION("Add two users with same id expected add only last one") {
+    int common_user_id = 4;
+    User valid_user;
+    valid_user.id = common_user_id;
+    valid_user.name = "Roma";
+
+    User valid_user2;
+    valid_user2.id = common_user_id;
+    valid_user2.name = "Ivan";
+
+    data_manager.saveUser(valid_user);
+    data_manager.saveUser(valid_user2);
+
+    REQUIRE(data_manager.getNumberOfExistingUsers() == 1);
+    auto returned_user = data_manager.getUser(common_user_id);
+    REQUIRE(returned_user != std::nullopt);
+    auto user_name = returned_user->name;
+    LOG_INFO("Returned name = {}", user_name.toStdString());
+    REQUIRE(returned_user->name == "Ivan");
+  }
+
+  SECTION("Add user with invalid id expecter throw exception") {
+    User invalid_user;
+    invalid_user.id = 0;
+    REQUIRE_THROWS(data_manager.saveUser(invalid_user));
+  }
+
+  SECTION("Add user with invalid id expecter throw exception") {
+    User invalid_user;
+    invalid_user.id = 0;
+    REQUIRE_THROWS(data_manager.saveUser(invalid_user));
+  }
+
+  SECTION("Clear method clear all data") {
+    User valid_user;
+    valid_user.id = 2;
+    data_manager.addChat(private_chat1);
+    data_manager.saveUser(valid_user);
+    REQUIRE(data_manager.getNumberOfExistingChats() == 1);
+    REQUIRE(data_manager.getNumberOfExistingModels() == 1);
+    REQUIRE(data_manager.getNumberOfExistingUsers() == 1);
+
+    data_manager.clearAll();
+
+    REQUIRE(data_manager.getNumberOfExistingChats() == 0);
+    REQUIRE(data_manager.getNumberOfExistingModels() == 0);
+    REQUIRE(data_manager.getNumberOfExistingUsers() == 0);
   }
 }

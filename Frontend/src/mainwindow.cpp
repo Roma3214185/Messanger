@@ -25,6 +25,9 @@ MainWindow::MainWindow(Model* model, QWidget* parent)
   ui_->setupUi(this);
 
   presenter_->initialise();
+  auto message_list_view_ = std::make_unique<MessageListView>();
+  presenter_->setMessageListView(message_list_view_.get());
+
   setDelegators();
   seupConnections();
   setupUI();

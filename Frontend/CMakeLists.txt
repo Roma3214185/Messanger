@@ -34,6 +34,7 @@ add_library(FrontendLib STATIC
     ${FRONTEND_SRC_DIR}/managers/socketmanager.cpp
     ${FRONTEND_SRC_DIR}/managers/BaseManager.cpp
     ${FRONTEND_SRC_DIR}/managers/datamanager.cpp
+    ${FRONTEND_SRC_DIR}/IMessageListView.cpp
 
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
 
@@ -55,6 +56,7 @@ add_library(FrontendLib STATIC
     ${FRONTEND_INC_DIR}/delegators/messagedelegate.h
     ${FRONTEND_INC_DIR}/delegators/UserDelegate.h
     ${FRONTEND_INC_DIR}/delegators/ChatItemDelegate.h
+    ${FRONTEND_INC_DIR}/interfaces/IMessageListView.h
 )
 
 target_include_directories(FrontendLib

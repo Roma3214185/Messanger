@@ -35,9 +35,19 @@ ChatPtr DataManager::getChat(int chat_id) {
 
 int DataManager::getNumberOfExistingChats() const { return chats_by_id_.size(); }
 
+int DataManager::getNumberOfExistingUsers() const { return users_by_id_.size(); }
+
 void DataManager::clearAllChats() { chats_by_id_.clear(); }
 
 void DataManager::clearAllMessageModels() { message_models_by_chat_id_.clear(); }
+
+void DataManager::clearAllUsers() { users_by_id_.clear(); }
+
+void DataManager::clearAll() {
+  clearAllUsers();
+  clearAllMessageModels();
+  clearAllChats();
+}
 
 void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   if(chat->chat_id <= 0) throw std::runtime_error("Invalid id to add chat");
@@ -47,3 +57,14 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
 }
+
+void DataManager::saveUser(User user) {
+  if(user.id <= 0) throw std::runtime_error("User id is invalid");
+  users_by_id_[user.id] = user;
+}
+
+std::optional<User> DataManager::getUser(UserId user_id) {
+  auto it = users_by_id_.find(user_id);
+  return it == users_by_id_.end() ? std::nullopt : std::make_optional(it->second);
+}
+

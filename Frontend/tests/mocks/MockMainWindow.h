@@ -6,11 +6,12 @@
 class MockMainWindow : public IMainWindow {
  public:
   void setUser(const User& user) override {
-
+    ++call_setUser;
   }
 
-  void setChatWindow(std::shared_ptr<ChatBase> chat) override {
 
+  void setChatWindow(std::shared_ptr<ChatBase> chat) override {
+    ++call_setChatWindow;
   }
 
   void setChatModel(ChatModel* model) override {
@@ -36,6 +37,9 @@ class MockMainWindow : public IMainWindow {
   void setCurrentChatIndex(QModelIndex idx) override {
 
   }
+
+  int call_setUser = 0;
+  int call_setChatWindow = 0;
 };
 
 #endif // MOCKMAINWINDOW_H
