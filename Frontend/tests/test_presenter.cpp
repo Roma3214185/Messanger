@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QUrl>
 #include <catch2/catch_all.hpp>
+#include <QSignalSpy>
 
 #include "MessageListView.h"
 #include "interfaces/IMainWindow.h"
@@ -12,6 +13,13 @@
 #include "mocks/MockCache.h"
 #include "mocks/FakeSocket.h"
 #include "mocks/MockMessageListView.h"
+#include "managers/datamanager.h"
+
+class TestPresenter : public Presenter {
+  public:
+    using Presenter::Presenter;
+    using Presenter::setCurrentChatId;
+};
 
 TEST_CASE("Test presenter communication with other classes", "[presenter]") {
   auto* reply = new MockReply();
@@ -19,10 +27,11 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
   FakeSocket fake_socket;
   QUrl url("");
   MockCache cache;
-  Model model(url, &netManager, &cache, &fake_socket);
+  DataManager data_manager;
+  Model model(url, &netManager, &cache, &fake_socket, &data_manager);
   MockMainWindow window;
   MockMessageListView message_list_view;
-  Presenter presenter(&window, &model);
+  TestPresenter presenter(&window, &model);
   presenter.setMessageListView(&message_list_view);
 
   SECTION("Initialise function tries to check existing token") {
@@ -42,6 +51,46 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     presenter.onChatClicked(chat_id);
 
     REQUIRE(window.call_setChatWindow == before_calls + 1);
+  }
+
+  SECTION("Add chat expexted emitted signal chat Added") {
+    auto private_chat = ChatFactory::createPrivateChat(2, "t", "e", 4, "e");
+    QSignalSpy chat_added(&model, &Model::chatAdded);
+    int before = chat_added.count();
+    MockReply* mockReply = new MockReply();
+    netManager.setReply(mockReply);
+
+    model.addChat(private_chat);
+
+    REQUIRE(chat_added.count() == before + 1);
+  }
+
+  SECTION("Send message with wothout opened chat expected throw exception") {
+    QString message_to_send = "Hi, i'm from test";
+    REQUIRE_THROWS(presenter.sendButtonClicked(message_to_send));
+  }
+
+  int chat_id = 2;
+  int user_id = 4;
+  presenter.setCurrentChatId(chat_id);
+  auto private_chat = ChatFactory::createPrivateChat(chat_id, "r", "3", user_id, "o");
+  data_manager.addChat(private_chat);
+  presenter.setId(user_id);
+
+  SECTION("Send message with valid chat_id expected socket gets message to send") {
+    QString message_to_send = "Hi, i'm from test";
+    int before = fake_socket.sendTextMessage_calls;
+    presenter.sendButtonClicked(message_to_send);
+
+    REQUIRE(fake_socket.sendTextMessage_calls == before + 1);
+  }
+
+  SECTION("Send empty message expected message not send") {
+    QString message_to_send = "";
+    int before = fake_socket.sendTextMessage_calls;
+    presenter.sendButtonClicked(message_to_send);
+
+    REQUIRE(fake_socket.sendTextMessage_calls == before);
   }
 
 
