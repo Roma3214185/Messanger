@@ -39,6 +39,7 @@ class Presenter : public QObject {
  protected:
   void setCurrentChatId(int chat_id);
   void newMessage(Message& message);
+  void onNewResponce(QJsonObject& json_object);
 
  private:
   void initialConnections();
@@ -46,7 +47,6 @@ class Presenter : public QObject {
   void openChat(int chat_id);
   void onErrorOccurred(const QString& error);
   void onChatUpdated(int chat_id);
-  void onNewResponce(QJsonObject& json_object);
 
   IMainWindow*       view_;
   Model*             manager_;

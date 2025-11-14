@@ -9,19 +9,9 @@
 #include "RabbitMQClient.h"
 #include "managers/JwtUtils.h"
 #include "managers/MessageManager.h"
+#include "interfaces/IConfigProvider.h"
 
 namespace {
-
-constexpr int kSuccessfullStatusCode = 200;
-constexpr int kServerError           = 500;
-constexpr int kUserError             = 400;
-
-const std::string kSavingMessageStatusEvent = "save_message_status";
-const std::string kSavingMessageEvent       = "save_message";
-const std::string kMessageSaved             = "message_saved";
-const std::string kExchange                 = "app.events";
-const std::string kMessageQueue             = "message_service_queue";
-const std::string kMessageStatusSaved       = "message_status_saved";
 
 void sendResponse(crow::response& res, int code, const std::string& text) {
   res.code = code;
@@ -39,79 +29,91 @@ int getBeforeId(const crow::request& req) {
   return req.url_params.get("before_id") ? std::stoi(req.url_params.get("before_id")) : 0;
 }
 
-}  // namespace
-
-Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client, MessageManager* manager)
-    : app_(app), manager_(manager), mq_client_(mq_client) {
-  subscribeSaveMessage();
-  subscribeSaveMessageStatus();
-}
-
-void Controller::handleSaveMessage(const std::string& payload) {
-  LOG_INFO("Save message hanling {}", payload);
+template<typename T>
+std::optional<T> parsePayload(const std::string& payload) {
   nlohmann::json parsed;
   try {
     parsed = nlohmann::json::parse(payload);
   } catch (...) {
     LOG_ERROR("Failed to parse message payload");
-    return;
+    return std::nullopt;
   }
+  return parsed.get<T>();
+}
 
-  auto msg = parsed.get<Message>();
+}  // namespace
 
-  LOG_INFO("Get message to save with id {} and text {}", msg.id, msg.text);
+Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
+                       MessageManager* manager, IConfigProvider* provider)
+    : app_(app), manager_(manager), mq_client_(mq_client), provider_(provider) {
+  subscribeSaveMessage();
+  subscribeSaveMessageStatus();
+}
 
-  pool_.enqueue([this, msg]() mutable {
-    bool ok = manager_->saveMessage(msg);
+void Controller::handleSaveMessage(const std::string& payload) {
+  std::optional<Message> msg  = parsePayload<Message>(payload); //TODO: alias
+  if(msg == std::nullopt) return;
+
+  auto message = *msg;
+  LOG_INFO("Get message to save with id {} and text {}", message.id, message.text);
+
+  pool_.enqueue([this, message]() mutable {
+    bool ok = manager_->saveMessage(message);
     if (!ok) {
-      LOG_ERROR("Error saving message id {}", msg.id);
-    } else {
-      mq_client_->publish(kExchange, kMessageSaved, nlohmann::json(msg).dump());
-      // TODO: kMessageSaved
+      LOG_ERROR("Error saving message id {}", message.id);
+      return;
     }
+
+    PublishRequest request;
+    request.exchange = provider_->routes().exchange;
+    request.message = provider_->routes().messageSaved;
+    request.message = nlohmann::json(message).dump(); // can be error excahnge type
+
+    mq_client_->publish(request);
+    // TODO: kMessageSaved
   });
 }
 
 void Controller::subscribeSaveMessage() {
-  mq_client_->subscribe(
-      kMessageQueue,
-      kExchange,
-      kSavingMessageEvent,
-      [this](const std::string& event, const std::string& payload) { handleSaveMessage(payload); },
-      "topic");
+  SubscribeRequest request;
+  request.queue = provider_->routes().messageQueue;
+  request.exchange = provider_->routes().exchange;
+  request.routingKey = provider_->routes().saveMessage;
+
+  mq_client_->subscribe(request,
+      [this](const std::string& event, const std::string& payload) { handleSaveMessage(payload); });
 }
 
 void Controller::subscribeSaveMessageStatus() {
-  mq_client_->subscribe(
-      kMessageQueue,
-      kExchange,
-      kSavingMessageStatusEvent,
+  SubscribeRequest request;
+  request.queue = provider_->routes().messageQueue;
+  request.exchange = provider_->routes().exchange;
+  request.routingKey = provider_->routes().saveMessageStatus;
+  mq_client_->subscribe(request,
       [this](const std::string& event, const std::string& payload) {
         LOG_INFO("Save message_status hanling {}", payload);
         handleSaveMessageStatus(payload);
-      },
-      "topic");
+      });
 }
 
 void Controller::handleSaveMessageStatus(const std::string& payload) {
-  nlohmann::json parsed;
+  std::optional<MessageStatus> message_status = parsePayload<MessageStatus>(payload);
+  if(message_status == std::nullopt) return;
 
-  try {
-    parsed = nlohmann::json::parse(payload);
-  } catch (...) {
-    LOG_ERROR("Failed to parse message_status payload");
-    return;
-  }
-
-  auto status = parsed.get<MessageStatus>();
+  auto status = *message_status;
 
   pool_.enqueue([this, status]() mutable {
-    bool ok = manager_->saveMessageStatus(status);
-    if (!ok) {
+    if (!manager_->saveMessageStatus(status)) {
       LOG_ERROR("Error saving message_status id {}", status.message_id);
-    } else {
-      mq_client_->publish(kExchange, kMessageStatusSaved, nlohmann::json(status).dump());
+      return;
     }
+
+    PublishRequest request; // topic type was
+    request.exchange = provider_->routes().exchange;
+    request.routingKey = provider_->routes().messageStatusSaved;
+    request.message = nlohmann::json(status).dump();
+
+    mq_client_->publish(request);
   });
 }
 
@@ -123,7 +125,7 @@ void Controller::getMessagesFromChat(const crow::request& req,
 
   if (!current_user_id) {  // TODO(roma): make check if u have acess to
                            // ges these messagess
-    sendResponse(responce, kUserError, "Invalid or expired token");
+    sendResponse(responce, provider_->statusCodes().userError, "Invalid or expired token");
     return;
   }
 
@@ -137,7 +139,7 @@ void Controller::getMessagesFromChat(const crow::request& req,
   LOG_INFO("For chat '{}' finded '{}' messages", chat_id, messages.size());
 
   crow::json::wvalue res = formMessageListJson(messages, *current_user_id);
-  sendResponse(responce, kSuccessfullStatusCode, res.dump());
+  sendResponse(responce, provider_->statusCodes().success, res.dump());
 }
 
 crow::json::wvalue Controller::formMessageListJson(const std::vector<Message>& messages,

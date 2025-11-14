@@ -205,8 +205,7 @@ void Model::addMessageToChat(int chat_id, const Message& msg) {
 
   message_model->addMessage(msg, *user);
   auto last_chat_message = message_model->getLastMessage();
-  assert(last_chat_message != std::nullopt);
-  chat_model_->updateChatInfo(chat_id, *last_chat_message);
+  chat_model_->updateChatInfo(chat_id, last_chat_message);
 }
 
 void Model::addOfflineMessageToChat(int chat_id, User user, const Message& msg) {

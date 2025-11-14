@@ -1,22 +1,32 @@
 #include <crow.h>
-
 #include <QCoreApplication>
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
-#include "managers/networkmanager.h"
+#include "NetworkFacade.h"
 #include "managers/notificationmanager.h"
 #include "server.h"
+#include "NetworkManager.h"
+#include "ProdConfigProvider.h"
 
-const int     NOTIFICATION_PORT = 8086;
-constexpr int kRabitMQPort      = 5672;
+RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
+  RabbitMQConfig config;
+  config.host = "localhost";
+  config.port = provider.ports().rabitMQ;
+  config.user = "guest";
+  config.password = "guest";
+  return config;
+}
 
 int main(int argc, char* argv[]) {
   QCoreApplication    a(argc, argv);
-  RabbitMQClient      mq("localhost", kRabitMQPort, "guest", "guest");
+  ProdConfigProvider provider;
+  RabbitMQConfig config = getConfig(provider);
+  RabbitMQClient      mq(config);
   SocketsManager      sockManager;
-  NetworkManager      netManager;
-  NotificationManager notifManager(mq, sockManager, netManager);
-  Server              server(NOTIFICATION_PORT, notifManager);
+  NetworkManager network_manager;
+  NetworkFacade net_repository = NetworkFactory::create(&network_manager);
+  NotificationManager notifManager(&mq, sockManager, net_repository);
+  Server              server(provider.ports().notificationService, notifManager);
   server.run();
 }

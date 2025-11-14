@@ -7,6 +7,8 @@
 class ICacheService {
  public:
   virtual ~ICacheService()                                             = default;
+  virtual void                          clearPrefix(const std::string& key) = 0;
+  virtual void                          clearCache() = 0;
   virtual void                          remove(const std::string& key) = 0;
   virtual void                          incr(const std::string& key)   = 0;
   virtual bool                          exists(const std::string& key) = 0;

@@ -1,6 +1,7 @@
 #include <QCoreApplication>
+#include <catch2/catch_all.hpp>
 
 int main(int argc, char* argv[]) {
   QCoreApplication app(argc, argv);
-  return app.exec();
+  return Catch::Session().run(argc, argv);
 }

@@ -6,22 +6,21 @@
 #include "SqlExecutor.h"
 #include "authmanager.h"
 #include "server.h"
-
-const int AUTH_PORT = 8083;
-
-void genereteKeys();
+#include "SqlExecutor.h"
+#include "ProdConfigProvider.h"
 
 int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
   init_logger("AuthService");
 
-  SQLiteDatabase    db;
-  SqlExecutor       executor(db);
+  SQLiteDatabase db;
+  SqlExecutor executor(db);
   GenericRepository rep(db, executor, RedisCache::instance());
 
   AuthManager manager(rep);
+  ProdConfigProvider provider;
 
-  Server server(AUTH_PORT, &manager);
+  Server server(provider.ports().authService, &manager);
   server.run();
 
   return 0;

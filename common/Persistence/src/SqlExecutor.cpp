@@ -2,7 +2,7 @@
 
 SqlExecutor::SqlExecutor(IDataBase& database) : database_(database) {}
 
-bool SqlExecutor::execute(const QString& sql, const QList<QVariant>& values, QSqlQuery& outQuery) {
+bool SqlExecutor::execute(const QString& sql, QSqlQuery& outQuery, const QList<QVariant>& values) {
   PROFILE_SCOPE("[SqlExecutor] Execute");
 
   auto tread_db = database_.getThreadDatabase();
@@ -32,9 +32,9 @@ bool SqlExecutor::execute(const QString& sql, const QList<QVariant>& values, QSq
 }
 
 std::optional<long long> SqlExecutor::executeReturningId(const QString&         sql,
-                                                         const QList<QVariant>& values,
-                                                         QSqlQuery&             outQuery) {
-  if (!execute(sql, values, outQuery)) return std::nullopt;
+                                                         QSqlQuery&             outQuery,
+                                                         const QList<QVariant>& values) {
+  if (!execute(sql, outQuery, values)) return std::nullopt;
 
   if (!outQuery.next()) {
     LOG_WARN("No row returned for SQL returning ID: {}", sql.toStdString());

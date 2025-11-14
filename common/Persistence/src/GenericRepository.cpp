@@ -22,4 +22,4 @@ GenericRepository::GenericRepository(IDataBase&     database,
                                      ThreadPool*    pool)
     : database_(database), executor_(executor), cache_(cache), pool_(pool) {}
 
-void GenericRepository::clearCache() {}  // cache_.clearCache(); }
+void GenericRepository::clearCache() { cache_.clearCache(); }

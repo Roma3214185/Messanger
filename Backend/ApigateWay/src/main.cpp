@@ -1,8 +1,9 @@
 #include "gatewayserver.h"
+#include "ProdConfigProvider.h"
 
 int main() {
-  const int     port = std::stoi(std::getenv("PORT") ? std::getenv("PORT") : "8084");
-  GatewayServer server(port);
+  ProdConfigProvider provider;
+  GatewayServer server(provider.ports().apigateService);
   server.run();
   return 0;
 }

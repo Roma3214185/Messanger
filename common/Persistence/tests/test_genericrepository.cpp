@@ -262,4 +262,17 @@ TEST_CASE("Test integration with cache while saving") {
     auto json = cache.get(entityKey);
     REQUIRE(nlohmann::json(member) == json);
   }
+
+  SECTION("Clear cache expected clear all data") {
+    ChatMember member;
+    member.chat_id        = 3;
+    member.user_id        = 4;
+    std::string entityKey = "entity_cache:chat_members:3, 4";
+    rep.save(member);
+    REQUIRE(cache.exists(entityKey));
+
+    rep.clearCache();
+
+    REQUIRE_FALSE(cache.exists(entityKey));
+  }
 }

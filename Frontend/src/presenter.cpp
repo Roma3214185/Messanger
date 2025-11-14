@@ -53,6 +53,7 @@ void Presenter::onNewResponce(QJsonObject& json_object) {
   const QString openedType     = "opened";
   const QString newMessageType = "new_message";
 
+  if(current_user_id_ == std::nullopt) throw std::runtime_error("User isn't inialised");
   if (type == openedType) {
     LOG_INFO("Open type");
     manager_->initSocket(*current_user_id_);

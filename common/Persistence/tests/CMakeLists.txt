@@ -18,6 +18,8 @@ find_package(Catch2 3 REQUIRED)
 add_executable(PersistenceTests
     test_genericrepository.cpp
     test_query.cpp
+    test_sqlitedatabase.cpp
+    main.cpp
 )
 
 target_link_libraries(PersistenceTests

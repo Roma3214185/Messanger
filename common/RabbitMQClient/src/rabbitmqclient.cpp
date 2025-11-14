@@ -1,11 +1,7 @@
 #include "RabbitMQClient.h"
 
-RabbitMQClient::RabbitMQClient(const std::string& host,
-                               int                port,
-                               const std::string& user,
-                               const std::string& password,
-                               size_t             thread_pool_size)
-    : pool_(thread_pool_size), host_(host), port_(port), user_(user), password_(password) {}
+RabbitMQClient::RabbitMQClient(const RabbitMQConfig& rabit_mq_config, size_t thread_pool_size)
+    : pool_(thread_pool_size), rabit_mq_config_(rabit_mq_config) {}
 
 RabbitMQClient::~RabbitMQClient() { stop(); }
 
@@ -14,7 +10,8 @@ void RabbitMQClient::declareExchange(const std::string& exchange,
                                      bool               durable) {
   if (declared_exchanges_.count(exchange)) return;
   try {
-    auto channel = AmqpClient::Channel::Create(host_, port_, user_, password_);
+    auto channel = AmqpClient::Channel::Create(rabit_mq_config_.host, rabit_mq_config_.port,
+                                               rabit_mq_config_.user, rabit_mq_config_.password);
     channel->DeclareExchange(exchange, type, durable, false, false);
     declared_exchanges_.insert(exchange);
     LOG_INFO("[rabbit] Declared exchange '{}'", exchange);
@@ -23,52 +20,41 @@ void RabbitMQClient::declareExchange(const std::string& exchange,
   }
 }
 
-void RabbitMQClient::publish(const std::string& exchange,
-                             const std::string& routingKey,
-                             const std::string& message,
-                             const std::string& exchangeType) {
-  declareExchange(exchange, exchangeType, true);
+void RabbitMQClient::publish(const PublishRequest& publish_request) {
+  declareExchange(publish_request.exchange, publish_request.exchangeType, true);
   try {
-    auto channel = AmqpClient::Channel::Create(host_, port_, user_, password_);
-    auto msg     = AmqpClient::BasicMessage::Create(message);
+    auto channel = AmqpClient::Channel::Create(rabit_mq_config_.host, rabit_mq_config_.port,
+                                               rabit_mq_config_.user, rabit_mq_config_.password);
+    auto msg     = AmqpClient::BasicMessage::Create(publish_request.message);
     msg->DeliveryMode(AmqpClient::BasicMessage::dm_persistent);
-    channel->BasicPublish(exchange, routingKey, msg);
+    channel->BasicPublish(publish_request.exchange, publish_request.routingKey, msg);
     LOG_INFO("[rabbit] Published message '{}' to exchange '{}' with key '{}'",
-             message,
-             exchange,
-             routingKey);
+             publish_request.message,
+             publish_request.exchange,
+             publish_request.exchangeType);
   } catch (const std::exception& e) {
     LOG_ERROR("[rabbit] Publish failed: {}", e.what());
   }
 }
 
-void RabbitMQClient::subscribe(
-    const std::string&                                                               queue,
-    const std::string&                                                               exchange,
-    const std::string&                                                               routingKey,
-    const std::function<void(const std::string& event, const std::string& payload)>& callback,
-    const std::string&                                                               exchangeType) {
+void RabbitMQClient::subscribe(const SubscribeRequest& subscribe_request,
+                               const EventCallback& callback) {
   running_ = true;
 
   auto consumer_thread = std::thread([=]() {
     try {
-      auto channel = AmqpClient::Channel::Create(host_, port_, user_, password_);
+      auto channel = AmqpClient::Channel::Create(rabit_mq_config_.host, rabit_mq_config_.port,
+                                                 rabit_mq_config_.user, rabit_mq_config_.password);
+      channel->DeclareExchange(subscribe_request.exchange, subscribe_request.exchangeType, true, false, false);
+      channel->DeclareQueue(subscribe_request.queue, false, false, false, false);
+      channel->BindQueue(subscribe_request.queue, subscribe_request.exchange, subscribe_request.routingKey);
 
-      // Declare exchange (safe even if it already exists)
-      channel->DeclareExchange(exchange, exchangeType, true, false, false);
+      LOG_INFO("[rabbit] Queue '{}' bound to exchange '{}' with key '{}'",
+               subscribe_request.queue, subscribe_request.exchange, subscribe_request.routingKey);
 
-      // Declare queue (durable)
-      channel->DeclareQueue(queue, false, false, false, false);
-
-      // Bind queue to exchange with routing key
-      channel->BindQueue(queue, exchange, routingKey);
-
-      LOG_INFO(
-          "[rabbit] Queue '{}' bound to exchange '{}' with key '{}'", queue, exchange, routingKey);
-
-      // Start consuming
-      std::string consumerTag = channel->BasicConsume(queue, "", false, false, false);
-      LOG_INFO("[rabbit] Subscribed to '{}':'{}' in queue '{}'", exchange, routingKey, queue);
+      std::string consumerTag = channel->BasicConsume(subscribe_request.queue, "", false, false, false);
+      LOG_INFO("[rabbit] Subscribed to '{}':'{}' in queue '{}'", subscribe_request.exchange,
+               subscribe_request.routingKey, subscribe_request.queue);
 
       while (running_) {
         AmqpClient::Envelope::ptr_t envelope;

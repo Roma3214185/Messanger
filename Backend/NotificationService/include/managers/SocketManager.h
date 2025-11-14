@@ -1,20 +1,21 @@
 #ifndef SOCKETMANAGER_H
 #define SOCKETMANAGER_H
 
-#include <crow.h>
+#include <unordered_map>
 
-using WebsocketPtr     = crow::websocket::connection*;
-using UserId           = int;
-using WebsocketByIdMap = std::unordered_map<UserId, WebsocketPtr>;
+#include "interfaces/ISocket.h"
+
+using UserId = int;
+using SocketsByIdMap = std::unordered_map<UserId, ISocket*>;
 
 class SocketsManager {
  public:
-  void         saveConnections(int user_id, WebsocketPtr socket);
-  void         deleteConnections(WebsocketPtr conn);
-  WebsocketPtr getUserSocket(int user_id);
+  void      saveConnections(UserId, ISocket* socket);
+  void      deleteConnections(ISocket* conn);
+  ISocket*  getUserSocket(UserId);
 
  private:
-  WebsocketByIdMap user_sockets_;
+  SocketsByIdMap user_sockets_;
 };
 
 #endif  // SOCKETMANAGER_H

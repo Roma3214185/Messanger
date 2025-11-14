@@ -15,10 +15,10 @@
 class SqlExecutor : public ISqlExecutor {
  public:
   explicit SqlExecutor(IDataBase& database);
-  bool execute(const QString& sql, const QList<QVariant>& values, QSqlQuery& outQuery) override;
+  bool execute(const QString& sql, QSqlQuery& outQuery, const QList<QVariant>& values = {}) override;
   std::optional<long long> executeReturningId(const QString&         sql,
-                                              const QList<QVariant>& values,
-                                              QSqlQuery&             outQuery) override;
+                                              QSqlQuery&             outQuery,
+                                              const QList<QVariant>& values = {}) override;
 
  private:
   IDataBase& database_;

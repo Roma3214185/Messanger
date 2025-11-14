@@ -35,21 +35,18 @@ add_executable(MessageService
   ${MESSAGE_SERVICE_SRC_DIR}/controller.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/server.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/messageworker.cpp
-  ${MESSAGE_SERVICE_SRC_DIR}/managers/notificationmanager.cpp
-  ${MESSAGE_SERVICE_SRC_DIR}/managers/NetworkManager.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/managers/MessageManager.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/JwtUtils.cpp
 )
 
 target_link_libraries(MessageService PRIVATE
-  # Qt${QT_VERSION_MAJOR}::Core
-  # Qt${QT_VERSION_MAJOR}::WebSockets
-  # Qt${QT_VERSION_MAJOR}::Sql
   Crow::Crow
   Entities
   RabbitMQClient
   jwt-cpp
   nlohmann_json::nlohmann_json
+  Constants
+  NetworkManager
 )
 
 include_directories(
