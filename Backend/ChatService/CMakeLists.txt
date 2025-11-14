@@ -5,15 +5,6 @@ find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(spdlog REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-include(FetchContent)
-
-FetchContent_Declare(
-    httplib
-    GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
-    GIT_TAG v0.11.2
-)
-FetchContent_MakeAvailable(httplib)
-
 set(CHAT_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CHAT_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_package(nlohmann_json REQUIRED)
@@ -23,7 +14,6 @@ add_executable(ChatService
     ${CHAT_SERVICE_SRC_DIR}/database.cpp
     ${CHAT_SERVICE_SRC_DIR}/controller.cpp
     ${CHAT_SERVICE_SRC_DIR}/server.cpp
-    ${CHAT_SERVICE_SRC_DIR}/NetworkManager.cpp
     ${CHAT_SERVICE_SRC_DIR}/chatmanager.cpp
 )
 
@@ -40,6 +30,7 @@ target_link_libraries(ChatService PRIVATE
     nlohmann_json::nlohmann_json
     RabbitMQClient
     Entities
+    NetworkManager
 )
 
 include_directories(/opt/homebrew/include)

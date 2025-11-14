@@ -7,16 +7,14 @@
 #include "managers/networkmanager.h"
 #include "managers/notificationmanager.h"
 #include "server.h"
-
-const int     NOTIFICATION_PORT = 8086;
-constexpr int kRabitMQPort      = 5672;
+#include "ports.h"
 
 int main(int argc, char* argv[]) {
   QCoreApplication    a(argc, argv);
-  RabbitMQClient      mq("localhost", kRabitMQPort, "guest", "guest");
+  RabbitMQClient      mq("localhost", ports::RabitMqPort, "guest", "guest");
   SocketsManager      sockManager;
   NetworkManager      netManager;
-  NotificationManager notifManager(mq, sockManager, netManager);
-  Server              server(NOTIFICATION_PORT, notifManager);
+  NotificationManager notifManager(&mq, sockManager, &netManager);
+  Server              server(ports::NotificationServicePort, notifManager);
   server.run();
 }

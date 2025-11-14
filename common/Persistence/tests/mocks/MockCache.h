@@ -25,6 +25,15 @@ class MockCache : public ICacheService {
     return true;
   }
 
+  void clearCache() override {
+    cache.clear();
+    mp.clear();
+  }
+
+  void clearPrefix(const std::string& prefix) override {
+
+  }
+
   int set_calls          = 0;
   int set_pipeline_calls = 0;
 

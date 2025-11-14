@@ -13,8 +13,9 @@
 
 #include "Debug_profiling.h"
 #include "ThreadPool.h"
+#include "interfaces/IRabitMQClient.h"
 
-class RabbitMQClient {
+class RabbitMQClient : public IRabitMQClient {
  public:
   RabbitMQClient(const std::string& host,
                  int                port,
@@ -26,14 +27,14 @@ class RabbitMQClient {
   void publish(const std::string& exchange,
                const std::string& routingKey,
                const std::string& message,
-               const std::string& exchangeType = "direct");
+               const std::string& exchangeType = "direct") override;
 
   void subscribe(
       const std::string&                                                               queue,
       const std::string&                                                               exchange,
       const std::string&                                                               routingKey,
       const std::function<void(const std::string& event, const std::string& payload)>& callback,
-      const std::string& exchangeType = "direct");
+      const std::string& exchangeType = "direct") override;
 
   void stop();
 

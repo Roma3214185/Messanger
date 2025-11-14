@@ -28,16 +28,6 @@ add_executable(FrontendServiceTests
     mocks/MockMessageListView.h
 )
 
-add_custom_command(TARGET FrontendServiceTests POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/Frontend/config
-        $<TARGET_FILE_DIR:FrontendServiceTests>/config
-)
-
-target_compile_definitions(FrontendServiceTests
-    PRIVATE CONFIG_DOMAINS_PATH="${CMAKE_SOURCE_DIR}/Frontend/config/domains.txt"
-)
-
 set_target_properties(FrontendServiceTests PROPERTIES
     AUTOMOC ON
     AUTOUIC ON

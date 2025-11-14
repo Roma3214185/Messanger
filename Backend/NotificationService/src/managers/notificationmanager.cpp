@@ -1,7 +1,7 @@
 #include "managers/notificationmanager.h"
 
 #include "Debug_profiling.h"
-#include "RabbitMQClient.h"
+#include "interfaces/IRabitMQClient.h"
 #include "managers/SocketManager.h"
 #include "managers/networkmanager.h"
 
@@ -11,15 +11,16 @@ const std::string kSaveMessageStatus = "save_message_status";
 const std::string kNotificationQueue = "notification_service_queue";
 const std::string kExchange          = "app.events";
 
-NotificationManager::NotificationManager(RabbitMQClient& mq_client,
+NotificationManager::NotificationManager(IRabitMQClient* mq_client,
                                          SocketsManager& sock_manager,
-                                         NetworkManager& network_manager)
-    : mq_client_(mq_client), socket_manager_(sock_manager), network_manager_(network_manager) {
+                                         NetworkManager* network_manager)
+    : mq_client_(mq_client), socket_manager_(sock_manager)
+    , network_manager_(network_manager) {
   subscribeMessageSaved();
 }
 
 void NotificationManager::subscribeMessageSaved() {
-  mq_client_.subscribe(
+  mq_client_->subscribe(
       kNotificationQueue,
       kExchange,
       kMessageSaved,
@@ -45,7 +46,7 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
 
   LOG_INFO("Received saved message id {} text '{}'", saved_message.id, saved_message.text);
 
-  auto chat_members = network_manager_.getMembersOfChat(saved_message.chat_id);
+  auto chat_members = network_manager_->getMembersOfChat(saved_message.chat_id);
   for (auto user_id : chat_members) {
     auto* socket = socket_manager_.getUserSocket(user_id);
     if (!socket) {
@@ -103,13 +104,13 @@ void NotificationManager::onSendMessage(Message& message) {
 
   auto to_save     = nlohmann::json(message);
   to_save["event"] = "save_message";
-  mq_client_.publish(kExchange, kSaveMessage, to_save.dump());
+  mq_client_->publish(kExchange, kSaveMessage, to_save.dump());
 }
 
 void NotificationManager::onMessageStatusSaved() {}
 
 void NotificationManager::onMessageSaved(Message& message) {
-  auto members_of_chat = network_manager_.getMembersOfChat(message.chat_id);
+  auto members_of_chat = network_manager_->getMembersOfChat(message.chat_id);
 
   LOG_INFO("Message('{}') is saved with id '{}'", message.text, message.id);
   LOG_INFO("For chat id '{}' finded '{}' members", message.chat_id, members_of_chat.size());
@@ -139,7 +140,7 @@ void NotificationManager::sendMessageToUser(int user_id, Message& message) {
 void NotificationManager::saveMessageStatus(MessageStatus& status) {
   auto status_json = nlohmann::json(status);
 
-  mq_client_.publish(kExchange, kSaveMessageStatus, status_json.dump());
+  mq_client_->publish(kExchange, kSaveMessageStatus, status_json.dump());
 }
 
 void NotificationManager::onUserSaved() {}

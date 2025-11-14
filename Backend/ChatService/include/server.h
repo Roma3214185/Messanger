@@ -10,10 +10,11 @@
 #include "database.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
+class NetworkManager;
 
 class Server {
  public:
-  Server(const int port, ChatManager* manager);
+  Server(const int port, ChatManager* manager, NetworkManager* network_manager);
   void run();
 
  private:

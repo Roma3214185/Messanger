@@ -17,11 +17,11 @@ class RedisCache : public ICacheService {
   using json = nlohmann::json;
 
   static RedisCache& instance();
-  void               clearCache();
   void               incr(const std::string& key) override;
   void               remove(const std::string& key) override;
   bool               exists(const std::string& key) override;
-  void               clearPrefix(const std::string& prefix);
+  void               clearCache() override;
+  void               clearPrefix(const std::string& prefix) override;
 
   void setPipelines(const std::vector<std::string>&    keys,
                     const std::vector<nlohmann::json>& results,

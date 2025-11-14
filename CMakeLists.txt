@@ -36,6 +36,8 @@ add_subdirectory(common/Metrics build_metrics)
 add_subdirectory(common/RedisCache build_redis)
 add_subdirectory(common/RabbitMQClient build_rabbit)
 add_subdirectory(common/Persistence build_persistence)
+add_subdirectory(common/NetworkManager build_networkmanager)
+add_subdirectory(common/constants build_constants)
 
 # -------------------------
 # Microservices
@@ -58,3 +60,4 @@ include(CTest)
 enable_testing()
 add_subdirectory(common/Persistence/tests)
 add_subdirectory(Frontend/tests)
+add_subdirectory(Backend/NotificationService/tests)

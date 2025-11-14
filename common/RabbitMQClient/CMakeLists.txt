@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(rabbitmq-c REQUIRED CONFIG)
 
-add_library(RabbitMQClient STATIC src/rabbitmqclient.cpp)
+add_library(RabbitMQClient STATIC src/rabbitmqclient.cpp
+    include/interfaces/IRabitMQClient.h)
 
 target_include_directories(RabbitMQClient
     PUBLIC

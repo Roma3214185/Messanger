@@ -3,8 +3,11 @@
 #include "entities/MessageStatus.h"
 #include "managers/NetworkManager.h"
 
+NotificationManager::NotificationManager(NetworkManager* network_manager)
+    : network_manager_(network_manager) {}
+
 void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& status) {
-  auto members = NetworkManager::getMembersOfChat(chat_id);
+  auto members = network_manager_->getMembersOfChat(chat_id);
   for (int userId : members) {
     if (user_sockets_.find(userId) == user_sockets_.end()) {
       crow::json::wvalue msgJson;

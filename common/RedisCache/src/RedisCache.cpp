@@ -47,8 +47,6 @@ void RedisCache::incr(const std::string& key) {
   redis_->incr(key);
 }
 
-void RedisCache::clearCache() { redis_->flushdb(); }
-
 RedisCache& RedisCache::instance() {
   static RedisCache inst;
   return inst;
@@ -116,4 +114,8 @@ void RedisCache::setPipelines(const std::vector<std::string>&    keys,
   } catch (const sw::redis::Error& e) {
     LOG_ERROR("Redis pipeline failed: {}", e.what());
   }
+}
+
+void RedisCache::clearCache() {
+  redis_->flushall();
 }

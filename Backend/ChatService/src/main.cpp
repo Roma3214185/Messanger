@@ -9,6 +9,8 @@
 #include "controller.h"
 #include "database.h"
 #include "server.h"
+#include "NetworkManager.h"
+#include "ports.h"
 
 const int kChatServicePort = 8081;
 
@@ -19,7 +21,8 @@ int main(int argc, char* argv[]) {
   SqlExecutor       executor(database);
   GenericRepository genetic_rep(database, executor, RedisCache::instance());
   ChatManager       manager(&genetic_rep);
-  Server            server(kChatServicePort, &manager);
-  LOG_INFO("Chat service on port '{}'", kChatServicePort);
+  NetworkManager    network_manager;
+  Server            server(ports::ChatServicePort, &manager, &network_manager);
+  LOG_INFO("Chat service on port '{}'", ports::ChatServicePort);
   server.run();
 }

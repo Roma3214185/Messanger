@@ -1,23 +1,23 @@
 #ifndef BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 #define BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 
-#include "RabbitMQClient.h"
+#include "interfaces/IRabitMQClient.h"
 #include "SocketManager.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
 
 class NetworkManager;
-class RabbitMQClient;
+class IRabitMQClient;
 
 class NotificationManager {
-  RabbitMQClient& mq_client_;
+  IRabitMQClient* mq_client_;
   SocketsManager& socket_manager_;
-  NetworkManager& network_manager_;
+  NetworkManager* network_manager_;
 
  public:
-  NotificationManager(RabbitMQClient& mq_client,
+  NotificationManager(IRabitMQClient* mq_client,
                       SocketsManager& sock_manager,
-                      NetworkManager& network_manager);
+                      NetworkManager* network_manager);
   void notifyMessageRead(int chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, int user_id);
   void saveConnections(int user_id, WebsocketPtr socket);

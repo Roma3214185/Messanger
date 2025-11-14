@@ -7,8 +7,7 @@
 #include "authmanager.h"
 #include "server.h"
 #include "SqlExecutor.h"
-
-const int AUTH_PORT = 8083;
+#include "ports.h"
 
 void genereteKeys();
 
@@ -22,7 +21,7 @@ int main(int argc, char* argv[]) {
 
   AuthManager manager(rep);
 
-  Server server(AUTH_PORT, &manager);
+  Server server(ports::AuthServicePort, &manager);
   server.run();
 
   return 0;

@@ -8,9 +8,7 @@
 #include "managers/MessageManager.h"
 #include "managers/notificationmanager.h"
 #include "server.h"
-
-const int     MESSAGE_PORT = 8082;
-constexpr int kRabitMQPort = 5672;
+#include "ports.h"
 
 int main(int argc, char* argv[]) {
   init_logger("MessageService");
@@ -32,12 +30,12 @@ int main(int argc, char* argv[]) {
   RabbitMQClient* mq = nullptr;
 
   try {
-    mq = new RabbitMQClient("localhost", kRabitMQPort, "guest", "guest");
+    mq = new RabbitMQClient("localhost", ports::RabitMqPort, "guest", "guest");
   } catch (const AmqpClient::AmqpLibraryException& e) {
     LOG_ERROR("Cannot connect to RabbitMQ: {}", e.what());
   }
 
-  Server server(MESSAGE_PORT, &manager, mq);
+  Server server(ports::MessageServicePort, &manager, mq);
   server.run();
 
   return a.exec();

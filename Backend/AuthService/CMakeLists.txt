@@ -44,6 +44,7 @@ target_link_libraries(AuthService PRIVATE
   jwt-cpp
   sodium
   Entities
+  Constants
   nlohmann_json::nlohmann_json
 )
 

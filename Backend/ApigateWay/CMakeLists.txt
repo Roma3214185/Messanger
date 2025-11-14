@@ -50,6 +50,7 @@ target_link_libraries(ApiGateWay PRIVATE
     jwt-cpp
     Metrics
     nlohmann_json::nlohmann_json
+    Constants
 )
 
 set_target_properties(ApiGateWay PROPERTIES
