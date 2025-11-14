@@ -1,0 +1,11 @@
+geninfo_options = --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+
+remove_patterns =
+    /usr/*
+    */_deps/*
+    */tests/*
+    */build/*
+    */include/*
+    */main.cpp
+    *.h
+    *.hpp
