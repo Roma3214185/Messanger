@@ -14,6 +14,8 @@ find_package(Catch2 3 REQUIRED)
 add_executable(NotificationServiceTests
     test_notificationmanager.cpp
     main.cpp
+    mocks/MockConfigProvider.h
+    mocks/MockSocket.h
     #mocks/MockRabitMQClient.h
 )
 

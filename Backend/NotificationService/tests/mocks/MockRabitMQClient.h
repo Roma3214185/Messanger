@@ -7,6 +7,8 @@ class MockRabitMQClient : public IRabitMQClient {
   public:
     virtual void publish(const PublishRequest& request) override {
       last_publish_request = request;
+      publish_mp[request.routingKey]++;
+      publish_cnt++;
     }
 
     virtual void subscribe(const SubscribeRequest& request, const EventCallback& cb) override {
@@ -22,6 +24,12 @@ class MockRabitMQClient : public IRabitMQClient {
       last_callback(last_subscribe_request.routingKey, payload);
     }
 
+    int getPublishCnt(const std::string& routingKey) {
+      return publish_mp[routingKey];
+    }
+
+    int publish_cnt = 0;
+    std::unordered_map<std::string, int> publish_mp;
     PublishRequest last_publish_request;
     SubscribeRequest last_subscribe_request;
     EventCallback last_callback;

@@ -51,19 +51,7 @@ void NotificationManager::subscribeMessageSaved() {
 void NotificationManager::handleMessageSaved(const std::string& payload) {
   auto parsed = parsePayload<Message>(payload);
   if (!parsed) return;
-
-  Message saved_message = *parsed;
-
-  LOG_INFO("Received saved message id {} text '{}'", saved_message.id, saved_message.text);
-
-  auto chat_members = fetchChatMembers(saved_message.chat_id);
-
-  for (auto user_id : chat_members) {
-    if (!notifyMember(user_id, saved_message))
-      continue;
-
-    saveDeliveryStatus(saved_message, user_id);
-  }
+  onMessageSaved(*parsed);
 }
 
 void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& status_message) {}
@@ -106,28 +94,17 @@ void NotificationManager::onSendMessage(Message& message) {
 
 void NotificationManager::onMessageStatusSaved() {}
 
-void NotificationManager::onMessageSaved(Message& message) {
-  auto members_of_chat = network_facade_.chat().getMembersOfChat(message.chat_id);
+void NotificationManager::onMessageSaved(Message& saved_message) {
+  auto members_of_chat = fetchChatMembers(saved_message.chat_id);
+  LOG_INFO("For chat id '{}' finded '{}' members", saved_message.chat_id, members_of_chat.size());
 
-  LOG_INFO("Message('{}') is saved with id '{}'", message.text, message.id);
-  LOG_INFO("For chat id '{}' finded '{}' members", message.chat_id, members_of_chat.size());
+  LOG_INFO("Received saved message id {} text '{}'", saved_message.id, saved_message.text);
 
-  for (auto toUser : std::as_const(members_of_chat)) {
-    MessageStatus messageStatus{.message_id = message.id, .receiver_id = toUser, .is_read = false};
-
-    saveMessageStatus(messageStatus);
-    sendMessageToUser(toUser, message);
+  auto chat_members = fetchChatMembers(saved_message.chat_id);
+  for (auto user_id : chat_members) {
+    saveDeliveryStatus(saved_message, user_id);
+    notifyMember(user_id, saved_message);
   }
-}
-
-void NotificationManager::sendMessageToUser(int user_id, Message& message) {
-  auto user_socket = socket_manager_.getUserSocket(user_id);
-  if (!user_socket) {
-    LOG_INFO("User offline");
-    return;
-  }
-
-  user_socket->send_text(nlohmann::json(message).dump());
 }
 
 void NotificationManager::saveMessageStatus(MessageStatus& status) {
@@ -153,7 +130,7 @@ bool NotificationManager::notifyMember(int user_id, const Message& msg) {
     return false;
   }
 
-  auto json_message = to_crow_json(msg);
+  auto json_message = nlohmann::json(msg);
   json_message["type"] = "new_message";
 
   socket->send_text(json_message.dump());

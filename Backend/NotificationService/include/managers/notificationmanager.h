@@ -27,7 +27,6 @@ class NotificationManager {
   void notifyNewMessages(Message& message, int user_id);
   void deleteConnections(ISocket* conn);
   void userConnected(int user_id, ISocket* conn);
-  void sendMessageToUser(int user_id, Message& message);
   void saveMessageStatus(MessageStatus& message);
   void saveDeliveryStatus(const Message& msg, int receiver_id);
   bool notifyMember(int user_id, const Message& msg);
