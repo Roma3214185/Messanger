@@ -13,6 +13,7 @@ class SocketsManager {
   void      saveConnections(UserId, ISocket* socket);
   void      deleteConnections(ISocket* conn);
   ISocket*  getUserSocket(UserId);
+  bool userOnline(UserId);
 
  private:
   SocketsByIdMap user_sockets_;

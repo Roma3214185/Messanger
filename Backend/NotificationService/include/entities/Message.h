@@ -45,10 +45,11 @@ struct adl_serializer<Message> {
 
 inline Message from_crow_json(const crow::json::rvalue& j) {
   Message m;
-  if (j.count("id"))
+  if (j.count("id")) {
     m.id = j["id"].i();
-  else
+  } else {
     m.id = 0;
+  }
 
   m.chat_id   = j["chat_id"].i();
   m.sender_id = j["sender_id"].i();
@@ -56,14 +57,22 @@ inline Message from_crow_json(const crow::json::rvalue& j) {
   m.local_id  = j["local_id"].s();
 
   if (j.count("timestamp")) {
-    QString   ts = QString::fromStdString(j["timestamp"].s());
-    QDateTime dt = QDateTime::fromString(ts, Qt::ISODate);
-    if (!dt.isValid()) {
-      m.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
-    } else {
-      m.timestamp = dt.toSecsSinceEpoch();
+
+    if (j["timestamp"].t() == crow::json::type::Number) {
+      m.timestamp = j["timestamp"].i();
     }
-  } else {
+    else if (j["timestamp"].t() == crow::json::type::String) {
+      QString ts = QString::fromStdString(j["timestamp"].s());
+      QDateTime dt = QDateTime::fromString(ts, Qt::ISODate);
+      m.timestamp = dt.isValid()
+                        ? dt.toSecsSinceEpoch()
+                        : QDateTime::currentDateTime().toSecsSinceEpoch();
+    }
+    else {
+      m.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
+    }
+  }
+  else {
     m.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
   }
 

@@ -16,6 +16,8 @@ add_executable(NotificationServiceTests
     main.cpp
     mocks/MockConfigProvider.h
     mocks/MockSocket.h
+    test_server.cpp
+    mocks/MockNetworkManager.h
     #mocks/MockRabitMQClient.h
 )
 

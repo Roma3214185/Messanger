@@ -2,7 +2,6 @@
 #define BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 
 #include "interfaces/IRabitMQClient.h"
-#include "SocketManager.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
 #include "ProdConfigProvider.h"
