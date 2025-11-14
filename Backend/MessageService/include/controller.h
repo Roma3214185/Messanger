@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "ThreadPool.h"
+#include "ProdConfigProvider.h"
 
 class Message;
 class MessageManager;
@@ -16,7 +17,8 @@ class RabbitMQClient;
 
 class Controller {
  public:
-  Controller(crow::SimpleApp& app, RabbitMQClient* mq_client, MessageManager* manager);
+  Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
+              MessageManager* manager, IConfigProvider* provider = &ProdConfigProvider::instance());
   void getMessagesFromChat(const crow::request& req, int chat_id, crow::response& res);
 
  private:
@@ -31,6 +33,7 @@ class Controller {
   crow::SimpleApp& app_;
   MessageManager*  manager_;
   RabbitMQClient*  mq_client_;
+  IConfigProvider* provider_;
   ThreadPool       pool_{4};
 };
 

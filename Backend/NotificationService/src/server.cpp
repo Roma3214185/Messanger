@@ -3,6 +3,7 @@
 #include <crow.h>
 
 #include "managers/notificationmanager.h"
+#include "CrowSocket.h"
 
 Server::Server(int port, NotificationManager& notification_manager)
     : notification_manager_(notification_manager), notification_port_(port) {
@@ -27,7 +28,8 @@ void Server::handleSocketRoutes() {
       })
       .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
         LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason, code);
-        notification_manager_.deleteConnections(&conn);
+        CrowSocket socket(&conn);
+        notification_manager_.deleteConnections(&socket);
       })
       .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
         handleSocketOnMessage(conn, data, is_binary);
@@ -51,7 +53,8 @@ void Server::handleSocketOnMessage(crow::websocket::connection& conn,
 
   if (message_ptr["type"].s() == "init") {
     int user_id = message_ptr["user_id"].i();
-    notification_manager_.userConnected(user_id, &conn);
+    CrowSocket socket(&conn);
+    notification_manager_.userConnected(user_id, &socket);
     LOG_INFO("[onMessage] Socket is registered for userId '{}'", user_id);
   } else if (message_ptr["type"].s() == "send_message") {
     auto message = from_crow_json(message_ptr);

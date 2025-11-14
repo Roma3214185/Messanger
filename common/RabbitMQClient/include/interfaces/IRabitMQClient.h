@@ -4,21 +4,26 @@
 #include <string>
 #include <functional>
 
+struct PublishRequest{
+  std::string exchange;
+  std::string routingKey;
+  std::string message;
+  std::string exchangeType = "topic";
+};
+
+struct SubscribeRequest{
+    std::string queue;
+    std::string exchange;
+    std::string routingKey;
+    std::string exchangeType = "topic";
+};
+
 class IRabitMQClient {
   public:
+    using EventCallback = std::function<void(const std::string& event, const std::string& payload)>;
     virtual ~IRabitMQClient() = default;
-    virtual void publish(const std::string& exchange,
-                 const std::string& routingKey,
-                 const std::string& message,
-                 const std::string& exchangeType = "direct") = 0;
-
-    virtual void subscribe(
-        const std::string&                                                               queue,
-        const std::string&                                                               exchange,
-        const std::string&                                                               routingKey,
-        const std::function<void(const std::string& event, const std::string& payload)>& callback,
-        const std::string& exchangeType = "direct") = 0;
-
+    virtual void publish(const PublishRequest&) = 0;
+    virtual void subscribe(const SubscribeRequest&, const EventCallback&) = 0;
     virtual void stop() = 0;
 };
 

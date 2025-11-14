@@ -9,10 +9,20 @@
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
 
+RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
+  RabbitMQConfig config;
+  config.host = "localhost";
+  config.port = provider.ports().rabitMQ;
+  config.user = "guest";
+  config.password = "guest";
+  return config;
+}
+
 int main(int argc, char* argv[]) {
   QCoreApplication    a(argc, argv);
   ProdConfigProvider provider;
-  RabbitMQClient      mq("localhost", provider.ports().rabitMQ, "guest", "guest");
+  RabbitMQConfig config = getConfig(provider);
+  RabbitMQClient      mq(config);
   SocketsManager      sockManager;
   NetworkManager network_manager;
   NetworkFacade net_repository = NetworkFactory::create(&network_manager);

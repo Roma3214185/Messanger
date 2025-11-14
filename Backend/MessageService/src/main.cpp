@@ -10,6 +10,24 @@
 #include "server.h"
 #include "ProdConfigProvider.h"
 
+RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
+  RabbitMQConfig config;
+  config.host = "localhost";
+  config.port = provider.ports().rabitMQ;
+  config.password = "guest";
+  config.user = "guest";
+  return config;
+}
+
+std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config) {
+  try {
+    return std::make_unique<RabbitMQClient>(config);
+  } catch (const AmqpClient::AmqpLibraryException& e) {
+    LOG_ERROR("Cannot connect to RabbitMQ: {}", e.what());
+    return nullptr;
+  }
+}
+
 int main(int argc, char* argv[]) {
   init_logger("MessageService");
   QCoreApplication  a(argc, argv);
@@ -27,17 +45,13 @@ int main(int argc, char* argv[]) {
                                                 message_status_delete_batcher);
 
   MessageManager  manager(&genetic_rep, &message_batcher, &message_status_batcher);
-  RabbitMQClient* mq = nullptr;
 
   ProdConfigProvider provider;
+  RabbitMQConfig config = getConfig(provider);
+  auto mq = createRabbitMQClient(config);
+  if(!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
 
-  try {
-    mq = new RabbitMQClient("localhost", provider.ports().rabitMQ, "guest", "guest");
-  } catch (const AmqpClient::AmqpLibraryException& e) {
-    LOG_ERROR("Cannot connect to RabbitMQ: {}", e.what());
-  }
-
-  Server server(provider.ports().messageService, &manager, mq);
+  Server server(provider.ports().messageService, &manager, mq.get());
   server.run();
 
   return a.exec();
