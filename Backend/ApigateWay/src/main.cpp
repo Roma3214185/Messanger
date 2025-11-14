@@ -1,9 +1,9 @@
 #include "gatewayserver.h"
-
-#include "ports.h"
+#include "ProdConfigProvider.h"
 
 int main() {
-  GatewayServer server(ports::ApigateServicePort);
+  ProdConfigProvider provider;
+  GatewayServer server(provider.ports().apigateService);
   server.run();
   return 0;
 }

@@ -5,6 +5,7 @@
 #include "entities/User.h"
 #include "NetworkManager.h"
 #include "codes.h"
+#include "interfaces/IConfigProvider.h"
 
 using std::optional;
 using std::string;
@@ -19,21 +20,22 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
 
 }  // namespace
 
-Controller::Controller(crow::SimpleApp& app, ChatManager* manager, NetworkManager* network_manager)
-    : app_(app), manager_(manager), network_manager_(network_manager) {}
+Controller::Controller(crow::SimpleApp& app, ChatManager* manager,
+                       NetworkManager* network_manager, IConfigProvider* provider)
+    : app_(app), manager_(manager), network_manager_(network_manager), provider_(provider) {}
 
 void Controller::createPrivateChat(const crow::request& req, crow::response& res) {
   auto auth_header = req.get_header_value("Authorization");
 
   optional<int> my_id = JwtUtils::verifyTokenAndGetUserId(auth_header);
   if (!my_id) {
-    sendResponse(res, codes::userError, "Invalid or expired token");
+    sendResponse(res, provider_->statusCodes().userError, "Invalid or expired token");
     return;
   }
 
   auto body = crow::json::load(req.body);
   if (!body || !body.has("user_id")) {
-    sendResponse(res, codes::userError, "Missing user_id value");
+    sendResponse(res, provider_->statusCodes().userError, "Missing user_id value");
     return;
   }
 
@@ -41,13 +43,13 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
   optional<User> user    = network_manager_->getUserById(user_id);
 
   if (!user) {
-    sendResponse(res, codes::userError, "User not found");
+    sendResponse(res, provider_->statusCodes().userError, "User not found");
     return;
   }
 
   auto chat_id = manager_->createPrivateChat();
   if (!chat_id) {
-    sendResponse(res, codes::serverError, "Failed to create chat");
+    sendResponse(res, provider_->statusCodes().userError, "Failed to create chat");
     return;
   }
 
@@ -56,7 +58,7 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
   std::vector members{*my_id, user_id};
   bool        wasAddedMembers = manager_->addMembersToChat(*chat_id, members);
   if (!wasAddedMembers) {
-    sendResponse(res, codes::serverError, "Failed to add users to chat");
+    sendResponse(res, provider_->statusCodes().serverError, "Failed to add users to chat");
     return;
   }
 
@@ -67,14 +69,14 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
   result["avatar"]  = user->avatar;
   result["user_id"] = user->id;
 
-  sendResponse(res, codes::success, result.dump());
+  sendResponse(res, provider_->statusCodes().success, result.dump());
 }
 
 void Controller::getAllChats(const crow::request& req, crow::response& res) {
   string token   = req.get_header_value("Authorization");
   auto   user_id = JwtUtils::verifyTokenAndGetUserId(token);
   if (!user_id) {
-    sendResponse(res, codes::userError, "Invalid or expired token");
+    sendResponse(res, provider_->statusCodes().userError, "Invalid or expired token");
     return;
   }
 
@@ -98,14 +100,14 @@ void Controller::getAllChats(const crow::request& req, crow::response& res) {
       auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
       if (!other_user_id) {
         LOG_ERROR("I can't get other member id for chat {}", chat.id);
-        sendResponse(res, codes::serverError, "Member not found");
+        sendResponse(res, provider_->statusCodes().serverError, "Member not found");
         return;
       }
 
       auto user = network_manager_->getUserById(*other_user_id);
       if (!user) {
         LOG_ERROR("I can't get user with id '{}'", *other_user_id);
-        sendResponse(res, codes::serverError, "User not found");
+        sendResponse(res, provider_->statusCodes().serverError, "User not found");
         return;
       }
 
@@ -117,28 +119,28 @@ void Controller::getAllChats(const crow::request& req, crow::response& res) {
     ans["chats"][i++] = std::move(chat_json);
   }
 
-  sendResponse(res, codes::success, ans.dump());
+  sendResponse(res, provider_->statusCodes().success, ans.dump());
 }
 
 void Controller::getAllChatsById(const crow::request& req, crow::response& res, int chat_id) {
   string token = req.get_header_value("Authorization");
   if (token.empty()) {
     LOG_ERROR("[GetAllChatsById] Missing token");
-    sendResponse(res, codes::userError, "Missing token");
+    sendResponse(res, provider_->statusCodes().userError, "Missing token");
     return;
   }
 
   auto user_id = JwtUtils::verifyTokenAndGetUserId(token);
   if (!user_id) {
     LOG_ERROR("[GetAllChatsById] can't verify token");
-    sendResponse(res, codes::userError, "Invalid or expired token");
+    sendResponse(res, provider_->statusCodes().userError, "Invalid or expired token");
     return;
   }
 
   auto chat_opt = manager_->getChatById(chat_id);
   if (!chat_opt) {
     LOG_ERROR("[GetAllChatsById] Chat with id '{}' not found", *user_id);
-    sendResponse(res, codes::userError, "Chat not found");
+    sendResponse(res, provider_->statusCodes().userError, "Chat not found");
     return;
   }
 
@@ -168,14 +170,14 @@ void Controller::getAllChatsById(const crow::request& req, crow::response& res, 
     }
   }
 
-  sendResponse(res, codes::success, chat_json.dump());
+  sendResponse(res, provider_->statusCodes().success, chat_json.dump());
 }
 
 void Controller::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
   std::vector<int> list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");
-    sendResponse(res, codes::serverError, "Error in db.getMembersOfChat");
+    sendResponse(res, provider_->statusCodes().serverError, "Error in db.getMembersOfChat");
     return;
   }
 
@@ -189,5 +191,5 @@ void Controller::getAllChatMembers(const crow::request& req, crow::response& res
     ans["members"][i++] = member_id;
   }
 
-  sendResponse(res, codes::success, ans.dump());
+  sendResponse(res, provider_->statusCodes().success, ans.dump());
 }

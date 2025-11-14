@@ -2,8 +2,6 @@
 
 #include <httplib.h>
 
-#include "codes.h"
-
 using std::pair;
 using std::string;
 using std::vector;
@@ -36,7 +34,7 @@ pair<int, string> INetworkManagerBase::forward(
   }
 
   if (!res) {
-    return {codes::serverError, "Bad Gateway: downstream no response"};
+    return {provider_->statusCodes().serverError, "Bad Gateway: downstream no response"};
   }
 
   return {res->status, res->body};

@@ -20,7 +20,6 @@ class NotificationManager {
                       NetworkFacade& network_facade);
   void notifyMessageRead(int chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, int user_id);
-  void saveConnections(int user_id, WebsocketPtr socket);
   void deleteConnections(WebsocketPtr conn);
   void userConnected(int user_id, WebsocketPtr conn);
   void onMarkReadMessage(Message& message, int read_by);

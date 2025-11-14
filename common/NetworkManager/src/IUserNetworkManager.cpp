@@ -9,9 +9,9 @@
 
 std::optional<User> IUserNetworkManager::getUserById(int otherUserId) {
   std::string path = "/users/" + std::to_string(otherUserId);
-  auto        res  = forward(ports::UserServicePort, "", path, "GET");
+  auto        res  = forward(provider_->ports().userService, "", path, "GET");
 
-  if (res.first != 200) {
+  if (res.first != provider_->statusCodes().success) {
     LOG_ERROR("getUserById failed: {}", res.first);
     return std::nullopt;
   }

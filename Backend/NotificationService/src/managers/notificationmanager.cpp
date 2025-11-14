@@ -72,16 +72,14 @@ void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& st
 
 void NotificationManager::notifyNewMessages(Message& message, int user_id) {}
 
-void NotificationManager::saveConnections(int user_id, WebsocketPtr socket) {
-  socket_manager_.saveConnections(user_id, socket);
-}
-
 void NotificationManager::deleteConnections(WebsocketPtr conn) {
-  socket_manager_.deleteConnections(conn);
+  CrowSocket crow_socket(conn);
+  socket_manager_.deleteConnections(&crow_socket);
 }
 
 void NotificationManager::userConnected(int user_id, WebsocketPtr conn) {
-  saveConnections(user_id, conn);
+  CrowSocket crow_socket(conn);
+  socket_manager_.saveConnections(user_id, &crow_socket);
   // notify users who communicate with this user
 }
 

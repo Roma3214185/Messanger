@@ -1,20 +1,24 @@
 #include "managers/socketmanager.h"
+#include "Debug_profiling.h"
 
-void SocketsManager::saveConnections(int user_id, WebsocketPtr socket) {
+void SocketsManager::saveConnections(int user_id, ISocket* socket) {
   user_sockets_[user_id] = socket;
 }
 
-void SocketsManager::deleteConnections(WebsocketPtr conn) {
+void SocketsManager::deleteConnections(ISocket* conn_to_delete) {
   for (auto it = user_sockets_.begin(); it != user_sockets_.end(); ++it) {
-    if (it->second == conn) {
+    if (it->second == conn_to_delete) {
       user_sockets_.erase(it);
-      break;
+      return;
     }
   }
+  LOG_WARN("Connection to delete not found");
 }
 
-WebsocketPtr SocketsManager::getUserSocket(int user_id) {
+ISocket* SocketsManager::getUserSocket(int user_id) {
   auto find = user_sockets_.find(user_id);
-  if (find == user_sockets_.end()) return nullptr;
+  if (find == user_sockets_.end()) {
+    return nullptr;
+  }
   return find->second;
 }

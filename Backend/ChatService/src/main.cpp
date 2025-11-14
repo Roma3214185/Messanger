@@ -10,9 +10,7 @@
 #include "database.h"
 #include "server.h"
 #include "NetworkManager.h"
-#include "ports.h"
-
-const int kChatServicePort = 8081;
+#include "ProdConfigProvider.h"
 
 int main(int argc, char* argv[]) {
   init_logger("ChatService");
@@ -22,7 +20,8 @@ int main(int argc, char* argv[]) {
   GenericRepository genetic_rep(database, executor, RedisCache::instance());
   ChatManager       manager(&genetic_rep);
   NetworkManager    network_manager;
-  Server            server(ports::ChatServicePort, &manager, &network_manager);
-  LOG_INFO("Chat service on port '{}'", ports::ChatServicePort);
+  ProdConfigProvider provider;
+  Server            server(provider.ports().chatService, &manager, &network_manager);
+  LOG_INFO("Chat service on port '{}'", provider.ports().chatService);
   server.run();
 }

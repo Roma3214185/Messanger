@@ -5,15 +5,13 @@
 #include <QJsonObject>
 
 #include "Debug_profiling.h"
-#include "ports.h"
-#include "codes.h"
 
 QVector<UserId> IChatNetworkManager::getMembersOfChat(int chat_id) {
   QVector<UserId> members;
   std::string     path = "/chats/" + std::to_string(chat_id) + "/members";
 
-  auto res = forward(ports::MessageServicePort, "", path, "GET");
-  if (res.first != codes::success) {
+  auto res = forward(provider_->ports().messageService, "", path, "GET");
+  if (res.first != provider_->statusCodes().success) {
     LOG_ERROR("GetMembersOfChat failed '{}' and reason: '{}' ", res.first, res.second);
     return members;
   }

@@ -1,16 +1,14 @@
 #ifndef PORTS_H
 #define PORTS_H
 
-namespace ports {
-
-constexpr int AuthServicePort         = 8083;
-constexpr int UserServicePort         = 8083;
-constexpr int ChatServicePort         = 8082;
-constexpr int NotificationServicePort = 8086;
-constexpr int ApigateServicePort      = 8084;
-constexpr int MessageServicePort      = 8082;
-constexpr int RabitMqPort             = 5672;
-
-}
+struct Ports {
+  int authService         = 8083;
+  int userService         = 8083;
+  int chatService         = 8081;
+  int notificationService = 8086;
+  int apigateService      = 8084;
+  int messageService      = 8082;
+  int rabitMQ             = 5672;
+};
 
 #endif // PORTS_H

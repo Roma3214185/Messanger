@@ -8,7 +8,7 @@
 #include "managers/MessageManager.h"
 #include "managers/notificationmanager.h"
 #include "server.h"
-#include "ports.h"
+#include "ProdConfigProvider.h"
 
 int main(int argc, char* argv[]) {
   init_logger("MessageService");
@@ -29,13 +29,15 @@ int main(int argc, char* argv[]) {
   MessageManager  manager(&genetic_rep, &message_batcher, &message_status_batcher);
   RabbitMQClient* mq = nullptr;
 
+  ProdConfigProvider provider;
+
   try {
-    mq = new RabbitMQClient("localhost", ports::RabitMqPort, "guest", "guest");
+    mq = new RabbitMQClient("localhost", provider.ports().rabitMQ, "guest", "guest");
   } catch (const AmqpClient::AmqpLibraryException& e) {
     LOG_ERROR("Cannot connect to RabbitMQ: {}", e.what());
   }
 
-  Server server(ports::MessageServicePort, &manager, mq);
+  Server server(provider.ports().messageService, &manager, mq);
   server.run();
 
   return a.exec();

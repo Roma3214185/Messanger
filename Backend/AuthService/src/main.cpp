@@ -7,9 +7,7 @@
 #include "authmanager.h"
 #include "server.h"
 #include "SqlExecutor.h"
-#include "ports.h"
-
-void genereteKeys();
+#include "ProdConfigProvider.h"
 
 int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
@@ -20,8 +18,9 @@ int main(int argc, char* argv[]) {
   GenericRepository rep(db, executor, RedisCache::instance());
 
   AuthManager manager(rep);
+  ProdConfigProvider provider;
 
-  Server server(ports::AuthServicePort, &manager);
+  Server server(provider.ports().authService, &manager);
   server.run();
 
   return 0;
