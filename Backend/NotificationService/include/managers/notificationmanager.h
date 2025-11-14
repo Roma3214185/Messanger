@@ -10,22 +10,23 @@ class NetworkFacade;
 class IRabitMQClient;
 class ISocket;
 class IConfigProvider;
+class SocketsManager;
 
 class NotificationManager {
   IRabitMQClient* mq_client_;
-  SocketsManager& socket_manager_;
+  SocketsManager* socket_manager_;
   NetworkFacade& network_facade_;
   IConfigProvider* provider_;
 
  public:
   NotificationManager(IRabitMQClient* mq_client,
-                      SocketsManager& sock_manager,
+                      SocketsManager* sock_manager,
                       NetworkFacade& network_facade,
                       IConfigProvider* provider = &ProdConfigProvider::instance());
   void notifyMessageRead(int chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, int user_id);
   void deleteConnections(ISocket* conn);
-  void userConnected(int user_id, ISocket* conn);
+  virtual void userConnected(int user_id, ISocket* conn);
   void saveMessageStatus(MessageStatus& message);
   void saveDeliveryStatus(const Message& msg, int receiver_id);
   bool notifyMember(int user_id, const Message& msg);
@@ -37,7 +38,7 @@ class NotificationManager {
   virtual void handleMessageSaved(const std::string& payload);
 
  protected:
-  QVector<UserId> fetchChatMembers(int chat_id);
+  QVector<int> fetchChatMembers(int chat_id);
   void subscribeMessageSaved();
 };
 

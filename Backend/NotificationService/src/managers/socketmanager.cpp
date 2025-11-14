@@ -15,6 +15,10 @@ void SocketsManager::deleteConnections(ISocket* conn_to_delete) {
   LOG_WARN("Connection to delete not found");
 }
 
+bool SocketsManager::userOnline(UserId user_id) {
+  return user_sockets_.find(user_id) != user_sockets_.end();
+}
+
 ISocket* SocketsManager::getUserSocket(int user_id) {
   auto find = user_sockets_.find(user_id);
   if (find == user_sockets_.end()) {

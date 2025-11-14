@@ -5,7 +5,7 @@
 #include "managers/notificationmanager.h"
 #include "CrowSocket.h"
 
-Server::Server(int port, NotificationManager& notification_manager)
+Server::Server(int port, NotificationManager* notification_manager)
     : notification_manager_(notification_manager), notification_port_(port) {
   initRoutes();
 }

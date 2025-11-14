@@ -3,22 +3,24 @@
 
 #include <crow.h>
 
+
 class NotificationManager;
+class ISocket;
 
 class Server {
  public:
-  Server(int port, NotificationManager& notification_manager);
+  Server(int port, NotificationManager* notification_manager);
   void run();
+
+ protected:
+  void handleSocketOnMessage(ISocket* socket, const std::string& data);
 
  private:
   void initRoutes();
   void handleSocketRoutes();
-  void handleSocketOnMessage(crow::websocket::connection& conn,
-                             const std::string&           data,
-                             bool                         is_binary);
 
   crow::SimpleApp      app_;
-  NotificationManager& notification_manager_;
+  NotificationManager* notification_manager_;
   const int            notification_port_;
 };
 

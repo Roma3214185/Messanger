@@ -8,6 +8,7 @@
 #include "server.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
+#include "managers/socketmanager.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   RabbitMQConfig config;
@@ -26,7 +27,7 @@ int main(int argc, char* argv[]) {
   SocketsManager      sockManager;
   NetworkManager network_manager;
   NetworkFacade net_repository = NetworkFactory::create(&network_manager);
-  NotificationManager notifManager(&mq, sockManager, net_repository);
-  Server              server(provider.ports().notificationService, notifManager);
+  NotificationManager notifManager(&mq, &sockManager, net_repository);
+  Server              server(provider.ports().notificationService, &notifManager);
   server.run();
 }
