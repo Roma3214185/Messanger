@@ -11,14 +11,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-include(FetchContent)
-FetchContent_Declare(
-    httplib
-    GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
-    GIT_TAG v0.11.2
-)
-FetchContent_MakeAvailable(httplib)
-
 find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql Test)
 find_package(spdlog REQUIRED)
 find_package(nlohmann_json REQUIRED)

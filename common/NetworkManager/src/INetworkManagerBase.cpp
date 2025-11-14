@@ -1,4 +1,4 @@
-#include "interfaces/INetworkManager.h"
+#include "interfaces/INetworkManagerBase.h"
 
 #include <httplib.h>
 
@@ -9,7 +9,7 @@ using std::string;
 using std::vector;
 using std::unique_ptr;
 
-pair<int, string> INetworkManager::forward(
+pair<int, string> INetworkManagerBase::forward(
                           int                                 port,
                           const string&                       body,
                           const string&                       path,

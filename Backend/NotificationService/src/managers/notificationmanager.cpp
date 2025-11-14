@@ -3,7 +3,7 @@
 #include "Debug_profiling.h"
 #include "interfaces/IRabitMQClient.h"
 #include "managers/SocketManager.h"
-#include "managers/networkmanager.h"
+#include "NetworkFacade.h"
 
 const std::string kMessageSaved      = "message_saved";
 const std::string kSaveMessage       = "save_message";
@@ -13,9 +13,9 @@ const std::string kExchange          = "app.events";
 
 NotificationManager::NotificationManager(IRabitMQClient* mq_client,
                                          SocketsManager& sock_manager,
-                                         NetworkManager* network_manager)
+                                         NetworkFacade& network_facade)
     : mq_client_(mq_client), socket_manager_(sock_manager)
-    , network_manager_(network_manager) {
+    , network_facade_(network_facade) {
   subscribeMessageSaved();
 }
 
@@ -46,7 +46,7 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
 
   LOG_INFO("Received saved message id {} text '{}'", saved_message.id, saved_message.text);
 
-  auto chat_members = network_manager_->getMembersOfChat(saved_message.chat_id);
+  auto chat_members = network_facade_.chat().getMembersOfChat(saved_message.chat_id);
   for (auto user_id : chat_members) {
     auto* socket = socket_manager_.getUserSocket(user_id);
     if (!socket) {
@@ -110,7 +110,7 @@ void NotificationManager::onSendMessage(Message& message) {
 void NotificationManager::onMessageStatusSaved() {}
 
 void NotificationManager::onMessageSaved(Message& message) {
-  auto members_of_chat = network_manager_->getMembersOfChat(message.chat_id);
+  auto members_of_chat = network_facade_.chat().getMembersOfChat(message.chat_id);
 
   LOG_INFO("Message('{}') is saved with id '{}'", message.text, message.id);
   LOG_INFO("For chat id '{}' finded '{}' members", message.chat_id, members_of_chat.size());

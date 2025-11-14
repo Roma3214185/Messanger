@@ -8,7 +8,7 @@
 #include "entities/Message.h"
 
 class MessageStatus;
-class NetworkManager;
+class NetworkFacade;
 
 using WebsocketPtr     = crow::websocket::connection*;
 using UserId           = int;
@@ -17,7 +17,7 @@ using WebsocketByIdMap = std::unordered_map<UserId, WebsocketPtr>;
 
 class NotificationManager {
  public:
-  NotificationManager(NetworkManager* network_manager);
+  NotificationManager(NetworkFacade& network_facade);
   void notifyMessageRead(int chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, int user_id);
   void saveConnections(int user_id, WebsocketPtr socket);
@@ -25,7 +25,7 @@ class NotificationManager {
 
  private:
   WebsocketByIdMap user_sockets_;
-  NetworkManager* network_manager_;
+  NetworkFacade& network_facade_;
 };
 
 #endif  // BACKEND_MESSAGESERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_

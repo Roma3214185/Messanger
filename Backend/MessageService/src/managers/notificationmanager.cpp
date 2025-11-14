@@ -1,13 +1,13 @@
 #include "managers/notificationmanager.h"
 
 #include "entities/MessageStatus.h"
-#include "managers/NetworkManager.h"
+#include "NetworkFacade.h"
 
-NotificationManager::NotificationManager(NetworkManager* network_manager)
-    : network_manager_(network_manager) {}
+NotificationManager::NotificationManager(NetworkFacade& network_facade)
+    : network_facade_(network_facade) {}
 
 void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& status) {
-  auto members = network_manager_->getMembersOfChat(chat_id);
+  auto members = network_facade_.chat().getMembersOfChat(chat_id);
   for (int userId : members) {
     if (user_sockets_.find(userId) == user_sockets_.end()) {
       crow::json::wvalue msgJson;

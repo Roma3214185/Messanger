@@ -1,13 +1,13 @@
 #ifndef IUSERNETWORKMANAGER_H
 #define IUSERNETWORKMANAGER_H
 
-#include "INetworkManager.h"
+#include "INetworkManagerBase.h"
 
 class User;
 
-class IUserNetworkManager : public INetworkManager {
+class IUserNetworkManager : public virtual INetworkManagerBase {
   public:
-    std::optional<User> getUserById(int otherUserId);
+    virtual std::optional<User> getUserById(int otherUserId);
 };
 
 #endif // IUSERNETWORKMANAGER_H

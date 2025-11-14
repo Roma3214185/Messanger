@@ -6,18 +6,18 @@
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
 
-class NetworkManager;
+class NetworkFacade;
 class IRabitMQClient;
 
 class NotificationManager {
   IRabitMQClient* mq_client_;
   SocketsManager& socket_manager_;
-  NetworkManager* network_manager_;
+  NetworkFacade& network_facade_;
 
  public:
   NotificationManager(IRabitMQClient* mq_client,
                       SocketsManager& sock_manager,
-                      NetworkManager* network_manager);
+                      NetworkFacade& network_facade);
   void notifyMessageRead(int chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, int user_id);
   void saveConnections(int user_id, WebsocketPtr socket);

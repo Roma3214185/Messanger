@@ -19,10 +19,9 @@ FetchContent_MakeAvailable(httplib)
 
 add_library(NetworkManager STATIC
     src/IChatNetworkManager.cpp
-    src/INetworkManager.cpp
+    src/INetworkManagerBase.cpp
     src/IUserNetworkManager.cpp
     src/IMessageNetworkManager.cpp
-    include/interfaces/IMessageNetworkManager.h
 )
 
 target_include_directories(NetworkManager PUBLIC
