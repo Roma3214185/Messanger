@@ -14,7 +14,7 @@ find_package(Catch2 3 REQUIRED)
 add_executable(NotificationServiceTests
     test_notificationmanager.cpp
     main.cpp
-    mocks/MockRabitMQClient.h
+    #mocks/MockRabitMQClient.h
 )
 
 set_target_properties(NotificationServiceTests PROPERTIES
@@ -28,7 +28,6 @@ set_target_properties(NotificationServiceTests PROPERTIES
 target_link_libraries(NotificationServiceTests
     PRIVATE
         NotificationServiceCore
-        Metrics
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test

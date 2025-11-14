@@ -9,16 +9,18 @@
 
 namespace {
 
-std::optional<Message> parsePayloadToMessage(const std::string& payload) {
+template <typename T>
+std::optional<T> parsePayload(const std::string& payload) {
   try {
     nlohmann::json parsed = nlohmann::json::parse(payload);
-    return parsed.get<Message>();
+    return parsed.get<T>();
   }
   catch (const std::exception& e) {
     LOG_ERROR("Failed to parse message payload: {}", e.what());
     return std::nullopt;
   }
 }
+
 }  //namespace
 
 NotificationManager::NotificationManager(IRabitMQClient* mq_client,
@@ -31,23 +33,23 @@ NotificationManager::NotificationManager(IRabitMQClient* mq_client,
 }
 
 void NotificationManager::subscribeMessageSaved() {
-  auto& rout_config = provider_->routes();
+  const auto& rout_config = provider_->routes();
   SubscribeRequest request;
   request.queue = rout_config.notificationQueue;
   request.exchange = rout_config.exchange;
   request.routingKey = rout_config.messageSaved;
 
   mq_client_->subscribe(request,
-      [this, rout_config](const std::string& event, const std::string& payload) {
-        if (event == rout_config.messageSaved)
-          handleMessageSaved(payload);
-        else
-          LOG_ERROR("Invalid event");
-      });
+                        [this, rout_config](const std::string& event, const std::string& payload){
+                          if (event == rout_config.messageSaved)
+                            handleMessageSaved(payload);
+                          else
+                            LOG_ERROR("Invalid event");
+                        });
 }
 
 void NotificationManager::handleMessageSaved(const std::string& payload) {
-  auto parsed = parsePayloadToMessage(payload);
+  auto parsed = parsePayload<Message>(payload);
   if (!parsed) return;
 
   Message saved_message = *parsed;

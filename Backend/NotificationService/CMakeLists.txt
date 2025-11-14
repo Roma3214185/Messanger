@@ -48,8 +48,6 @@ target_link_libraries(NotificationServiceCore PUBLIC
 
 add_executable(NotificationService
     ${NOTIFICATION_SERVICE_SRC_DIR}/main.cpp
-    include/interfaces/ISocket.h
-    include/CrowSocket.h
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore Qt6::Core)

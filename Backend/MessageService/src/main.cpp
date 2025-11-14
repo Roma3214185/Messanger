@@ -6,7 +6,6 @@
 #include "RabbitMQClient.h"
 #include "SqlExecutor.h"
 #include "managers/MessageManager.h"
-#include "managers/notificationmanager.h"
 #include "server.h"
 #include "ProdConfigProvider.h"
 

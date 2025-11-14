@@ -35,7 +35,6 @@ add_executable(MessageService
   ${MESSAGE_SERVICE_SRC_DIR}/controller.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/server.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/messageworker.cpp
-  ${MESSAGE_SERVICE_SRC_DIR}/managers/notificationmanager.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/managers/MessageManager.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/JwtUtils.cpp
 )
