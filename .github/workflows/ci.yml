@@ -114,12 +114,13 @@ jobs:
           # Remove files that should not count in coverage
           lcov --remove coverage.info \
               '/usr/*' \
-              '*/_deps/*' \
-              '*/tests/*' \
-              '*/build/*' \
-              '*/main.cpp' \
-              '*.h' \
-              '*.hpp' \
+              '*_deps/*' \
+              '*include*' \
+              '*tests*' \
+              '*build/*' \
+              '*main.cpp' \
+              '*\.h' \
+              '*\.hpp' \
               --output-file coverage.info \
               --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
           ls -l coverage.info
