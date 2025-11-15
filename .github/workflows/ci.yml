@@ -107,10 +107,24 @@ jobs:
       - name: Generate coverage
         run: |
           set -eux
-          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
-          lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/include/*' '*/tests/*' --output-file coverage.info \
-            --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+          # Capture coverage, ignoring errors in system headers
+          lcov --directory build --capture --output-file coverage.info \
+               --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused \
+               --rc derive_function_end_line=0
+          # Remove files that should not count in coverage
+          lcov --remove coverage.info \
+              '/usr/*' \
+              '*_deps/*' \
+              '*include*' \
+              '*tests*' \
+              '*build/*' \
+              '*main.cpp' \
+              '*\.h' \
+              '*\.hpp' \
+              --output-file coverage.info \
+              --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
           ls -l coverage.info
+
 
       # 1️⃣2️⃣ Generate HTML coverage report
       - name: Generate HTML coverage report
@@ -136,3 +150,5 @@ jobs:
           fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+

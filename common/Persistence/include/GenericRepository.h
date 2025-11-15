@@ -13,13 +13,11 @@
 #include <utility>
 #include <vector>
 
-#include "Debug_profiling.h"
 #include "Meta.h"
 #include "Query.h"
 #include "RedisCache.h"
 #include "SQLiteDataBase.h"
 #include "SqlBuilder.h"
-#include "ThreadPool.h"
 #include "interfaces/IEntityBuilder.h"
 
 template <typename T>
@@ -29,18 +27,19 @@ using FutureResultList = std::future<std::vector<T>>;
 
 class ISqlExecutor;
 class ICacheService;
+class IThreadPool;
 
 class GenericRepository {
-  ISqlExecutor&  executor_;
+  ISqlExecutor*  executor_;
   ICacheService& cache_;
-  ThreadPool*    pool_;
+  IThreadPool*    pool_;
   IDataBase&     database_;
 
  public:
   GenericRepository(IDataBase&     database,
-                    ISqlExecutor&  executor,
+                    ISqlExecutor*  executor,
                     ICacheService& cache,
-                    ThreadPool*    pool_ = nullptr);
+                    IThreadPool*    pool_ = nullptr);
 
   IDataBase& getDatabase() { return database_; }
   void       clearCache();

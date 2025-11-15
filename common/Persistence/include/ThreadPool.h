@@ -11,30 +11,24 @@
 #include <utility>
 #include <vector>
 
-class ThreadPool {
- public:
-  explicit ThreadPool(size_t numThreads);
-  ~ThreadPool();
+#include "interfaces/IThreadPool.h"
 
-  template <class F, class... Args>
-  auto enqueue(F&& f, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type>;
+class ThreadPool : public IThreadPool {
+  public:
+    explicit ThreadPool(size_t numThreads = std::thread::hardware_concurrency());
+    ~ThreadPool();
+    void waitAll();
 
-  void waitAll() {
-    std::unique_lock<std::mutex> lock(queue_mutex_);
-    done_condition_.wait(lock, [this] { return tasks_.empty() && active_tasks_ == 0; });
-  }
+  private:
+    void enqueueTask(std::function<void()> task) override;
 
- private:
-  std::vector<std::thread>          workers_;
-  std::queue<std::function<void()>> tasks_;
-
-  std::mutex              queue_mutex_;
-  std::condition_variable condition_;
-  std::condition_variable done_condition_;
-  bool                    stop_         = false;
-  size_t                  active_tasks_ = 0;
+    std::vector<std::thread> workers_;
+    std::queue<std::function<void()>> tasks_;
+    std::mutex queue_mutex_;
+    std::condition_variable condition_;
+    std::condition_variable done_condition_;
+    bool stop_;
+    size_t active_tasks_ = 0;
 };
-
-#include "ThreadPool.inl"
 
 #endif  // BACKEND_GENERICREPOSITORY_THREADPOOL_H_"

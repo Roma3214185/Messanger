@@ -5,10 +5,9 @@
 #include "Debug_profiling.h"
 #include "GenericRepository.h"
 #include "SqlExecutor.h"
-#include "chatmanager.h"
-#include "controller.h"
-#include "database.h"
-#include "server.h"
+#include "chatservice/chatmanager.h"
+#include "chatservice/controller.h"
+#include "chatservice/server.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
 
@@ -17,8 +16,8 @@ int main(int argc, char* argv[]) {
   QCoreApplication  a(argc, argv);
   SQLiteDatabase    database;
   SqlExecutor       executor(database);
-  GenericRepository genetic_rep(database, executor, RedisCache::instance());
-  ChatManager       manager(&genetic_rep);
+  GenericRepository genetic_rep(database, &executor, RedisCache::instance());
+  ChatManager       manager(&genetic_rep); //TODO: pass executor to mock
   NetworkManager    network_manager;
   ProdConfigProvider provider;
   Server            server(provider.ports().chatService, &manager, &network_manager);

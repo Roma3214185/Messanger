@@ -5,9 +5,12 @@
 #include "GenericRepository.h"
 #include "RabbitMQClient.h"
 #include "SqlExecutor.h"
-#include "managers/MessageManager.h"
-#include "server.h"
+#include "messageservice/managers/MessageManager.h"
+#include "messageservice/server.h"
 #include "ProdConfigProvider.h"
+#include "interfaces/IThreadPool.h"
+#include "ThreadPool.h"
+#include "messageservice/controller.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   RabbitMQConfig config;
@@ -18,9 +21,9 @@ RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   return config;
 }
 
-std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config) {
+std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config, IThreadPool* pool) {
   try {
-    return std::make_unique<RabbitMQClient>(config);
+    return std::make_unique<RabbitMQClient>(config, pool);
   } catch (const AmqpClient::AmqpLibraryException& e) {
     LOG_ERROR("Cannot connect to RabbitMQ: {}", e.what());
     return nullptr;
@@ -32,25 +35,16 @@ int main(int argc, char* argv[]) {
   QCoreApplication  a(argc, argv);
   SQLiteDatabase    bd;
   SqlExecutor       executor(bd);
-  GenericRepository genetic_rep(bd, executor, RedisCache::instance());
-
-  SaverBatcher<Message>         message_saver_batcher(genetic_rep);
-  SaverBatcher<MessageStatus>   message_status_saver_batcher(genetic_rep);
-  DeleterBatcher<Message>       message_delete_batcher(genetic_rep);
-  DeleterBatcher<MessageStatus> message_status_delete_batcher(genetic_rep);
-
-  Batcher<Message>       message_batcher(message_saver_batcher, message_delete_batcher);
-  Batcher<MessageStatus> message_status_batcher(message_status_saver_batcher,
-                                                message_status_delete_batcher);
-
-  MessageManager  manager(&genetic_rep, &message_batcher, &message_status_batcher);
-
+  ThreadPool pool;
+  GenericRepository genetic_rep(bd, &executor, RedisCache::instance(), &pool);
+  MessageManager  manager(&genetic_rep, &executor);
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
-  auto mq = createRabbitMQClient(config);
+  auto mq = createRabbitMQClient(config, &pool);
   if(!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
 
-  Server server(provider.ports().messageService, &manager, mq.get());
+  Controller controller(mq.get(), &manager, &pool);
+  Server server(provider.ports().messageService, &controller);
   server.run();
 
   return a.exec();

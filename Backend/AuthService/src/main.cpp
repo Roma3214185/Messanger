@@ -4,8 +4,8 @@
 #include "GenericRepository.h"
 #include "RedisCache.h"
 #include "SqlExecutor.h"
-#include "authmanager.h"
-#include "server.h"
+#include "authservice/authmanager.h"
+#include "authservice/server.h"
 #include "SqlExecutor.h"
 #include "ProdConfigProvider.h"
 
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 
   SQLiteDatabase db;
   SqlExecutor executor(db);
-  GenericRepository rep(db, executor, RedisCache::instance());
+  GenericRepository rep(db, &executor, RedisCache::instance());
 
   AuthManager manager(rep);
   ProdConfigProvider provider;

@@ -1,7 +1,7 @@
-#include "server.h"
+#include "authservice/server.h"
 
 #include "Debug_profiling.h"
-#include "authmanager.h"
+#include "authservice/authmanager.h"
 
 Server::Server(int port, AuthManager* manager) : port_(port), manager_(manager) {
   auth_controller_ = std::make_unique<AuthController>(app_, manager_);

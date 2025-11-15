@@ -16,7 +16,7 @@ TEST_CASE("Test saving entity in database") {
   MockDatabase      db;
   MockCache         cache;
   FakeSqlExecutor   executor;
-  GenericRepository rep(db, executor, cache);
+  GenericRepository rep(db, &executor, cache);
 
   User user;
   user.email    = "romanlobach@gmail.com";
@@ -87,7 +87,7 @@ TEST_CASE("For every entity creates valid sql command") {
   MockDatabase      db;
   MockCache         cache;
   FakeSqlExecutor   executor;
-  GenericRepository rep(db, executor, cache);
+  GenericRepository rep(db, &executor, cache);
 
   SECTION("Save user without id expected right created sql command") {
     QString valid_sql =
@@ -186,7 +186,7 @@ TEST_CASE("Test integration with cache while saving") {
   MockDatabase      db;
   MockCache         cache;
   FakeSqlExecutor   executor;
-  GenericRepository rep(db, executor, cache);
+  GenericRepository rep(db, &executor, cache);
 
   SECTION("Saved entity eepected updated cache") {
     User user;

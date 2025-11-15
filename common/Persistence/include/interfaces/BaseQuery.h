@@ -12,7 +12,7 @@
 template <typename T>
 class BaseQuery {
  protected:
-  ISqlExecutor&            executor_;
+  ISqlExecutor*            executor_;
   std::vector<std::string> involved_tables_;
   inline static ThreadPool pool{4};
   QStringList              filters_;
@@ -21,7 +21,7 @@ class BaseQuery {
   std::string              table_name_;
 
  public:
-  explicit BaseQuery(ISqlExecutor& executor) : executor_(executor) {
+  explicit BaseQuery(ISqlExecutor* executor) : executor_(executor) {
     table_name_ = Reflection<T>::meta().table_name;
     involved_tables_.push_back(table_name_);
   }
@@ -52,7 +52,7 @@ class SelectQuery;
 class QueryFactory {
  public:
   template <typename T>
-  static std::unique_ptr<SelectQuery<T>> createSelect(ISqlExecutor&  executor,
+  static std::unique_ptr<SelectQuery<T>> createSelect(ISqlExecutor*  executor,
                                                       ICacheService& cache) {
     return std::make_unique<SelectQuery<T>>(executor, cache);
   }

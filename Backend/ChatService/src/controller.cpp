@@ -1,11 +1,13 @@
-#include "controller.h"
+#include "chatservice/controller.h"
 
 #include "NetworkManager.h"
-#include "TokenService.h"
+#include "chatservice/TokenService.h"
 #include "entities/User.h"
 #include "NetworkManager.h"
 #include "codes.h"
 #include "interfaces/IConfigProvider.h"
+#include "chatservice/chatmanager.h"
+#include "interfaces/IThreadPool.h"
 
 using std::optional;
 using std::string;
@@ -20,9 +22,9 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
 
 }  // namespace
 
-Controller::Controller(crow::SimpleApp& app, ChatManager* manager,
+Controller::Controller(ChatManager* manager,
                        NetworkManager* network_manager, IConfigProvider* provider)
-    : app_(app), manager_(manager), network_manager_(network_manager), provider_(provider) {}
+    : manager_(manager), network_manager_(network_manager), provider_(provider) {}
 
 void Controller::createPrivateChat(const crow::request& req, crow::response& res) {
   auto auth_header = req.get_header_value("Authorization");

@@ -1,11 +1,12 @@
-#include "managers/notificationmanager.h"
+#include "notificationservice/managers/notificationmanager.h"
 
 #include "Debug_profiling.h"
 #include "interfaces/IRabitMQClient.h"
-#include "managers/SocketManager.h"
+#include "notificationservice/managers/SocketManager.h"
 #include "NetworkFacade.h"
 #include "interfaces/ISocket.h"
 #include "interfaces/IConfigProvider.h"
+#include "notificationservice/managers/socketmanager.h"
 
 namespace {
 
@@ -24,7 +25,7 @@ std::optional<T> parsePayload(const std::string& payload) {
 }  //namespace
 
 NotificationManager::NotificationManager(IRabitMQClient* mq_client,
-                                         SocketsManager& sock_manager,
+                                         SocketsManager* sock_manager,
                                          NetworkFacade& network_facade,
                                          IConfigProvider* provider)
     : mq_client_(mq_client), socket_manager_(sock_manager)
@@ -59,11 +60,11 @@ void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& st
 void NotificationManager::notifyNewMessages(Message& message, int user_id) {}
 
 void NotificationManager::deleteConnections(ISocket* socket) {
-  socket_manager_.deleteConnections(socket);
+  socket_manager_->deleteConnections(socket);
 }
 
 void NotificationManager::userConnected(int user_id, ISocket* socket) {
-  socket_manager_.saveConnections(user_id, socket);
+  socket_manager_->saveConnections(user_id, socket);
   // notify users who communicate with this user
 }
 
@@ -97,11 +98,9 @@ void NotificationManager::onMessageStatusSaved() {}
 void NotificationManager::onMessageSaved(Message& saved_message) {
   auto members_of_chat = fetchChatMembers(saved_message.chat_id);
   LOG_INFO("For chat id '{}' finded '{}' members", saved_message.chat_id, members_of_chat.size());
-
   LOG_INFO("Received saved message id {} text '{}'", saved_message.id, saved_message.text);
 
-  auto chat_members = fetchChatMembers(saved_message.chat_id);
-  for (auto user_id : chat_members) {
+  for (auto user_id : members_of_chat) {
     saveDeliveryStatus(saved_message, user_id);
     notifyMember(user_id, saved_message);
   }
@@ -123,7 +122,7 @@ QVector<UserId> NotificationManager::fetchChatMembers(int chat_id) {
 }
 
 bool NotificationManager::notifyMember(int user_id, const Message& msg) {
-  auto* socket = socket_manager_.getUserSocket(user_id);
+  auto* socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {
     LOG_INFO("User {} offline", user_id);

@@ -5,9 +5,8 @@
 
 #include <memory>
 
-#include "chatmanager.h"
-#include "controller.h"
-#include "database.h"
+#include "chatservice/chatmanager.h"
+#include "chatservice/controller.h"
 
 using ControllerPtr = std::unique_ptr<Controller>;
 class NetworkManager;

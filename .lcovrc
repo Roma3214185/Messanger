@@ -1,0 +1,2 @@
+# .lcovrc
+geninfo_options = --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused

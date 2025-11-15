@@ -21,7 +21,7 @@ class SelectQuery : public BaseQuery<T> {
   QString        order_;
 
  public:
-  SelectQuery(ISqlExecutor& executor, ICacheService& cashe);
+  SelectQuery(ISqlExecutor* executor, ICacheService& cashe);
 
   SelectQuery&   orderBy(const std::string& field, const std::string& direction = "ASC");
   std::vector<T> execute() const override;

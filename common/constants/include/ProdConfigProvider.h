@@ -11,16 +11,21 @@ class ProdConfigProvider : public IConfigProvider {
     }
 
     const Ports& ports() const override {
-      return Ports{};
+      return ports_;
     }
 
     const Routes& routes() const override {
-      return Routes{};
+      return routes_;
     }
 
     const StatusCodes& statusCodes() const override {
-      return StatusCodes{};
+      return codes_;
     }
+
+  private:
+    Ports ports_;
+    Routes routes_;
+    StatusCodes codes_;
 };
 
 #endif // PRODCONFIGPROVIDER_H

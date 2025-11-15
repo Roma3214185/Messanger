@@ -1,4 +1,4 @@
-#include "controller.h"
+#include "messageservice/controller.h"
 
 #include <jwt-cpp/jwt.h>
 
@@ -7,27 +7,13 @@
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
-#include "managers/JwtUtils.h"
-#include "managers/MessageManager.h"
+#include "messageservice/managers/JwtUtils.h"
+#include "messageservice/managers/MessageManager.h"
 #include "interfaces/IConfigProvider.h"
+#include "interfaces/IRabitMQClient.h"
+#include "interfaces/IThreadPool.h"
 
 namespace {
-
-void sendResponse(crow::response& res, int code, const std::string& text) {
-  res.code = code;
-  res.write(text);
-  res.end();
-}
-
-std::string extractToken(const crow::request& req) { return req.get_header_value("Authorization"); }
-
-int getLimit(const crow::request& req) {
-  return req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : INT_MAX;
-}
-
-int getBeforeId(const crow::request& req) {
-  return req.url_params.get("before_id") ? std::stoi(req.url_params.get("before_id")) : 0;
-}
 
 template<typename T>
 std::optional<T> parsePayload(const std::string& payload) {
@@ -43,9 +29,9 @@ std::optional<T> parsePayload(const std::string& payload) {
 
 }  // namespace
 
-Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
-                       MessageManager* manager, IConfigProvider* provider)
-    : app_(app), manager_(manager), mq_client_(mq_client), provider_(provider) {
+Controller::Controller(IRabitMQClient* mq_client,
+                       MessageManager* manager, IThreadPool* pool, IConfigProvider* provider)
+    : manager_(manager), mq_client_(mq_client),  pool_(pool), provider_(provider) {
   subscribeSaveMessage();
   subscribeSaveMessageStatus();
 }
@@ -57,7 +43,7 @@ void Controller::handleSaveMessage(const std::string& payload) {
   auto message = *msg;
   LOG_INFO("Get message to save with id {} and text {}", message.id, message.text);
 
-  pool_.enqueue([this, message]() mutable {
+  pool_->enqueue([this, message]() mutable {
     bool ok = manager_->saveMessage(message);
     if (!ok) {
       LOG_ERROR("Error saving message id {}", message.id);
@@ -91,7 +77,6 @@ void Controller::subscribeSaveMessageStatus() {
   request.routingKey = provider_->routes().saveMessageStatus;
   mq_client_->subscribe(request,
       [this](const std::string& event, const std::string& payload) {
-        LOG_INFO("Save message_status hanling {}", payload);
         handleSaveMessageStatus(payload);
       });
 }
@@ -102,13 +87,13 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
 
   auto status = *message_status;
 
-  pool_.enqueue([this, status]() mutable {
+  pool_->enqueue([this, status]() mutable {
     if (!manager_->saveMessageStatus(status)) {
       LOG_ERROR("Error saving message_status id {}", status.message_id);
       return;
     }
 
-    PublishRequest request; // topic type was
+    PublishRequest request;
     request.exchange = provider_->routes().exchange;
     request.routingKey = provider_->routes().messageStatusSaved;
     request.message = nlohmann::json(status).dump();
@@ -117,48 +102,10 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
   });
 }
 
-void Controller::getMessagesFromChat(const crow::request& req,
-                                     int                  chat_id,
-                                     crow::response&      responce) {
-  std::string        token           = extractToken(req);
-  std::optional<int> current_user_id = JwtUtils::verifyTokenAndGetUserId(token);
-
-  if (!current_user_id) {  // TODO(roma): make check if u have acess to
-                           // ges these messagess
-    sendResponse(responce, provider_->statusCodes().userError, "Invalid or expired token");
-    return;
-  }
-
-  int limit     = getLimit(req);
-  int before_id = getBeforeId(req);
-
-  LOG_INFO("For id '{}' limit is '{}' and beforeId is '{}'", chat_id, limit, before_id);
-
-  auto messages = manager_->getChatMessages(chat_id, limit, before_id);
-
-  LOG_INFO("For chat '{}' finded '{}' messages", chat_id, messages.size());
-
-  crow::json::wvalue res = formMessageListJson(messages, *current_user_id);
-  sendResponse(responce, provider_->statusCodes().success, res.dump());
+std::vector<Message> Controller::getMessages(const GetMessagePack& pack) {
+  return manager_->getChatMessages(pack);
 }
 
-crow::json::wvalue Controller::formMessageListJson(const std::vector<Message>& messages,
-                                                   int                         current_user_id) {
-  crow::json::wvalue res = crow::json::wvalue::list();
-  int                i   = 0;
-  for (const auto& msg : messages) {
-    std::optional<MessageStatus> status_mine_message =
-        manager_->getMessageStatus(msg.id, current_user_id);
-    LOG_INFO("Get message status for '{}' and receiver_id '{}'", msg.id, current_user_id);
-    if (!status_mine_message) {
-      LOG_ERROR("status_mine_message = false");  // if u delete message
-                                                 // for yourself
-      continue;
-    }
-    auto jsonObject            = to_crow_json(msg);
-    jsonObject["readed_by_me"] = status_mine_message->is_read;
-
-    res[i++] = std::move(jsonObject);
-  }
-  return res;
+std::vector<MessageStatus> Controller::getMessagesStatus(const std::vector<Message>& messages, int receiver_id) {
+  return manager_->getMessagesStatus(messages, receiver_id);
 }

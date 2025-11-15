@@ -22,21 +22,23 @@ struct RabbitMQConfig {
     std::string password;
 };
 
+class IThreadPool;
+
 class RabbitMQClient : public IRabitMQClient {
  public:
-  RabbitMQClient(const RabbitMQConfig&, size_t thread_pool_size = 4);
+  RabbitMQClient(const RabbitMQConfig&, IThreadPool* pool);
   ~RabbitMQClient();
 
   void publish(const PublishRequest&) override;
   void subscribe(const SubscribeRequest&, const EventCallback&) override;
-  void stop();
+  void stop() override;
 
  private:
   void declareExchange(const std::string& exchange, const std::string& type, bool durable);
 
  private:
-  std::atomic<bool>               running_{false};
-  ThreadPool                      pool_;
+  std::atomic<bool>               running_{ false };
+   IThreadPool*                   pool_;
   std::vector<std::thread>        consumer_threads_;
   std::mutex                      consumer_threads_mutex_;
   std::unordered_set<std::string> declared_exchanges_;

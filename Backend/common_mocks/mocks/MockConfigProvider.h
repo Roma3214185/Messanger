@@ -10,15 +10,15 @@ class MockConfigProvider : public IConfigProvider {
     }
 
     const Ports& ports() const override {
-      Ports ports;
-      return ports;
+      return mock_ports;
     }
 
     const StatusCodes& statusCodes() const override {
-      StatusCodes codes;
-      return codes;
+      return mock_codes;
     }
 
+    Ports mock_ports;
+    StatusCodes mock_codes;
     Routes mock_routes;
 };
 

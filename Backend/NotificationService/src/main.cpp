@@ -4,10 +4,12 @@
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
 #include "NetworkFacade.h"
-#include "managers/notificationmanager.h"
-#include "server.h"
+#include "notificationservice/managers/notificationmanager.h"
+#include "notificationservice/server.h"
+#include "notificationservice/managers/socketmanager.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
+#include "ThreadPool.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   RabbitMQConfig config;
@@ -22,11 +24,12 @@ int main(int argc, char* argv[]) {
   QCoreApplication    a(argc, argv);
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
-  RabbitMQClient      mq(config);
+  ThreadPool pool;
+  RabbitMQClient      mq(config, &pool);
   SocketsManager      sockManager;
   NetworkManager network_manager;
   NetworkFacade net_repository = NetworkFactory::create(&network_manager);
-  NotificationManager notifManager(&mq, sockManager, net_repository);
-  Server              server(provider.ports().notificationService, notifManager);
+  NotificationManager notifManager(&mq, &sockManager, net_repository);
+  Server              server(provider.ports().notificationService, &notifManager);
   server.run();
 }
