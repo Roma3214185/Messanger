@@ -35,8 +35,8 @@ struct SharedFixture {
     SharedFixture()
         : mock_routes(MockUtils::getMockRoutes()),
           provider(),
-          rep(db, executor, cache),
-          manager(&rep)
+          rep(db, &executor, cache),
+          manager(&rep, &executor)
     {
         provider.mock_routes = mock_routes;
     }
@@ -115,6 +115,16 @@ TEST_CASE("Test controller handles saved enitites") {
     REQUIRE(last_publish_request.message == nlohmann::json(message).dump());
   }
 
+  SECTION("handleSaveMessage receive invalid payload expected no call to pool and no publish to rabitMQ") {
+    int before_publish_call = fix.rabit_client.publish_cnt;
+    int before_pool_cnt = fix.pool.call_count;
+
+    controller.handleSaveMessage("Invalid payload");
+
+    REQUIRE(fix.pool.call_count == before_pool_cnt);
+    REQUIRE(fix.rabit_client.publish_cnt == before_publish_call);
+  }
+
   SECTION("handleSaveMessageStatus expected call to pool and publish to rabitMQ") {
     MessageStatus message_status {.message_id = 3, .receiver_id = 1234, .is_read = true };
     int before_publish_call = fix.rabit_client.publish_cnt;
@@ -127,6 +137,16 @@ TEST_CASE("Test controller handles saved enitites") {
 
     auto last_publish_request = fix.rabit_client.last_publish_request;
     REQUIRE(last_publish_request.message == nlohmann::json(message_status).dump());
+  }
+
+  SECTION("handleSaveMessageStatus receive invalid payload expected no call to pool and no publish to rabitMQ") {
+    int before_publish_call = fix.rabit_client.publish_cnt;
+    int before_pool_cnt = fix.pool.call_count;
+
+    controller.handleSaveMessageStatus("invalid payload");
+
+    REQUIRE(fix.pool.call_count == before_pool_cnt);
+    REQUIRE(fix.rabit_client.publish_cnt == before_publish_call);
   }
 }
 

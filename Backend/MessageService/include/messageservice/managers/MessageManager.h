@@ -8,6 +8,7 @@
 #include "entities/MessageStatus.h"
 
 class GenericRepository;
+class ISqlExecutor;
 
 struct GetMessagePack {
     int chat_id;
@@ -18,7 +19,7 @@ struct GetMessagePack {
 
 class MessageManager {
  public:
-  MessageManager(GenericRepository* rep);
+  MessageManager(GenericRepository* rep, ISqlExecutor*  executor);
   [[nodiscard]] bool           saveMessage(Message& message);
   std::optional<Message>       getMessage(int message_id);
   std::optional<MessageStatus> getMessageStatus(int message_id, int receiver_id);
@@ -31,6 +32,7 @@ class MessageManager {
  private:
   RedisCache&             cache_ = RedisCache::instance();
   GenericRepository*      repository_;
+  ISqlExecutor*           executor_;
 };
 
 #endif  // BACKEND_MESSAGE_SERVICE_MESSAGEMANAGER_H

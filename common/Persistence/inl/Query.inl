@@ -24,7 +24,7 @@ std::optional<std::vector<T>> SelectQuery<T>::tryLoadFromCache(const std::string
 }
 
 template <typename T>
-SelectQuery<T>::SelectQuery(ISqlExecutor& executor, ICacheService& cache)
+SelectQuery<T>::SelectQuery(ISqlExecutor* executor, ICacheService& cache)
     : BaseQuery<T>(executor), cache_(cache) { }
 
 template <typename T>
@@ -46,7 +46,7 @@ std::vector<T> SelectQuery<T>::execute() const {
 template <typename T>
 QSqlQuery SelectQuery<T>::runDatabaseQuery(const QString& sql) const {
   QSqlQuery query;
-  if (!this->executor_.execute(sql, query, this->values_)) {
+  if (!this->executor_->execute(sql, query, this->values_)) {
     LOG_ERROR("[QueryExecutor] SQL execution failed: '{}'", sql.toStdString());
   }
   return query;

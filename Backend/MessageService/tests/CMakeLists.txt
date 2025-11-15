@@ -17,6 +17,7 @@ add_executable(MessageServiceTests
     mocks/TestController.h
     mocks/SecondTestController.h
     mocks/MockUtils.h
+    test_messagemanager.cpp
 )
 
 set_target_properties(MessageServiceTests PROPERTIES

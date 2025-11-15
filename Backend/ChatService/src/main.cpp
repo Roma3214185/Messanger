@@ -16,8 +16,8 @@ int main(int argc, char* argv[]) {
   QCoreApplication  a(argc, argv);
   SQLiteDatabase    database;
   SqlExecutor       executor(database);
-  GenericRepository genetic_rep(database, executor, RedisCache::instance());
-  ChatManager       manager(&genetic_rep);
+  GenericRepository genetic_rep(database, &executor, RedisCache::instance());
+  ChatManager       manager(&genetic_rep); //TODO: pass executor to mock
   NetworkManager    network_manager;
   ProdConfigProvider provider;
   Server            server(provider.ports().chatService, &manager, &network_manager);

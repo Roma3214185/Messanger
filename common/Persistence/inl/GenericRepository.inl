@@ -83,10 +83,10 @@ bool GenericRepository::save(std::vector<T>& entity) {
 template <typename T>
 bool GenericRepository::executeStatement(const SqlStatement& stmt, const Field* idField, T& entity, QSqlQuery& query, bool need_to_return_id) {
   if (!need_to_return_id) {
-    return executor_.execute(stmt.query, query, stmt.values);
+    return executor_->execute(stmt.query, query, stmt.values);
   }
 
-  auto returned_id = executor_.executeReturningId(stmt.query, query, stmt.values);
+  auto returned_id = executor_->executeReturningId(stmt.query, query, stmt.values);
   if (!returned_id.has_value()) return false;
 
   assert(idField != nullptr);
@@ -147,7 +147,7 @@ void GenericRepository::deleteById(long long entity_id) {
 
 
   QSqlQuery query(database_.getThreadDatabase());
-  if(!executor_.execute(sql, query, {entity_id})) {
+  if(!executor_->execute(sql, query, {entity_id})) {
     LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
               query.lastError().text().toStdString());
     return;

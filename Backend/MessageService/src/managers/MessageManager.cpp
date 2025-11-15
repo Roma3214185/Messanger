@@ -3,19 +3,21 @@
 #include "GenericRepository.h"
 #include "SqlExecutor.h"
 #include "interfaces/BaseQuery.h"
+#include "interfaces/ISqlExecutor.h"
 
-MessageManager::MessageManager(GenericRepository*      repository)
-    : repository_(repository) {}
+MessageManager::MessageManager(GenericRepository* repository, ISqlExecutor*  executor)
+    : repository_(repository), executor_(executor) {}
 
-bool MessageManager::saveMessage(Message& msg) { return repository_->save(msg); }
+bool MessageManager::saveMessage(Message& msg) {
+  return repository_->save(msg);
+}
 
 std::optional<Message> MessageManager::getMessage(int message_id) {
   return repository_->findOne<Message>(message_id);
 }
 
 std::optional<MessageStatus> MessageManager::getMessageStatus(int message_id, int receiver_id) {
-  SqlExecutor executor(repository_->getDatabase());
-  auto        custom_query = QueryFactory::createSelect<MessageStatus>(executor, cache_);
+  auto        custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
   custom_query->where("message_id", message_id).where("receiver_id", receiver_id).limit(1);
 
   auto res = custom_query->execute();
@@ -35,9 +37,8 @@ std::optional<int> MessageManager::getChatId(int message_id) {
   return message->chat_id;
 }
 
-std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {
-  SqlExecutor executor(repository_->getDatabase());
-  auto        custom_query = QueryFactory::createSelect<Message>(executor, cache_);
+std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {  //TODO: make right join
+  auto        custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
   custom_query->where("chat_id", pack.chat_id).limit(pack.limit);
   custom_query->orderBy("timestamp", "DESC");
 
@@ -51,9 +52,8 @@ std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack)
 std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<Message>& messages, int receiver_id) {
   std::vector<MessageStatus> ans;
 
-  SqlExecutor executor(repository_->getDatabase());
   for(const auto& msg: messages) {
-    auto custom_query = QueryFactory::createSelect<MessageStatus>(executor, cache_);
+    auto custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
     custom_query->where("message_id", msg.id).where("receiver_id", receiver_id);
     auto returned_list = custom_query->execute();
     if(returned_list.size() != 1) LOG_WARN("Returned {}", returned_list.size());
@@ -65,11 +65,4 @@ std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<M
 
 [[nodiscard]] bool MessageManager::saveMessageStatus(MessageStatus& status) {
   return repository_->save(status);
-}
-
-std::vector<MessageStatus> MessageManager::getUndeliveredMessages(int user_id) {
-  SqlExecutor executor(repository_->getDatabase());
-  auto        custom_query = QueryFactory::createSelect<MessageStatus>(executor, cache_);
-  custom_query->where("receiver_id", user_id).where("is_read", "0");
-  return custom_query->execute();
 }

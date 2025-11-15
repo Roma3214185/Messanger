@@ -75,4 +75,6 @@ std::optional<int> ChatManager::getOtherMemberId(int chat_id, int user_id) {
   return std::nullopt;
 }
 
-std::optional<Chat> ChatManager::getChatById(int chat_id) { repository_->findOne<Chat>(chat_id); }
+std::optional<Chat> ChatManager::getChatById(int chat_id) {
+  return repository_->findOne<Chat>(chat_id);
+}

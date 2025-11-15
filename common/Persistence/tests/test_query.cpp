@@ -15,7 +15,7 @@ TEST_CASE("Test select query create right sql command") {
   FakeSqlExecutor executor;
 
   SECTION("Select message by id") {
-    auto query = QueryFactory::createSelect<Message>(executor, cache);
+    auto query = QueryFactory::createSelect<Message>(&executor, cache);
     query->where("id", 10);
     QString valid_sql = "SELECT * FROM messages WHERE id = ?";
 
@@ -24,7 +24,7 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("Select message_status by message_id") {
-    auto query = QueryFactory::createSelect<MessageStatus>(executor, cache);
+    auto query = QueryFactory::createSelect<MessageStatus>(&executor, cache);
     query->where("message_id", 10);
     QString valid_sql = "SELECT * FROM messages_status WHERE message_id = ?";
 
@@ -33,7 +33,7 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("Select message with filters") {
-    auto query = QueryFactory::createSelect<Message>(executor, cache);
+    auto query = QueryFactory::createSelect<Message>(&executor, cache);
     query->where("id", 10);
     query->where("chat_id", 3);
     query->where("sender_id", 5);
@@ -44,7 +44,7 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("Select message with different filters") {
-    auto query = QueryFactory::createSelect<Message>(executor, cache);
+    auto query = QueryFactory::createSelect<Message>(&executor, cache);
     query->where("id", 10);
     query->where("chat_id", 3);
     query->orderBy("timestamp");
@@ -56,7 +56,7 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("Select message with custom filter") {
-    auto query = QueryFactory::createSelect<Message>(executor, cache);
+    auto query = QueryFactory::createSelect<Message>(&executor, cache);
     query->where("id", 10);
     query->where("chat_id", "<", 3);
     query->orderBy("timestamp");
@@ -68,7 +68,7 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("Select message with limit") {
-    auto query = QueryFactory::createSelect<Message>(executor, cache);
+    auto query = QueryFactory::createSelect<Message>(&executor, cache);
     query->limit(4);
     QString valid_sql = "SELECT * FROM messages LIMIT 4";
 
@@ -78,9 +78,9 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("2 times select different queue expected not hit the cashe") {
-    auto query1 = QueryFactory::createSelect<Message>(executor, cache);
+    auto query1 = QueryFactory::createSelect<Message>(&executor, cache);
     query1->limit(4);
-    auto query2 = QueryFactory::createSelect<Message>(executor, cache);
+    auto query2 = QueryFactory::createSelect<Message>(&executor, cache);
     query2->limit(5);
 
     int before_set      = cache.set_calls;
@@ -94,9 +94,9 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("2 times select same queue expected hit the cashe") {
-    auto query1 = QueryFactory::createSelect<Message>(executor, cache);
+    auto query1 = QueryFactory::createSelect<Message>(&executor, cache);
     query1->limit(4);
-    auto query2 = QueryFactory::createSelect<Message>(executor, cache);
+    auto query2 = QueryFactory::createSelect<Message>(&executor, cache);
     query2->limit(4);
 
     int before_set      = cache.set_calls;
@@ -122,7 +122,7 @@ struct MockSelectedQuery : public SelectQuery<T> {
 TEST_CASE("Test creating keys") {
   MockCache                  cache;
   FakeSqlExecutor            executor;
-  MockSelectedQuery<Message> selected_query(executor, cache);
+  MockSelectedQuery<Message> selected_query(&executor, cache);
 
   SECTION("Create valid query key") {
     QString     sql             = "SELECT * FROM users WHERE id = 3";

@@ -35,9 +35,9 @@ int main(int argc, char* argv[]) {
   QCoreApplication  a(argc, argv);
   SQLiteDatabase    bd;
   SqlExecutor       executor(bd);
-  GenericRepository genetic_rep(bd, executor, RedisCache::instance());
-  MessageManager  manager(&genetic_rep);
   ThreadPool pool;
+  GenericRepository genetic_rep(bd, &executor, RedisCache::instance(), &pool);
+  MessageManager  manager(&genetic_rep, &executor);
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
   auto mq = createRabbitMQClient(config, &pool);
