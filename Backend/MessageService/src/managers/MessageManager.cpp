@@ -4,9 +4,10 @@
 #include "SqlExecutor.h"
 #include "interfaces/BaseQuery.h"
 #include "interfaces/ISqlExecutor.h"
+#include "interfaces/ICacheService.h"
 
-MessageManager::MessageManager(GenericRepository* repository, ISqlExecutor*  executor)
-    : repository_(repository), executor_(executor) {}
+MessageManager::MessageManager(GenericRepository* repository, ISqlExecutor*  executor, ICacheService& cache)
+    : repository_(repository), executor_(executor), cache_(cache) {}
 
 bool MessageManager::saveMessage(Message& msg) {
   return repository_->save(msg);
@@ -37,10 +38,13 @@ std::optional<int> MessageManager::getChatId(int message_id) {
   return message->chat_id;
 }
 
-std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {  //TODO: make right join
+std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {
   auto        custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
-  custom_query->where("chat_id", pack.chat_id).limit(pack.limit);
-  custom_query->orderBy("timestamp", "DESC");
+  custom_query->join("messages_status", "id = messages_status.message_id")
+      .where("chat_id", pack.chat_id).limit(pack.limit)
+      .where("messages_status.user_id", pack.user_id);
+
+  custom_query->orderBy("timestamp", OrderDirection::DESC);
 
   if (pack.before_id > 0) {
     custom_query->where("id", "<", pack.before_id);

@@ -18,6 +18,7 @@ class BaseQuery {
   QStringList              filters_;
   QVector<QVariant>        values_;
   QString                  limit_clause_;
+  std::string              join_clause_;
   std::string              table_name_;
 
  public:
@@ -42,6 +43,14 @@ class BaseQuery {
 
   BaseQuery& limit(int n) {
     limit_clause_ = QString("LIMIT %1").arg(n);
+    return *this;
+  }
+
+  BaseQuery& join(const std::string& table,
+                  const std::string& on)
+  {
+    join_clause_ += " JOIN " + table + " ON " + on;
+    involved_tables_.push_back(table);
     return *this;
   }
 };

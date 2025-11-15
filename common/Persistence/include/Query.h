@@ -15,6 +15,8 @@ struct Reflection;
 template <typename T>
 struct BaseQuery;
 
+enum class OrderDirection{ASC, DESC};
+
 template <typename T>
 class SelectQuery : public BaseQuery<T> {
   ICacheService& cache_;
@@ -23,7 +25,7 @@ class SelectQuery : public BaseQuery<T> {
  public:
   SelectQuery(ISqlExecutor* executor, ICacheService& cashe);
 
-  SelectQuery&   orderBy(const std::string& field, const std::string& direction = "ASC");
+  SelectQuery&   orderBy(const std::string& field, const OrderDirection& direction = OrderDirection::ASC);
   std::vector<T> execute() const override;
 
   std::future<std::vector<T>> executeAsync() const;

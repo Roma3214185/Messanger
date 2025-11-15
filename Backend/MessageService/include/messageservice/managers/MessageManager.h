@@ -9,6 +9,7 @@
 
 class GenericRepository;
 class ISqlExecutor;
+class ICacheService;
 
 struct GetMessagePack {
     int chat_id;
@@ -19,7 +20,7 @@ struct GetMessagePack {
 
 class MessageManager {
  public:
-  MessageManager(GenericRepository* rep, ISqlExecutor*  executor);
+  MessageManager(GenericRepository* rep, ISqlExecutor*  executor, ICacheService& cache = RedisCache::instance());
   [[nodiscard]] bool           saveMessage(Message& message);
   std::optional<Message>       getMessage(int message_id);
   std::optional<MessageStatus> getMessageStatus(int message_id, int receiver_id);
@@ -30,7 +31,7 @@ class MessageManager {
   std::vector<MessageStatus>   getMessagesStatus(const std::vector<Message>& messages, int receiver_id);
 
  private:
-  RedisCache&             cache_ = RedisCache::instance();
+  ICacheService&          cache_;
   GenericRepository*      repository_;
   ISqlExecutor*           executor_;
 };
