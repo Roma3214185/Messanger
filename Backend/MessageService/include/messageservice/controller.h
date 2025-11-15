@@ -24,17 +24,18 @@ class Controller {
  protected:
   void               subscribeSaveMessageStatus();
   void               subscribeSaveMessage();
+
  private:
   void               onSendMessage(Message message);
-  void               handleSaveMessage(const std::string& payload);
-  void               handleSaveMessageStatus(const std::string& payload);
+  virtual void       handleSaveMessage(const std::string& payload);
+  virtual void       handleSaveMessageStatus(const std::string& payload);
   crow::json::wvalue formMessageListJson(const std::vector<Message>& messages, int current_user_id);
 
   std::mutex       socket_mutex_;
   MessageManager*  manager_;
   IRabitMQClient*  mq_client_;
   IConfigProvider* provider_;
-  ThreadPool       pool_{4};
+  ThreadPool       pool_{ 4 };
 };
 
 #endif  // BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_

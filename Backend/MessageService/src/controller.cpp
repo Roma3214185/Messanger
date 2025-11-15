@@ -92,7 +92,6 @@ void Controller::subscribeSaveMessageStatus() {
   request.routingKey = provider_->routes().saveMessageStatus;
   mq_client_->subscribe(request,
       [this](const std::string& event, const std::string& payload) {
-        LOG_INFO("Save message_status hanling {}", payload);
         handleSaveMessageStatus(payload);
       });
 }
