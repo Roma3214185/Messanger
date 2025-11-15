@@ -14,6 +14,9 @@ find_package(Catch2 3 REQUIRED)
 add_executable(MessageServiceTests
     main.cpp
     test_controller.cpp
+    mocks/TestController.h
+    mocks/SecondTestController.h
+    mocks/MockUtils.h
 )
 
 set_target_properties(MessageServiceTests PROPERTIES
@@ -30,6 +33,7 @@ target_link_libraries(MessageServiceTests
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test
+        Qt6::Network
         BackendMocks
 )
 
