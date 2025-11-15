@@ -11,9 +11,7 @@ class GenericRepository;
 
 class MessageManager {
  public:
-  MessageManager(GenericRepository*      rep,
-                 Batcher<Message>*       message_batcher,
-                 Batcher<MessageStatus>* messages_status_batcher);
+  MessageManager(GenericRepository* rep);
   [[nodiscard]] bool           saveMessage(Message& message);
   std::optional<Message>       getMessage(int message_id);
   std::optional<MessageStatus> getMessageStatus(int message_id, int receiver_id);
@@ -25,8 +23,6 @@ class MessageManager {
  private:
   RedisCache&             cache_ = RedisCache::instance();
   GenericRepository*      repository_;
-  Batcher<Message>*       message_batcher_;
-  Batcher<MessageStatus>* messages_status_batcher_;
 };
 
 #endif  // MESSAGEMANAGER_H

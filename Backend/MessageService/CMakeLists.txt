@@ -34,6 +34,7 @@ target_link_libraries(MessageServiceCore PUBLIC
   nlohmann_json::nlohmann_json
   Constants
   NetworkManager
+  Persistence
 )
 
 target_include_directories(MessageServiceCore PUBLIC

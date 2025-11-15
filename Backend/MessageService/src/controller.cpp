@@ -10,6 +10,7 @@
 #include "messageservice/managers/JwtUtils.h"
 #include "messageservice/managers/MessageManager.h"
 #include "interfaces/IConfigProvider.h"
+#include "interfaces/IRabitMQClient.h"
 
 namespace {
 
@@ -43,7 +44,7 @@ std::optional<T> parsePayload(const std::string& payload) {
 
 }  // namespace
 
-Controller::Controller(RabbitMQClient* mq_client,
+Controller::Controller(IRabitMQClient* mq_client,
                        MessageManager* manager, IConfigProvider* provider)
     : manager_(manager), mq_client_(mq_client), provider_(provider) {
   subscribeSaveMessage();

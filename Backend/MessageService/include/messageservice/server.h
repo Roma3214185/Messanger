@@ -8,11 +8,13 @@
 #include "controller.h"
 #include "managers/MessageManager.h"
 
+class IRabitMQClient;
+
 using ControllerPtr = std::unique_ptr<Controller>;
 
 class Server {
  public:
-  Server(int port, MessageManager* message_manager, RabbitMQClient* mq_client);
+  Server(int port, MessageManager* message_manager, IRabitMQClient* mq_client);
   void run();
 
  private:

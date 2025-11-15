@@ -53,6 +53,12 @@ add_subdirectory(Backend/NotificationService)
 # -------------------------
 add_subdirectory(Frontend)
 
+
+# -------------------------
+# Mocks for backend tests
+# -------------------------
+add_subdirectory(Backend/common_mocks)
+
 # -------------------------
 # Tests
 # -------------------------

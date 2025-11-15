@@ -13,17 +13,18 @@
 
 class Message;
 class MessageManager;
-class RabbitMQClient;
+class IRabitMQClient;
 
 class Controller {
  public:
-  Controller(RabbitMQClient* mq_client,
+  Controller(IRabitMQClient* mq_client,
               MessageManager* manager, IConfigProvider* provider = &ProdConfigProvider::instance());
   void getMessagesFromChat(const crow::request& req, int chat_id, crow::response& res);
 
- private:
+ protected:
   void               subscribeSaveMessageStatus();
   void               subscribeSaveMessage();
+ private:
   void               onSendMessage(Message message);
   void               handleSaveMessage(const std::string& payload);
   void               handleSaveMessageStatus(const std::string& payload);
@@ -31,7 +32,7 @@ class Controller {
 
   std::mutex       socket_mutex_;
   MessageManager*  manager_;
-  RabbitMQClient*  mq_client_;
+  IRabitMQClient*  mq_client_;
   IConfigProvider* provider_;
   ThreadPool       pool_{4};
 };

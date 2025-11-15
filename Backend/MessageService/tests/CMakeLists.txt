@@ -30,6 +30,7 @@ target_link_libraries(MessageServiceTests
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test
+        BackendMocks
 )
 
 set_target_properties(MessageServiceTests PROPERTIES AUTOMOC ON)

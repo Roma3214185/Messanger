@@ -4,12 +4,8 @@
 #include "SqlExecutor.h"
 #include "interfaces/BaseQuery.h"
 
-MessageManager::MessageManager(GenericRepository*      repository,
-                               Batcher<Message>*       message_batcher,
-                               Batcher<MessageStatus>* messages_status_batcher)
-    : repository_(repository),
-      message_batcher_(message_batcher),
-      messages_status_batcher_(messages_status_batcher) {}
+MessageManager::MessageManager(GenericRepository*      repository)
+    : repository_(repository) {}
 
 bool MessageManager::saveMessage(Message& msg) { return repository_->save(msg); }
 
