@@ -12,26 +12,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(MESSAGE_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(MESSAGE_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-include(FetchContent)
-
-FetchContent_Declare(
-    httplib
-    GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
-    GIT_TAG v0.11.2
-)
-
-FetchContent_MakeAvailable(httplib)
-
 find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
 find_package(spdlog REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
 link_directories(/opt/homebrew/lib)
 
-
-add_executable(MessageService
-  ${MESSAGE_SERVICE_SRC_DIR}/main.cpp
-
+add_library(MessageServiceCore STATIC
   ${MESSAGE_SERVICE_SRC_DIR}/controller.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/server.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/messageworker.cpp
@@ -39,7 +26,7 @@ add_executable(MessageService
   ${MESSAGE_SERVICE_SRC_DIR}/JwtUtils.cpp
 )
 
-target_link_libraries(MessageService PRIVATE
+target_link_libraries(MessageServiceCore PUBLIC
   Crow::Crow
   Entities
   RabbitMQClient
@@ -49,11 +36,16 @@ target_link_libraries(MessageService PRIVATE
   NetworkManager
 )
 
-include_directories(
+target_include_directories(MessageServiceCore PUBLIC
     ${httplib_SOURCE_DIR}
     ${MESSAGE_SERVICE_INCLUDE_DIR}/
 )
 
+add_executable(MessageService
+  ${MESSAGE_SERVICE_SRC_DIR}/main.cpp
+)
+
+target_link_libraries(MessageService PRIVATE MessageServiceCore Qt6::Core)
 
 include(GNUInstallDirs)
 install(TARGETS MessageService
