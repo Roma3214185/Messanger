@@ -35,17 +35,32 @@ std::optional<int> MessageManager::getChatId(int message_id) {
   return message->chat_id;
 }
 
-std::vector<Message> MessageManager::getChatMessages(int chat_id, int limit, int before_id) {
+std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {
   SqlExecutor executor(repository_->getDatabase());
   auto        custom_query = QueryFactory::createSelect<Message>(executor, cache_);
-  custom_query->where("chat_id", chat_id).limit(limit);
+  custom_query->where("chat_id", pack.chat_id).limit(pack.limit);
   custom_query->orderBy("timestamp", "DESC");
 
-  if (before_id > 0) {
-    custom_query->where("id", "<", before_id);
+  if (pack.before_id > 0) {
+    custom_query->where("id", "<", pack.before_id);
   }
 
   return custom_query->execute();
+}
+
+std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<Message>& messages, int receiver_id) {
+  std::vector<MessageStatus> ans;
+
+  SqlExecutor executor(repository_->getDatabase());
+  for(const auto& msg: messages) {
+    auto custom_query = QueryFactory::createSelect<MessageStatus>(executor, cache_);
+    custom_query->where("message_id", msg.id).where("receiver_id", receiver_id);
+    auto returned_list = custom_query->execute();
+    if(returned_list.size() != 1) LOG_WARN("Returned {}", returned_list.size());
+    else ans.emplace_back(returned_list.front());
+  }
+
+  return ans;
 }
 
 [[nodiscard]] bool MessageManager::saveMessageStatus(MessageStatus& status) {

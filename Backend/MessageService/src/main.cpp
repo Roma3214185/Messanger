@@ -8,6 +8,9 @@
 #include "messageservice/managers/MessageManager.h"
 #include "messageservice/server.h"
 #include "ProdConfigProvider.h"
+#include "interfaces/IThreadPool.h"
+#include "ThreadPool.h"
+#include "messageservice/controller.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   RabbitMQConfig config;

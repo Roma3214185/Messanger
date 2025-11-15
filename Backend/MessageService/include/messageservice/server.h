@@ -2,19 +2,16 @@
 #define BACKEND_MESSAGESERVICE_SERVER_SERVER_H_
 
 #include <crow.h>
-
 #include <memory>
 
-#include "controller.h"
 #include "managers/MessageManager.h"
 
 class IRabitMQClient;
-
-using ControllerPtr = std::unique_ptr<Controller>;
+class Controller;
 
 class Server {
  public:
-  Server(int port, MessageManager* message_manager, IRabitMQClient* mq_client);
+  Server(int port, Controller* controller);
   void run();
 
  private:
@@ -23,7 +20,7 @@ class Server {
 
   crow::SimpleApp app_;
   int             port_;
-  ControllerPtr   controller_;
+  Controller*   controller_;
 };
 
 #endif  // BACKEND_MESSAGESERVICE_SERVER_SERVER_H_
