@@ -9,6 +9,7 @@
 #include "notificationservice/managers/socketmanager.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
+#include "ThreadPool.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   RabbitMQConfig config;
@@ -23,7 +24,8 @@ int main(int argc, char* argv[]) {
   QCoreApplication    a(argc, argv);
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
-  RabbitMQClient      mq(config);
+  ThreadPool pool;
+  RabbitMQClient      mq(config, &pool);
   SocketsManager      sockManager;
   NetworkManager network_manager;
   NetworkFacade net_repository = NetworkFactory::create(&network_manager);

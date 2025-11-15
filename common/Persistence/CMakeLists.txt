@@ -11,6 +11,7 @@ add_library(Persistence STATIC
     src/SQLiteDatabase.cpp
     src/ThreadPool.cpp
     src/SqlExecutor.cpp
+    include/interfaces/IThreadPool.h
 )
 
 target_include_directories(Persistence

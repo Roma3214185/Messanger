@@ -14,28 +14,28 @@
 class Message;
 class MessageManager;
 class IRabitMQClient;
+class GetMessagePack;
+class MessageStatus;
+class IThreadPool;
 
 class Controller {
  public:
   Controller(IRabitMQClient* mq_client,
-              MessageManager* manager, IConfigProvider* provider = &ProdConfigProvider::instance());
-  void getMessagesFromChat(const crow::request& req, int chat_id, crow::response& res);
+              MessageManager* manager, IThreadPool* pool, IConfigProvider* provider = &ProdConfigProvider::instance());
+  std::vector<Message> getMessages(const GetMessagePack&); //TODO: make right join to messages status on user_id;
+  std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, int receiver_id);
 
  protected:
   void               subscribeSaveMessageStatus();
   void               subscribeSaveMessage();
-
- private:
-  void               onSendMessage(Message message);
   virtual void       handleSaveMessage(const std::string& payload);
   virtual void       handleSaveMessageStatus(const std::string& payload);
-  crow::json::wvalue formMessageListJson(const std::vector<Message>& messages, int current_user_id);
 
   std::mutex       socket_mutex_;
   MessageManager*  manager_;
   IRabitMQClient*  mq_client_;
   IConfigProvider* provider_;
-  ThreadPool       pool_{ 4 };
+  IThreadPool*     pool_;
 };
 
 #endif  // BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_

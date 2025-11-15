@@ -7,6 +7,7 @@
 #include "codes.h"
 #include "interfaces/IConfigProvider.h"
 #include "chatservice/chatmanager.h"
+#include "interfaces/IThreadPool.h"
 
 using std::optional;
 using std::string;

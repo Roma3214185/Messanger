@@ -1,7 +1,7 @@
 #include "RabbitMQClient.h"
 
-RabbitMQClient::RabbitMQClient(const RabbitMQConfig& rabit_mq_config, size_t thread_pool_size)
-    : pool_(thread_pool_size), rabit_mq_config_(rabit_mq_config) {}
+RabbitMQClient::RabbitMQClient(const RabbitMQConfig& rabit_mq_config, IThreadPool* pool)
+    : pool_(pool), rabit_mq_config_(rabit_mq_config) {}
 
 RabbitMQClient::~RabbitMQClient() { stop(); }
 
@@ -64,7 +64,8 @@ void RabbitMQClient::subscribe(const SubscribeRequest& subscribe_request,
         std::string payload = envelope->Message()->Body();
         LOG_INFO("[rabbit] Received payload: {}", payload);
         LOG_INFO("[rabbit] Received event: {}", event);
-        pool_.enqueue([callback, event, payload]() {
+
+        pool_->enqueue([callback, event, payload]() {
           try {
             callback(event, payload);
           } catch (const std::exception& e) {

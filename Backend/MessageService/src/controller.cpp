@@ -58,7 +58,7 @@ void Controller::handleSaveMessage(const std::string& payload) {
   auto message = *msg;
   LOG_INFO("Get message to save with id {} and text {}", message.id, message.text);
 
-  pool_.enqueue([this, message]() mutable {
+  pool_->enqueue([this, message]() mutable {
     bool ok = manager_->saveMessage(message);
     if (!ok) {
       LOG_ERROR("Error saving message id {}", message.id);
@@ -102,13 +102,13 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
 
   auto status = *message_status;
 
-  pool_.enqueue([this, status]() mutable {
+  pool_->enqueue([this, status]() mutable {
     if (!manager_->saveMessageStatus(status)) {
       LOG_ERROR("Error saving message_status id {}", status.message_id);
       return;
     }
 
-    PublishRequest request; // topic type was
+    PublishRequest request;
     request.exchange = provider_->routes().exchange;
     request.routingKey = provider_->routes().messageStatusSaved;
     request.message = nlohmann::json(status).dump();
