@@ -1,4 +1,4 @@
-#include "chatmanager.h"
+#include "chatservice/chatmanager.h"
 
 #include "entities/ChatMember.h"
 

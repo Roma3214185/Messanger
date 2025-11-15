@@ -1,4 +1,4 @@
-#include "managers/socketmanager.h"
+#include "notificationservice/managers/socketmanager.h"
 #include "Debug_profiling.h"
 
 void SocketsManager::saveConnections(int user_id, ISocket* socket) {

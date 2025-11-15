@@ -17,7 +17,7 @@ class RabbitMQClient;
 
 class Controller {
  public:
-  Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
+  Controller(RabbitMQClient* mq_client,
               MessageManager* manager, IConfigProvider* provider = &ProdConfigProvider::instance());
   void getMessagesFromChat(const crow::request& req, int chat_id, crow::response& res);
 
@@ -30,7 +30,6 @@ class Controller {
   crow::json::wvalue formMessageListJson(const std::vector<Message>& messages, int current_user_id);
 
   std::mutex       socket_mutex_;
-  crow::SimpleApp& app_;
   MessageManager*  manager_;
   RabbitMQClient*  mq_client_;
   IConfigProvider* provider_;

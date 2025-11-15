@@ -4,8 +4,8 @@
 #include "GenericRepository.h"
 #include "RedisCache.h"
 #include "SqlExecutor.h"
-#include "authmanager.h"
-#include "server.h"
+#include "authservice/authmanager.h"
+#include "authservice/server.h"
 #include "SqlExecutor.h"
 #include "ProdConfigProvider.h"
 

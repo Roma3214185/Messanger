@@ -1,9 +1,9 @@
-#include "server.h"
+#include "notificationservice/server.h"
 
 #include <crow.h>
 
-#include "managers/notificationmanager.h"
-#include "CrowSocket.h"
+#include "notificationservice/managers/notificationmanager.h"
+#include "notificationservice/CrowSocket.h"
 
 Server::Server(int port, NotificationManager* notification_manager)
     : notification_manager_(notification_manager), notification_port_(port) {

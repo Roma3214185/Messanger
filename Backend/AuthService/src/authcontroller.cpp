@@ -1,10 +1,10 @@
-#include "authcontroller.h"
+#include "authservice/authcontroller.h"
 
 #include <string>
 #include <utility>
 
 #include "Debug_profiling.h"
-#include "JwtUtils.h"
+#include "authservice/JwtUtils.h"
 #include "entities/RegisterRequest.h"
 
 using std::string;

@@ -1,12 +1,12 @@
-#include "managers/notificationmanager.h"
+#include "notificationservice/managers/notificationmanager.h"
 
 #include "Debug_profiling.h"
 #include "interfaces/IRabitMQClient.h"
-#include "managers/SocketManager.h"
+#include "notificationservice/managers/SocketManager.h"
 #include "NetworkFacade.h"
 #include "interfaces/ISocket.h"
 #include "interfaces/IConfigProvider.h"
-#include "managers/socketmanager.h"
+#include "notificationservice/managers/socketmanager.h"
 
 namespace {
 

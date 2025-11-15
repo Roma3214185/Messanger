@@ -1,4 +1,4 @@
-#include "JwtUtils.h"
+#include "authservice/JwtUtils.h"
 
 #include <jwt-cpp/jwt.h>
 #include <openssl/bio.h>

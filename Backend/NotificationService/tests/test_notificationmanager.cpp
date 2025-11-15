@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
-#include "managers/notificationmanager.h"
+#include "notificationservice/managers/notificationmanager.h"
 #include "mocks/MockRabitMQClient.h"
-#include "managers/SocketManager.h"
+#include "notificationservice/managers/SocketManager.h"
 #include "interfaces/IChatNetworkManager.h"
 #include "interfaces/IMessageNetworkManager.h"
 #include "interfaces/IUserNetworkManager.h"

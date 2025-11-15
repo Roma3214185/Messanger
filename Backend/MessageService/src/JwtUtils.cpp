@@ -1,7 +1,6 @@
-#include "managers/JwtUtils.h"
+#include "messageservice/managers/JwtUtils.h"
 
 #include <jwt-cpp/jwt.h>
-
 #include <fstream>
 
 #include "Debug_profiling.h"

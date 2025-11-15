@@ -5,10 +5,9 @@
 #include "Debug_profiling.h"
 #include "GenericRepository.h"
 #include "SqlExecutor.h"
-#include "chatmanager.h"
-#include "controller.h"
-#include "database.h"
-#include "server.h"
+#include "chatservice/chatmanager.h"
+#include "chatservice/controller.h"
+#include "chatservice/server.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
 

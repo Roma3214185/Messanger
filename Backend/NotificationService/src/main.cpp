@@ -4,11 +4,11 @@
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
 #include "NetworkFacade.h"
-#include "managers/notificationmanager.h"
-#include "server.h"
+#include "notificationservice/managers/notificationmanager.h"
+#include "notificationservice/server.h"
+#include "notificationservice/managers/socketmanager.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
-#include "managers/socketmanager.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   RabbitMQConfig config;

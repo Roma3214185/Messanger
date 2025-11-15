@@ -1,4 +1,4 @@
-#include "controller.h"
+#include "messageservice/controller.h"
 
 #include <jwt-cpp/jwt.h>
 
@@ -7,8 +7,8 @@
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
-#include "managers/JwtUtils.h"
-#include "managers/MessageManager.h"
+#include "messageservice/managers/JwtUtils.h"
+#include "messageservice/managers/MessageManager.h"
 #include "interfaces/IConfigProvider.h"
 
 namespace {
@@ -43,9 +43,9 @@ std::optional<T> parsePayload(const std::string& payload) {
 
 }  // namespace
 
-Controller::Controller(crow::SimpleApp& app, RabbitMQClient* mq_client,
+Controller::Controller(RabbitMQClient* mq_client,
                        MessageManager* manager, IConfigProvider* provider)
-    : app_(app), manager_(manager), mq_client_(mq_client), provider_(provider) {
+    : manager_(manager), mq_client_(mq_client), provider_(provider) {
   subscribeSaveMessage();
   subscribeSaveMessageStatus();
 }

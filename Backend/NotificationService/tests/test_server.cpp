@@ -1,13 +1,13 @@
 #include <catch2/catch_all.hpp>
 
 #include "interfaces/ISocket.h"
-#include "managers/notificationmanager.h"
+#include "notificationservice/managers/notificationmanager.h"
 #include "mocks/MockSocket.h"
-#include "server.h"
+#include "notificationservice/server.h"
 #include "mocks/MockRabitMQClient.h"
 #include "mocks/MockNetworkManager.h"
 #include "NetworkFacade.h"
-#include "managers/socketmanager.h"
+#include "notificationservice/managers/socketmanager.h"
 
 class TestServer : public Server {
   public:

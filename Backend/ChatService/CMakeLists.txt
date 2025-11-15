@@ -11,7 +11,6 @@ find_package(nlohmann_json REQUIRED)
 
 add_executable(ChatService
     ${CHAT_SERVICE_SRC_DIR}/main.cpp
-    ${CHAT_SERVICE_SRC_DIR}/database.cpp
     ${CHAT_SERVICE_SRC_DIR}/controller.cpp
     ${CHAT_SERVICE_SRC_DIR}/server.cpp
     ${CHAT_SERVICE_SRC_DIR}/chatmanager.cpp

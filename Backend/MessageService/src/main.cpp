@@ -5,8 +5,8 @@
 #include "GenericRepository.h"
 #include "RabbitMQClient.h"
 #include "SqlExecutor.h"
-#include "managers/MessageManager.h"
-#include "server.h"
+#include "messageservice/managers/MessageManager.h"
+#include "messageservice/server.h"
 #include "ProdConfigProvider.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {

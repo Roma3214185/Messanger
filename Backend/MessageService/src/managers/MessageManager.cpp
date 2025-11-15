@@ -1,4 +1,4 @@
-#include "managers/MessageManager.h"
+#include "messageservice/managers/MessageManager.h"
 
 #include "GenericRepository.h"
 #include "SqlExecutor.h"

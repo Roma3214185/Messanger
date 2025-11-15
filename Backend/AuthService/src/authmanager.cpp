@@ -1,13 +1,12 @@
-#include "authmanager.h"
-
-#include <JwtUtils.h>
+#include "authservice/authmanager.h"
 
 #include <optional>
 #include <string>
 
-#include "Debug_profiling.h"
-#include "PasswordService.h"
+#include "authservice/JwtUtils.h"
+#include "authservice/PasswordService.h"
 #include "entities/RegisterRequest.h"
+#include "Debug_profiling.h"
 #include "entities/UserCredentials.h"
 
 using std::nullopt;

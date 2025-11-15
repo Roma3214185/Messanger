@@ -1,7 +1,7 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef AUTH_SERVICE_SERVER_H
+#define AUTH_SERVICE_SERVER_H
 
-#include "authcontroller.h"
+#include "authservice/authcontroller.h"
 
 class AuthManager;
 
@@ -27,4 +27,4 @@ class Server {
   AuthControllerPtr auth_controller_;
 };
 
-#endif  // SERVER_H
+#endif  // AUTH_SERVICE_SERVER_H

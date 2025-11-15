@@ -1,10 +1,10 @@
-#include "server.h"
+#include "messageservice/server.h"
 
+#include "messageservice/controller.h"
 #include "RabbitMQClient.h"
-#include "controller.h"
 
 Server::Server(int port, MessageManager* message_manager, RabbitMQClient* mq_client) : port_(port) {
-  controller_ = std::make_unique<Controller>(app_, mq_client, message_manager);
+  controller_ = std::make_unique<Controller>(mq_client, message_manager);
   handleRoutes();
 }
 
