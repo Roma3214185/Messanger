@@ -34,6 +34,8 @@ inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) co
     return QVariant::fromValue(std::any_cast<long long>(val));
   if (f.type == typeid(std::string))
     return QString::fromStdString(std::any_cast<std::string>(val));
+  if (f.type == typeid(bool))
+    return QVariant::fromValue(static_cast<int>(std::any_cast<bool>(val)));
   if (f.type == typeid(QDateTime)) {
     QDateTime dt = std::any_cast<QDateTime>(val);
 
@@ -74,7 +76,7 @@ bool GenericRepository::save(T& entity) {
 template <typename T>
 bool GenericRepository::save(std::vector<T>& entity) {
   bool res = true;
-  for(auto el: entity) {
+  for(auto el: entity) { //TODO: implement bathcer save
     res |= save(el);
   }
   return res;

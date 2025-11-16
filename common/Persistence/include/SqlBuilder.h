@@ -15,6 +15,7 @@ template <typename T>
 class SqlBuilder {
  public:
   SqlStatement buildInsert(const Meta& meta, const T& entity, bool withReturningId);
+  static std::any getFieldValue(const QVariant& v, const Field& f);
 };
 
 #include "SqlBuilder.inl"

@@ -5,6 +5,7 @@
 #include "Query.h"
 #include "SqlExecutor.h"
 #include "Meta.h"
+#include "SqlBuilder.h"
 
 template <typename T>
 std::optional<std::vector<T>> SelectQuery<T>::tryLoadFromCache(const std::string& key) const {
@@ -133,19 +134,10 @@ void SelectQuery<T>::saveEntityInCache(
 }
 
 template <typename T>
-T SelectQuery<T>::buildEntity(QSqlQuery& query, const Meta& meta) const {
+T SelectQuery<T>::buildEntity(QSqlQuery& query, const Meta& meta) const {  
   T entity;
   for (const auto& f : meta.fields) {
-    QVariant v = query.value(f.name);
-    if (!v.isValid()) continue;
-
-    std::any val;
-    if (f.type == typeid(long long))
-      val = v.toLongLong();
-    else if (f.type == typeid(std::string))
-      val = v.toString().toStdString();
-    else if (f.type == typeid(QDateTime))
-      val = v.toDateTime();
+    std::any val = SqlBuilder<T>::getFieldValue(query.value(f.name), f);
     f.set(&entity, val);
   }
   return entity;
@@ -158,6 +150,7 @@ template <typename T>
 QString SelectQuery<T>::buildSelectQuery() const {
   QString sql =
       QString("SELECT * FROM %1").arg(QString::fromStdString(this->table_name_));
+  sql += this->join_clause_;
   if (!this->filters_.empty()) sql += " WHERE " + this->filters_.join(" AND ");
   if (!this->order_.isEmpty()) sql += " " + this->order_;
   if (!this->limit_clause_.isEmpty()) sql += " " + this->limit_clause_;
@@ -186,10 +179,11 @@ std::size_t SelectQuery<T>::hashGenerations(
 
 template <typename T>
 SelectQuery<T>& SelectQuery<T>::orderBy(const std::string& field,
-                            const std::string& direction) {
+                            const OrderDirection& direction) {
+  QString direct = direction == OrderDirection::ASC ? "ASC" : "DESC";
   order_ = QString("ORDER BY %1 %2")
-  .arg(QString::fromStdString(field))
-      .arg(QString::fromStdString(direction));
+    .arg(QString::fromStdString(field))
+    .arg(direct);
   return *this;
 }
 

@@ -4,6 +4,8 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+#include "Fields.h"
+
 struct UserCredentials {
   long long   user_id;
   std::string hash_password;
@@ -13,10 +15,9 @@ template <>
 struct Reflection<UserCredentials> {
   static Meta meta() {
     return Meta{
-        .name       = "Credentials",
-        .table_name = "credentials",
-        .fields     = {make_field<UserCredentials, long long>("user_id", &UserCredentials::user_id),
-                       make_field<UserCredentials, std::string>("hash_password",
+        .table_name = UserCredentialsTable::Table,
+        .fields     = {make_field<UserCredentials, long long>(UserCredentialsTable::UserId, &UserCredentials::user_id),
+                       make_field<UserCredentials, std::string>(UserCredentialsTable::HashPassword,
                                                             &UserCredentials::hash_password)}};
   }
 };
@@ -68,13 +69,13 @@ namespace nlohmann {
 template <>
 struct adl_serializer<UserCredentials> {
   static void to_json(nlohmann::json& json, const UserCredentials& user_credentials) {
-    json = nlohmann::json{{"user_id", user_credentials.user_id},
-                          {"hash_password", user_credentials.hash_password}};
+    json = nlohmann::json{{UserCredentialsTable::UserId, user_credentials.user_id},
+                          {UserCredentialsTable::HashPassword, user_credentials.hash_password}};
   }
 
   static void from_json(const nlohmann::json& json, UserCredentials& user_credentials) {
-    json.at("user_id").get_to(user_credentials.user_id);
-    json.at("hash_password").get_to(user_credentials.hash_password);
+    json.at(UserCredentialsTable::UserId).get_to(user_credentials.user_id);
+    json.at(UserCredentialsTable::HashPassword).get_to(user_credentials.hash_password);
   }
 };
 

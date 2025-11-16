@@ -86,6 +86,7 @@ void RedisCache::set(const std::string&        key,
 }
 
 std::optional<nlohmann::json> RedisCache::get(const std::string& key) {
+  LOG_INFO("real get");
   try {
     if (auto value = getRedis().get(key)) return nlohmann::json::parse(*value);
   } catch (const std::exception& e) {

@@ -11,6 +11,7 @@
 #include <tuple>
 
 #include "Meta.h"
+#include "Fields.h"
 
 struct Message {
   long long   id = 0;
@@ -24,14 +25,13 @@ struct Message {
 template <>
 struct Reflection<Message> {
   static Meta meta() {
-    return Meta{.name       = "Messages",
-                .table_name = "messages",
-                .fields     = {make_field<Message, long long>("id", &Message::id),
-                               make_field<Message, long long>("sender_id", &Message::sender_id),
-                               make_field<Message, long long>("chat_id", &Message::chat_id),
-                               make_field<Message, std::string>("text", &Message::text),
-                               make_field<Message, long long>("timestamp", &Message::timestamp),
-                               make_field<Message, std::string>("local_id", &Message::local_id)}};
+    return Meta{.table_name = MessageTable::Table,
+                .fields     = {make_field<Message, long long>(MessageTable::Id, &Message::id),
+                               make_field<Message, long long>(MessageTable::SenderId, &Message::sender_id),
+                               make_field<Message, long long>(MessageTable::ChatId, &Message::chat_id),
+                               make_field<Message, std::string>(MessageTable::Text, &Message::text),
+                               make_field<Message, long long>(MessageTable::Timestamp, &Message::timestamp),
+                               make_field<Message, std::string>(MessageTable::LocalId, &Message::local_id)}};
   }
 };
 
@@ -81,21 +81,21 @@ namespace nlohmann {
 template <>
 struct adl_serializer<Message> {
   static void to_json(nlohmann::json& json_message, const Message& message) {
-    json_message = nlohmann::json{{"id", message.id},
-                                  {"chat_id", message.chat_id},
-                                  {"sender_id", message.sender_id},
-                                  {"text", message.text},
-                                  {"timestamp", message.timestamp},
-                                  {"local_id", message.local_id}};
+    json_message = nlohmann::json{{MessageTable::Id, message.id},
+                                  {MessageTable::ChatId, message.chat_id},
+                                  {MessageTable::SenderId, message.sender_id},
+                                  {MessageTable::Text, message.text},
+                                  {MessageTable::Timestamp, message.timestamp},
+                                  {MessageTable::LocalId, message.local_id}};
   }
 
   static void from_json(const nlohmann::json& json_message, Message& message) {
-    json_message.at("id").get_to(message.id);
-    json_message.at("chat_id").get_to(message.chat_id);
-    json_message.at("sender_id").get_to(message.sender_id);
-    json_message.at("text").get_to(message.text);
-    json_message.at("timestamp").get_to(message.timestamp);
-    json_message.at("local_id").get_to(message.local_id);
+    json_message.at(MessageTable::Id).get_to(message.id);
+    json_message.at(MessageTable::ChatId).get_to(message.chat_id);
+    json_message.at(MessageTable::SenderId).get_to(message.sender_id);
+    json_message.at(MessageTable::Text).get_to(message.text);
+    json_message.at(MessageTable::Timestamp).get_to(message.timestamp);
+    json_message.at(MessageTable::LocalId).get_to(message.local_id);
   }
 };
 
@@ -111,33 +111,33 @@ inline crow::json::wvalue to_crow_json(const Message& message) {
       message.sender_id,
       message.text,
       message.timestamp);
-  json_message["id"]        = message.id;
-  json_message["chat_id"]   = message.chat_id;
-  json_message["sender_id"] = message.sender_id;
-  json_message["text"]      = message.text;
-  json_message["timestamp"] =
+  json_message[MessageTable::Id]        = message.id;
+  json_message[MessageTable::ChatId]   = message.chat_id;
+  json_message[MessageTable::SenderId] = message.sender_id;
+  json_message[MessageTable::Text]      = message.text;
+  json_message[MessageTable::Timestamp] =
       QDateTime::fromSecsSinceEpoch(message.timestamp).toString(Qt::ISODate).toStdString();
-  json_message["local_id"] = message.local_id;
+  json_message[MessageTable::LocalId] = message.local_id;
   LOG_INFO("Local_id for text {} is {}", message.text, message.local_id);
   return json_message;
 }
 
 inline Message from_crow_json(const crow::json::rvalue& json_message) {
   Message message;
-  if (json_message.count("id")) {
-    message.id = json_message["id"].i();
+  if (json_message.count(MessageTable::Id)) {
+    message.id = json_message[MessageTable::Id].i();
   } else {
     message.id = 0;
   }
 
-  message.chat_id   = json_message["chat_id"].i();
-  message.sender_id = json_message["sender_id"].i();
-  message.text      = json_message["text"].s();
-  message.local_id  = json_message["local_id"].s();
+  message.chat_id   = json_message[MessageTable::ChatId].i();
+  message.sender_id = json_message[MessageTable::SenderId].i();
+  message.text      = json_message[MessageTable::Text].s();
+  message.local_id  = json_message[MessageTable::LocalId].s();
   LOG_INFO("[Message] For text: {}, Local_id = ", message.text, message.local_id);
 
-  if (json_message.count("timestamp")) {
-    QString   timestamp = QString::fromStdString(json_message["timestamp"].s());
+  if (json_message.count(MessageTable::Timestamp)) {
+    QString   timestamp = QString::fromStdString(json_message[MessageTable::Timestamp].s());
     QDateTime datetime  = QDateTime::fromString(timestamp, Qt::ISODate);
     if (!datetime.isValid()) {
       message.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();

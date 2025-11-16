@@ -44,7 +44,8 @@ int main(int argc, char* argv[]) {
   if(!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
 
   Controller controller(mq.get(), &manager, &pool);
-  Server server(provider.ports().messageService, &controller);
+  crow::SimpleApp app;
+  Server server(app, provider.ports().messageService, &controller);
   server.run();
 
   return a.exec();

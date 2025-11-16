@@ -1,16 +1,17 @@
 #pragma once
 
+#include "Meta.h"
+
 template <typename T>
 QVariant toVariant(const Field& f, const T& entity) {
   std::any val = f.get(&entity);
-
-  LOG_INFO("'{}' type: '{}' any type '{}'", f.name, f.type.name(),
-           val.type().name());
 
   if (f.type == typeid(long long))
     return QVariant::fromValue(std::any_cast<long long>(val));
   if (f.type == typeid(std::string))
     return QString::fromStdString(std::any_cast<std::string>(val));
+  if (f.type == typeid(bool))
+    return static_cast<int>(std::any_cast<bool>(val));
   if (f.type == typeid(QDateTime)) {
     QDateTime dt = std::any_cast<QDateTime>(val);
 
@@ -25,14 +26,30 @@ QVariant toVariant(const Field& f, const T& entity) {
 }
 
 template <typename T>
+std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
+  if (!v.isValid())
+    return {};
+
+  if (f.type == typeid(long long))
+    return std::any(v.toLongLong());
+
+  if (f.type == typeid(std::string))
+    return std::any(v.toString().toStdString());
+
+  if (f.type == typeid(bool))
+    return std::any(static_cast<bool>(v.toInt()));
+
+  if (f.type == typeid(QDateTime))
+    return std::any(v.toDateTime());
+
+  return {};
+}
+
+template <typename T>
 std::pair<QStringList, QStringList> buildInsertParts(
     const Meta& meta, const T& entity, QList<QVariant>& values) {
   QStringList cols, ph;
   for (const auto& f : meta.fields) {
-    //if (std::string(f.name) == "id" &&  //TODO(roma) make another field id for this tables
-    // //     std::string(meta.table_name) != "messages_status" &&
-    // //     std::string(meta.table_name) != "chat_members")
-    //continue;
     if (std::string(f.name) == "id" && toVariant<T>(f, entity) == 0) continue;
 
     cols << f.name;

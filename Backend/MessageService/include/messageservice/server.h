@@ -3,24 +3,32 @@
 
 #include <crow.h>
 #include <memory>
-
 #include "managers/MessageManager.h"
+#include "ProdConfigProvider.h"
 
 class IRabitMQClient;
-class Controller;
+class IController;
 
 class Server {
  public:
-  Server(int port, Controller* controller);
+  using OptionalId = std::optional<int>;
+  Server(crow::SimpleApp& app, int port, IController* controller, IConfigProvider* provider = &ProdConfigProvider::instance());
   void run();
 
- private:
-  void handleRoutes();
-  void handleGetMessagesFromChat();
+ protected:
+  crow::json::wvalue formMessageListJson(const std::vector<Message>& messages,
+                                                  const std::vector<MessageStatus>& messages_status);
 
-  crow::SimpleApp app_;
+ private:
+  virtual void onGetMessagesFromChat(const crow::request& req, int chat_id, crow::response& res);
+  void handleGetMessagesFromChat();
+  void handleRoutes();
+  virtual OptionalId getUserIdFromToken(const std::string& token);
+
+  crow::SimpleApp& app_;
   int             port_;
-  Controller*   controller_;
+  IController*   controller_;
+  IConfigProvider* provider_;
 };
 
 #endif  // BACKEND_MESSAGESERVICE_SERVER_SERVER_H_

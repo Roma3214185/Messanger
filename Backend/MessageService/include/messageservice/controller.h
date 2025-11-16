@@ -10,6 +10,7 @@
 
 #include "ThreadPool.h"
 #include "ProdConfigProvider.h"
+#include "messageservice/interfaces/IController.h"
 
 class Message;
 class MessageManager;
@@ -18,12 +19,12 @@ class GetMessagePack;
 class MessageStatus;
 class IThreadPool;
 
-class Controller {
+class Controller : public IController {
  public:
   Controller(IRabitMQClient* mq_client,
               MessageManager* manager, IThreadPool* pool, IConfigProvider* provider = &ProdConfigProvider::instance());
-  std::vector<Message> getMessages(const GetMessagePack&); //TODO: make right join to messages status on user_id;
-  std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, int receiver_id);
+  std::vector<Message> getMessages(const GetMessagePack&) override;
+  std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, int receiver_id) override;
 
  protected:
   void               subscribeSaveMessageStatus();

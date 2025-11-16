@@ -38,6 +38,7 @@ class MockCache : public ICacheService {
   int set_pipeline_calls = 0;
 
   std::optional<nlohmann::json> get(const std::string& key) override {
+    LOG_INFO("MOCK GET");
     auto it = cache.find(key);
     if (it == cache.end()) return std::nullopt;
     return it->second;

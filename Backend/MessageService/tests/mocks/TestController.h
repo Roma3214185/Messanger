@@ -2,6 +2,7 @@
 #define TESTCONTROLLER_H
 
 #include "messageservice/controller.h"
+#include "messageservice/dto/GetMessagePack.h"
 
 class TestController : public Controller {
   public:

@@ -18,8 +18,7 @@ struct User {
 template <>
 struct Reflection<User> {
   static Meta meta() {
-    return {.name       = "User",
-            .table_name = "users",
+    return {.table_name = "users",
             .fields     = {make_field<User, long long>("id", &User::id),
                            make_field<User, std::string>("username", &User::username),
                            make_field<User, std::string>("tag", &User::tag),
