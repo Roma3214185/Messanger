@@ -173,6 +173,7 @@ MessageModel* Model::getMessageModel(int chat_id) {
     LOG_ERROR("Message model is nullptr for id {}", chat_id);
     throw std::runtime_error("Nullptr messagemodel");
   }
+  LOG_INFO("Message model is getted from Model");
 
   return message_model.get();
 }

@@ -32,8 +32,8 @@ std::optional<T> parsePayload(const std::string& payload) {
 Controller::Controller(IRabitMQClient* mq_client,
                        MessageManager* manager, IThreadPool* pool, IConfigProvider* provider)
     : manager_(manager), mq_client_(mq_client),  pool_(pool), provider_(provider) {
-  subscribeSaveMessage();
-  subscribeSaveMessageStatus();
+  subscribeToSaveMessage();
+  subscribeToSaveMessageStatus();
 }
 
 void Controller::handleSaveMessage(const std::string& payload) {
@@ -52,32 +52,38 @@ void Controller::handleSaveMessage(const std::string& payload) {
 
     PublishRequest request;
     request.exchange = provider_->routes().exchange;
-    request.message = provider_->routes().messageSaved;
+    request.routingKey = provider_->routes().messageSaved;
     request.message = nlohmann::json(message).dump(); // can be error excahnge type
+    request.exchangeType = provider_->routes().exchangeType;
 
     mq_client_->publish(request);
     // TODO: kMessageSaved
   });
 }
 
-void Controller::subscribeSaveMessage() {
+void Controller::subscribeToSaveMessage() {
   SubscribeRequest request;
-  request.queue = provider_->routes().messageQueue;
+  request.queue = provider_->routes().saveMessageQueue;
   request.exchange = provider_->routes().exchange;
   request.routingKey = provider_->routes().saveMessage;
-
+  request.exchangeType = provider_->routes().exchangeType;
   mq_client_->subscribe(request,
-      [this](const std::string& event, const std::string& payload) { handleSaveMessage(payload); });
+                        [this](const std::string& event, const std::string& payload) {
+                          LOG_INFO("Getted event in subscribeToSaveMessage: {} and payload {}", event, payload);
+                          if(event == provider_->routes().saveMessage) handleSaveMessage(payload);
+                        });
 }
 
-void Controller::subscribeSaveMessageStatus() {
+void Controller::subscribeToSaveMessageStatus() {
   SubscribeRequest request;
-  request.queue = provider_->routes().messageQueue;
+  request.queue = provider_->routes().saveMessageStatusQueue;
   request.exchange = provider_->routes().exchange;
   request.routingKey = provider_->routes().saveMessageStatus;
+  request.exchangeType = provider_->routes().exchangeType;
   mq_client_->subscribe(request,
       [this](const std::string& event, const std::string& payload) {
-        handleSaveMessageStatus(payload);
+        LOG_INFO("Getted event in subscribeToSaveMessageStatus: {} and payload {}", event, payload);
+        if(event == provider_->routes().saveMessageStatus) handleSaveMessageStatus(payload);
       });
 }
 
@@ -97,6 +103,7 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
     request.exchange = provider_->routes().exchange;
     request.routingKey = provider_->routes().messageStatusSaved;
     request.message = nlohmann::json(status).dump();
+    request.exchangeType = provider_->routes().exchangeType;
 
     mq_client_->publish(request);
   });

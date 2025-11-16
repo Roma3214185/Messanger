@@ -163,9 +163,14 @@ void Presenter::findUserRequest(const QString& text) {
 void Presenter::openChat(int chat_id) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
   setCurrentChatId(chat_id);
-  message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
+  auto message_model = manager_->getMessageModel(chat_id);
+  LOG_INFO("Message model is getted");
+  message_list_view_->setMessageModel(message_model);
+  LOG_INFO("Message model is setted");
   message_list_view_->scrollToBottom();
+  LOG_INFO("Scroll to bottom");
   auto chat = manager_->getChat(chat_id);
+  LOG_INFO("Getted chat");
   view_->setChatWindow(chat);
 }
 

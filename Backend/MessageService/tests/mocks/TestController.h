@@ -18,8 +18,8 @@ class TestController : public Controller {
     std::string last_payload = "";
     std::string last_getIdFromToken_token = "";
 
-    using Controller::subscribeSaveMessage;
-    using Controller::subscribeSaveMessageStatus;
+    using Controller::subscribeToSaveMessage;
+    using Controller::subscribeToSaveMessageStatus;
     using Controller::Controller;
 
     void handleSaveMessage(const std::string& payload) override {

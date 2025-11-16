@@ -8,14 +8,14 @@ struct PublishRequest{
   std::string exchange;
   std::string routingKey;
   std::string message;
-  std::string exchangeType = "topic";
+  std::string exchangeType;
 };
 
 struct SubscribeRequest{
     std::string queue;
     std::string exchange;
     std::string routingKey;
-    std::string exchangeType = "topic";
+    std::string exchangeType;
 };
 
 class IRabitMQClient {
