@@ -21,7 +21,6 @@ link_directories(/opt/homebrew/lib)
 add_library(MessageServiceCore STATIC
   ${MESSAGE_SERVICE_SRC_DIR}/controller.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/server.cpp
-  ${MESSAGE_SERVICE_SRC_DIR}/messageworker.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/managers/MessageManager.cpp
   ${MESSAGE_SERVICE_SRC_DIR}/JwtUtils.cpp
 )

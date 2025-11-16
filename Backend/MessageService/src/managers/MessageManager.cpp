@@ -5,6 +5,7 @@
 #include "interfaces/BaseQuery.h"
 #include "interfaces/ISqlExecutor.h"
 #include "interfaces/ICacheService.h"
+#include "messageservice/dto/GetMessagePack.h"
 
 MessageManager::MessageManager(GenericRepository* repository, ISqlExecutor*  executor, ICacheService& cache)
     : repository_(repository), executor_(executor), cache_(cache) {}
@@ -48,7 +49,7 @@ std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<M
 
   for(const auto& msg: messages) {
     auto custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
-    custom_query->where("message_id", msg.id).where("receiver_id", receiver_id);
+    custom_query->where(MessageStatusTable::MessageId, msg.id).where(MessageStatusTable::ReceiverId, receiver_id);
     auto returned_list = custom_query->execute();
     if(returned_list.size() != 1) LOG_WARN("Returned {}", returned_list.size());
     else ans.emplace_back(returned_list.front());

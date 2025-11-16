@@ -10,13 +10,7 @@
 class GenericRepository;
 class ISqlExecutor;
 class ICacheService;
-
-struct GetMessagePack {
-    int chat_id;
-    int limit;
-    int before_id;
-    int user_id;
-};
+class GetMessagePack;
 
 class MessageManager {
  public:

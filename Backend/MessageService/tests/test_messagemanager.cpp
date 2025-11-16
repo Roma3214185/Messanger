@@ -5,6 +5,7 @@
 #include "mocks/MockDatabase.h"
 #include "mocks/MockCache.h"
 #include "mocks/MockTheadPool.h"
+#include "messageservice/dto/GetMessagePack.h"
 
 TEST_CASE("Test") {
   MockDatabase db;
@@ -90,5 +91,24 @@ TEST_CASE("Test") {
     CHECK(executor.lastValues[1] == to_save.receiver_id);
     CHECK(executor.lastValues[2] == 1);
     CHECK(executor.lastValues[3] == 123);
+  }
+
+  SECTION("Get message status expected create right sql") {
+    int before_execute = executor.execute_calls;
+    int before_return_id_execute = executor.execute_returning_id_calls;
+    int message_id = 23;
+    int receiver_id = 156;
+
+    manager.getMessageStatus(message_id, receiver_id);
+
+    std::string expected_sql = "SELECT * FROM messages_status WHERE message_id = ? AND receiver_id = ? LIMIT 1";
+
+    REQUIRE(executor.execute_calls == before_execute + 1);
+    CHECK(executor.lastSql.toStdString() == expected_sql);
+    CHECK(executor.execute_returning_id_calls == before_return_id_execute);
+
+    CHECK(executor.lastValues.size() == 2);
+    CHECK(executor.lastValues[0] == message_id);
+    CHECK(executor.lastValues[1] == receiver_id);
   }
 }
