@@ -32,12 +32,6 @@ std::optional<MessageStatus> MessageManager::getMessageStatus(int message_id, in
   return res.empty() ? std::nullopt : std::make_optional(res.front());
 }
 
-std::optional<int> MessageManager::getChatId(int message_id) {
-  auto message = getMessage(message_id);
-  if (!message) return std::nullopt;
-  return message->chat_id;
-}
-
 std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {
   auto        custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
   custom_query->join("messages_status", "id = messages_status.message_id")
