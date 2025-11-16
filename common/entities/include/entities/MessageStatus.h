@@ -9,6 +9,7 @@
 #include <tuple>
 
 #include "Meta.h"
+#include "Fields.h"
 
 struct MessageStatus {
   long long message_id;
@@ -21,12 +22,11 @@ template <>
 struct Reflection<MessageStatus> {
   static Meta meta() {
     return Meta{
-        .name       = "MessageStatus",
-        .table_name = "messages_status",
-        .fields = {make_field<MessageStatus, long long>("message_id", &MessageStatus::message_id),
-                   make_field<MessageStatus, long long>("receiver_id", &MessageStatus::receiver_id),
-                   make_field<MessageStatus, bool>("is_read", &MessageStatus::is_read),
-                   make_field<MessageStatus, long long>("read_at", &MessageStatus::read_at)}};
+        .table_name = MessageStatusTable::Table,
+        .fields = {make_field<MessageStatus, long long>(MessageStatusTable::MessageId, &MessageStatus::message_id),
+                   make_field<MessageStatus, long long>(MessageStatusTable::ReceiverId, &MessageStatus::receiver_id),
+                   make_field<MessageStatus, bool>(MessageStatusTable::IsRead, &MessageStatus::is_read),
+                   make_field<MessageStatus, long long>(MessageStatusTable::ReatAt, &MessageStatus::read_at)}};
   }
 };
 
@@ -81,17 +81,17 @@ namespace nlohmann {
 template <>
 struct adl_serializer<MessageStatus> {
   static void to_json(nlohmann::json& json_message_status, const MessageStatus& message_status) {
-    json_message_status = nlohmann::json{{"message_id", message_status.message_id},
-                                         {"receiver_id", message_status.receiver_id},
-                                         {"is_read", message_status.is_read},
-                                         {"read_at", message_status.read_at}};
+    json_message_status = nlohmann::json{{MessageStatusTable::MessageId, message_status.message_id},
+                                         {MessageStatusTable::ReceiverId, message_status.receiver_id},
+                                         {MessageStatusTable::IsRead, message_status.is_read},
+                                         {MessageStatusTable::ReatAt, message_status.read_at}};
   }
 
   static void from_json(const nlohmann::json& json_message_status, MessageStatus& message_status) {
-    json_message_status.at("message_id").get_to(message_status.message_id);
-    json_message_status.at("receiver_id").get_to(message_status.receiver_id);
-    json_message_status.at("is_read").get_to(message_status.is_read);
-    json_message_status.at("read_at").get_to(message_status.read_at);
+    json_message_status.at(MessageStatusTable::MessageId).get_to(message_status.message_id);
+    json_message_status.at(MessageStatusTable::ReceiverId).get_to(message_status.receiver_id);
+    json_message_status.at(MessageStatusTable::IsRead).get_to(message_status.is_read);
+    json_message_status.at(MessageStatusTable::ReatAt).get_to(message_status.read_at);
   }
 };
 

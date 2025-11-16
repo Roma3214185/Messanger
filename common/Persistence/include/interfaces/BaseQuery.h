@@ -9,6 +9,8 @@
 #include "interfaces/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
 
+enum class Operator { Equal, Less, More, MoreEqual, NotEqual, LessEqual };
+
 template <typename T>
 class BaseQuery {
  protected:
@@ -34,9 +36,10 @@ class BaseQuery {
     values_.push_back(value);
     return *this;
   }
-  BaseQuery& where(const std::string& field, const std::string& op, const QVariant& value) {
-    filters_.push_back(
-        QString("%1 %2 ?").arg(QString::fromStdString(field)).arg(QString::fromStdString(op)));
+
+  BaseQuery& where(const std::string& field, const Operator& op, const QVariant& value) {
+    filters_.push_back(QString("%1 %2 ?").arg(QString::fromStdString(field))
+                           .arg(QString::fromStdString(operator_to_sql.at(op))));
     values_.push_back(value);
     return *this;
   }
@@ -47,12 +50,21 @@ class BaseQuery {
   }
 
   BaseQuery& join(const std::string& table,
-                  const std::string& on)
-  {
-    join_clause_ += " JOIN " + table + " ON " + on;
+                  const std::string& first,
+                  const std::string& second) {
+    join_clause_ += " JOIN " + table + " ON " + first + " = " + second;
     involved_tables_.push_back(table);
     return *this;
   }
+  private:
+    const std::unordered_map<Operator, std::string> operator_to_sql {
+      {Operator::Equal,      "="},
+      {Operator::Less,       "<"},
+      {Operator::More,       ">"},
+      {Operator::MoreEqual,  ">="},
+      {Operator::NotEqual,   "!="},
+      {Operator::LessEqual,  "<="},
+    };
 };
 
 template <typename T>

@@ -19,29 +19,25 @@ std::optional<Message> MessageManager::getMessage(int message_id) {
 
 std::optional<MessageStatus> MessageManager::getMessageStatus(int message_id, int receiver_id) {
   auto        custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
-  custom_query->where("message_id", message_id).where("receiver_id", receiver_id).limit(1);
-
+  custom_query
+      ->where(MessageStatusTable::MessageId, message_id)
+      .where(MessageStatusTable::ReceiverId, receiver_id).limit(1);
   auto res = custom_query->execute();
-  LOG_INFO(
-      "Found for message_id = '{}' and receiverId = '{}' status messages size "
-      "= '{}'",
-      message_id,
-      receiver_id,
-      (int)res.size());
-
   return res.empty() ? std::nullopt : std::make_optional(res.front());
 }
 
 std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {
   auto        custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
-  custom_query->join("messages_status", "id = messages_status.message_id")
-      .where("chat_id", pack.chat_id).limit(pack.limit)
-      .where("messages_status.user_id", pack.user_id);
+  custom_query
+      ->join(MessageStatusTable::Table, MessageTable::Id, MessageStatusTable::fullField(
+                                                              MessageStatusTable::MessageId))
+      .where(MessageTable::ChatId, pack.chat_id).limit(pack.limit)
+      .where(MessageStatusTable::fullField(MessageStatusTable::ReceiverId), pack.user_id);
 
-  custom_query->orderBy("timestamp", OrderDirection::DESC);
+  custom_query->orderBy(MessageTable::Timestamp, OrderDirection::DESC);
 
   if (pack.before_id > 0) {
-    custom_query->where("id", "<", pack.before_id);
+    custom_query->where(MessageTable::Id, Operator::Less, pack.before_id);
   }
 
   return custom_query->execute();

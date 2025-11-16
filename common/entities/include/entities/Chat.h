@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Meta.h"
+#include "Fields.h"
 
 struct Chat {
   long long   id       = 0;
@@ -18,13 +19,12 @@ struct Chat {
 template <>
 struct Reflection<Chat> {
   static Meta meta() {
-    return Meta{.name       = "chats",
-                .table_name = "chats",
-                .fields     = {make_field<Chat, long long>("id", &Chat::id),
-                               make_field<Chat, int>("is_group", &Chat::is_group),
-                               make_field<Chat, std::string>("name", &Chat::name),
-                               make_field<Chat, std::string>("avatar", &Chat::avatar),
-                               make_field<Chat, long long>("created_at", &Chat::created_at)}};
+    return Meta{.table_name = ChatTable::Table,
+                .fields     = {make_field<Chat, long long>(ChatTable::Id, &Chat::id),
+                               make_field<Chat, int>(ChatTable::IsGroup, &Chat::is_group),
+                               make_field<Chat, std::string>(ChatTable::Name, &Chat::name),
+                               make_field<Chat, std::string>(ChatTable::Avatar, &Chat::avatar),
+                               make_field<Chat, long long>(ChatTable::CreatedAt, &Chat::created_at)}};
   }
 };
 
@@ -73,19 +73,19 @@ namespace nlohmann {
 template <>
 struct adl_serializer<Chat> {
   static void to_json(nlohmann::json& json_chat, const Chat& chat) {
-    json_chat = nlohmann::json{{"id", chat.id},
-                               {"is_group", chat.is_group},
-                               {"name", chat.name},
-                               {"avatar", chat.avatar},
-                               {"created_at", chat.created_at}};
+    json_chat = nlohmann::json{{ChatTable::Id, chat.id},
+                               {ChatTable::IsGroup, chat.is_group},
+                               {ChatTable::Name, chat.name},
+                               {ChatTable::Avatar, chat.avatar},
+                               {ChatTable::CreatedAt, chat.created_at}};
   }
 
   static void from_json(const nlohmann::json& json_chat, Chat& chat) {
-    json_chat.at("id").get_to(chat.id);
-    json_chat.at("is_group").get_to(chat.is_group);
-    json_chat.at("name").get_to(chat.name);
-    json_chat.at("avatar").get_to(chat.avatar);
-    json_chat.at("created_at").get_to(chat.created_at);
+    json_chat.at(ChatTable::Id).get_to(chat.id);
+    json_chat.at(ChatTable::IsGroup).get_to(chat.is_group);
+    json_chat.at(ChatTable::Name).get_to(chat.name);
+    json_chat.at(ChatTable::Avatar).get_to(chat.avatar);
+    json_chat.at(ChatTable::CreatedAt).get_to(chat.created_at);
   }
 };
 

@@ -25,7 +25,7 @@ TEST_CASE("Test") {
                           "JOIN messages_status ON "
                           "id = messages_status.message_id "
                           "WHERE chat_id = ? "
-                          "AND messages_status.user_id = ? "
+                          "AND messages_status.receiver_id = ? "
                           "AND id < ? ORDER BY timestamp DESC LIMIT 2";
     REQUIRE(executor.execute_calls == before + 1);
     CHECK(executor.lastSql.toStdString() == expected_sql);
@@ -91,6 +91,4 @@ TEST_CASE("Test") {
     CHECK(executor.lastValues[2] == 1);
     CHECK(executor.lastValues[3] == 123);
   }
-
-
 }

@@ -16,7 +16,7 @@ TEST_CASE("Test select query create right sql command") {
 
   SECTION("Select message by id") {
     auto query = QueryFactory::createSelect<Message>(&executor, cache);
-    query->where("id", 10);
+    query->where(MessageTable::Id, 10);
     QString valid_sql = "SELECT * FROM messages WHERE id = ?";
 
     query->execute();
@@ -25,7 +25,7 @@ TEST_CASE("Test select query create right sql command") {
 
   SECTION("Select message_status by message_id") {
     auto query = QueryFactory::createSelect<MessageStatus>(&executor, cache);
-    query->where("message_id", 10);
+    query->where(MessageStatusTable::MessageId, 10);
     QString valid_sql = "SELECT * FROM messages_status WHERE message_id = ?";
 
     query->execute();
@@ -34,9 +34,9 @@ TEST_CASE("Test select query create right sql command") {
 
   SECTION("Select message with filters") {
     auto query = QueryFactory::createSelect<Message>(&executor, cache);
-    query->where("id", 10);
-    query->where("chat_id", 3);
-    query->where("sender_id", 5);
+    query->where(MessageTable::Id, 10);
+    query->where(MessageTable::ChatId, 3);
+    query->where(MessageTable::SenderId, 5);
     QString valid_sql = "SELECT * FROM messages WHERE id = ? AND chat_id = ? AND sender_id = ?";
 
     query->execute();
@@ -45,9 +45,9 @@ TEST_CASE("Test select query create right sql command") {
 
   SECTION("Select message with different filters") {
     auto query = QueryFactory::createSelect<Message>(&executor, cache);
-    query->where("id", 10);
-    query->where("chat_id", 3);
-    query->orderBy("timestamp");
+    query->where(MessageTable::Id, 10);
+    query->where(MessageTable::ChatId, 3);
+    query->orderBy(MessageTable::Timestamp);
     QString valid_sql =
         "SELECT * FROM messages WHERE id = ? AND chat_id = ? ORDER BY timestamp ASC";
 
@@ -57,9 +57,9 @@ TEST_CASE("Test select query create right sql command") {
 
   SECTION("Select message with custom filter") {
     auto query = QueryFactory::createSelect<Message>(&executor, cache);
-    query->where("id", 10);
-    query->where("chat_id", "<", 3);
-    query->orderBy("timestamp");
+    query->where(MessageTable::Id, 10);
+    query->where(MessageTable::ChatId, Operator::Less, 3);
+    query->orderBy(MessageTable::Timestamp);
     QString valid_sql =
         "SELECT * FROM messages WHERE id = ? AND chat_id < ? ORDER BY timestamp ASC";
 

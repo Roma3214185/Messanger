@@ -6,9 +6,6 @@ template <typename T>
 QVariant toVariant(const Field& f, const T& entity) {
   std::any val = f.get(&entity);
 
-  LOG_INFO("'{}' type: '{}' any type '{}'", f.name, f.type.name(),
-           val.type().name());
-
   if (f.type == typeid(long long))
     return QVariant::fromValue(std::any_cast<long long>(val));
   if (f.type == typeid(std::string))
