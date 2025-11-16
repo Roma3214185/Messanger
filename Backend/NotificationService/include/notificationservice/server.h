@@ -13,7 +13,7 @@ class Server {
   void run();
 
  protected:
-  void handleSocketOnMessage(ISocket* socket, const std::string& data);
+  void handleSocketOnMessage(std::shared_ptr<ISocket> socket, const std::string& data);
 
  private:
   void initRoutes();

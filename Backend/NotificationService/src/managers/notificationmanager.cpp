@@ -2,7 +2,6 @@
 
 #include "Debug_profiling.h"
 #include "interfaces/IRabitMQClient.h"
-#include "notificationservice/managers/SocketManager.h"
 #include "NetworkFacade.h"
 #include "interfaces/ISocket.h"
 #include "interfaces/IConfigProvider.h"
@@ -63,11 +62,11 @@ void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& st
 
 void NotificationManager::notifyNewMessages(Message& message, int user_id) {}
 
-void NotificationManager::deleteConnections(ISocket* socket) {
+void NotificationManager::deleteConnections(SocketPtr socket) {
   socket_manager_->deleteConnections(socket);
 }
 
-void NotificationManager::userConnected(int user_id, ISocket* socket) {
+void NotificationManager::userConnected(int user_id, SocketPtr socket) {
   socket_manager_->saveConnections(user_id, socket);
   // notify users who communicate with this user
 }
@@ -128,12 +127,13 @@ QVector<UserId> NotificationManager::fetchChatMembers(int chat_id) {
 }
 
 bool NotificationManager::notifyMember(int user_id, const Message& msg) {
-  auto* socket = socket_manager_->getUserSocket(user_id);
+  auto socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {
     LOG_INFO("User {} offline", user_id);
     return false;
   }
+  LOG_INFO("User {} online, send message: {}", user_id, msg.text);
 
   auto json_message = nlohmann::json(msg);
   json_message["type"] = "new_message";

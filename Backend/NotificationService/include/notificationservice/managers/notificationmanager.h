@@ -19,14 +19,16 @@ class NotificationManager {
   IConfigProvider* provider_;
 
  public:
+  using SocketPtr = std::shared_ptr<ISocket>;
+
   NotificationManager(IRabitMQClient* mq_client,
                       SocketsManager* sock_manager,
                       NetworkFacade& network_facade,
                       IConfigProvider* provider = &ProdConfigProvider::instance());
   void notifyMessageRead(int chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, int user_id);
-  void deleteConnections(ISocket* conn);
-  virtual void userConnected(int user_id, ISocket* conn);
+  void deleteConnections(SocketPtr conn);
+  virtual void userConnected(int user_id, SocketPtr conn);
   void saveMessageStatus(MessageStatus& message);
   void saveDeliveryStatus(const Message& msg, int receiver_id);
   bool notifyMember(int user_id, const Message& msg);

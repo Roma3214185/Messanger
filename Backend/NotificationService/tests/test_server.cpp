@@ -39,7 +39,7 @@ TEST_CASE("handleSocketOnMessage init type registers user") {
   NotificationManager nm(&mock_rabit_client, &socket_manager, network_facade);
 
   TestServer server(8080, &nm);
-  auto socket = std::make_unique<MockSocket>();
+  auto socket = std::make_shared<MockSocket>();
 
   auto now = QDateTime::currentSecsSinceEpoch();
   Message new_message;
@@ -54,7 +54,7 @@ TEST_CASE("handleSocketOnMessage init type registers user") {
     init_msg["type"] =  "init";
     init_msg["user_id"]  = 42;
 
-    server.handleSocketOnMessage(socket.get(), init_msg.dump());
+    server.handleSocketOnMessage(socket, init_msg.dump());
 
     REQUIRE(socket_manager.userOnline(42));
   }
@@ -69,7 +69,7 @@ TEST_CASE("handleSocketOnMessage init type registers user") {
     init_msg["timestamp"]  = now;
     init_msg["text"]  = new_message.text;
 
-    server.handleSocketOnMessage(socket.get(), init_msg.dump());
+    server.handleSocketOnMessage(socket, init_msg.dump());
 
     nlohmann::json expected_json;
     expected_json["event"] =  "save_message";
