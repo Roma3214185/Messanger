@@ -6,8 +6,8 @@
 #include "GenericRepository.h"
 #include "SqlExecutor.h"
 #include "chatservice/chatmanager.h"
-#include "chatservice/controller.h"
-#include "chatservice/server.h"
+#include "chatservice/chatcontroller.h"
+#include "chatservice/chatserver.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
 
@@ -20,7 +20,9 @@ int main(int argc, char* argv[]) {
   ChatManager       manager(&genetic_rep); //TODO: pass executor to mock
   NetworkManager    network_manager;
   ProdConfigProvider provider;
-  Server            server(provider.ports().chatService, &manager, &network_manager);
+  crow::SimpleApp app;
+  ChatController controller(&manager, &network_manager);
+  ChatServer            server(app, provider.ports().chatService, &controller);
   LOG_INFO("Chat service on port '{}'", provider.ports().chatService);
   server.run();
 }

@@ -1,5 +1,5 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef CHATCONTROLLER_H
+#define CHATCONTROLLER_H
 
 #include <crow.h>
 
@@ -9,9 +9,9 @@ class NetworkManager;
 class IConfigProvider;
 class ChatManager;
 
-class Controller {
+class ChatController {
  public:
-  Controller(ChatManager* manager,
+  ChatController(ChatManager* manager,
               NetworkManager* network_manager, IConfigProvider* provider = &ProdConfigProvider::instance());
   void createPrivateChat(const crow::request& req, crow::response& res);
   void getAllChats(const crow::request& req, crow::response& res);
@@ -24,4 +24,4 @@ class Controller {
   IConfigProvider* provider_;
 };
 
-#endif  // CONTROLLER_H
+#endif  // CHATCONTROLLER_H

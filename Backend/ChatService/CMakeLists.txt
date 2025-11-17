@@ -9,19 +9,13 @@ set(CHAT_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CHAT_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_package(nlohmann_json REQUIRED)
 
-add_executable(ChatService
-    ${CHAT_SERVICE_SRC_DIR}/main.cpp
-    ${CHAT_SERVICE_SRC_DIR}/controller.cpp
-    ${CHAT_SERVICE_SRC_DIR}/server.cpp
-    ${CHAT_SERVICE_SRC_DIR}/chatmanager.cpp
+add_library(ChatServiceCore STATIC
+  ${CHAT_SERVICE_SRC_DIR}/chatcontroller.cpp
+  ${CHAT_SERVICE_SRC_DIR}/chatserver.cpp
+  ${CHAT_SERVICE_SRC_DIR}/chatmanager.cpp
 )
 
-target_include_directories(ChatService PRIVATE
-  ${httplib_SOURCE_DIR}
-  ${CHAT_SERVICE_INCLUDE_DIR}/
-)
-
-target_link_libraries(ChatService PRIVATE
+target_link_libraries(ChatServiceCore PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Sql
     Crow::Crow
@@ -31,6 +25,17 @@ target_link_libraries(ChatService PRIVATE
     Entities
     NetworkManager
 )
+
+target_include_directories(ChatServiceCore PUBLIC
+  ${httplib_SOURCE_DIR}
+  ${CHAT_SERVICE_INCLUDE_DIR}/
+)
+
+add_executable(ChatService
+    ${CHAT_SERVICE_SRC_DIR}/main.cpp
+)
+
+target_link_libraries(ChatService PRIVATE ChatServiceCore Qt6::Core)
 
 include_directories(/opt/homebrew/include)
 link_directories(/opt/homebrew/lib)
