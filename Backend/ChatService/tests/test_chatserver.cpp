@@ -10,6 +10,8 @@
 
 #include "ProdConfigProvider.h"
 
+namespace TestServer {
+
 struct TestFixture {
     crow::SimpleApp app;
     MockChatManager manager;
@@ -35,9 +37,12 @@ struct TestFixture {
     }
 };
 
+}  // namespace TestServer
+
 TEST_CASE("handleCreatingPrivateChat listens on POST /chats/private") {
-  TestFixture fix;
+  TestServer::TestFixture fix;
   SECTION("Invalid token expected not call getChatsOfUser") {
+    fix.mock_autoritized->need_fail = true;
     fix.app.validate();
     fix.req.method = "GET"_method;
     fix.req.url = "/chats";
@@ -69,7 +74,7 @@ TEST_CASE("handleCreatingPrivateChat listens on POST /chats/private") {
 }
 
 TEST_CASE("handleGetChat listens on GET /chats/<int> and call Manager::GetChat with expected chat_id") {
-  TestFixture fix;
+  TestServer::TestFixture fix;
   fix.req.add_header("Authorization", fix.secret_token);
   fix.app.validate();
   fix.req.method = "GET"_method;
@@ -86,9 +91,10 @@ TEST_CASE("handleGetChat listens on GET /chats/<int> and call Manager::GetChat w
 }
 
 TEST_CASE("handleGetAllChatsMembers listens on GET /chats/<int>/members and call NetworkManager::GetMembersChat with expected chat_id") {
-  TestFixture fix;
+  TestServer::TestFixture fix;
 
   SECTION("Token not setted axpected no call") {
+    fix.mock_autoritized->need_fail = true;
     fix.app.validate();
     fix.req.method = "GET"_method;
     fix.req.url = "/chats/42/members";
@@ -124,8 +130,9 @@ TEST_CASE("handleGetAllChatsMembers listens on GET /chats/<int>/members and call
 }
 
 TEST_CASE("handleGetAllChatsUser listens on GET /chats and call Manager::getChatsOfUser with expected user_id") {
-  TestFixture fix;
+  TestServer::TestFixture fix;
   SECTION("Token isn't setted expected no call") {
+    fix.mock_autoritized->need_fail = true;
     fix.app.validate();
     fix.req.method = "GET"_method;
     fix.req.url = "/chats";
@@ -163,7 +170,8 @@ TEST_CASE("handleGetAllChatsUser listens on GET /chats and call Manager::getChat
 }
 
 TEST_CASE("handleGetAllChatsUser on GET /chats after authentifiaction receive invalid token expected no call Manager::getChatsOfUser") {
-  TestFixture fix;
+  TestServer::TestFixture fix;
+  fix.mock_autoritized->need_fail = true;
   fix.app.validate();
   fix.req.method = "GET"_method;
   fix.req.url = "/chats";

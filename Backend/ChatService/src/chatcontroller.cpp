@@ -171,7 +171,6 @@ void ChatController::getChat(const crow::request& req, crow::response& res, int 
 }
 
 void ChatController::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
-  LOG_INFO("[temp] i in getAllChatMembers");
   auto user_id = autoritize(req);
   if (!user_id) {
     LOG_ERROR("[getAllChatMembers] can't verify token");

@@ -10,7 +10,7 @@
 
 #include "ProdConfigProvider.h"
 
-namespace  Controller {
+namespace TestController {
 
 struct TestFixture {
     crow::SimpleApp app;
@@ -38,10 +38,10 @@ struct TestFixture {
     }
 };
 
-}  //Controller
+} // namespace TestController
 
 TEST_CASE("Test createPrivateChat") {
-  Controller::TestFixture fix;
+  TestController::TestFixture fix;
 
   SECTION("Request without body expected return userError status code and info about issue") {
     fix.controller.createPrivateChat(fix.req, fix.res);
@@ -123,7 +123,60 @@ TEST_CASE("Test createPrivateChat") {
   }
 }
 
-TEST_CASE("Test "){}
+TEST_CASE("Test getAllChatMembers") {
+  TestController::TestFixture fix;
+  int chat_id = 10;
+
+  SECTION("Invalid token expected userError") {
+    fix.mock_autoritized->need_fail = true;
+    fix.controller.getAllChatMembers(fix.req, fix.res, chat_id);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
+  }
+
+  SECTION("DB returns empty list → expected serverError") {
+    fix.manager.mock_members.clear();
+
+    fix.controller.getAllChatMembers(fix.req, fix.res, chat_id);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().serverError);
+    REQUIRE(fix.res.body == "Error in db.getMembersOfChat");
+  }
+
+  SECTION("DB returns one member expected success and correct json") {
+    fix.manager.mock_members = { 5 };
+
+    fix.controller.getAllChatMembers(fix.req, fix.res, chat_id);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+
+    auto r = crow::json::load(fix.res.body);
+
+    REQUIRE(r.has("members"));
+    REQUIRE(r["members"].size() == 1);
+    CHECK(r["members"][0].i() == 5);
+  }
+
+  SECTION("DB returns multiple members → success and correct json") {
+    std::vector<int> members = { 3, 7, 12 };
+    fix.manager.mock_members = members;
+
+    fix.controller.getAllChatMembers(fix.req, fix.res, chat_id);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+
+    auto r = crow::json::load(fix.res.body);
+
+    REQUIRE(r.has("members"));
+    REQUIRE(r["members"].size() == members.size());
+
+    for (int i = 0; i < members.size(); i++) {
+      CHECK(r["members"][i].i() == members[i]);
+    }
+  }
+}
+
 
 /*
 

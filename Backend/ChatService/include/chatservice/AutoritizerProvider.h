@@ -24,11 +24,12 @@ class MockAutoritizer : public IAutoritizer {
     std::optional<int> mock_user_id;
     std::string last_token;
     int call_autoritize = 0;
+    bool need_fail = false;
 
     std::optional<int> autoritize(const std::string& token) override {
       ++call_autoritize;
       last_token = token;
-      if(token.empty()) return std::nullopt;
+      if(need_fail) return std::nullopt;
       return mock_user_id;
     }
 };
