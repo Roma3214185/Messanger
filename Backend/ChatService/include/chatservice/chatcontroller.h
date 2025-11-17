@@ -13,7 +13,7 @@ class User;
 class ChatController {
  public:
   ChatController(IChatManager* manager,
-              NetworkFacade* network_manager, IConfigProvider* provider = &ProdConfigProvider::instance());
+              NetworkFacade* network_facade, IConfigProvider* provider = &ProdConfigProvider::instance());
   void createPrivateChat(const crow::request& req, crow::response& res);
   void getAllChats(const crow::request& req, crow::response& res);
   void getChat(const crow::request& req, crow::response& res, int chat_id);

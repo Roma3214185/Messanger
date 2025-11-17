@@ -178,6 +178,14 @@ void ChatController::getChat(const crow::request& req, crow::response& res, int 
 }
 
 void ChatController::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
+  LOG_INFO("[temp] i in getAllChatMembers");
+  auto user_id = autoritize(req);
+  if(!user_id) {
+    LOG_ERROR("[GetAllChatsById] Chat with id '{}' not found", *user_id);
+    sendResponse(res, provider_->statusCodes().userError, "Chat not found");
+    return;
+  }
+
   std::vector<int> list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");

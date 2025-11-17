@@ -33,6 +33,7 @@ class MockChatManager : public IChatManager {
     }
 
     std::vector<int> getMembersOfChat(int chat_id) {
+      LOG_INFO("[temp] i in getMembersOfChat {}", chat_id);
       ++call_getMembersOfChat;
       last_chat_id = chat_id;
       return mock_members;
@@ -56,6 +57,7 @@ class MockChatManager : public IChatManager {
     }
 
     std::optional<Chat> getChatById(int chat_id) {
+      last_chat_id = chat_id;
       ++call_getChatById;
       return mock_chat;
     }
