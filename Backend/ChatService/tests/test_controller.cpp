@@ -114,68 +114,19 @@ TEST_CASE("Test createPrivateChat") {
 
     auto r = crow::json::load(fix.res.body);
 
-    REQUIRE(r.size() == 5);
-    CHECK(r["chat_id"].i() == chat_id);
+    REQUIRE(r.size() == 3);
+    CHECK(r["id"].i() == chat_id);
     CHECK(r["type"].s()    == "private");
-    CHECK(r["title"].s()   == user.username);
-    CHECK(r["avatar"].s()  == user.avatar);
-    CHECK(r["user_id"].i() == user.id);
+    CHECK(r["user"]["id"].i()   == user.id);
+    CHECK(r["user"]["avatar"].s()  == user.avatar);
+    CHECK(r["user"]["name"].s() == user.username);
   }
-
-
-
-
 }
 
-
-
-
-
+TEST_CASE("Test "){}
 
 /*
 
-void ChatController::createPrivateChat(const crow::request& req, crow::response& res) {
-  LOG_INFO("[temp] create private chat");
-  optional<int> my_id = autoritize(req);
-  if (!my_id) {
-    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
-    return;
-  }
-
-  auto body = crow::json::load(req.body);
-  if (!body || !body.has("user_id")) {
-    sendResponse(res, provider_->statusCodes().userError, "Missing user_id value");
-    return;
-  }
-
-  int            user_id = body["user_id"].i();
-  LOG_INFO("[temp] create private chat with user {}", user_id);
-  optional<User> user    = getUserById(user_id);
-
-  if (!user) {
-    sendResponse(res, provider_->statusCodes().userError, "User not found");
-    return;
-  }
-
-  LOG_INFO("[temp] user finded {}", user->username);
-
-  auto chat = manager_->createPrivateChat(*my_id, user_id);
-  if (!chat) {
-    sendResponse(res, provider_->statusCodes().serverError, "Failed to create chat");
-    return;
-  }
-
-  LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", chat->id);
-
-  crow::json::wvalue result;
-  result["chat_id"] = chat->id;
-  result["type"]    = "private";
-  result["title"]   = user->username;
-  result["avatar"]  = user->avatar;
-  result["user_id"] = user->id;
-
-  sendResponse(res, provider_->statusCodes().success, result.dump());
-}
 
 
 

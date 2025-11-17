@@ -63,11 +63,11 @@ void ChatController::createPrivateChat(const crow::request& req, crow::response&
   LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
 
   crow::json::wvalue result;
-  result["chat_id"] = *chat_id;
+  result["id"] = *chat_id;
   result["type"]    = "private";
-  result["title"]   = user->username;
-  result["avatar"]  = user->avatar;
-  result["user_id"] = user->id;
+  result["user"]["id"]     = user->id;
+  result["user"]["name"]   = user->username;
+  result["user"]["avatar"] = user->avatar;
 
   sendResponse(res, provider_->statusCodes().success, result.dump());
 }
