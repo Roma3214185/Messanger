@@ -10,6 +10,7 @@
 #include "chatservice/chatserver.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
+#include "NetworkFacade.h"
 
 int main(int argc, char* argv[]) {
   init_logger("ChatService");
@@ -21,7 +22,8 @@ int main(int argc, char* argv[]) {
   NetworkManager    network_manager;
   ProdConfigProvider provider;
   crow::SimpleApp app;
-  ChatController controller(&manager, &network_manager);
+  NetworkFacade facade = NetworkFactory::create(&network_manager);
+  ChatController controller(&manager, &facade);
   ChatServer            server(app, provider.ports().chatService, &controller);
   LOG_INFO("Chat service on port '{}'", provider.ports().chatService);
   server.run();

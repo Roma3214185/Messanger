@@ -5,22 +5,26 @@
 
 #include "ProdConfigProvider.h"
 
-class NetworkManager;
+class NetworkFacade;
 class IConfigProvider;
-class ChatManager;
+class IChatManager;
+class User;
 
 class ChatController {
  public:
-  ChatController(ChatManager* manager,
-              NetworkManager* network_manager, IConfigProvider* provider = &ProdConfigProvider::instance());
+  ChatController(IChatManager* manager,
+              NetworkFacade* network_manager, IConfigProvider* provider = &ProdConfigProvider::instance());
   void createPrivateChat(const crow::request& req, crow::response& res);
   void getAllChats(const crow::request& req, crow::response& res);
-  void getAllChatsById(const crow::request& req, crow::response& res, int chat_id);
+  void getChat(const crow::request& req, crow::response& res, int chat_id);
   void getAllChatMembers(const crow::request& req, crow::response& res, int chat_id);
 
  private:
-  ChatManager*     manager_;
-  NetworkManager* network_manager_;
+  virtual std::optional<User> getUserById(int id);
+  std::optional<int>  autoritize(const crow::request& req);
+
+  IChatManager*     manager_;
+  NetworkFacade* network_facade_;
   IConfigProvider* provider_;
 };
 

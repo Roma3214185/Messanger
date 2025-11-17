@@ -11,7 +11,7 @@ ChatServer::ChatServer(crow::SimpleApp& app, int port, ChatController* controlle
 void ChatServer::initRoutes() {
   handleCreatingPrivateChat();
   handleGetAllChats();
-  handleGetAllChatsById();
+  handleGetChat();
   handleGetAllChatsMembers();
 }
 
@@ -38,12 +38,12 @@ void ChatServer::handleGetAllChats() {
       });
 }
 
-void ChatServer::handleGetAllChatsById() {
+void ChatServer::handleGetChat() {
   CROW_ROUTE(app_, "/chats/<int>")
       .methods(crow::HTTPMethod::GET)(
           [&](const crow::request& req, crow::response& res, int chat_id) {
             PROFILE_SCOPE("/chats/<int>");
-            controller_->getAllChatsById(req, res, chat_id);
+            controller_->getChat(req, res, chat_id);
             LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
           });
 }

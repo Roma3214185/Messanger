@@ -17,11 +17,11 @@ class ChatServer {
 
   void handleCreatingPrivateChat();
   void handleGetAllChats();
-  void handleGetAllChatsById();
+  void handleGetChat();
   void handleGetAllChatsMembers();
 
-  int             port_;
-  crow::SimpleApp app_;
+  int               port_;
+  crow::SimpleApp&  app_;
   ChatController*   controller_;
 };
 

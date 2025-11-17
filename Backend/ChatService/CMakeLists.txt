@@ -13,6 +13,7 @@ add_library(ChatServiceCore STATIC
   ${CHAT_SERVICE_SRC_DIR}/chatcontroller.cpp
   ${CHAT_SERVICE_SRC_DIR}/chatserver.cpp
   ${CHAT_SERVICE_SRC_DIR}/chatmanager.cpp
+  ${CHAT_SERVICE_SRC_DIR}/TokenService.cpp
 )
 
 target_link_libraries(ChatServiceCore PUBLIC

@@ -88,4 +88,17 @@ static std::string fullField(const char* field) {
 
 } // ChatTable
 
+namespace PrivateChatTable {
+
+inline static constexpr const char* Table        = "private_chats";
+inline static constexpr const char* ChatId       = "chat_id";
+inline static constexpr const char* FirstUserId  = "user1_id";
+inline static constexpr const char* SecondUserId = "user2_id";
+
+static std::string fullField(const char* field) {
+  return std::string(Table) + "." + field;
+}
+
+} // ChatTable
+
 #endif // FIELDS_H

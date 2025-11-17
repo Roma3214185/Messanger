@@ -13,6 +13,8 @@ find_package(Catch2 3 REQUIRED)
 
 add_executable(ChatServiceTests
     main.cpp
+    test_chatserver.cpp
+    mocks/MockChatManager.h
 )
 
 set_target_properties(ChatServiceTests PROPERTIES

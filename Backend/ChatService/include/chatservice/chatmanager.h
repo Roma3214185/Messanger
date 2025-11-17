@@ -7,19 +7,18 @@
 
 #include "GenericRepository.h"
 #include "entities/Chat.h"
+#include "chatservice/interfaces/IChatManager.h"
 
-class ChatManager {
+class ChatManager : public IChatManager {
  public:
   ChatManager(GenericRepository* repository);
-  std::optional<int> createPrivateChat();
-  bool               addMembersToChat(int chat_id, const std::vector<int>& members_id);
-  // bool deleteChat(int chat_id);
-  // bool deleteMembersFromChat(int chatId, const std::vector<int>& members_id);
-  std::vector<int>    getMembersOfChat(int chat_id);
-  std::vector<Chat>   getChatsOfUser(int user_id);
-  int                 getMembersCount(int chat_id);
-  std::optional<int>  getOtherMemberId(int chat_id, int user_id);
-  std::optional<Chat> getChatById(int chat_id);
+  std::optional<Chat> createPrivateChat(int first_member, int second_user) override;
+  bool                addMembersToChat(int chat_id, const std::vector<int>& members_id) override;
+  std::vector<int>    getMembersOfChat(int chat_id) override;
+  std::vector<Chat>   getChatsOfUser(int user_id) override;
+  int                 getMembersCount(int chat_id) override;
+  std::optional<int>  getOtherMemberId(int chat_id, int user_id) override;
+  std::optional<Chat> getChatById(int chat_id) override;
 
  private:
   GenericRepository* repository_;

@@ -4,14 +4,14 @@
 
 ChatManager::ChatManager(GenericRepository* repository) : repository_(repository) {}
 
-std::optional<int> ChatManager::createPrivateChat() {
-  Chat new_chat;
-  new_chat.is_group = false;
-  new_chat.id       = 0;
-  bool ok           = repository_->save(new_chat);
-  if (!ok) return std::nullopt;
-  LOG_INFO("Private chat is created with id {}", new_chat.id);
-  return new_chat.id;
+std::optional<Chat> ChatManager::createPrivateChat(int first_user_id, int second_user_id) {
+  // PrivateChat new_chat; //
+  // new_chat.is_group = false;
+  // new_chat.id       = 0;
+  // bool ok           = repository_->save(new_chat);
+  // if (!ok) return std::nullopt;
+  // LOG_INFO("Private chat is created with id {}", new_chat.id);
+  // return new_chat;
 }
 
 bool ChatManager::addMembersToChat(int chat_id, const std::vector<int>& members_id) {
