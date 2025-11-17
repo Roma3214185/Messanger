@@ -2,7 +2,6 @@
 
 #include "Debug_profiling.h"
 #include "interfaces/IRabitMQClient.h"
-#include "notificationservice/managers/SocketManager.h"
 #include "NetworkFacade.h"
 #include "interfaces/ISocket.h"
 #include "interfaces/IConfigProvider.h"
@@ -36,14 +35,18 @@ NotificationManager::NotificationManager(IRabitMQClient* mq_client,
 void NotificationManager::subscribeMessageSaved() {
   const auto& rout_config = provider_->routes();
   SubscribeRequest request;
-  request.queue = rout_config.notificationQueue;
+  request.queue = rout_config.messageSavedQueue;
   request.exchange = rout_config.exchange;
   request.routingKey = rout_config.messageSaved;
+  request.exchangeType = rout_config.exchangeType;
 
   mq_client_->subscribe(request,
                         [this, rout_config](const std::string& event, const std::string& payload){
+                          LOG_INFO("Subscribe save message received message to save: event {} and payload {}", event, payload);
                           if (event == rout_config.messageSaved)
                             handleMessageSaved(payload);
+                          //else if(event == rout_config.messageStatusSaved)
+                          //  handleMessageStatusSaved(payload);
                           else
                             LOG_ERROR("Invalid event");
                         });
@@ -59,11 +62,11 @@ void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& st
 
 void NotificationManager::notifyNewMessages(Message& message, int user_id) {}
 
-void NotificationManager::deleteConnections(ISocket* socket) {
+void NotificationManager::deleteConnections(SocketPtr socket) {
   socket_manager_->deleteConnections(socket);
 }
 
-void NotificationManager::userConnected(int user_id, ISocket* socket) {
+void NotificationManager::userConnected(int user_id, SocketPtr socket) {
   socket_manager_->saveConnections(user_id, socket);
   // notify users who communicate with this user
 }
@@ -89,6 +92,7 @@ void NotificationManager::onSendMessage(Message& message) {
   request.exchange = provider_->routes().exchange;
   request.routingKey = provider_->routes().saveMessage;
   request.message = to_save.dump();
+  request.exchangeType = provider_->routes().exchangeType;
 
   mq_client_->publish(request);
 }
@@ -111,6 +115,7 @@ void NotificationManager::saveMessageStatus(MessageStatus& status) {
   request.exchange = provider_->routes().exchange;
   request.routingKey = provider_->routes().saveMessageStatus;
   request.message = nlohmann::json(status).dump();
+  request.exchangeType = provider_->routes().exchangeType;
 
   mq_client_->publish(request);
 }
@@ -122,12 +127,13 @@ QVector<UserId> NotificationManager::fetchChatMembers(int chat_id) {
 }
 
 bool NotificationManager::notifyMember(int user_id, const Message& msg) {
-  auto* socket = socket_manager_->getUserSocket(user_id);
+  auto socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {
     LOG_INFO("User {} offline", user_id);
     return false;
   }
+  LOG_INFO("User {} online, send message: {}", user_id, msg.text);
 
   auto json_message = nlohmann::json(msg);
   json_message["type"] = "new_message";

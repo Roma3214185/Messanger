@@ -48,20 +48,20 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
   SECTION("Subscrive on message to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.subscribeSaveMessage();
+    controller.subscribeToSaveMessage();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    REQUIRE(last_subscribe_data.exchange == "test_app.events");
-    REQUIRE(last_subscribe_data.queue == "test_message_service_queue");
-    REQUIRE(last_subscribe_data.exchangeType == "topic");
-    REQUIRE(last_subscribe_data.routingKey == "test_save_message");
+    CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
+    CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageQueue);
+    CHECK(last_subscribe_data.exchangeType == fix.mock_routes.exchangeType);
+    CHECK(last_subscribe_data.routingKey == fix.mock_routes.saveMessage);
   }
 
   SECTION("Subscrive on message to save expected call valid callback function") {
     Message test_message;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.subscribeSaveMessage();
+    controller.subscribeToSaveMessage();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
     int before_callback_call = controller.call_save_message;
@@ -73,20 +73,20 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
   SECTION("Subscrive on message_status to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.subscribeSaveMessageStatus();
+    controller.subscribeToSaveMessageStatus();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    REQUIRE(last_subscribe_data.exchange == "test_app.events");
-    REQUIRE(last_subscribe_data.queue == "test_message_service_queue");
-    REQUIRE(last_subscribe_data.exchangeType == "topic");
-    REQUIRE(last_subscribe_data.routingKey == "test_save_message_status");
+    CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
+    CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageStatusQueue);
+    CHECK(last_subscribe_data.exchangeType == fix.mock_routes.exchangeType);
+    CHECK(last_subscribe_data.routingKey == fix.mock_routes.saveMessageStatus);
   }
 
   SECTION("Subscrive on message_status to save expected call valid callback function") {
     MessageStatus test_message_status;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.subscribeSaveMessageStatus();
+    controller.subscribeToSaveMessageStatus();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
     int before_callback_call = controller.call_save_message_status;

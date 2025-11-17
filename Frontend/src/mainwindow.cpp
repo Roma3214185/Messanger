@@ -24,7 +24,7 @@ MainWindow::MainWindow(Model* model, QWidget* parent)
     , presenter_(std::make_unique<Presenter>(this, model)) {
   ui_->setupUi(this);
 
-  auto message_list_view_ = std::make_unique<MessageListView>();
+  message_list_view_ = std::make_unique<MessageListView>();
   presenter_->setMessageListView(message_list_view_.get());
   presenter_->initialise();
 

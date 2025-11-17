@@ -17,6 +17,7 @@ class ChatBase;
 class User;
 class QListView;
 class ITheme;
+class MessageListView;
 
 class MainWindow : public QMainWindow, public IMainWindow {
   Q_OBJECT
@@ -58,6 +59,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   std::unique_ptr<ITheme>    currentTheme;
   Ui::MainWindow*            ui_;
   std::unique_ptr<Presenter> presenter_;
+  std::unique_ptr<MessageListView> message_list_view_;
 };
 
 #endif  // MAINWINDOW_H

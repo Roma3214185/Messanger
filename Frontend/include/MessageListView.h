@@ -9,6 +9,8 @@
 #include "models/messagemodel.h"
 #include "interfaces/IMessageListView.h"
 
+#include "Debug_profiling.h"
+
 class MessageListView : public IMessageListView {
     Q_OBJECT
   public:
@@ -24,7 +26,12 @@ class MessageListView : public IMessageListView {
     setMouseTracking(false);
   }
 
-  void setMessageModel(MessageModel* model) override { QListView::setModel(model); }
+  void setMessageModel(MessageModel* model) override {
+    LOG_INFO("---------------------- try to set model");
+    QListView::setModel(model);
+    LOG_INFO("---------------------- model is setted");
+
+  }
 
   void scrollToBottom() override {
     QTimer::singleShot(

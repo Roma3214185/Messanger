@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include "notificationservice/managers/notificationmanager.h"
 #include "mocks/MockRabitMQClient.h"
-#include "notificationservice/managers/SocketManager.h"
+#include "notificationservice/managers/socketmanager.h"
 #include "interfaces/IChatNetworkManager.h"
 #include "interfaces/IMessageNetworkManager.h"
 #include "interfaces/IUserNetworkManager.h"
@@ -36,8 +36,8 @@ TEST_CASE("Test handling messages") {
   int user_id = 4;
 
   SECTION("Send message to user expected socket receive message") {
-    MockSocket socket;
-    socket_manager.saveConnections(user_id, &socket);
+    auto socket = std::make_shared<MockSocket>();
+    socket_manager.saveConnections(user_id, socket);
     Message message_to_send;
     message_to_send.text = "Hi from Socket";
     auto expected_json = nlohmann::json(message_to_send);
@@ -46,8 +46,8 @@ TEST_CASE("Test handling messages") {
     bool result = notification_manager.notifyMember(user_id, message_to_send);
 
     REQUIRE(result);
-    REQUIRE(socket.send_text_calls == 1);
-    REQUIRE(socket.last_sended_text == expected_json.dump());
+    REQUIRE(socket->send_text_calls == 1);
+    REQUIRE(socket->last_sended_text == expected_json.dump());
   }
 
 
@@ -79,13 +79,17 @@ TEST_CASE("Test NotificationManager communitacion with RabitMQ") {
   MockNetworkManager network_manager;
 
   Routes mock_routes;
-  mock_routes.messageSaved       = "test_message_saved";
-  mock_routes.saveMessage        = "test_save_message";
-  mock_routes.saveMessageStatus  = "test_save_message_status";
-  mock_routes.notificationQueue  = "test_notification_service_queue";
-  mock_routes.exchange           = "test_app.events";
-  mock_routes.messageQueue       = "test_message_service_queue";
-  mock_routes.messageStatusSaved = "test_message_status_saved";
+  mock_routes.messageSaved            = "test_message_saved";
+  mock_routes.saveMessage             = "test_save_message";
+  mock_routes.saveMessageStatus       = "test_save_message_status";
+  mock_routes.messageSavedQueue       = "test_message_saved_queue";
+  mock_routes.messageStatusSavedQueue = "test_message_status_saved_queue";
+  mock_routes.saveMessageQueue        = "test_save_message_queue";
+  mock_routes.saveMessageStatusQueue  = "test_save_message_status_queue";
+  mock_routes.exchange                = "test_app.events";
+  mock_routes.messageStatusSaved      = "test_message_status_saved";
+  mock_routes.exchangeType            = "test_topic";
+
 
   MockConfigProvider provider;
   provider.mock_routes = mock_routes;
@@ -101,10 +105,10 @@ TEST_CASE("Test NotificationManager communitacion with RabitMQ") {
   SECTION("Subscribing to rabitMQ expected rabit handles input data") {
     notification_manager.subscribeMessageSaved();
 
-    REQUIRE(mock_rabit_client.last_subscribe_request.exchange == "test_app.events");
-    REQUIRE(mock_rabit_client.last_subscribe_request.exchangeType == "topic");
-    REQUIRE(mock_rabit_client.last_subscribe_request.queue == "test_notification_service_queue");
-    REQUIRE(mock_rabit_client.last_subscribe_request.routingKey == "test_message_saved");
+    CHECK(mock_rabit_client.last_subscribe_request.exchange == mock_routes.exchange);
+    CHECK(mock_rabit_client.last_subscribe_request.exchangeType == mock_routes.exchangeType);
+    CHECK(mock_rabit_client.last_subscribe_request.queue == mock_routes.messageSavedQueue);
+    CHECK(mock_rabit_client.last_subscribe_request.routingKey == mock_routes.messageSaved);
   }
 
   SECTION("Subscribing to rabitMQ expected call expected callback") {
@@ -122,10 +126,10 @@ TEST_CASE("Test NotificationManager communitacion with RabitMQ") {
     auto expected_json = nlohmann::json(message);
     expected_json["event"] = "save_message";
 
-    REQUIRE(mock_rabit_client.last_publish_request.exchange == "test_app.events");
-    REQUIRE(mock_rabit_client.last_publish_request.exchangeType == "topic");
-    REQUIRE(mock_rabit_client.last_publish_request.message == expected_json.dump());
-    REQUIRE(mock_rabit_client.last_publish_request.routingKey == "test_save_message");
+    CHECK(mock_rabit_client.last_publish_request.exchange == mock_routes.exchange);
+    CHECK(mock_rabit_client.last_publish_request.exchangeType == mock_routes.exchangeType);
+    CHECK(mock_rabit_client.last_publish_request.message == expected_json.dump());
+    CHECK(mock_rabit_client.last_publish_request.routingKey == mock_routes.saveMessage);
   }
 
 }
@@ -144,7 +148,11 @@ TEST_CASE("Notification manager handles message saved") {
   NetworkFacade network_facade = NetworkFactory::create(&network_manager);
   TestNotificationManager1 notification_manager(&mock_rabit_client, &socket_manager, network_facade);
 
-  MockSocket socket1, socket2, socket3, socket4, socket0;
+  auto socket1 = std::make_shared<MockSocket>();
+  auto socket2 = std::make_shared<MockSocket>();
+  auto socket3 = std::make_shared<MockSocket>();
+  auto socket4 = std::make_shared<MockSocket>();
+  auto socket0 = std::make_shared<MockSocket>();
 
   QVector<int> user_ids(5);
   user_ids[0] = 1;
@@ -153,11 +161,11 @@ TEST_CASE("Notification manager handles message saved") {
   user_ids[3] = 4;
   user_ids[4] = 5;
 
-  socket_manager.saveConnections(user_ids[0], &socket0);
-  socket_manager.saveConnections(user_ids[1], &socket1);
-  socket_manager.saveConnections(user_ids[2], &socket2);
-  socket_manager.saveConnections(user_ids[3], &socket3);
-  socket_manager.saveConnections(user_ids[4], &socket4);
+  socket_manager.saveConnections(user_ids[0], socket0);
+  socket_manager.saveConnections(user_ids[1], socket1);
+  socket_manager.saveConnections(user_ids[2], socket2);
+  socket_manager.saveConnections(user_ids[3], socket3);
+  socket_manager.saveConnections(user_ids[4], socket4);
 
   int chat_id = 5;
   network_manager.setChatMembers(5, user_ids);
@@ -174,23 +182,23 @@ TEST_CASE("Notification manager handles message saved") {
     message_to_save.text = "hi2";
     notification_manager.handleMessageSaved(nlohmann::json(message_to_save).dump());
 
-    REQUIRE(socket0.send_text_calls == 1);
-    REQUIRE(socket1.send_text_calls == 1);
-    REQUIRE(socket2.send_text_calls == 1);
-    REQUIRE(socket3.send_text_calls == 1);
-    REQUIRE(socket4.send_text_calls == 1);
+    REQUIRE(socket0->send_text_calls == 1);
+    REQUIRE(socket1->send_text_calls == 1);
+    REQUIRE(socket2->send_text_calls == 1);
+    REQUIRE(socket3->send_text_calls == 1);
+    REQUIRE(socket4->send_text_calls == 1);
   }
 
   SECTION("Handle message all online expect one expected socket receive to sending all messages - 1") {
-    socket_manager.deleteConnections(&socket0);
+    socket_manager.deleteConnections(socket0);
 
     notification_manager.handleMessageSaved(nlohmann::json(message).dump());
 
-    REQUIRE(socket0.send_text_calls == 0);
-    REQUIRE(socket1.send_text_calls == 1);
-    REQUIRE(socket2.send_text_calls == 1);
-    REQUIRE(socket3.send_text_calls == 1);
-    REQUIRE(socket4.send_text_calls == 1);
+    REQUIRE(socket0->send_text_calls == 0);
+    REQUIRE(socket1->send_text_calls == 1);
+    REQUIRE(socket2->send_text_calls == 1);
+    REQUIRE(socket3->send_text_calls == 1);
+    REQUIRE(socket4->send_text_calls == 1);
   }
 
   SECTION("Handle message receive invalid payload expected not sending any message") {
@@ -211,7 +219,7 @@ TEST_CASE("Notification manager handles message saved") {
   }
 
   SECTION("Handle message all online except one expected all publishing to save message_status in RabiqMQ") {
-    socket_manager.deleteConnections(&socket0);
+    socket_manager.deleteConnections(socket0);
     int before = mock_rabit_client.getPublishCnt("save_message_status");
     int before_cnt = mock_rabit_client.publish_cnt;
 

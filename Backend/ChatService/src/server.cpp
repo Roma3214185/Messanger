@@ -4,7 +4,7 @@
 #include "Debug_profiling.h"
 #include "NetworkManager.h"
 
-Server::Server(const int port, ChatManager* manager, NetworkManager* network_manager) : port_(port), manager_(manager) {
+Server::Server(int port, ChatManager* manager, NetworkManager* network_manager) : port_(port), manager_(manager) {
   controller_ = std::make_unique<Controller>(manager_, network_manager);
   initRoutes();
 }

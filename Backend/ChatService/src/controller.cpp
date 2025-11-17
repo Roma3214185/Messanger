@@ -27,6 +27,7 @@ Controller::Controller(ChatManager* manager,
     : manager_(manager), network_manager_(network_manager), provider_(provider) {}
 
 void Controller::createPrivateChat(const crow::request& req, crow::response& res) {
+  LOG_INFO("[temp] create private chat");
   auto auth_header = req.get_header_value("Authorization");
 
   optional<int> my_id = JwtUtils::verifyTokenAndGetUserId(auth_header);
@@ -42,12 +43,15 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
   }
 
   int            user_id = body["user_id"].i();
+  LOG_INFO("[temp] create private chat with user {}", user_id);
   optional<User> user    = network_manager_->getUserById(user_id);
 
   if (!user) {
     sendResponse(res, provider_->statusCodes().userError, "User not found");
     return;
   }
+
+  LOG_INFO("[temp] user finded {}", user->username);
 
   auto chat_id = manager_->createPrivateChat();
   if (!chat_id) {

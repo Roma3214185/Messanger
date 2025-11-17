@@ -13,7 +13,7 @@ class NetworkManager;
 
 class Server {
  public:
-  Server(const int port, ChatManager* manager, NetworkManager* network_manager);
+  Server(int port, ChatManager* manager, NetworkManager* network_manager);
   void run();
 
  private:

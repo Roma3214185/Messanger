@@ -10,7 +10,7 @@ QVector<UserId> IChatNetworkManager::getMembersOfChat(int chat_id) {
   QVector<UserId> members;
   std::string     path = "/chats/" + std::to_string(chat_id) + "/members";
 
-  auto res = forward(provider_->ports().messageService, "", path, "GET");
+  auto res = forward(provider_->ports().chatService, "", path, "GET");
   if (res.first != provider_->statusCodes().success) {
     LOG_ERROR("GetMembersOfChat failed '{}' and reason: '{}' ", res.first, res.second);
     return members;

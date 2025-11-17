@@ -27,8 +27,8 @@ class Controller : public IController {
   std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, int receiver_id) override;
 
  protected:
-  void               subscribeSaveMessageStatus();
-  void               subscribeSaveMessage();
+  void subscribeToSaveMessage();
+  void subscribeToSaveMessageStatus();
   virtual void       handleSaveMessage(const std::string& payload);
   virtual void       handleSaveMessageStatus(const std::string& payload);
 

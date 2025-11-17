@@ -28,16 +28,16 @@ void Server::handleSocketRoutes() {
       })
       .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
         LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason, code);
-        CrowSocket socket(&conn);
-        notification_manager_->deleteConnections(&socket);
+        auto socket = std::make_shared<CrowSocket>(&conn);
+        notification_manager_->deleteConnections(socket);
       })
       .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
-        CrowSocket socket(&conn);
-        handleSocketOnMessage(&socket, data);
+        auto socket = std::make_shared<CrowSocket>(&conn);
+        handleSocketOnMessage(socket, data);
       });
 }
 
-void Server::handleSocketOnMessage(ISocket* socket, const std::string& data) {
+void Server::handleSocketOnMessage(std::shared_ptr<ISocket> socket, const std::string& data) {
   auto message_ptr = crow::json::load(data);
   if (!message_ptr) {
     LOG_ERROR("[onMessage] Failed in loading message");
