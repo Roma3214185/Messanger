@@ -8,7 +8,7 @@
 class IChatManager {
   public:
     virtual ~IChatManager() = default;
-    virtual std::optional<Chat> createPrivateChat(int first_member, int second_member) = 0;
+    virtual std::optional<int> createPrivateChat(int first_member, int second_member) = 0;
     virtual bool                addMembersToChat(int chat_id, const std::vector<int>& members_id) = 0;
     virtual std::vector<int>    getMembersOfChat(int chat_id) = 0;
     virtual std::vector<Chat>   getChatsOfUser(int user_id) = 0;

@@ -7,6 +7,7 @@ class MockChatManager : public IChatManager {
   public:
     int last_chat_id;
     std::optional<Chat> mock_chat;
+    std::optional<int> mock_chat_id;
     std::optional<int> mock_other_member_id;
     int mock_cht;
     std::vector<Chat> mock_chats;
@@ -20,11 +21,13 @@ class MockChatManager : public IChatManager {
     int call_getMembersCount = 0;
     int call_getOtherMemberId = 0;
     int call_getChatById = 0;
+    std::pair<int, int> last_createPrivateChat;
 
 
-    std::optional<Chat> createPrivateChat(int first_member, int second_member) {
+    std::optional<int> createPrivateChat(int first_member, int second_member) {
       ++call_createPrivateChat;
-      return mock_chat;
+      last_createPrivateChat = std::make_pair(first_member, second_member);
+      return mock_chat_id;
     }
 
     bool addMembersToChat(int chat_id, const std::vector<int>& members_id) {

@@ -4,7 +4,7 @@
 
 ChatManager::ChatManager(GenericRepository* repository) : repository_(repository) {}
 
-std::optional<Chat> ChatManager::createPrivateChat(int first_user_id, int second_user_id) {
+std::optional<int> ChatManager::createPrivateChat(int first_user_id, int second_user_id) {
   // PrivateChat new_chat; //
   // new_chat.is_group = false;
   // new_chat.id       = 0;

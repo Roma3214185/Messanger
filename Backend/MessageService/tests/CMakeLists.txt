@@ -16,7 +16,6 @@ add_executable(MessageServiceTests
     test_controller.cpp
     mocks/TestController.h
     mocks/SecondTestController.h
-    mocks/MockUtils.h
     test_messagemanager.cpp
     test_server.cpp
     mocks/MockController.h

@@ -6,6 +6,9 @@
 #include "mocks/MockConfigProvider.h"
 #include "NetworkFacade.h"
 #include "chatservice/AutoritizerProvider.h"
+#include "mocks/MockUtils.h"
+
+#include "ProdConfigProvider.h"
 
 struct TestFixture {
     crow::SimpleApp app;
@@ -28,6 +31,7 @@ struct TestFixture {
       mock_autoritized = std::make_shared<MockAutoritizer>();
       AutoritizerProvider::set(mock_autoritized);
       mock_autoritized->mock_user_id = user_id;
+      provider.mock_codes =  MockUtils::getMockCodes();
     }
 };
 
@@ -42,6 +46,8 @@ TEST_CASE("handleCreatingPrivateChat listens on POST /chats/private") {
     fix.app.handle_full(fix.req, fix.res);
 
     REQUIRE(fix.manager.call_getChatsOfUser == before);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
   }
 
   fix.req.add_header("Authorization", fix.secret_token);
@@ -95,6 +101,8 @@ TEST_CASE("handleGetAllChatsMembers listens on GET /chats/<int>/members and call
     REQUIRE(fix.mock_autoritized->last_token == "");
     REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
     REQUIRE(fix.manager.call_getMembersOfChat == before_getMembersCall);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
   }
 
   SECTION("Token is setted expected call") {
@@ -131,6 +139,8 @@ TEST_CASE("handleGetAllChatsUser listens on GET /chats and call Manager::getChat
     REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
     REQUIRE(fix.mock_autoritized->last_token == "");
     REQUIRE(fix.manager.call_getChatsOfUser == before);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
   }
 
   SECTION("Token is setted expected call") {
@@ -164,4 +174,6 @@ TEST_CASE("handleGetAllChatsUser on GET /chats after authentifiaction receive in
 
   REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
   REQUIRE(fix.manager.call_getChatsOfUser == before);
+  REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+  REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
 }

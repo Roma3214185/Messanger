@@ -12,10 +12,19 @@ class MockNetworkManager
     std::unordered_map<int, QVector<int>> mp;
   public:
     int call_getMembersOfChat = 0;
+    int call_getUserById = 0;
     int last_chat_id;
+    int last_user_id;
+    std::optional<User> mock_user;
 
     void setChatMembers(int chat_id, QVector<int> ids) {
       mp[chat_id] = ids;
+    }
+
+    std::optional<User> getUserById(int otherUserId) {
+      ++call_getUserById;
+      last_user_id = otherUserId;
+      return mock_user;
     }
 
     QVector<UserId> getMembersOfChat(int chat_id) override {
