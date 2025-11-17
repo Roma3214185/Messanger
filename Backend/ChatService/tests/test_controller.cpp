@@ -135,7 +135,7 @@ TEST_CASE("Test getAllChatMembers") {
     REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
   }
 
-  SECTION("DB returns empty list → expected serverError") {
+  SECTION("DB returns empty list expected serverError") {
     fix.manager.mock_members.clear();
 
     fix.controller.getAllChatMembers(fix.req, fix.res, chat_id);
@@ -158,7 +158,7 @@ TEST_CASE("Test getAllChatMembers") {
     CHECK(r["members"][0].i() == 5);
   }
 
-  SECTION("DB returns multiple members → success and correct json") {
+  SECTION("DB returns multiple members expected success and correct json") {
     std::vector<int> members = { 3, 7, 12 };
     fix.manager.mock_members = members;
 
@@ -175,6 +175,13 @@ TEST_CASE("Test getAllChatMembers") {
       CHECK(r["members"][i].i() == members[i]);
     }
   }
+}
+
+TEST_CASE("") {
+  TestController::TestFixture fix;
+  //fix.controller.getChat();
+
+
 }
 
 

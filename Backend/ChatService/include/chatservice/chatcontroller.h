@@ -9,6 +9,7 @@ class NetworkFacade;
 class IConfigProvider;
 class IChatManager;
 class User;
+class Chat;
 
 class ChatController {
  public:
@@ -20,6 +21,9 @@ class ChatController {
   void getAllChatMembers(const crow::request& req, crow::response& res, int chat_id);
 
  private:
+  std::optional<int> authorizeUser(const crow::request& req, crow::response& res);
+  void sendError(crow::response& res, int status, const std::string& message, const std::string& log_msg);
+  crow::json::wvalue buildChatJson(const Chat& chat, int current_user_id);
   virtual std::optional<User> getUserById(int id);
   std::optional<int>  autoritize(const crow::request& req);
 
