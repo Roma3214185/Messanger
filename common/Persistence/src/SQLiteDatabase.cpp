@@ -63,6 +63,17 @@ const QString CREATE_CREDENTIALS_TABLE = R"(
             hash_password TEXT NOT NULL
         );
     )";
+
+const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE private_chats (
+    chat_id       SERIAL PRIMARY KEY,
+    user1_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user2_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT unique_private_chat UNIQUE (LEAST(user1_id, user2_id), GREATEST(user1_id, user2_id))
+    );
+  )";
+
 } // namespace
 
 SQLiteDatabase::SQLiteDatabase(const QString& db_path)
@@ -80,6 +91,7 @@ void SQLiteDatabase::initializeSchema() {
                                                            {"chats", CREATE_CHATS_TABLE},
                                                            {"chat_members", CREATE_CHAT_MEMBERS_TABLE},
                                                            {"credentials", CREATE_CREDENTIALS_TABLE},
+                                                           {"private_chats", CREATE_PRIVATE_CHATS_TABLE},
                                                            };
 
   for (const auto& [name, sql] : tables) {

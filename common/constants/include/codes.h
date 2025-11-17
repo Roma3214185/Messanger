@@ -7,7 +7,7 @@ struct StatusCodes {
   int success = 200;
   int serverError = 500;
   int userError = 400;
-
+  std::string userNotFound = "User not founded";
   std::string invalidToken = "Invalid or expired token";
 };
 

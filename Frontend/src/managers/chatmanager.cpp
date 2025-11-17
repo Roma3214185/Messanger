@@ -157,7 +157,7 @@ auto ChatManager::onCreatePrivateChat(QNetworkReply* reply) -> ChatPtr {
     return nullptr;
   }
 
-  auto new_chat = JsonService::getPrivateChatFromJson(responseObj);
+  auto new_chat = JsonService::getChatFromJson(responseObj);
   LOG_INFO("Private chat created with id '{}' ", new_chat->chat_id);
   return new_chat;
 }

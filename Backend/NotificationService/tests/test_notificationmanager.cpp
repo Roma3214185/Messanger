@@ -8,24 +8,11 @@
 #include "NetworkFacade.h"
 #include "mocks/MockSocket.h"
 #include "mocks/MockConfigProvider.h"
+#include "mocks/MockNetworkManager.h"
 
 #include <unordered_map>
 #include <QVector>
 
-class MockNetworkManager
-    : public IChatNetworkManager
-    , public IUserNetworkManager
-    , public IMessageNetworkManager {
-    std::unordered_map<int, QVector<int>> mp;
-  public:
-    void setChatMembers(int chat_id, QVector<int> ids) {
-      mp[chat_id] = ids;
-    }
-
-    QVector<UserId> getMembersOfChat(int chat_id) override {
-      return mp[chat_id];
-    }
-};
 
 TEST_CASE("Test handling messages") {
   MockRabitMQClient mock_rabit_client;

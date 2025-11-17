@@ -176,7 +176,18 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   constexpr int            times_out = 20;
   TestChatManager          chat_manager(&network_manager, url, times_out);
 
-  QJsonObject chat_obj{{"type", "private"}, {"chat_id", 101}, {"title", "PrivateChat101"}};
+  QJsonObject user_obj{
+      {"id", 55},
+      {"name", "PrivateChat101"},
+      {"avatar", "/path/to/avatar.png"}
+  };
+
+  QJsonObject chat_obj{
+      {"type", "private"},
+      {"id", 101},
+      {"user", user_obj}
+  };
+
   QByteArray  valid_json = QJsonDocument(chat_obj).toJson();
 
   SECTION("Correct POST request URL and body") {

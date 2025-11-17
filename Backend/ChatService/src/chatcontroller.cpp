@@ -1,13 +1,14 @@
-#include "chatservice/controller.h"
+#include "chatservice/chatcontroller.h"
 
 #include "NetworkManager.h"
-#include "chatservice/TokenService.h"
 #include "entities/User.h"
 #include "NetworkManager.h"
 #include "codes.h"
 #include "interfaces/IConfigProvider.h"
-#include "chatservice/chatmanager.h"
 #include "interfaces/IThreadPool.h"
+#include "chatservice/interfaces/IChatManager.h"
+#include "NetworkFacade.h"
+#include "chatservice/AutoritizerProvider.h"
 
 using std::optional;
 using std::string;
@@ -22,17 +23,17 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
 
 }  // namespace
 
-Controller::Controller(ChatManager* manager,
-                       NetworkManager* network_manager, IConfigProvider* provider)
-    : manager_(manager), network_manager_(network_manager), provider_(provider) {}
+ChatController::ChatController(IChatManager* manager,
+                       NetworkFacade* network_facade, IConfigProvider* provider)
+    : manager_(manager), network_facade_(network_facade), provider_(provider) {
+  AutoritizerProvider::set(std::make_shared<RealAutoritizer>());
+}
 
-void Controller::createPrivateChat(const crow::request& req, crow::response& res) {
+void ChatController::createPrivateChat(const crow::request& req, crow::response& res) {
   LOG_INFO("[temp] create private chat");
-  auto auth_header = req.get_header_value("Authorization");
-
-  optional<int> my_id = JwtUtils::verifyTokenAndGetUserId(auth_header);
+  optional<int> my_id = autoritize(req);
   if (!my_id) {
-    sendResponse(res, provider_->statusCodes().userError, "Invalid or expired token");
+    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
     return;
   }
 
@@ -44,45 +45,42 @@ void Controller::createPrivateChat(const crow::request& req, crow::response& res
 
   int            user_id = body["user_id"].i();
   LOG_INFO("[temp] create private chat with user {}", user_id);
-  optional<User> user    = network_manager_->getUserById(user_id);
+  optional<User> user    = getUserById(user_id);
 
   if (!user) {
-    sendResponse(res, provider_->statusCodes().userError, "User not found");
+    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().userNotFound);
     return;
   }
 
   LOG_INFO("[temp] user finded {}", user->username);
 
-  auto chat_id = manager_->createPrivateChat();
+  std::optional<int> chat_id = manager_->createPrivateChat(*my_id, user_id);
   if (!chat_id) {
-    sendResponse(res, provider_->statusCodes().userError, "Failed to create chat");
+    sendResponse(res, provider_->statusCodes().serverError, "Failed to create chat");
     return;
   }
 
   LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
 
-  std::vector members{*my_id, user_id};
-  bool        wasAddedMembers = manager_->addMembersToChat(*chat_id, members);
-  if (!wasAddedMembers) {
-    sendResponse(res, provider_->statusCodes().serverError, "Failed to add users to chat");
-    return;
-  }
-
   crow::json::wvalue result;
-  result["chat_id"] = *chat_id;
+  result["id"] = *chat_id;
   result["type"]    = "private";
-  result["title"]   = user->username;
-  result["avatar"]  = user->avatar;
-  result["user_id"] = user->id;
+  result["user"]["id"]     = user->id;
+  result["user"]["name"]   = user->username;
+  result["user"]["avatar"] = user->avatar;
 
   sendResponse(res, provider_->statusCodes().success, result.dump());
 }
 
-void Controller::getAllChats(const crow::request& req, crow::response& res) {
+std::optional<int> ChatController::autoritize(const crow::request& req) {
   string token   = req.get_header_value("Authorization");
-  auto   user_id = JwtUtils::verifyTokenAndGetUserId(token);
+  return AutoritizerProvider::get()->autoritize(token);
+}
+
+void ChatController::getAllChats(const crow::request& req, crow::response& res) {
+  auto   user_id = autoritize(req);
   if (!user_id) {
-    sendResponse(res, provider_->statusCodes().userError, "Invalid or expired token");
+    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
     return;
   }
 
@@ -110,7 +108,7 @@ void Controller::getAllChats(const crow::request& req, crow::response& res) {
         return;
       }
 
-      auto user = network_manager_->getUserById(*other_user_id);
+      auto user = getUserById(*other_user_id);
       if (!user) {
         LOG_ERROR("I can't get user with id '{}'", *other_user_id);
         sendResponse(res, provider_->statusCodes().serverError, "User not found");
@@ -128,18 +126,11 @@ void Controller::getAllChats(const crow::request& req, crow::response& res) {
   sendResponse(res, provider_->statusCodes().success, ans.dump());
 }
 
-void Controller::getAllChatsById(const crow::request& req, crow::response& res, int chat_id) {
-  string token = req.get_header_value("Authorization");
-  if (token.empty()) {
-    LOG_ERROR("[GetAllChatsById] Missing token");
-    sendResponse(res, provider_->statusCodes().userError, "Missing token");
-    return;
-  }
-
-  auto user_id = JwtUtils::verifyTokenAndGetUserId(token);
+void ChatController::getChat(const crow::request& req, crow::response& res, int chat_id) {
+  auto user_id = autoritize(req);
   if (!user_id) {
     LOG_ERROR("[GetAllChatsById] can't verify token");
-    sendResponse(res, provider_->statusCodes().userError, "Invalid or expired token");
+    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
     return;
   }
 
@@ -163,7 +154,7 @@ void Controller::getAllChatsById(const crow::request& req, crow::response& res, 
   } else {  // private
     auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
     if (other_user_id) {
-      auto user = network_manager_->getUserById(*other_user_id);
+      auto user = getUserById(*other_user_id);
       if (user) {
         chat_json["user"]["id"]     = user->id;
         chat_json["user"]["name"]   = user->username;
@@ -179,7 +170,14 @@ void Controller::getAllChatsById(const crow::request& req, crow::response& res, 
   sendResponse(res, provider_->statusCodes().success, chat_json.dump());
 }
 
-void Controller::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
+void ChatController::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
+  auto user_id = autoritize(req);
+  if (!user_id) {
+    LOG_ERROR("[getAllChatMembers] can't verify token");
+    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
+    return;
+  }
+
   std::vector<int> list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");
@@ -198,4 +196,8 @@ void Controller::getAllChatMembers(const crow::request& req, crow::response& res
   }
 
   sendResponse(res, provider_->statusCodes().success, ans.dump());
+}
+
+std::optional<User> ChatController::getUserById(int id) {
+  return network_facade_->user().getUserById(id);
 }

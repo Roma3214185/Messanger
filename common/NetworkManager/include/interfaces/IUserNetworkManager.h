@@ -2,8 +2,7 @@
 #define IUSERNETWORKMANAGER_H
 
 #include "INetworkManagerBase.h"
-
-class User;
+#include "entities/User.h"
 
 class IUserNetworkManager : public virtual INetworkManagerBase {
   public:

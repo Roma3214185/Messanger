@@ -15,21 +15,6 @@ class TestServer : public Server {
     using Server::handleSocketOnMessage;
 };
 
-class MockNetworkManager
-    : public IChatNetworkManager
-    , public IUserNetworkManager
-    , public IMessageNetworkManager {
-    std::unordered_map<int, QVector<int>> mp;
-  public:
-    void setChatMembers(int chat_id, QVector<int> ids) {
-      mp[chat_id] = ids;
-    }
-
-    QVector<UserId> getMembersOfChat(int chat_id) override {
-      return mp[chat_id];
-    }
-};
-
 TEST_CASE("handleSocketOnMessage init type registers user") {
   MockRabitMQClient mock_rabit_client;
   SocketsManager socket_manager;

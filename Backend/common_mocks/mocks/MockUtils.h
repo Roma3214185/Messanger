@@ -2,10 +2,11 @@
 #define MOCKUTILS_H
 
 #include "Routes.h"
+#include "codes.h"
 
 namespace MockUtils {
 
-Routes getMockRoutes() {
+inline Routes getMockRoutes() {
   Routes mock_routes;
   mock_routes.messageSaved            = "test_message_saved";
   mock_routes.saveMessage             = "test_save_message";
@@ -18,6 +19,17 @@ Routes getMockRoutes() {
   mock_routes.messageStatusSaved      = "test_message_status_saved";
   mock_routes.exchangeType            = "test_topic";
   return mock_routes;
+}
+
+inline StatusCodes getMockCodes() {
+  StatusCodes status_codes;
+  status_codes.success = 1200;
+  status_codes.serverError = 2500;
+  status_codes.userError = 1400;
+
+  status_codes.invalidToken = "test_Invalid or expired token";
+
+  return status_codes;
 }
 
 

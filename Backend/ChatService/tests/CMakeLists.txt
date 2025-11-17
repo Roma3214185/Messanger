@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(MessageServiceTests LANGUAGES CXX)
+project(ChatServiceTests LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,17 +11,14 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
 find_package(spdlog REQUIRED)
 find_package(Catch2 3 REQUIRED)
 
-add_executable(MessageServiceTests
+add_executable(ChatServiceTests
     main.cpp
+    test_chatserver.cpp
+    mocks/MockChatManager.h
     test_controller.cpp
-    mocks/TestController.h
-    mocks/SecondTestController.h
-    test_messagemanager.cpp
-    test_server.cpp
-    mocks/MockController.h
 )
 
-set_target_properties(MessageServiceTests PROPERTIES
+set_target_properties(ChatServiceTests PROPERTIES
     AUTOMOC ON
     AUTOUIC ON
     BUILD_WITH_INSTALL_RPATH ON
@@ -29,9 +26,9 @@ set_target_properties(MessageServiceTests PROPERTIES
     INSTALL_RPATH_USE_LINK_PATH ON
 )
 
-target_link_libraries(MessageServiceTests
+target_link_libraries(ChatServiceTests
     PRIVATE
-        MessageServiceCore
+        ChatServiceCore
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test
@@ -39,9 +36,9 @@ target_link_libraries(MessageServiceTests
         BackendMocks
 )
 
-set_target_properties(MessageServiceTests PROPERTIES AUTOMOC ON)
+set_target_properties(ChatServiceTests PROPERTIES AUTOMOC ON)
 
 include(CTest)
 enable_testing()
 include(Catch)
-catch_discover_tests(MessageServiceTests)
+catch_discover_tests(ChatServiceTests)
