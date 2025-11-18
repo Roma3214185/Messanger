@@ -22,8 +22,9 @@ class ChatController {
 
  private:
   std::optional<int> authorizeUser(const crow::request& req, crow::response& res);
-  void sendError(crow::response& res, int status, const std::string& message, const std::string& log_msg);
-  crow::json::wvalue buildChatJson(const Chat& chat, int current_user_id);
+  void sendError(crow::response& res, int status, const std::string& message);
+  crow::json::wvalue buildChatJson(const Chat& chat, const std::optional<User> other_user,
+                                   std::optional<int> member_count);
   virtual std::optional<User> getUserById(int id);
   std::optional<int>  autoritize(const crow::request& req);
 

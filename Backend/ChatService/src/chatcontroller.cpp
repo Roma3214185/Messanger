@@ -78,25 +78,56 @@ std::optional<int> ChatController::autoritize(const crow::request& req) {
 }
 
 void ChatController::getAllChats(const crow::request& req, crow::response& res) {
-  auto   user_id = authorizeUser(req, res);
-  if (!user_id) return;
+  auto user_id = authorizeUser(req, res);
+  if (!user_id)
+    return;
 
   auto chats = manager_->getChatsOfUser(*user_id);
-  LOG_INFO("[GetAllChats] Returned chats '{}'", chats.size());
 
   crow::json::wvalue ans;
   ans["chats"] = crow::json::wvalue::list();
 
-  int i = 0;
+  int index = 0;
+
   for (const auto& chat : chats) {
-    auto chat_json = buildChatJson(chat, *user_id);
-    ans["chats"][i++] = std::move(chat_json);
+
+    // GROUP CHAT
+    if (chat.is_group) {
+      auto count = manager_->getMembersCount(chat.id);
+      if (!count) {
+        LOG_ERROR("[GetAllChats] Failed to get member count for chat '{}'", chat.id);
+        continue;   // skip broken chat (or return error if you prefer)
+      }
+
+      ans["chats"][index++] = buildChatJson(chat, std::nullopt, count);
+      continue;
+    }
+
+    // PRIVATE CHAT
+    auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
+    if (!other_user_id) {
+      LOG_ERROR("[GetAllChats] No other member in chat '{}'", chat.id);
+      continue;
+    }
+
+    auto other_user = getUserById(*other_user_id);
+    if (!other_user) {
+      LOG_ERROR("[GetAllChats] User '{}' not found", *other_user_id);
+      continue;
+    }
+
+    ans["chats"][index++] = buildChatJson(chat, other_user, std::nullopt);
   }
 
   sendResponse(res, provider_->statusCodes().success, ans.dump());
 }
 
-crow::json::wvalue ChatController::buildChatJson(const Chat& chat, int current_user_id) {
+
+crow::json::wvalue ChatController::buildChatJson(
+    const Chat& chat,
+    const std::optional<User> other_user,
+    std::optional<int> member_count
+    ) {
   crow::json::wvalue json;
   json["id"] = chat.id;
   json["type"] = chat.is_group ? "group" : "private";
@@ -104,21 +135,11 @@ crow::json::wvalue ChatController::buildChatJson(const Chat& chat, int current_u
   if (chat.is_group) {
     json["name"] = chat.name;
     json["avatar"] = chat.avatar;
-    json["member_count"] = manager_->getMembersCount(chat.id);
+    json["member_count"] = member_count.value_or(0);
   } else {
-    auto other_user_id = manager_->getOtherMemberId(chat.id, current_user_id);
-    if (other_user_id) {
-      auto user = getUserById(*other_user_id);
-      if (user) {
-        json["user"]["id"] = user->id;
-        json["user"]["name"] = user->username;
-        json["user"]["avatar"] = user->avatar;
-      } else {
-        LOG_ERROR("[GetChat] Other user not found for chat '{}'", chat.id);
-      }
-    } else {
-      LOG_ERROR("[GetChat] Can't find other members for chat '{}'", chat.id);
-    }
+    json["user"]["id"] = other_user->id;
+    json["user"]["name"] = other_user->username;
+    json["user"]["avatar"] = other_user->avatar;
   }
 
   return json;
@@ -130,17 +151,43 @@ void ChatController::getChat(const crow::request& req, crow::response& res, int 
 
   auto chat_opt = manager_->getChatById(chat_id);
   if (!chat_opt) {
-    sendError(res, provider_->statusCodes().userError, "Chat not found", "[GetChat] Chat not found");
-    return;
+    return sendError(res, provider_->statusCodes().userError, "Chat not found");
   }
 
   const auto& chat = *chat_opt;
-  auto chat_json = buildChatJson(chat, *user_id);
+  if (chat.is_group) {
+    auto count = manager_->getMembersCount(chat.id);
+
+    if (!count) {
+      return sendError(res, provider_->statusCodes().serverError,
+                       "Failed to retrieve group member count");
+    }
+
+    auto chat_json = buildChatJson(chat, std::nullopt, count);
+    return sendResponse(res, provider_->statusCodes().success, chat_json.dump());
+  }
+
+  auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
+  if (!other_user_id) {
+    return sendError(res, provider_->statusCodes().notFound,
+                     "Other user not found for this chat");
+  }
+
+  auto other_user = getUserById(*other_user_id);
+  if (!other_user) {
+    return sendError(res, provider_->statusCodes().badRequest,
+                     "User profile not found");
+  }
+
+  auto chat_json = buildChatJson(chat, other_user, std::nullopt);
   sendResponse(res, provider_->statusCodes().success, chat_json.dump());
 }
 
-void ChatController::sendError(crow::response& res, int status, const std::string& message, const std::string& log_msg) {
-  LOG_ERROR(log_msg);
+void ChatController::sendError(crow::response& res, int status, const std::string& message) {
+  LOG_ERROR(message);
+  // crow::json::wvalue json;
+  // json["success"] = false;
+  // json["error"] = message;
   sendResponse(res, status, message);
 }
 

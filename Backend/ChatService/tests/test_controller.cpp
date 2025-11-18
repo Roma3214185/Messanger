@@ -177,17 +177,70 @@ TEST_CASE("Test getAllChatMembers") {
   }
 }
 
-TEST_CASE("") {
+TEST_CASE("Test ChatController::GetChat") {
   TestController::TestFixture fix;
-  //fix.controller.getChat();
+  int chat_id = 12;
+
+  SECTION("Invalid token expected info about it") {
+    fix.mock_autoritized->need_fail = true;
+    fix.controller.getChat(fix.req, fix.res, chat_id);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
+  }
+
+  SECTION("Chat not found expected statusCode userError and info about issue") {
+    fix.controller.getChat(fix.req, fix.res, chat_id);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == "Chat not found");
+  }
+
+  auto now = QDateTime::currentSecsSinceEpoch();
+  Chat private_chat;
+  private_chat.id = chat_id;
+  private_chat.name = "This will not use here";
+  private_chat.is_group = false;
+  private_chat.created_at = now;
+  fix.manager.mock_chat = private_chat;
+
+  SECTION("Not found other user for private chat") {
+    fix.controller.getChat(fix.req, fix.res, chat_id);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
+    REQUIRE(fix.res.body == "Other user not found for this chat");
+  }
+
+  int other_member_id = 123;
+  fix.manager.mock_other_member_id = other_member_id;
+
+  SECTION("Not found user profile expected badRequest error and problem issue") {
+    fix.controller.getChat(fix.req, fix.res, chat_id);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body == "User profile not found");
+  }
+
+  User other_user;
+  other_user.id = 1245;
+  other_user.username = "Otheruser username";
+  other_user.avatar = "other/avatar/path";
+  fix.network_manager.mock_user = other_user;
+
+  SECTION("Expected success status code and valid json responce") {
+    fix.controller.getChat(fix.req, fix.res, chat_id);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
 
 
+    auto r = crow::json::load(fix.res.body);
+
+    REQUIRE(r.size() == 3);
+    CHECK(r["id"].i() == chat_id);
+    CHECK(r["type"].s()    == "private");
+    CHECK(r["user"]["id"].i()   == other_user.id);
+    CHECK(r["user"]["avatar"].s()  == other_user.avatar);
+    CHECK(r["user"]["name"].s() == other_user.username);
+  }
 }
 
 
 /*
-
-
 
 
 */
