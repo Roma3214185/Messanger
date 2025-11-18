@@ -82,17 +82,17 @@ bool ChatManager::addMembersToChat(ID chat_id, const std::vector<ID>& members_id
 
   for (auto chat_member : chat_members) {
     bool ok = repository_->save(chat_member);
-    LOG_INFO("Member {} for chat {} is saved {}", chat_member.user_id, chat_member.chat_id, ok);
+    if(!ok) {
+      LOG_INFO("Member {} for chat {} is not saved", chat_member.user_id, chat_member.chat_id);
+      return false;
+    }
   }
-  // repository_->save(chat_members);
+  // TODO: repository_->save(chat_members);
   return true;
 }
 
-// bool deleteChat(int chat_id);
-// bool deleteMembersFromChat(int chatId, const std::vector<int>& members_id);
-
 std::vector<ID> ChatManager::getMembersOfChat(ID chat_id) {
-  std::vector<ChatMember> chat_members = repository_->findByField<ChatMember>("chat_id", chat_id);
+  std::vector<ChatMember> chat_members = repository_->findByField<ChatMember>(ChatMemberTable::ChatId, chat_id);
   LOG_INFO("[getMembersOfChat] for chat_id {} finded {} members", chat_id, chat_members.size());
   std::vector<ID> chat_members_id;
   for (auto member : chat_members) {

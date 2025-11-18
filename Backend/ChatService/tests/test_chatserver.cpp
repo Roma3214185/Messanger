@@ -93,7 +93,7 @@ TEST_CASE("handleGetChat listens on GET /chats/<int> and call Manager::GetChat w
 TEST_CASE("handleGetAllChatsMembers listens on GET /chats/<int>/members and call NetworkManager::GetMembersChat with expected chat_id") {
   TestServer::TestFixture fix;
 
-  SECTION("Token not setted axpected no call") {
+  SECTION("Token not setted expected call") {
     fix.mock_autoritized->need_fail = true;
     fix.app.validate();
     fix.req.method = "GET"_method;
@@ -104,11 +104,8 @@ TEST_CASE("handleGetAllChatsMembers listens on GET /chats/<int>/members and call
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.mock_autoritized->last_token == "");
-    REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
-    REQUIRE(fix.manager.call_getMembersOfChat == before_getMembersCall);
-    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
+    REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call);
+    REQUIRE(fix.manager.call_getMembersOfChat == before_getMembersCall + 1);
   }
 
   SECTION("Token is setted expected call") {
@@ -122,8 +119,7 @@ TEST_CASE("handleGetAllChatsMembers listens on GET /chats/<int>/members and call
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
-    REQUIRE(fix.mock_autoritized->last_token == fix.secret_token);
+    REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call);
     REQUIRE(fix.manager.call_getMembersOfChat == before_getMembersCall + 1);
     REQUIRE(fix.manager.last_chat_id == 42);
   }

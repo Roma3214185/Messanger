@@ -173,12 +173,11 @@ std::optional<int> ChatController::authorizeUser(const crow::request& req, crow:
 }
 
 void ChatController::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
-  auto user_id = autoritize(req);
-  if (!user_id) {
-    LOG_ERROR("[getAllChatMembers] can't verify token");
-    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
-    return;
-  }
+  // auto user_id = autoritize(req);
+  // if (!user_id) {
+  //   LOG_ERROR("[getAllChatMembers] can't verify token");
+  //   return sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
+  // }
 
   auto list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
