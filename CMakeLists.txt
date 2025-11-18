@@ -36,7 +36,7 @@ add_subdirectory(common/Metrics build_metrics)
 add_subdirectory(common/RedisCache build_redis)
 add_subdirectory(common/RabbitMQClient build_rabbit)
 add_subdirectory(common/Persistence build_persistence)
-add_subdirectory(common/NetworkManager build_networkmanager)
+add_subdirectory(common/Network build_network)
 add_subdirectory(common/constants build_constants)
 
 # -------------------------

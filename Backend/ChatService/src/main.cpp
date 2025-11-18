@@ -21,8 +21,8 @@ int main(int argc, char* argv[]) {
   ChatManager       manager(&genetic_rep); //TODO: pass executor to mock
   NetworkManager    network_manager;
   ProdConfigProvider provider;
-  crow::SimpleApp app;
   NetworkFacade facade = NetworkFactory::create(&network_manager);
+  crow::SimpleApp app;
   ChatController controller(&manager, &facade);
   ChatServer            server(app, provider.ports().chatService, &controller);
   LOG_INFO("Chat service on port '{}'", provider.ports().chatService);

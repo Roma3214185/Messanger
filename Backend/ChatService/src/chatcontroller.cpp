@@ -31,16 +31,12 @@ ChatController::ChatController(IChatManager* manager,
 
 void ChatController::createPrivateChat(const crow::request& req, crow::response& res) {
   LOG_INFO("[temp] create private chat");
-  optional<int> my_id = autoritize(req);
-  if (!my_id) {
-    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
-    return;
-  }
+  auto my_id = authorizeUser(req, res);
+  if (!my_id) return;
 
   auto body = crow::json::load(req.body);
   if (!body || !body.has("user_id")) {
-    sendResponse(res, provider_->statusCodes().userError, "Missing user_id value");
-    return;
+    return sendResponse(res, provider_->statusCodes().userError, "Missing user_id value");
   }
 
   int            user_id = body["user_id"].i();
@@ -56,19 +52,13 @@ void ChatController::createPrivateChat(const crow::request& req, crow::response&
 
   std::optional<int> chat_id = manager_->createPrivateChat(*my_id, user_id);
   if (!chat_id) {
-    sendResponse(res, provider_->statusCodes().serverError, "Failed to create chat");
-    return;
+    return sendResponse(res, provider_->statusCodes().serverError, "Failed to create chat");
   }
 
   LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
 
-  crow::json::wvalue result;
-  result["id"] = *chat_id;
-  result["type"]    = "private";
-  result["user"]["id"]     = user->id;
-  result["user"]["name"]   = user->username;
-  result["user"]["avatar"] = user->avatar;
-
+  Chat chat{.id = *chat_id, .is_group = false };
+  auto result = buildChatJson(chat, user, 0);
   sendResponse(res, provider_->statusCodes().success, result.dump());
 }
 
