@@ -82,41 +82,23 @@ void ChatController::getAllChats(const crow::request& req, crow::response& res) 
   if (!user_id)
     return;
 
-  auto chats = manager_->getChatsOfUser(*user_id);
+  auto chats = manager_->getChatsIdOfUser(*user_id);
 
   crow::json::wvalue ans;
   ans["chats"] = crow::json::wvalue::list();
 
   int index = 0;
 
-  for (const auto& chat : chats) {
+  for (const auto& chat_id : chats) {
+    crow::response chat_res;
+    getChat(req, chat_res, chat_id);
 
-    // GROUP CHAT
-    if (chat.is_group) {
-      auto count = manager_->getMembersCount(chat.id);
-      if (!count) {
-        LOG_ERROR("[GetAllChats] Failed to get member count for chat '{}'", chat.id);
-        continue;   // skip broken chat (or return error if you prefer)
-      }
-
-      ans["chats"][index++] = buildChatJson(chat, std::nullopt, count);
-      continue;
+    if (chat_res.code == provider_->statusCodes().success) {
+      ans["chats"][index++] = crow::json::load(chat_res.body);
+    } else {
+      LOG_ERROR("[GetAllChats] Failed to retrieve chat with ID '{}'", chat_id);
+      return sendError(res, chat_res.code, chat_res.body);
     }
-
-    // PRIVATE CHAT
-    auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
-    if (!other_user_id) {
-      LOG_ERROR("[GetAllChats] No other member in chat '{}'", chat.id);
-      continue;
-    }
-
-    auto other_user = getUserById(*other_user_id);
-    if (!other_user) {
-      LOG_ERROR("[GetAllChats] User '{}' not found", *other_user_id);
-      continue;
-    }
-
-    ans["chats"][index++] = buildChatJson(chat, other_user, std::nullopt);
   }
 
   sendResponse(res, provider_->statusCodes().success, ans.dump());
@@ -158,7 +140,7 @@ void ChatController::getChat(const crow::request& req, crow::response& res, int 
   if (chat.is_group) {
     auto count = manager_->getMembersCount(chat.id);
 
-    if (!count) {
+    if (count <= 0) {
       return sendError(res, provider_->statusCodes().serverError,
                        "Failed to retrieve group member count");
     }
@@ -208,7 +190,7 @@ void ChatController::getAllChatMembers(const crow::request& req, crow::response&
     return;
   }
 
-  std::vector<int> list_of_members = manager_->getMembersOfChat(chat_id);
+  auto list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");
     sendResponse(res, provider_->statusCodes().serverError, "Error in db.getMembersOfChat");

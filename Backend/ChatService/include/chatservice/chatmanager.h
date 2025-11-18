@@ -12,13 +12,13 @@
 class ChatManager : public IChatManager {
  public:
   ChatManager(GenericRepository* repository);
-  std::optional<int> createPrivateChat(int first_member, int second_user) override;
-  bool                addMembersToChat(int chat_id, const std::vector<int>& members_id) override;
-  std::vector<int>    getMembersOfChat(int chat_id) override;
-  std::vector<Chat>   getChatsOfUser(int user_id) override;
-  int                 getMembersCount(int chat_id) override;
-  std::optional<int>  getOtherMemberId(int chat_id, int user_id) override;
-  std::optional<Chat> getChatById(int chat_id) override;
+  std::optional<ID> createPrivateChat(ID first_member, ID second_user) override;
+  bool                addMembersToChat(ID chat_id, const std::vector<ID>& members_id) override;
+  std::vector<ID>    getMembersOfChat(ID chat_id) override;
+  std::vector<ID>    getChatsIdOfUser(ID user_id) override;
+  int                 getMembersCount(ID chat_id) override;
+  std::optional<ID>  getOtherMemberId(ID chat_id, ID user_id) override;
+  std::optional<Chat> getChatById(ID chat_id) override;
 
  private:
   GenericRepository* repository_;
