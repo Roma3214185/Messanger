@@ -47,22 +47,12 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
   private_chat.second_user = max_user_id;
 
   bool save_private_chat = repository_->save(private_chat);
-  if(save_private_chat) {
+  if(!save_private_chat) {
     LOG_ERROR("Can't save private chat");
     return std::nullopt;
   }
 
-  ChatMember first_member;
-  first_member.chat_id = to_save.id;
-  first_member.added_at = QDateTime::currentSecsSinceEpoch();
-  first_member.user_id = min_user_id;
-
-  ChatMember second_member;
-  first_member.chat_id = to_save.id;
-  first_member.added_at = QDateTime::currentSecsSinceEpoch();
-  first_member.user_id = max_user_id;
-
-  bool save_members = repository_->save(first_member) && repository_->save(second_member);
+  bool save_members = addMembersToChat(to_save.id, {min_user_id, max_user_id});
   if(!save_members) {
     LOG_ERROR("Can't save members");
     return std::nullopt;

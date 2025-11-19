@@ -1,4 +1,5 @@
 #include "models/chatmodel.h"
+#include "Debug_profiling.h"
 
 ChatModel::ChatModel(QObject* parent) : QAbstractListModel(parent) {}
 
@@ -40,9 +41,14 @@ QHash<int, QByteArray> ChatModel::roleNames() const {
 }
 
 void ChatModel::addChat(const ChatPtr& chat) {
+  for(auto existing_chat: chats_) {
+    if(existing_chat->chat_id == chat->chat_id) {
+      return LOG_ERROR("Chat with id {} already exist");
+    }
+  }
+
   beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
   chats_.push_back(chat);
-  qDebug() << "[INFO] addChat id = " << chat->chat_id;
   endInsertRows();
 }
 
