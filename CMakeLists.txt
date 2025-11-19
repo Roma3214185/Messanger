@@ -53,7 +53,6 @@ add_subdirectory(Backend/NotificationService)
 # -------------------------
 add_subdirectory(Frontend)
 
-
 # -------------------------
 # Mocks for backend tests
 # -------------------------
@@ -69,3 +68,4 @@ add_subdirectory(Frontend/tests)
 add_subdirectory(Backend/NotificationService/tests)
 add_subdirectory(Backend/MessageService/tests)
 add_subdirectory(Backend/ChatService/tests)
+add_subdirectory(Backend/AuthService/tests)
