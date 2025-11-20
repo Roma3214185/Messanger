@@ -35,7 +35,7 @@ class MockAuthManager : public IAuthManager {
       return mock_user;
     }
 
-    std::vector<User> findUserByTag(const std::string& tag) {
+    std::vector<User> findUsersByTag(const std::string& tag) {
       ++call_findUserByTag;
       last_tag = tag;
       return mock_users;

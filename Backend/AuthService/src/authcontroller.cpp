@@ -106,7 +106,7 @@ void AuthController::findByTag(const crow::request& req,
     return sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr");
   }
 
-  auto listOfUsers = manager_->findUserByTag(tag);
+  auto listOfUsers = manager_->findUsersByTag(tag);
   LOG_INFO("With tag '{}' was finded '{}' users", tag, listOfUsers.size());
 
   crow::json::wvalue json_users;
