@@ -34,6 +34,7 @@ add_library(AuthServiceCore STATIC
   ${AUTH_SERVICE_SRC_DIR}/authmanager.cpp
   ${AUTH_SERVICE_SRC_DIR}/JwtUtils.cpp
   ${AUTH_SERVICE_SRC_DIR}/server.cpp
+  ${AUTH_SERVICE_SRC_DIR}/authDataInputService.cpp
 )
 
 target_link_libraries(AuthServiceCore PUBLIC
