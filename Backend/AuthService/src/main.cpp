@@ -10,6 +10,7 @@
 #include "ProdConfigProvider.h"
 #include "authservice/authcontroller.h"
 #include "authservice/RealAuthoritizer.h"
+#include "authservice/JwtGenerator.h"
 
 int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
@@ -22,7 +23,8 @@ int main(int argc, char* argv[]) {
   AuthManager manager(rep);
   ProdConfigProvider provider;
   RealAuthoritizer authoritizer;
-  AuthController controller(&manager, &authoritizer);
+  JwtGenerator generator;
+  AuthController controller(&manager, &authoritizer, &generator);
   crow::SimpleApp app;
   Server server(app, provider.ports().authService, &controller);
   server.run();

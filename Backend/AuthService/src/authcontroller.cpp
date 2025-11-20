@@ -9,6 +9,7 @@
 #include "authservice/interfaces/IAuthManager.h"
 #include "entities/AuthResponce.h"
 #include "interfaces/IAutoritizer.h"
+#include "authservice/interfaces/IGenerator.h"
 
 using std::string;
 
@@ -42,13 +43,6 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
   res.end();
 }
 
-void saveInFile(const std::string& file_name, const std::string& key) {
-  std::ofstream file(file_name);
-  if (!file) throw std::runtime_error("Cannot open file for writing");
-  file << key;
-  file.close();
-}
-
 std::string fetchTag(const crow::request& req) {
   const char* t = req.url_params.get("tag");
   if (!t) {
@@ -60,14 +54,13 @@ std::string fetchTag(const crow::request& req) {
 
 }  // namespace
 
-AuthController::AuthController(IAuthManager* manager, IAutoritizer* authoritizer, IConfigProvider* provider)
-    : manager_(manager), authoritizer_(authoritizer), provider_(provider) {}
+AuthController::AuthController(IAuthManager* manager, IAutoritizer* authoritizer, IGenerator* generator, IConfigProvider* provider)
+    : manager_(manager), authoritizer_(authoritizer), generator_(generator), provider_(provider) {}
 
 void AuthController::loginUser(const crow::request& req, crow::response& responce) {
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password")) {
-    sendResponse(responce, provider_->statusCodes().badRequest, "Invalid Json");
-    return;
+    return sendResponse(responce, provider_->statusCodes().badRequest, "Invalid Json");
   }
   LoginRequest login_request{
       .email    = body["email"].s(),
@@ -84,7 +77,7 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
     return sendResponse(responce, provider_->statusCodes().unauthorized, "Invalid credentials");
   }
 
-  auto token = generateToken(logged_user->id);
+  auto token = generator_->generateToken(logged_user->id);
   sendResponse(responce, provider_->statusCodes().success, userToJson(*logged_user, token).dump());
 }
 
@@ -137,41 +130,16 @@ void AuthController::findById(const crow::request& req, int user_id, crow::respo
 std::pair<std::optional<long long>, std::string> AuthController::verifyToken(const crow::request& req) {
   auto token = req.get_header_value("Authorization");
   return std::make_pair(authoritizer_->autoritize(token), token);
-
-  // auto user = manager_->getUser(*id);
-  // if(!user) return std::nullopt;
-
-  // return AuthResponce{.token = token, .user = user};
 }
 
-std::string AuthController::generateToken(int user_id) {
-  return JwtUtils::generateToken(user_id);
-}
-
-void AuthController::generateKeys() {
-  const std::string kKeysDir        = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-  const std::string kPrivateKeyFile = "private_key.pem";
-  const std::string kPublicKeyFile  = kKeysDir + "public_key.pem";
-
-  auto [private_key, public_key] = JwtUtils::generate_rsa_keys();
-  std::filesystem::create_directories(kKeysDir);
-
-  try {
-    saveInFile(kPrivateKeyFile, private_key);
-    saveInFile(kPublicKeyFile, public_key);
-
-    LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
-    LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
-  } catch (...) {
-    LOG_ERROR("Error saving keys");
-  }
+bool AuthController::generateKeys() {
+  return generator_->generateKeys();
 }
 
 void AuthController::registerUser(const crow::request& req, crow::response& responce) {
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password") || !body.count("name") || !body.count("tag")) {
-    sendResponse(responce, provider_->statusCodes().badRequest, "Invalid json");
-    return;
+    return sendResponse(responce, provider_->statusCodes().badRequest, "Invalid json");
   }
 
   RegisterRequest register_request;
@@ -191,6 +159,6 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
     return sendResponse(responce, provider_->statusCodes().userError, "User already exist");
   }
 
-  std::string token = generateToken(register_user->id);
+  std::string token = generator_->generateToken(register_user->id);
   sendResponse(responce, provider_->statusCodes().success, userToJson(*register_user, token).dump());
 }

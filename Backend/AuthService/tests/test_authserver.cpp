@@ -6,6 +6,7 @@
 #include "mocks/MockAutoritizer.h"
 #include "mocks/MockConfigProvider.h"
 #include "mocks/MockUtils.h"
+#include "mocks/MockGenerator.h"
 
 namespace Test {
 
@@ -23,9 +24,10 @@ struct TestFixture {
     MockConfigProvider provider;
     User user;
     std::string token = "secret-test-token";
+    MockGenerator generator;
 
     TestFixture()
-        : controller(&manager, &authoritizer, &provider)
+        : controller(&manager, &authoritizer, &generator, &provider)
         , server(app, port, &controller) {
       authoritizer.mock_user_id = user_id;
       provider.mock_codes =  MockUtils::getMockCodes();
@@ -34,6 +36,7 @@ struct TestFixture {
       user.tag = "test_tag";
       user.email = "test_email";
       user.avatar = "test/avatar/path";
+      generator.mock_token = token;
     }
 };
 
@@ -154,6 +157,26 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
     REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
     REQUIRE(fix.res.body == "Invalid credentials");
   }
+
+  SECTION("User log in expected success code and valid json") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/login";
+    fix.manager.mock_user = fix.user;
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+
+    auto r = crow::json::load(fix.res.body);
+    REQUIRE(r.size() == 2);
+    CHECK(r["token"].s() == fix.token);
+    CHECK(r["user"]["id"].i()   == fix.user.id);
+    CHECK(r["user"]["avatar"].s()  == fix.user.avatar);
+    CHECK(r["user"]["name"].s() == fix.user.username);
+    CHECK(r["user"]["email"].s() == fix.user.email);
+    CHECK(r["user"]["tag"].s() == fix.user.tag);
+  }
 }
 
 TEST_CASE("handleLogin listens on POST /auth/register") {
@@ -209,6 +232,26 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
     REQUIRE(fix.res.body == "User already exist");
   }
+
+  SECTION("Valid request expected success code and valid json") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/register";
+    fix.manager.mock_user = fix.user;
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+
+    auto r = crow::json::load(fix.res.body);
+    REQUIRE(r.size() == 2);
+    CHECK(r["token"].s() == fix.token);
+    CHECK(r["user"]["id"].i()   == fix.user.id);
+    CHECK(r["user"]["avatar"].s()  == fix.user.avatar);
+    CHECK(r["user"]["name"].s() == fix.user.username);
+    CHECK(r["user"]["email"].s() == fix.user.email);
+    CHECK(r["user"]["tag"].s() == fix.user.tag);
+  }
 }
 
 TEST_CASE("findByTag listens GET users/search") {
@@ -223,8 +266,6 @@ TEST_CASE("findByTag listens GET users/search") {
     REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
     REQUIRE(fix.res.body == "Missing tag parametr");
   }
-
-
 
   SECTION("Request with tag expected request to manager with given tag") {
     fix.app.validate();
@@ -305,24 +346,3 @@ TEST_CASE("handleFindById listens /users/<int>") {
     CHECK(result["avatar"].s() == "3avatar/path");
   }
 }
-
-/*void AuthController::findById(const crow::request& req, int user_id, crow::response& responce) {
-  auto found_user = manager_->getUser(user_id);
-  if (!found_user) {
-    return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
-  }
-
-  auto user_json = userToJson(*found_user);
-  sendResponse(responce, provider_->statusCodes().success, user_json["user"].dump());
-}
-
-void Server::handleFindById() {
-  CROW_ROUTE(app_, "/users/<int>")
-  .methods(crow::HTTPMethod::GET)(
-      [this](const crow::request& req, crow::response& res, int user_id) {
-        PROFILE_SCOPE("/users/id " + std::to_string(user_id));
-        controller_->findById(req, user_id, res);
-        LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
-      });
-}
-*/
