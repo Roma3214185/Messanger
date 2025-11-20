@@ -2,7 +2,7 @@
 
 using namespace std;
 
-ProxyClient::ProxyClient(const string& url) : baseUrl(url) {
+ProxyClient::ProxyClient(int port) : port_(port) {
   string host = url;
   if (host.rfind("http://", 0) == 0)
     host = host.substr(7);

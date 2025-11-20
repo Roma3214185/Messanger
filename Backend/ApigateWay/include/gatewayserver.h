@@ -10,15 +10,16 @@
 #include "ScopedRequestsTimer.h"
 #include "proxyclient.h"
 #include "ratelimiter.h"
+#include "ProdConfigProvider.h"
 
 class GatewayServer {
  public:
-  explicit GatewayServer(int port);
+  GatewayServer(crow::SimpleApp& app, IConfigProvider* = &ProdConfigProvider::instance());
   void run();
 
  private:
-  crow::SimpleApp app_;
-  int             port_;
+  crow::SimpleApp& app_;
+  IConfigProvider* provider_;
 
   RateLimiter rateLimiter_;
   ProxyClient authProxy_;

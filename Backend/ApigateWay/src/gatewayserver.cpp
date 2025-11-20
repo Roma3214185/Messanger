@@ -14,11 +14,6 @@ using std::string;
 
 namespace {
 
-static string getenv_or(const char* key, const char* def) {
-  const char* v = std::getenv(key);
-  return v ? string(v) : string(def);
-}
-
 std::string getMethod(const crow::HTTPMethod& method) {
   switch (method) {
     case crow::HTTPMethod::GET:
@@ -37,20 +32,24 @@ std::string getMethod(const crow::HTTPMethod& method) {
 constexpr int kInvalidTokenCode    = 401;
 constexpr int kRateLimitExceedCode = 429;
 
-GatewayServer::GatewayServer(int port)
-    : port_(port),
-      rateLimiter_(300, std::chrono::seconds(900)),
-      authProxy_(getenv_or("AUTH_SERVICE_URL", "http://localhost:8083")),
-      chatProxy_(getenv_or("PRODUCT_SERVICE_URL", "http://localhost:8081")),
-      messageProxy_(getenv_or("ORDER_SERVICE_URL", "http://localhost:8082")),
-      notificationProxy_(getenv_or("PAYMENT_SERVICE_URL", "http://localhost:8086")),
-      exposer_(std::make_unique<prometheus::Exposer>("0.0.0.0:8089")),
-      registry_(std::make_shared<prometheus::Registry>()),
-      request_counter_family_(prometheus::BuildCounter()
+constexpr int fisrt = 300;
+constexpr int second = 900;
+
+GatewayServer::GatewayServer(crow::SimpleApp& app, IConfigProvider* provider)
+    : app_(app)
+    , provider_(provider)
+    , rateLimiter_(fisrt, std::chrono::seconds(second))
+    , authProxy_(provider->ports().authService)
+    , chatProxy_(provider->ports().chatService)
+    , messageProxy_(provider->ports().messageService)
+    , notificationProxy_(provider->ports().notificationService)
+    , exposer_(std::make_unique<prometheus::Exposer>("0.0.0.0:8089"))
+    , registry_(std::make_shared<prometheus::Registry>())
+    , request_counter_family_(prometheus::BuildCounter()
                                   .Name("api_gateway_requests_total")
                                   .Help("Total number of requests")
-                                  .Register(*registry_)),
-      request_latency_(prometheus::BuildHistogram()
+                                  .Register(*registry_))
+    , request_latency_(prometheus::BuildHistogram()
                            .Name("api_gateway_request_duration_seconds")
                            .Help("Request duration in seconds")
                            .Register(*registry_)
@@ -62,8 +61,8 @@ GatewayServer::GatewayServer(int port)
 }
 
 void GatewayServer::run() {
-  std::cout << "Starting API Gateway on port " << port_ << "\n";
-  app_.port(port_).multithreaded().run();
+  LOG_INFO("Starting API Gateway on port {}", provider_->ports().apigateService);
+  app_.port(provider_->ports().apigateService).multithreaded().run();
 }
 
 string GatewayServer::extractToken(const crow::request& req) const {

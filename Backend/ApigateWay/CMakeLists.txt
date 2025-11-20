@@ -21,29 +21,22 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
-# add_subdirectory(
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../external/IXWebSocket
-#     ${CMAKE_CURRENT_BINARY_DIR}/external/IXWebSocket-build
-# )
-
-add_executable(ApiGateWay
-    ${APIGATE_SRC_DIR}/main.cpp
+add_library(ApiGateWayCore
     ${APIGATE_SRC_DIR}/gatewayserver.cpp
     ${APIGATE_SRC_DIR}/proxyclient.cpp
     ${APIGATE_SRC_DIR}/JwtUtils.cpp
     ${APIGATE_SRC_DIR}/websocketbridge.cpp
 )
 
-target_include_directories(ApiGateWay PRIVATE
+target_include_directories(ApiGateWayCore PUBLIC
     ${APIGATE_INCLUDE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    #${CMAKE_CURRENT_SOURCE_DIR}/../external
     ${httplib_SOURCE_DIR}
     ${BOOST_ROOT}/include
     /opt/homebrew/include
 )
 
-target_link_libraries(ApiGateWay PRIVATE
+target_link_libraries(ApiGateWayCore PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}
     Crow::Crow
     ixwebsocket
@@ -52,6 +45,12 @@ target_link_libraries(ApiGateWay PRIVATE
     nlohmann_json::nlohmann_json
     Constants
 )
+
+add_executable(ApiGateWay
+    ${APIGATE_SRC_DIR}/main.cpp
+)
+
+target_link_libraries(ApiGateWay PRIVATE ApiGateWayCore)
 
 set_target_properties(ApiGateWay PROPERTIES
     BUILD_WITH_INSTALL_RPATH ON
