@@ -3,13 +3,9 @@
 
 #include "authservice/authcontroller.h"
 
-class AuthManager;
-
-using AuthControllerPtr = std::unique_ptr<AuthController>;
-
 class Server {
  public:
-  Server(int port, AuthManager* manager);
+  Server(crow::SimpleApp& app, int port, AuthController* controller);
   void run();
 
  private:
@@ -21,10 +17,9 @@ class Server {
   void handleMe();
   void handleLogin();
 
-  crow::SimpleApp   app_;
-  AuthManager*      manager_;
+  crow::SimpleApp&   app_;
   int               port_;
-  AuthControllerPtr auth_controller_;
+  AuthController*   controller_;
 };
 
 #endif  // AUTH_SERVICE_SERVER_H

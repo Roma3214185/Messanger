@@ -6,22 +6,21 @@
 
 #include "GenericRepository.h"
 #include "entities/AuthResponce.h"
+#include "authservice/interfaces/IAuthManager.h"
 
 class RegisterRequest;
 class LoginRequest;
 class AuthResponce;
 
-using OptionalResponce = std::optional<AuthResponce>;
 using OptionalUser     = std::optional<User>;
 
-class AuthManager {
+class AuthManager : public IAuthManager {
  public:
   AuthManager(GenericRepository& repository);
-  OptionalResponce  getUser(const std::string& token);
-  OptionalResponce  loginUser(const LoginRequest& login_request);
-  OptionalResponce  registerUser(const RegisterRequest& req);
-  std::vector<User> findUserByTag(const std::string& tag);
-  OptionalUser      findUserById(int user_id);
+  OptionalUser  getUser(int user_id) override;
+  OptionalUser  loginUser(const LoginRequest& login_request) override;
+  OptionalUser  registerUser(const RegisterRequest& req) override;
+  std::vector<User> findUserByTag(const std::string& tag) override;
 
  private:
   GenericRepository rep;

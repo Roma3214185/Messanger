@@ -7,6 +7,7 @@
 #include "NetworkFacade.h"
 #include "chatservice/AutoritizerProvider.h"
 #include "mocks/MockUtils.h"
+#include "mocks/MockAutoritizer.h"
 
 #include "ProdConfigProvider.h"
 

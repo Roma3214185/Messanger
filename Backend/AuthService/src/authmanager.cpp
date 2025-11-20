@@ -12,27 +12,27 @@
 using std::nullopt;
 using std::string;
 
-OptionalResponce AuthManager::getUser(const string& token) {
-  PROFILE_SCOPE("[AuthManager::getUser");
-  std::optional<int> user_id_ptr = JwtUtils::verifyTokenAndGetUserId(token);
-  if (!user_id_ptr || *user_id_ptr == 0) {
-    LOG_ERROR("[getUser] Invalid or exprired token");
-    return nullopt;
-  }
-  int user_id = *user_id_ptr;
-  LOG_INFO("[getUser] verified id = '{}'", user_id);
+OptionalUser AuthManager::getUser(int user_id) {
+  // PROFILE_SCOPE("[AuthManager::getUser");
+  // std::optional<int> user_id_ptr = JwtUtils::verifyTokenAndGetUserId(token);
+  // if (!user_id_ptr || *user_id_ptr == 0) {
+  //   LOG_ERROR("[getUser] Invalid or exprired token");
+  //   return nullopt;
+  // }
+  // int user_id = *user_id_ptr;
+  // LOG_INFO("[getUser] verified id = '{}'", user_id);
 
   auto finded_user = rep.findOne<User>(user_id);
   if (!finded_user) {
     LOG_ERROR("User with id not founded; id = '{}'", user_id);
-    return nullopt;
+    return std::nullopt;
   }
 
   LOG_INFO("User was founded; name = '{}' and id {}", finded_user->username, finded_user->id);
-  return AuthResponce{.token = token, .user = finded_user};
+  return finded_user;
 }
 
-OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
+OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
   auto finded_users = rep.findByField<User>("email", QString::fromStdString(login_request.email));
 
   if (finded_users.empty()) {
@@ -51,18 +51,15 @@ OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
     return std::nullopt;
   }
 
-  auto token = JwtUtils::generateToken(findedUser.id);
-  LOG_INFO("Generated token = '{}'", token);
-  return AuthResponce{.token = token, .user = findedUser};
+
+  return findedUser;
 }
 
-OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
+OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
   User user_to_save{.username = req.name, .tag = req.tag, .email = req.email};
 
   bool saved = rep.save(user_to_save);
   if (!saved) return std::nullopt;
-
-  auto token = JwtUtils::generateToken(user_to_save.id);
 
   std::string     hashed_password = PasswordService::hash(req.password);
   UserCredentials user_credentials;
@@ -75,18 +72,13 @@ OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
     return std::nullopt;
   }
 
-  return AuthResponce{.token = token, .user = user_to_save};
+  return user_to_save;
 }
 
 std::vector<User> AuthManager::findUserByTag(const string& tag) {
   auto findedUsers = rep.findByField<User>("tag", QString::fromStdString(tag));
   // TODO(roma): make "tag" -> User::UserTag |
   return findedUsers;
-}
-
-OptionalUser AuthManager::findUserById(int user_id) {
-  PROFILE_SCOPE("AuthManager::findUserById");
-  return rep.findOne<User>(user_id);
 }
 
 AuthManager::AuthManager(GenericRepository& repository) : rep(repository) {}

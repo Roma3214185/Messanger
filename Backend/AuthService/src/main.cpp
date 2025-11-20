@@ -8,6 +8,8 @@
 #include "authservice/server.h"
 #include "SqlExecutor.h"
 #include "ProdConfigProvider.h"
+#include "authservice/authcontroller.h"
+#include "authservice/RealAuthoritizer.h"
 
 int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
@@ -19,8 +21,10 @@ int main(int argc, char* argv[]) {
 
   AuthManager manager(rep);
   ProdConfigProvider provider;
-
-  Server server(provider.ports().authService, &manager);
+  RealAuthoritizer authoritizer;
+  AuthController controller(&manager, &authoritizer);
+  crow::SimpleApp app;
+  Server server(app, provider.ports().authService, &controller);
   server.run();
 
   return 0;

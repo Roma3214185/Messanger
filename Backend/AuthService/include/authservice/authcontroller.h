@@ -2,15 +2,21 @@
 #define AUTHCONTROLLER_H
 
 #include <crow.h>
+#include "ProdConfigProvider.h"
 
-#include "authmanager.h"
+class IAuthManager;
+class AuthResponce;
+class IAutoritizer;
 
 class AuthController {
  public:
-  AuthController(crow::SimpleApp& app, AuthManager* service);
+  using OptionalId = std::optional<long long>;
+  using Token = std::string;
+
+  AuthController(IAuthManager* service, IAutoritizer* authoritier, IConfigProvider* provider = &ProdConfigProvider::instance());
   void generateKeys();
   void findById(const crow::request& req, int user_id, crow::response& responce);
-  void findByTag(const crow::request& req, const std::string& tag, crow::response& responce);
+  void findByTag(const crow::request& req, crow::response& responce);
   void registerUser(const crow::request& req, crow::response& responce);
   void handleMe(const crow::request& req, crow::response& responce);
   void loginUser(const crow::request& req, crow::response& responce);
@@ -18,11 +24,12 @@ class AuthController {
  private:
   void handleRegister();
   void handleLogin();
+  Token generateToken(int user_id);
+  std::pair<OptionalId, Token> verifyToken(const crow::request& req);
 
-  std::optional<AuthResponce> verifyToken(const crow::request& req);
-
-  crow::SimpleApp& app_;
-  AuthManager*     service_;
+  IAuthManager* manager_;
+  IConfigProvider* provider_;
+  IAutoritizer* authoritizer_;
 };
 
 #endif  // AUTHCONTROLLER_H

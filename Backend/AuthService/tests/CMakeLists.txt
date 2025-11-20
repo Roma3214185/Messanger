@@ -27,6 +27,7 @@ FetchContent_MakeAvailable(libsodium)
 add_executable(AuthServiceTests
     main.cpp
     test_authserver.cpp
+    mocks/MockAuthManager.h
 )
 
 set_target_properties(AuthServiceTests PROPERTIES
@@ -50,6 +51,7 @@ target_link_libraries(AuthServiceTests
         Qt6::Test
         Qt6::Network
         BackendMocks
+        Network
         sodium
 )
 

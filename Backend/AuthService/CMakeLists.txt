@@ -44,6 +44,7 @@ target_link_libraries(AuthServiceCore PUBLIC
   sodium
   Entities
   Constants
+  NetworkManager
   nlohmann_json::nlohmann_json
 )
 
