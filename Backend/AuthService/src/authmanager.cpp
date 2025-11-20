@@ -36,8 +36,8 @@ OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
   auto finded_users = rep.findByField<User>("email", QString::fromStdString(login_request.email));
 
   if (finded_users.empty()) {
-    LOG_WARN("User not found with email '{}'", login_request.email);
-    return nullopt;
+    LOG_ERROR("User not found with email '{}'", login_request.email);
+    return std::nullopt;
   }
 
   auto findedUser = finded_users.front();

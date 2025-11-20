@@ -49,6 +49,15 @@ void saveInFile(const std::string& file_name, const std::string& key) {
   file.close();
 }
 
+std::string fetchTag(const crow::request& req) {
+  const char* t = req.url_params.get("tag");
+  if (!t) {
+    // tag does not exist
+    return "";
+  }
+  return std::string(t);
+}
+
 }  // namespace
 
 AuthController::AuthController(IAuthManager* manager, IAutoritizer* authoritizer, IConfigProvider* provider)
@@ -95,10 +104,9 @@ void AuthController::handleMe(const crow::request& req, crow::response& responce
 
 void AuthController::findByTag(const crow::request& req,
                                crow::response&      responce) {
-  std::string tag = req.url_params.get("tag");
+  std::string tag = fetchTag(req);
   if (tag.empty()) {
-    sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr");
-    return;
+    return sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr");
   }
 
   auto listOfUsers = manager_->findUserByTag(tag);
@@ -119,7 +127,7 @@ void AuthController::findByTag(const crow::request& req,
 void AuthController::findById(const crow::request& req, int user_id, crow::response& responce) {
   auto found_user = manager_->getUser(user_id);
   if (!found_user) {
-    return sendResponse(responce, provider_->statusCodes().notFound, "Users not found");
+    return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
   }
 
   auto user_json = userToJson(*found_user);

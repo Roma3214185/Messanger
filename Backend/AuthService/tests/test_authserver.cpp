@@ -41,21 +41,6 @@ struct TestFixture {
 
 TEST_CASE("handleMe listens on GET /auth/me") {
   Test::TestFixture fix;
-
-  // void AuthController::handleMe(const crow::request& req, crow::response& responce) {
-  //   auto [user_id, token] = verifyToken(req);
-  //   if (!user_id) {
-  //     return sendResponse(responce, provider_->statusCodes().unauthorized, provider_->statusCodes().invalidToken);
-  //   }
-
-  //   std::optional<User> user = manager_->getUser(*user_id);
-  //   if(!user) {
-  //     return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
-  //   }
-
-  //   sendResponse(responce, provider_->statusCodes().success, userToJson(*user, token).dump());
-  // }
-
   SECTION("Invalid token expected ") {
     fix.authoritizer.need_fail = true;
     fix.app.validate();
@@ -115,38 +100,229 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     CHECK(r["user"]["email"].s() == fix.user.email);
     CHECK(r["user"]["tag"].s() == fix.user.tag);
   }
+}
+
+TEST_CASE("handleLogin listens on POST /auth/login") {
+  Test::TestFixture fix;
+  SECTION("Request without body expected badRequest error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/login";
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body == "Invalid Json");
+  }
+
+  SECTION("Request without email or password expected badRequest error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/login";
+    fix.req.body = R"({"email":"a","passwords":"b"})";
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body == "Invalid Json");
+  }
+
+  SECTION("Request with email or password expected no badRequest error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/login";
+    fix.req.body = R"({"email":"a","password":"b"})";
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code != fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body != "Invalid Json");
+  }
+
+  fix.req.body = R"({"email":"test_email","password":"test_password"})";
+
+  SECTION("Manager not loggin user expected unauthorized error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/login";
+    fix.manager.mock_user = std::nullopt;
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.manager.last_login_request.email == "test_email");
+    REQUIRE(fix.manager.last_login_request.password == "test_password");
+    REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
+    REQUIRE(fix.res.body == "Invalid credentials");
+  }
+}
+
+TEST_CASE("handleLogin listens on POST /auth/register") {
+  Test::TestFixture fix;
+  SECTION("Request without body expected badRequest error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/register";
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body == "Invalid json");
+  }
+
+  SECTION("Request without password expected badRequest error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/register";
+    fix.req.body = R"({"email":"a", "name":"a", "tag":"a"})";
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body == "Invalid json");
+  }
+
+  fix.req.body = R"({"email":"a","password":"b", "name":"c", "tag":"d"})";
+
+  SECTION("Valid register request expected no badRequest error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/register";
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code != fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body != "Invalid json");
+  }
+
+  SECTION("Manager not register user expected unauthorized error") {
+    fix.app.validate();
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/register";
+    fix.manager.mock_user = std::nullopt;
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.manager.last_register_request.email == "a");
+    REQUIRE(fix.manager.last_register_request.password == "b");
+    REQUIRE(fix.manager.last_register_request.name == "c");
+    REQUIRE(fix.manager.last_register_request.tag == "d");
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == "User already exist");
+  }
+}
+
+TEST_CASE("findByTag listens GET users/search") {
+  Test::TestFixture fix;
+  SECTION("Request without tag expected badRequest and Missing tag parametr error") {
+    fix.app.validate();
+    fix.req.method = "GET"_method;
+    fix.req.url = "/users/search";
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.body == "Missing tag parametr");
+  }
 
 
-  // SECTION("Invalid token expected not call getChatsOfUser") {
-  //   fix.mock_autoritized->need_fail = true;
-  //   fix.app.validate();
-  //   fix.req.method = "GET"_method;
-  //   fix.req.url = "/chats";
-  //   int before = fix.manager.call_getChatsOfUser;
 
-  //   fix.app.handle_full(fix.req, fix.res);
+  SECTION("Request with tag expected request to manager with given tag") {
+    fix.app.validate();
+    fix.req.method = "GET"_method;
+    fix.req.url = "/users/search";
+    fix.req.url_params = crow::query_string("?tag=secret-tag");
 
-  //   REQUIRE(fix.manager.call_getChatsOfUser == before);
-  //   REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-  //   REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
-  // }
+    fix.app.handle_full(fix.req, fix.res);
 
-  // fix.req.add_header("Authorization", fix.secret_token);
+    REQUIRE(fix.manager.last_tag == "secret-tag");
+  }
 
-  // SECTION("Token is setted expected call getChatsOfUser") {
-  //   fix.app.validate();
-  //   fix.req.method = "GET"_method;
-  //   fix.req.url = "/chats";
-  //   int before_getChatCall = fix.manager.call_getChatsOfUser;
-  //   int before_auth_call = fix.mock_autoritized->call_autoritize;
+  fix.req.url_params = crow::query_string("?tag=secret-tag");
+  User user1{.id = 1, .username = "1name", .tag = "1tag", .email = "1email", .avatar = "1avatar/path"};
+  User user2{.id = 2, .username = "2name", .tag = "2tag", .email = "2email", .avatar = "2avatar/path"};
+  fix.manager.mock_users = {user1, user2};
 
-  //   fix.app.handle_full(fix.req, fix.res);
+  SECTION("Valid request expected success code and json") {
+    fix.app.validate();
+    fix.req.method = "GET"_method;
+    fix.req.url = "/users/search";
 
-  //   REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
-  //   REQUIRE(fix.mock_autoritized->last_token == fix.secret_token);
-  //   REQUIRE(fix.manager.call_getChatsOfUser == before_getChatCall + 1);
-  //   REQUIRE(fix.manager.last_user_id == fix.user_id);
-  // }
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+
+    auto result = crow::json::load(fix.res.body);
+    REQUIRE(result["users"].size() == 2);
+
+    REQUIRE(result["users"][0]["id"].i() == 1);
+    REQUIRE(result["users"][0]["email"].s() == "1email");
+    REQUIRE(result["users"][0]["name"].s() == "1name");
+    REQUIRE(result["users"][0]["tag"].s() == "1tag");
+    REQUIRE(result["users"][0]["avatar"].s() == "1avatar/path");
+
+    REQUIRE(result["users"][1]["id"].i() == 2);
+    REQUIRE(result["users"][1]["email"].s() == "2email");
+    REQUIRE(result["users"][1]["name"].s() == "2name");
+    REQUIRE(result["users"][1]["tag"].s() == "2tag");
+    REQUIRE(result["users"][1]["avatar"].s() == "2avatar/path");
+  }
 }
 
 
+TEST_CASE("handleFindById listens /users/<int>") {
+  Test::TestFixture fix;
+  fix.req.url = "/users/123";
+
+  SECTION("User not found expected notFound code and User not found message") {
+    fix.app.validate();
+    fix.req.method = "GET"_method;
+    fix.manager.mock_user = std::nullopt;
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.manager.last_user_id == 123);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
+    REQUIRE(fix.res.body == "User not found");
+  }
+
+  User user{.id = 123, .username = "3name", .tag = "3tag", .email = "3email", .avatar = "3avatar/path"};
+  fix.manager.mock_user = user;
+
+  SECTION("User found expected success code and valid json message") {
+    fix.app.validate();
+    fix.req.method = "GET"_method;
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.manager.last_user_id == 123);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+    auto result = crow::json::load(fix.res.body);
+    REQUIRE(result.size() == 5);
+    CHECK(result["id"].i() == 123);
+    CHECK(result["email"].s() == "3email");
+    CHECK(result["name"].s() == "3name");
+    CHECK(result["tag"].s() == "3tag");
+    CHECK(result["avatar"].s() == "3avatar/path");
+  }
+}
+
+/*void AuthController::findById(const crow::request& req, int user_id, crow::response& responce) {
+  auto found_user = manager_->getUser(user_id);
+  if (!found_user) {
+    return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
+  }
+
+  auto user_json = userToJson(*found_user);
+  sendResponse(responce, provider_->statusCodes().success, user_json["user"].dump());
+}
+
+void Server::handleFindById() {
+  CROW_ROUTE(app_, "/users/<int>")
+  .methods(crow::HTTPMethod::GET)(
+      [this](const crow::request& req, crow::response& res, int user_id) {
+        PROFILE_SCOPE("/users/id " + std::to_string(user_id));
+        controller_->findById(req, user_id, res);
+        LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
+      });
+}
+*/

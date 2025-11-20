@@ -13,6 +13,9 @@ class MockAuthManager : public IAuthManager {
     int last_user_id;
     std::string last_tag;
     std::optional<User> mock_user;
+    LoginRequest last_login_request;
+    RegisterRequest last_register_request;
+    std::vector<User> mock_users;
 
     OptionalUser  getUser(int user_id) {
       ++call_getUser;
@@ -22,17 +25,20 @@ class MockAuthManager : public IAuthManager {
 
     OptionalUser loginUser(const LoginRequest& login_request) {
       ++call_loginUser;
+      last_login_request = login_request;
       return mock_user;
     }
 
     OptionalUser registerUser(const RegisterRequest& req) {
       ++call_registerUser;
+      last_register_request = req;
       return mock_user;
     }
 
     std::vector<User> findUserByTag(const std::string& tag) {
       ++call_findUserByTag;
       last_tag = tag;
+      return mock_users;
     }
 };
 

@@ -38,7 +38,6 @@ void Server::handleFindByTag() {
   CROW_ROUTE(app_, "/users/search")
       .methods(crow::HTTPMethod::GET)([this](const crow::request& req, crow::response& res) {
         PROFILE_SCOPE("[/users/search]");
-        auto tag = req.url_params.get("tag");
         controller_->findByTag(req, res);
         LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
       });
