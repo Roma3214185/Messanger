@@ -59,7 +59,7 @@ static std::string fullField(const char* field) {
 
 } // UserCredentialsTable
 
-namespace ChatMembersTable {
+namespace ChatMemberTable {
 
 inline static constexpr const char* Table   = "chat_members";
 inline static constexpr const char* ChatId  = "chat_id";

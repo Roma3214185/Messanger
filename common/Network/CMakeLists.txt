@@ -23,6 +23,7 @@ add_library(NetworkManager STATIC
     src/IUserNetworkManager.cpp
     src/IMessageNetworkManager.cpp
     include/RealCrowApp.h
+    include/interfaces/IAutoritizer.h
 )
 
 target_include_directories(NetworkManager PUBLIC

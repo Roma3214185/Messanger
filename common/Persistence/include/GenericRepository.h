@@ -41,6 +41,9 @@ class GenericRepository {
                     ICacheService& cache,
                     IThreadPool*    pool_ = nullptr);
 
+  ISqlExecutor* getExecutor() { return executor_; }
+  ICacheService& getCache() { return cache_; }
+
   IDataBase& getDatabase() { return database_; }
   void       clearCache();
 

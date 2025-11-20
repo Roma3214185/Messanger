@@ -12,81 +12,82 @@
 using std::nullopt;
 using std::string;
 
-OptionalResponce AuthManager::getUser(const string& token) {
-  PROFILE_SCOPE("[AuthManager::getUser");
-  std::optional<int> user_id_ptr = JwtUtils::verifyTokenAndGetUserId(token);
-  if (!user_id_ptr || *user_id_ptr == 0) {
-    LOG_ERROR("[getUser] Invalid or exprired token");
-    return nullopt;
-  }
-  int user_id = *user_id_ptr;
-  LOG_INFO("[getUser] verified id = '{}'", user_id);
-
-  auto finded_user = rep.findOne<User>(user_id);
-  if (!finded_user) {
-    LOG_ERROR("User with id not founded; id = '{}'", user_id);
-    return nullopt;
-  }
-
-  LOG_INFO("User was founded; name = '{}' and id {}", finded_user->username, finded_user->id);
-  return AuthResponce{.token = token, .user = finded_user};
+OptionalUser AuthManager::getUser(int user_id) {
+  return rep_.findOne<User>(user_id);
 }
 
-OptionalResponce AuthManager::loginUser(const LoginRequest& login_request) {
-  auto finded_users = rep.findByField<User>("email", QString::fromStdString(login_request.email));
+OptionalUser AuthManager::findUserByEmail(const std::string& email) {
+  auto finded_users = rep_.findByField<User>(UserTable::Email, email);
+  return finded_users.empty() ? std::nullopt : std::make_optional(finded_users.front());
+}
 
-  if (finded_users.empty()) {
-    LOG_WARN("User not found with email '{}'", login_request.email);
-    return nullopt;
+std::optional<UserCredentials> AuthManager::findUserCredentials(int user_id) {
+  auto result = rep_.findByField<UserCredentials>(UserCredentialsTable::UserId, user_id);
+  return result.empty() ? std::nullopt :std::make_optional(result.front());
+}
+
+OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
+  auto user_with_same_email = findUserByEmail(login_request.email);
+
+  if (!user_with_same_email) {
+    LOG_ERROR("User not found with email '{}'", login_request.email);
+    return std::nullopt;
   }
 
-  auto findedUser = finded_users.front();
-  LOG_INFO("User found with email '{}', id is '{}'", login_request.email, findedUser.id);
+  LOG_INFO("User found with email '{}', id is '{}'", login_request.email, user_with_same_email->id);
 
-  auto user_credentials_vector = rep.findByField<UserCredentials>("user_id", findedUser.id);
-  assert(user_credentials_vector.size() == 1);
-  auto user_credentials = user_credentials_vector.front();
-  if (!PasswordService::verify(login_request.password, user_credentials.hash_password)) {
+  auto user_credentials = findUserCredentials(user_with_same_email->id);
+  if (!user_credentials || !passwordIsValid(login_request.password, user_credentials->hash_password)) {
     LOG_ERROR("Invalid password");
     return std::nullopt;
   }
 
-  auto token = JwtUtils::generateToken(findedUser.id);
-  LOG_INFO("Generated token = '{}'", token);
-  return AuthResponce{.token = token, .user = findedUser};
+  return user_with_same_email;
 }
 
-OptionalResponce AuthManager::registerUser(const RegisterRequest& req) {
+bool AuthManager::passwordIsValid(const std::string& password_to_check, const std::string& hash_password) {
+  //TODO: make check if password_to_check satisfy condition (length, symbols, etc)
+  return PasswordService::verify(password_to_check, hash_password);
+}
+
+OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
+  //TODO: make check RegisterRequest
+  auto user_with_same_email = findUserByEmail(req.email);
+  if(user_with_same_email) return std::nullopt;
+
+  auto users_with_same_tag = findUserWithSameTag(req.tag);
+  if(users_with_same_tag) return std::nullopt;
+
   User user_to_save{.username = req.name, .tag = req.tag, .email = req.email};
 
-  bool saved = rep.save(user_to_save);
+  bool saved = rep_.save(user_to_save);
   if (!saved) return std::nullopt;
 
-  auto token = JwtUtils::generateToken(user_to_save.id);
-
-  std::string     hashed_password = PasswordService::hash(req.password);
+  std::string     hashed_password = getHashPassword(req.password);
   UserCredentials user_credentials;
   user_credentials.user_id       = user_to_save.id;
   user_credentials.hash_password = hashed_password;
 
-  bool saved_credentials = rep.save(user_credentials);
+  bool saved_credentials = rep_.save(user_credentials);
   if (!saved_credentials) {
     LOG_ERROR("Server error while saving credentials");
     return std::nullopt;
   }
 
-  return AuthResponce{.token = token, .user = user_to_save};
+  return user_to_save;
 }
 
-std::vector<User> AuthManager::findUserByTag(const string& tag) {
-  auto findedUsers = rep.findByField<User>("tag", QString::fromStdString(tag));
-  // TODO(roma): make "tag" -> User::UserTag |
-  return findedUsers;
+std::string AuthManager::getHashPassword(const std::string& raw_passport) {
+  return PasswordService::hash(raw_passport);
 }
 
-OptionalUser AuthManager::findUserById(int user_id) {
-  PROFILE_SCOPE("AuthManager::findUserById");
-  return rep.findOne<User>(user_id);
+std::vector<User> AuthManager::findUsersByTag(const string& tag) {  //TODO: make trie
+  return rep_.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
 }
 
-AuthManager::AuthManager(GenericRepository& repository) : rep(repository) {}
+std::optional<User> AuthManager::findUserWithSameTag(const std::string& tag) {
+  auto result = rep_.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
+  return result.empty() ? std::nullopt : std::make_optional(result.front());
+}
+
+AuthManager::AuthManager(GenericRepository& repository) : rep_(repository) {}

@@ -29,15 +29,15 @@ find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(SQLite3 REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-add_executable(AuthService
-  ${AUTH_SERVICE_SRC_DIR}/main.cpp
+add_library(AuthServiceCore STATIC
   ${AUTH_SERVICE_SRC_DIR}/authcontroller.cpp
   ${AUTH_SERVICE_SRC_DIR}/authmanager.cpp
   ${AUTH_SERVICE_SRC_DIR}/JwtUtils.cpp
   ${AUTH_SERVICE_SRC_DIR}/server.cpp
+  ${AUTH_SERVICE_SRC_DIR}/authDataInputService.cpp
 )
 
-target_link_libraries(AuthService PRIVATE
+target_link_libraries(AuthServiceCore PUBLIC
   Qt${QT_VERSION_MAJOR}::Core
   Crow::Crow
   SQLite::SQLite3
@@ -45,13 +45,20 @@ target_link_libraries(AuthService PRIVATE
   sodium
   Entities
   Constants
+  NetworkManager
   nlohmann_json::nlohmann_json
 )
 
-target_include_directories(AuthService PRIVATE
+target_include_directories(AuthServiceCore PUBLIC
   ${AUTH_SERVICE_INCUDE_DIR}/
   ${libsodium_SOURCE_DIR}/src/libsodium/include
 )
+
+add_executable(AuthService
+  ${AUTH_SERVICE_SRC_DIR}/main.cpp
+)
+
+target_link_libraries(AuthService PRIVATE AuthServiceCore)
 
 include(GNUInstallDirs)
 install(TARGETS AuthService

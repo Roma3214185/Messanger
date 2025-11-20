@@ -21,7 +21,7 @@ std::string readFile(const std::string& path) {
 
 namespace JwtUtils {
 
-std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
+std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
     auto        decoded    = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
@@ -30,7 +30,7 @@ std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
                         .allow_algorithm(jwt::algorithm::rs256(public_key, "", "", ""))
                         .with_issuer(kIssuer);
     verifier.verify(decoded);
-    int user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
+    long long user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
     LOG_INFO("Token is verified, id is '{}'", user_id);
     return user_id;
   } catch (const std::exception& e) {

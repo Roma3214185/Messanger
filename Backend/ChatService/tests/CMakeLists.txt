@@ -16,6 +16,7 @@ add_executable(ChatServiceTests
     test_chatserver.cpp
     mocks/MockChatManager.h
     test_controller.cpp
+    test_chatmanager.cpp
 )
 
 set_target_properties(ChatServiceTests PROPERTIES

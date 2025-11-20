@@ -5,32 +5,12 @@
 #include <optional>
 
 #include "chatservice/TokenService.h"
-
-class IAutoritizer {
-  public:
-    virtual ~IAutoritizer() = default;
-    virtual std::optional<int> autoritize(const std::string& token) = 0;
-};
+#include "interfaces/IAutoritizer.h"
 
 class RealAutoritizer : public IAutoritizer {
   public:
-    std::optional<int> autoritize(const std::string& token) override {
+    std::optional<long long> autoritize(const std::string& token) override {
       return JwtUtils::verifyTokenAndGetUserId(token);
-    }
-};
-
-class MockAutoritizer : public IAutoritizer {
-  public:
-    std::optional<int> mock_user_id;
-    std::string last_token;
-    int call_autoritize = 0;
-    bool need_fail = false;
-
-    std::optional<int> autoritize(const std::string& token) override {
-      ++call_autoritize;
-      last_token = token;
-      if(need_fail) return std::nullopt;
-      return mock_user_id;
     }
 };
 

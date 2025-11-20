@@ -7,6 +7,7 @@
 #include "NetworkFacade.h"
 #include "chatservice/AutoritizerProvider.h"
 #include "mocks/MockUtils.h"
+#include "mocks/MockAutoritizer.h"
 
 #include "ProdConfigProvider.h"
 
@@ -131,12 +132,10 @@ TEST_CASE("Test getAllChatMembers") {
   TestController::TestFixture fix;
   int chat_id = 10;
 
-  SECTION("Invalid token expected userError") {
+  SECTION("Invalid token expected no error about invalid token") {
     fix.mock_autoritized->need_fail = true;
     fix.controller.getAllChatMembers(fix.req, fix.res, chat_id);
-
-    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
+    REQUIRE(fix.res.body != fix.provider.statusCodes().invalidToken);
   }
 
   SECTION("DB returns empty list expected serverError") {

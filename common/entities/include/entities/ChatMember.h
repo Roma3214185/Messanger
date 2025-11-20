@@ -17,11 +17,11 @@ struct ChatMember {
 template <>
 struct Reflection<ChatMember> {
   static Meta meta() {
-    return Meta{.table_name = ChatMembersTable::Table,
-                .fields     = {make_field<ChatMember, long long>(ChatMembersTable::ChatId, &ChatMember::chat_id),
-                               make_field<ChatMember, long long>(ChatMembersTable::UserId, &ChatMember::user_id),
-                               make_field<ChatMember, std::string>(ChatMembersTable::Status, &ChatMember::status),
-                               make_field<ChatMember, long long>(ChatMembersTable::AddedAt, &ChatMember::added_at)}};
+    return Meta{.table_name = ChatMemberTable::Table,
+                .fields     = {make_field<ChatMember, long long>(ChatMemberTable::ChatId, &ChatMember::chat_id),
+                               make_field<ChatMember, long long>(ChatMemberTable::UserId, &ChatMember::user_id),
+                               make_field<ChatMember, std::string>(ChatMemberTable::Status, &ChatMember::status),
+                               make_field<ChatMember, long long>(ChatMemberTable::AddedAt, &ChatMember::added_at)}};
   }
 };
 
@@ -76,17 +76,17 @@ namespace nlohmann {
 template <>
 struct adl_serializer<ChatMember> {
   static void to_json(nlohmann::json& json_chat_member, const ChatMember& chat_member) {
-    json_chat_member = nlohmann::json{{ChatMembersTable::ChatId, chat_member.chat_id},
-                                      {ChatMembersTable::UserId, chat_member.user_id},
-                                      {ChatMembersTable::Status, chat_member.status},
-                                      {ChatMembersTable::AddedAt, chat_member.added_at}};
+    json_chat_member = nlohmann::json{{ChatMemberTable::ChatId, chat_member.chat_id},
+                                      {ChatMemberTable::UserId, chat_member.user_id},
+                                      {ChatMemberTable::Status, chat_member.status},
+                                      {ChatMemberTable::AddedAt, chat_member.added_at}};
   }
 
   static void from_json(const nlohmann::json& json_chat_member, ChatMember& chat_member) {
-    json_chat_member.at(ChatMembersTable::ChatId).get_to(chat_member.chat_id);
-    json_chat_member.at(ChatMembersTable::UserId).get_to(chat_member.user_id);
-    json_chat_member.at(ChatMembersTable::Status).get_to(chat_member.status);
-    json_chat_member.at(ChatMembersTable::AddedAt).get_to(chat_member.added_at);
+    json_chat_member.at(ChatMemberTable::ChatId).get_to(chat_member.chat_id);
+    json_chat_member.at(ChatMemberTable::UserId).get_to(chat_member.user_id);
+    json_chat_member.at(ChatMemberTable::Status).get_to(chat_member.status);
+    json_chat_member.at(ChatMemberTable::AddedAt).get_to(chat_member.added_at);
   }
 };
 

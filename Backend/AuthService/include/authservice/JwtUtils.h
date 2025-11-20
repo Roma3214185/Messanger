@@ -9,13 +9,13 @@
 
 #include "Debug_profiling.h"
 
-using UserId         = int;
+using UserId         = long long;
 using OptionalUserId = std::optional<UserId>;
 
 namespace JwtUtils {
 
 std::pair<std::string, std::string> generate_rsa_keys(int bits = 2048);
-std::string                         generateToken(int user_id);
+std::string                         generateToken(UserId);
 OptionalUserId                      verifyTokenAndGetUserId(const std::string& token);
 
 }  // namespace JwtUtils

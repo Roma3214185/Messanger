@@ -9,17 +9,19 @@
 
 class FakeSqlExecutor : public ISqlExecutor {
  public:
-  QString         lastSql;
+  QString         lastSql = "";
   QList<QVariant> lastValues;
   bool            shouldFail                 = false;
   int             execute_calls              = 0;
   int             execute_returning_id_calls = 0;
-  int             mocked_id                  = 5;
+  int             mocked_id                  = 0;
+  std::vector<std::string> last_sqls;
 
   bool execute(const QString& sql, QSqlQuery& outQuery, const QList<QVariant>& values) override {
     ++execute_calls;
     lastSql    = sql;
     lastValues = values;
+    last_sqls.push_back(lastSql.toStdString());
     return !shouldFail;
   }
 

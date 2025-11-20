@@ -6,7 +6,7 @@
 
 namespace JwtUtils {
 
-std::optional<int> verifyTokenAndGetUserId(const std::string& token);
+std::optional<long long> verifyTokenAndGetUserId(const std::string& token);
 
 }  // namespace JwtUtils
 
