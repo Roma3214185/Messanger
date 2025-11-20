@@ -9,7 +9,7 @@
 
 class FakeSqlExecutor : public ISqlExecutor {
  public:
-  QString         lastSql;
+  QString         lastSql = "";
   QList<QVariant> lastValues;
   bool            shouldFail                 = false;
   int             execute_calls              = 0;

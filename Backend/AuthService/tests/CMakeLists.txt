@@ -27,10 +27,10 @@ FetchContent_MakeAvailable(libsodium)
 add_executable(AuthServiceTests
     main.cpp
     test_authserver.cpp
+    test_protected_authmanager.cpp
     mocks/MockAuthManager.h
     mocks/MockGenerator.h
     test_authmanager.cpp
-    test_protected_authmanager.cpp
 )
 
 set_target_properties(AuthServiceTests PROPERTIES

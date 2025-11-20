@@ -8,7 +8,7 @@
 #include "mocks/MockDatabase.h"
 #include "entities/UserCredentials.h"
 
-struct TestAuthManager : public AuthManager {
+struct TestProtectedAuthManager : public AuthManager {
     using AuthManager::AuthManager;
     using AuthManager::findUserByEmail;
     using AuthManager::findUserCredentials;
@@ -25,7 +25,7 @@ struct TestAuthManagerProtectedFixture {
     UserCredentials user_credentials;
 
     GenericRepository rep;
-    TestAuthManager manager;
+    TestProtectedAuthManager manager;
 
     std::string password = "test_password";
     std::string email = "test_email";
