@@ -86,17 +86,3 @@ TEST_CASE("FingUserByTag expected create valid sql") {
   REQUIRE(fix.executor.lastValues.size() == 1);
   REQUIRE(fix.executor.lastValues[0].toString().toStdString() == tag);
 }
-
-
-/*
-
-
-std::vector<User> AuthManager::findUserByTag(const string& tag) {
-  return rep.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
-}
-
-AuthManager::AuthManager(GenericRepository& repository) : rep(repository) {}
-
-*/
-
-

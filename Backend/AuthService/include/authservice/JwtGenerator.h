@@ -1,6 +1,8 @@
 #ifndef JWTGENERATOR_H
 #define JWTGENERATOR_H
 
+#include <fstream>
+
 #include "interfaces/IGenerator.h"
 #include "JwtUtils.h"
 
