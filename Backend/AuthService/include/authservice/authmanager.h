@@ -23,13 +23,14 @@ class AuthManager : public IAuthManager {
   OptionalUser  registerUser(const RegisterRequest& req) override;
   std::vector<User> findUsersByTag(const std::string& tag) override;
 
- private:
+ protected:
   virtual OptionalUser findUserByEmail(const std::string& email);
   virtual std::optional<UserCredentials> findUserCredentials(int user_id);
   virtual bool passwordIsValid(const std::string& password_to_check, const std::string& hash_password);
   virtual std::string getHashPassword(const std::string& raw_passport);
   virtual std::optional<User> findUserWithSameTag(const std::string& tag);
 
+ private:
   GenericRepository rep_;
 };
 

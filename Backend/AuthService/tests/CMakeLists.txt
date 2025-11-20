@@ -30,6 +30,7 @@ add_executable(AuthServiceTests
     mocks/MockAuthManager.h
     mocks/MockGenerator.h
     test_authmanager.cpp
+    test_protected_authmanager.cpp
 )
 
 set_target_properties(AuthServiceTests PROPERTIES
