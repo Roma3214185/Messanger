@@ -13,27 +13,11 @@ using std::nullopt;
 using std::string;
 
 OptionalUser AuthManager::getUser(int user_id) {
-  // PROFILE_SCOPE("[AuthManager::getUser");
-  // std::optional<int> user_id_ptr = JwtUtils::verifyTokenAndGetUserId(token);
-  // if (!user_id_ptr || *user_id_ptr == 0) {
-  //   LOG_ERROR("[getUser] Invalid or exprired token");
-  //   return nullopt;
-  // }
-  // int user_id = *user_id_ptr;
-  // LOG_INFO("[getUser] verified id = '{}'", user_id);
-
-  auto finded_user = rep.findOne<User>(user_id);
-  if (!finded_user) {
-    LOG_ERROR("User with id not founded; id = '{}'", user_id);
-    return std::nullopt;
-  }
-
-  LOG_INFO("User was founded; name = '{}' and id {}", finded_user->username, finded_user->id);
-  return finded_user;
+  return rep.findOne<User>(user_id);
 }
 
 OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
-  auto finded_users = rep.findByField<User>("email", QString::fromStdString(login_request.email));
+  auto finded_users = rep.findByField<User>(UserTable::Email, login_request.email);
 
   if (finded_users.empty()) {
     LOG_ERROR("User not found with email '{}'", login_request.email);
@@ -51,11 +35,16 @@ OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
     return std::nullopt;
   }
 
-
   return findedUser;
 }
 
 OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
+  auto users_with_same_email = rep.findByField<User>(UserTable::Email, req.email);
+  if(!users_with_same_email.empty()) return std::nullopt;
+
+  auto users_with_same_tag = rep.findByField<User>(UserTable::Tag, req.tag);
+  if(!users_with_same_tag.empty()) return std::nullopt;
+
   User user_to_save{.username = req.name, .tag = req.tag, .email = req.email};
 
   bool saved = rep.save(user_to_save);
@@ -76,9 +65,7 @@ OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
 }
 
 std::vector<User> AuthManager::findUserByTag(const string& tag) {
-  auto findedUsers = rep.findByField<User>("tag", QString::fromStdString(tag));
-  // TODO(roma): make "tag" -> User::UserTag |
-  return findedUsers;
+  return rep.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
 }
 
 AuthManager::AuthManager(GenericRepository& repository) : rep(repository) {}

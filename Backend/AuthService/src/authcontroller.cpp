@@ -46,7 +46,6 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
 std::string fetchTag(const crow::request& req) {
   const char* t = req.url_params.get("tag");
   if (!t) {
-    // tag does not exist
     return "";
   }
   return std::string(t);
@@ -60,6 +59,7 @@ AuthController::AuthController(IAuthManager* manager, IAutoritizer* authoritizer
 void AuthController::loginUser(const crow::request& req, crow::response& responce) {
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password")) {
+    LOG_ERROR("Invalid json");
     return sendResponse(responce, provider_->statusCodes().badRequest, "Invalid Json");
   }
   LoginRequest login_request{
@@ -74,6 +74,7 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
   std::optional<User> logged_user = manager_->loginUser(login_request);
 
   if (!logged_user) {
+    LOG_ERROR("Invalid credentials");
     return sendResponse(responce, provider_->statusCodes().unauthorized, "Invalid credentials");
   }
 
@@ -84,11 +85,13 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
 void AuthController::handleMe(const crow::request& req, crow::response& responce) {
   auto [user_id, token] = verifyToken(req);
   if (!user_id) {
+    LOG_ERROR("Invalid token");
     return sendResponse(responce, provider_->statusCodes().unauthorized, provider_->statusCodes().invalidToken);
   }
 
   std::optional<User> user = manager_->getUser(*user_id);
   if(!user) {
+    LOG_ERROR("User with id {} not found", *user_id);
     return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
   }
 
@@ -99,6 +102,7 @@ void AuthController::findByTag(const crow::request& req,
                                crow::response&      responce) {
   std::string tag = fetchTag(req);
   if (tag.empty()) {
+    LOG_ERROR("Missing tag parametr");
     return sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr");
   }
 
@@ -120,6 +124,7 @@ void AuthController::findByTag(const crow::request& req,
 void AuthController::findById(const crow::request& req, int user_id, crow::response& responce) {
   auto found_user = manager_->getUser(user_id);
   if (!found_user) {
+    LOG_ERROR("User with id {} not found", user_id);
     return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
   }
 
@@ -139,6 +144,7 @@ bool AuthController::generateKeys() {
 void AuthController::registerUser(const crow::request& req, crow::response& responce) {
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password") || !body.count("name") || !body.count("tag")) {
+    LOG_ERROR("Invalid json");
     return sendResponse(responce, provider_->statusCodes().badRequest, "Invalid json");
   }
 
@@ -156,6 +162,7 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
 
   std::optional<User> register_user = manager_->registerUser(register_request);
   if (!register_user) {
+    LOG_ERROR("User not registered");
     return sendResponse(responce, provider_->statusCodes().userError, "User already exist");
   }
 
