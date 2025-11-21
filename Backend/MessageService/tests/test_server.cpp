@@ -17,7 +17,9 @@ struct TestFixture{
     mock_codes.serverError = 1;
     mock_codes.success = 2;
     mock_codes.userError = 3;
-    mock_codes.invalidToken = "token is invalid";
+    provider.mock_codes = mock_codes;
+
+    provider.mock_issue_message.invalidToken = "test_token is invalid";
   }
 };
 
@@ -92,8 +94,8 @@ TEST_CASE("Test OngetMessagesFromChatCallRight Fucntion") {
     server.mock_user_id_ans = std::nullopt;
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.mock_codes.userError);
-    REQUIRE(fix.res.body == fix.provider.mock_codes.invalidToken);
+    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.body == fix.provider.issueMessages().invalidToken);
   }
 
   int user_id = 12;

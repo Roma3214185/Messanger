@@ -7,22 +7,11 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
-struct ProxyClient {
-  int                     port_;
-  std::unique_ptr<httplib::Client> client_;
+#include "interfaces/IProxyClient.h"
+#include "RequestDTO.h"
 
-  ProxyClient(int port);
-
-  std::pair<int, std::string> forward(
-      const crow::request&                                    req,
-      const std::string&                                      path,
-      const std::string&                                      method,
-      const std::vector<std::pair<std::string, std::string>>& extra_headers = {});
-
-  std::pair<int, std::string> post_json(
-      const std::string&                                      path,
-      const nlohmann::json&                                   body,
-      const std::vector<std::pair<std::string, std::string>>& headers = {});
+struct ProxyClient : public IProxyClient {
+  NetworkResponse forward(const crow::request&, const RequestDTO&, int port) override;
 };
 
 #endif  // BACKEND_APIGATEWAY_SRC_PROXYCLIENT_PROXYCLIENT_H_

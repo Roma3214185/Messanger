@@ -15,12 +15,13 @@
 #include "ProxyRepository.h"
 #include "GatewayMetrics.h"
 #include "ratelimiter.h"
+#include "proxyclient.h"
 
 class ICacheService;
 
 class GatewayServer {
  public:
-  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IConfigProvider* = &ProdConfigProvider::instance());
+  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IProxyClient* proxy, IConfigProvider* = &ProdConfigProvider::instance());
   void run();
 
  private:
@@ -28,18 +29,13 @@ class GatewayServer {
   IConfigProvider* provider_;
   ICacheService* cache_;
   Logger logger_;
-  ProxyRepository proxy_repository_;
+  IProxyClient* proxy_;
   GatewayMetrics metrics_;
   RateLimiter rate_limiter_;
 
 
-  void handleProxyRequest(const crow::request& req,
-                          crow::response&      res,
-                          ProxyClient&         proxy,
-                          const std::string&   path,
-                          bool                 requireAuth);
-
-  void registerRoute(const std::string& basePath, ProxyClient& proxy, bool requireAuth = true);
+  void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path, bool requireAuth);
+  void registerRoute(const std::string& basePath, int proxy, bool requireAuth = true);
   bool checkAuth(const crow::request& req, bool requireAuth);
   std::string extractIP(const crow::request& req);  //TODO: remove from here
   void sendResponde(crow::response& res, const RequestDTO&, int res_code, const std::string& message, bool hitKey = false);

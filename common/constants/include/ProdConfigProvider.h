@@ -22,10 +22,15 @@ class ProdConfigProvider : public IConfigProvider {
       return codes_;
     }
 
+    const IssueMessages& issueMessages() const override {
+      return messages_;
+    }
+
   private:
     Ports ports_;
     Routes routes_;
     StatusCodes codes_;
+    IssueMessages messages_;
 };
 
 #endif // PRODCONFIGPROVIDER_H

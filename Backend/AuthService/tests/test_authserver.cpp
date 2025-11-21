@@ -37,6 +37,8 @@ struct TestFixture {
       user.email = "test_email";
       user.avatar = "test/avatar/path";
       generator.mock_token = token;
+
+      provider.mock_issue_message.invalidToken = "test_invalid_token2";
     }
 };
 
@@ -57,7 +59,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.call_autoritize == before_auth_call + 1);
     REQUIRE(fix.manager.call_getUser == before_call_manager);
     REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
-    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
+    REQUIRE(fix.res.body == fix.provider.issueMessages().invalidToken);
   }
   fix.req.add_header("Authorization", fix.token);
 

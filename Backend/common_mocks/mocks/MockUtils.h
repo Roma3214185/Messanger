@@ -23,12 +23,9 @@ inline Routes getMockRoutes() {
 
 inline StatusCodes getMockCodes() {
   StatusCodes status_codes;
-  status_codes.success = 1200;
-  status_codes.serverError = 2500;
-  status_codes.userError = 1400;
-
-  status_codes.invalidToken = "test_Invalid or expired token";
-
+  status_codes.success = 20001;
+  status_codes.serverError = 50001;
+  status_codes.userError = 40001;
   return status_codes;
 }
 

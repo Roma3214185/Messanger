@@ -12,6 +12,7 @@ class IConfigProvider {
     virtual const Ports& ports() const = 0;
     virtual const Routes& routes() const = 0;
     virtual const StatusCodes& statusCodes() const = 0;
+    virtual const IssueMessages& issueMessages() const = 0;
 };
 
 #endif // ICONFIGPROVIDER_H

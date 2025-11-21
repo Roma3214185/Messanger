@@ -10,8 +10,13 @@ struct StatusCodes {
   int badRequest = 400;
   int unauthorized = 401;
   int notFound = 404;
+  int rateLimit = 429;
+};
+
+struct IssueMessages {
   std::string userNotFound = "User not founded";
   std::string invalidToken = "Invalid or expired token";
+  std::string rateLimitExceed = "Rate limit exceeded";
 };
 
 #endif // CODES_H

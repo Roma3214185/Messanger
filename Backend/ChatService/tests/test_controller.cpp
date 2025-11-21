@@ -40,6 +40,9 @@ struct TestFixture {
       mock_autoritized->mock_user_id = user_id;
       provider.mock_codes =  MockUtils::getMockCodes();
       req.add_header("Authorization", secret_token);
+
+      provider.mock_issue_message.invalidToken = "test_invalid_messages";
+      provider.mock_issue_message.userNotFound = "test_user_not_found";
     }
 };
 
@@ -72,13 +75,13 @@ TEST_CASE("Test createPrivateChat") {
   SECTION("Network_manager not found user expected userError and output issue") {
     fix.controller.createPrivateChat(fix.req, fix.res);
     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.provider.statusCodes().userNotFound);
+    REQUIRE(fix.res.body == fix.provider.issueMessages().userNotFound);
   }
 
   SECTION("Network_manager not found user expected userError and output issue") {
     fix.controller.createPrivateChat(fix.req, fix.res);
     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.provider.statusCodes().userNotFound);
+    REQUIRE(fix.res.body == fix.provider.issueMessages().userNotFound);
   }
 
   User user;
@@ -135,7 +138,7 @@ TEST_CASE("Test getAllChatMembers") {
   SECTION("Invalid token expected no error about invalid token") {
     fix.mock_autoritized->need_fail = true;
     fix.controller.getAllChatMembers(fix.req, fix.res, chat_id);
-    REQUIRE(fix.res.body != fix.provider.statusCodes().invalidToken);
+    REQUIRE(fix.res.body != fix.provider.issueMessages().invalidToken);
   }
 
   SECTION("DB returns empty list expected serverError") {
@@ -188,7 +191,7 @@ TEST_CASE("Test ChatController::GetChat") {
     fix.mock_autoritized->need_fail = true;
     fix.controller.getChat(fix.req, fix.res, chat_id);
     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
+    REQUIRE(fix.res.body == fix.provider.issueMessages().invalidToken);
   }
 
   SECTION("Chat not found expected statusCode userError and info about issue") {
@@ -252,7 +255,7 @@ TEST_CASE("Test ChatController::GetAllChats") {
     fix.controller.getAllChats(fix.req, fix.res);
 
     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.provider.statusCodes().invalidToken);
+    REQUIRE(fix.res.body == fix.provider.issueMessages().invalidToken);
   }
 
   fix.manager.mock_chat_ids = {1, 2};
@@ -345,7 +348,6 @@ TEST_CASE("Test ChatController::GetAllChats") {
     CHECK(c0["user"]["name"].s() == other_user.username);
     CHECK(c0["user"]["avatar"].s() == other_user.avatar);
 
-    // --- Group Chat ---
     auto c1 = r["chats"][1];
     CHECK(c1["id"].i() == group_chat.id);
     CHECK(c1["type"].s() == "group");
