@@ -43,6 +43,7 @@ target_link_libraries(ApiGateWayCore PUBLIC
     ixwebsocket
     jwt-cpp
     Metrics
+    RedisCache
     nlohmann_json::nlohmann_json
     Constants
 )

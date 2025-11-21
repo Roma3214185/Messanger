@@ -7,6 +7,7 @@
 #include "Debug_profiling.h"
 #include "ScopedRequestsTimer.h"
 #include "websocketbridge.h"
+#include "interfaces/ICacheService.h"
 
 using json = nlohmann::json;
 using namespace std::chrono_literals;
@@ -32,31 +33,36 @@ std::string getMethod(const crow::HTTPMethod& method) {
 constexpr int kInvalidTokenCode    = 401;
 constexpr int kRateLimitExceedCode = 429;
 
-constexpr int fisrt = 300;
-constexpr int second = 900;
+constexpr int kMaxRequests = 300;
+constexpr int kWindowSec = 900;
 
-GatewayServer::GatewayServer(crow::SimpleApp& app, IConfigProvider* provider)
+GatewayServer::GatewayServer(crow::SimpleApp& app, ICacheService* cache, IConfigProvider* provider)
     : app_(app)
     , provider_(provider)
-    , rateLimiter_(fisrt, std::chrono::seconds(second))
-    , authProxy_(provider->ports().authService)
-    , chatProxy_(provider->ports().chatService)
-    , messageProxy_(provider->ports().messageService)
-    , notificationProxy_(provider->ports().notificationService)
-    , exposer_(std::make_unique<prometheus::Exposer>("0.0.0.0:8089"))
-    , registry_(std::make_shared<prometheus::Registry>())
-    , request_counter_family_(prometheus::BuildCounter()
-                                  .Name("api_gateway_requests_total")
-                                  .Help("Total number of requests")
-                                  .Register(*registry_))
-    , request_latency_(prometheus::BuildHistogram()
-                           .Name("api_gateway_request_duration_seconds")
-                           .Help("Request duration in seconds")
-                           .Register(*registry_)
-                           .Add({},
-                                prometheus::Histogram::BucketBoundaries{
-                                    0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10})) {
-  exposer_->RegisterCollectable(registry_);
+    , cache_(cache)
+    //, rate_limiter_(kMaxRequests, std::chrono::seconds(kWindowSec))
+    //, proxy_repository_(proxy_repository)
+    , metrics_(provider->ports().metrics)
+    // , authProxy_(provider->ports().authService)
+    // , chatProxy_(provider->ports().chatService)
+    // , messageProxy_(provider->ports().messageService)
+    // , notificationProxy_(provider->ports().notificationService)
+    // , metrics_(metrics) {
+  //   , exposer_(std::make_unique<prometheus::Exposer>("0.0.0.0:8089"))
+  //   , registry_(std::make_shared<prometheus::Registry>())
+  //   , request_counter_family_(prometheus::BuildCounter()
+  //                                 .Name("api_gateway_requests_total")
+  //                                 .Help("Total number of requests")
+  //                                 .Register(*registry_))
+  //   , request_latency_(prometheus::BuildHistogram()
+  //                          .Name("api_gateway_request_duration_seconds")
+  //                          .Help("Request duration in seconds")
+  //                          .Register(*registry_)
+  //                          .Add({},
+  //                               prometheus::Histogram::BucketBoundaries{
+  //                                   0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10})) {
+  // exposer_->RegisterCollectable(registry_);
+{
   registerRoutes();
 }
 
@@ -71,23 +77,27 @@ string GatewayServer::extractToken(const crow::request& req) const {
   return (authHeader.rfind("Bearer ", 0) == 0) ? authHeader.substr(7) : authHeader;
 }
 
-bool GatewayServer::checkRateLimit(const crow::request& req, crow::response& res) {
-  string ip = req.remote_ip_address;
-  if (!rateLimiter_.allow(ip)) {
-    res.code = kRateLimitExceedCode;
-    res.write("Rate limit exceeded");
-    res.end();
-    return false;
-  }
-  return true;
+bool GatewayServer::checkRateLimit(const crow::request& req) {
+  string ip = extractIP(req);
+  return rate_limiter_.allow(ip);
+}
+
+void GatewayServer::sendResponde(crow::response& res, const RequestDTO& request_info, int res_code, const std::string& message, bool hitKey) {
+  logger_.logResponse(res_code, message, request_info, hitKey);
+
+  res.code = res_code;
+  res.write(message);
+  res.end();
+
+  metrics_.requestEnded(request_info.path, res_code, hitKey);
 }
 
 void GatewayServer::registerRoutes() {
-  registerRoute("/auth", authProxy_, false);
-  registerRoute("/users", authProxy_, false);
-  registerRoute("/chats", chatProxy_, false);
-  registerRoute("/messages", messageProxy_, false);
-  registerRoute("/notification", notificationProxy_, false);
+  registerRoute("/auth", proxy_repository_.auth(), false);
+  registerRoute("/users", proxy_repository_.auth(), false);
+  registerRoute("/chats", proxy_repository_.chat(), false);
+  registerRoute("/messages", proxy_repository_.message(), false);
+  registerRoute("/notification", proxy_repository_.notification(), false);
   registerHealthCheck();
   registerWebSocketRoutes();
 }
@@ -112,46 +122,80 @@ void GatewayServer::registerRoute(const std::string& basePath,
       });
 }
 
+std::string GatewayServer::extractIP(const crow::request& req) {
+  auto ip = req.get_header_value("X-Forwarded-For");
+  if (ip.empty()) {
+    ip = req.remote_ip_address;
+  }
+  return ip;
+}
+
+bool GatewayServer::checkAuth(const crow::request& req, bool requireAuth) {
+  if(!requireAuth) return true;
+  std::string token     = extractToken(req);
+  auto        userIdPtr = JwtUtils::verifyTokenAndGetUserId(token);
+  if (!userIdPtr) return false;
+  return true;
+}
+
+std::string makeCacheKey(const crow::request& req) {
+  return "cache:" + getMethod(req.method) + ":" + req.url;
+}
+
+std::optional<nlohmann::json> GatewayServer::checkCache(std::string key) {
+  return cache_->get(key);
+}
+
+void GatewayServer::saveInCache(const crow::request& req, std::string key, std::string value, std::chrono::milliseconds ttl) {
+  if(req.method != crow::HTTPMethod::Get) return;
+  cache_->set(key, value, ttl);
+}
+
 void GatewayServer::handleProxyRequest(const crow::request& req,
                                        crow::response&      res,
                                        ProxyClient&         proxy,
                                        const std::string&   path,
                                        bool                 requireAuth) {
-  std::string          method = getMethod(req.method);
-  ScopedRequestMetrics metrics(request_counter_family_, request_latency_, path, method);
+  auto tracker = metrics_.getTracker(path);
   PROFILE_SCOPE(path.c_str());
 
-  if (requireAuth) {
-    std::string token     = extractToken(req);
-    auto        userIdPtr = JwtUtils::verifyTokenAndGetUserId(token);
-    if (!userIdPtr) {
-      LOG_ERROR("Invalid token for path {}", path);
-      res.code = kInvalidTokenCode;
-      res.write("Invalid token");
-      res.end();
-      return;
-    }
+  RequestDTO request_info;
+  request_info.method = getMethod(req.method);
+  request_info.path = path;
+  logger_.logRequest(req, request_info);
+
+  if(!checkRateLimit(req)) return sendResponde(res, request_info, kRateLimitExceedCode, "Rate limit exceeded");
+  if(!checkAuth(req, requireAuth)) return sendResponde(res, request_info, kInvalidTokenCode, "Invalid token");
+
+  auto key = makeCacheKey(req);
+  if(auto cached = checkCache(key)) { // TODO: ttl good way to  check if data still valid??
+    return sendResponde(res, request_info, provider_->statusCodes().success, cached.value(), true);
   }
 
-  auto result = proxy.forward(req, path, method);
-  metrics.setStatus(result.first);
-  res.code = result.first;
-  res.write(result.second);
-  res.end();
+  auto result = proxy.forward(req, path, request_info.method);
+
+  saveInCache(req, key, result.second, std::chrono::milliseconds(60));
+  sendResponde(res, request_info, result.first, result.second); // <- logs metrics about leave
 }
 
 void GatewayServer::registerWebSocketRoutes() {
   auto wsBridge = std::make_shared<WebSocketBridge>("ws://127.0.0.1:8086/ws");
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
-      .onopen(
-          [wsBridge](crow::websocket::connection& client) { wsBridge->onClientConnect(client); })
-      .onmessage([wsBridge](crow::websocket::connection& client, const std::string& data, bool) {
-        wsBridge->onClientMessage(client, data);
+      .onopen([wsBridge, this](crow::websocket::connection& client) {
+        wsBridge->onClientConnect(client);
+        metrics_.userConnected();
       })
-      .onclose([wsBridge](crow::websocket::connection& client,
+      .onmessage([wsBridge, this](crow::websocket::connection& client, const std::string& data, bool) {
+        wsBridge->onClientMessage(client, data);
+        metrics_.newMessage(client.get_remote_ip());
+      })
+      .onclose([wsBridge, this](crow::websocket::connection& client,
                           const std::string&           reason,
-                          uint16_t code) { wsBridge->onClientClose(client, reason, code); });
+                          uint16_t code) {
+        wsBridge->onClientClose(client, reason, code);
+        metrics_.userDisconnected();
+      });
 }
 
 void GatewayServer::registerHealthCheck() {

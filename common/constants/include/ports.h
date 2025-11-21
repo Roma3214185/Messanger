@@ -9,6 +9,7 @@ struct Ports {
   int apigateService      = 8084;
   int messageService      = 8082;
   int rabitMQ             = 5672;
+  int metrics             = 8089;
 };
 
 #endif // PORTS_H
