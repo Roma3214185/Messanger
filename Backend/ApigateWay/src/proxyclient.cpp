@@ -2,27 +2,21 @@
 
 using namespace std;
 
-ProxyClient::ProxyClient(const string& url) : baseUrl(url) {
-  string host = url;
-  if (host.rfind("http://", 0) == 0)
-    host = host.substr(7);
-  else if (host.rfind("https://", 0) == 0)
-    host = host.substr(8);
-
-  hostWithPort = host;
-  cli          = make_unique<httplib::Client>(host.c_str());
-  cli->set_read_timeout(5, 0);
-  cli->set_connection_timeout(5, 0);
+ProxyClient::ProxyClient(int port) : port_(port) {
+  string host_with_port = "localhost:" + to_string(port);
+  client_          = make_unique<httplib::Client>(host_with_port.c_str());
+  client_->set_read_timeout(5, 0);
+  client_->set_connection_timeout(5, 0);
 }
 
 pair<int, string> ProxyClient::post_json(const string&                       path,
-                                         const json&                         body,
+                                         const nlohmann::json&                         body,
                                          const vector<pair<string, string>>& headers) {
   auto             s = body.dump();
   httplib::Headers h;
   h.emplace("Content-Type", "application/json");
   for (auto& p : headers) h.emplace(p.first, p.second);
-  auto res = cli->Post(path.c_str(), h, s, "application/json");
+  auto res = client_->Post(path.c_str(), h, s, "application/json");
   if (!res) return {502, "Bad Gateway"};
   return {(int)res->status, res->body};
 }
@@ -33,12 +27,10 @@ pair<int, string> ProxyClient::forward(const crow::request&                req,
                                        const vector<pair<string, string>>& extra_headers) {
   httplib::Headers headers;
 
-  // Передаємо всі заголовки від клієнта
   for (auto& h : req.headers) {
     headers.emplace(h.first, h.second);
   }
 
-  // Додаємо додаткові заголовки
   for (auto& h : extra_headers) {
     headers.emplace(h.first, h.second);
   }
@@ -64,14 +56,15 @@ pair<int, string> ProxyClient::forward(const crow::request&                req,
   if (content_type.empty()) content_type = "application/json";  // або default
 
   httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
-  if (method == "GET")
-    res = cli->Get(full_path.c_str(), headers);
-  else if (method == "DELETE")
-    res = cli->Delete(full_path.c_str(), headers);
-  else if (method == "PUT")
-    res = cli->Put(full_path.c_str(), headers, req.body, content_type.c_str());
-  else  // POST
-    res = cli->Post(full_path.c_str(), headers, req.body, content_type.c_str());
+  if (method == "GET") {
+    res = client_->Get(full_path.c_str(), headers);
+  } else if (method == "DELETE") {
+    res = client_->Delete(full_path.c_str(), headers);
+  } else if (method == "PUT") {
+    res = client_->Put(full_path.c_str(), headers, req.body, content_type.c_str());
+  } else {
+    res = client_->Post(full_path.c_str(), headers, req.body, content_type.c_str());
+  }
 
   if (!res) {
     return {502, "Bad Gateway: downstream no response"};

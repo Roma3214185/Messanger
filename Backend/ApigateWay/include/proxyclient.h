@@ -7,14 +7,11 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
-
 struct ProxyClient {
-  std::string                      baseUrl;
-  std::unique_ptr<httplib::Client> cli;
-  std::string                      hostWithPort;
+  int                     port_;
+  std::unique_ptr<httplib::Client> client_;
 
-  ProxyClient(const std::string& url);
+  ProxyClient(int port);
 
   std::pair<int, std::string> forward(
       const crow::request&                                    req,
@@ -24,7 +21,7 @@ struct ProxyClient {
 
   std::pair<int, std::string> post_json(
       const std::string&                                      path,
-      const json&                                             body,
+      const nlohmann::json&                                   body,
       const std::vector<std::pair<std::string, std::string>>& headers = {});
 };
 
