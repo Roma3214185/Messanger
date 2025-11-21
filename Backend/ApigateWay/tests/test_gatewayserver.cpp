@@ -52,7 +52,6 @@ struct TestGatewayServerFixrute {
 
     TestGatewayServerFixrute()
         : server(app, &cache, &proxy, &provider) {
-      provider.mock_ports = MockUtils::getMockPorts();
       provider.mock_codes.rateLimit = 4290;
       provider.mock_codes.unauthorized = 4010;
       provider.mock_issue_message.rateLimitExceed = "test_rate_limit";
