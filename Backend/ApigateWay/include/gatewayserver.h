@@ -21,8 +21,11 @@ class ICacheService;
 
 class GatewayServer {
  public:
-  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IProxyClient* proxy, IConfigProvider* = &ProdConfigProvider::instance());
+  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IProxyClient* proxy, IConfigProvider* provider); /*= &ProdConfigProvider::instance());*/
   void run();
+
+ protected:
+  virtual void sendResponse(crow::response& res, const RequestDTO&, int res_code, const std::string& message, bool hitKey = false);
 
  private:
   crow::SimpleApp& app_;
@@ -36,9 +39,7 @@ class GatewayServer {
 
   void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path, bool requireAuth);
   void registerRoute(const std::string& basePath, int proxy, bool requireAuth = true);
-  bool checkAuth(const crow::request& req, bool requireAuth);
   std::string extractIP(const crow::request& req);  //TODO: remove from here
-  void sendResponde(crow::response& res, const RequestDTO&, int res_code, const std::string& message, bool hitKey = false);
 
   void registerRoutes();
   void registerHealthCheck();
@@ -47,8 +48,9 @@ class GatewayServer {
   std::optional<nlohmann::json> checkCache(std::string key);
   void saveInCache(const crow::request& req, std::string key, std::string value, std::chrono::milliseconds ttl = std::chrono::milliseconds(60));
 
-  bool        checkRateLimit(const crow::request& req);
-  std::string extractToken(const crow::request& req) const;
+  virtual bool checkRateLimit(const crow::request&);
+  virtual bool checkAuth(const crow::request& req, bool requireAuth);
+  std::string extractToken(const crow::request&) const;
 };
 
 #endif  // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_

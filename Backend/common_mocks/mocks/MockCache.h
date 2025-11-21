@@ -38,7 +38,6 @@ class MockCache : public ICacheService {
   int set_pipeline_calls = 0;
 
   std::optional<nlohmann::json> get(const std::string& key) override {
-    LOG_INFO("MOCK GET");
     auto it = cache.find(key);
     if (it == cache.end()) return std::nullopt;
     return it->second;
@@ -47,7 +46,6 @@ class MockCache : public ICacheService {
   void set(const std::string&        key,
            const nlohmann::json&     value,
            std::chrono::milliseconds ttl = std::chrono::hours(24)) override {
-    LOG_INFO("Key to set: {}", key);
     ++set_calls;
     cache[key] = value;
     mp[key]++;

@@ -79,7 +79,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.last_token == fix.token);
     REQUIRE(fix.manager.last_user_id == fix.user_id);
     REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
-    REQUIRE(fix.res.body == "User not found");
+    REQUIRE(fix.res.body == fix.provider.issueMessages().userNotFound);
   }
 
   SECTION("Expected return valid status code and form json") {

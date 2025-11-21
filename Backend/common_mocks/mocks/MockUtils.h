@@ -3,6 +3,7 @@
 
 #include "Routes.h"
 #include "codes.h"
+#include "ports.h"
 
 namespace MockUtils {
 
@@ -27,6 +28,18 @@ inline StatusCodes getMockCodes() {
   status_codes.serverError = 50001;
   status_codes.userError = 40001;
   return status_codes;
+}
+
+inline Ports getMockPorts() {
+  Ports ports;
+  ports.authService         = 80830;
+  ports.userService         = 80830;
+  ports.chatService         = 80810;
+  ports.notificationService = 80860;
+  ports.apigateService      = 80840;
+  ports.messageService      = 80820;
+  ports.rabitMQ             = 56720;
+  ports.metrics             = 80890;
 }
 
 
