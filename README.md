@@ -144,15 +144,12 @@ ctest --test-dir build --output-on-failure
 ```bash
 Directory structure:
 └── roma3214185-messanger/
-    ├── CMakeLists.txt
     ├── README.md
-    ├── fix-submodules.sh
-    ├── main.cpp
-    ├── media.qrc
+    ├── CMakeLists.txt
+    ├── coverage.info
     ├── run-clang.sh
-    ├── .clang-format
-    ├── .clang-tidy
     ├── .clang-tidy.save
+    ├── .lcovrc
     ├── Backend/
     │   ├── ApigateWay/
     │   │   ├── CMakeLists.txt
@@ -171,87 +168,156 @@ Directory structure:
     │   ├── AuthService/
     │   │   ├── CMakeLists.txt
     │   │   ├── include/
-    │   │   │   ├── authcontroller.h
-    │   │   │   ├── authmanager.h
-    │   │   │   ├── JwtUtils.h
-    │   │   │   ├── PasswordService.h
-    │   │   │   ├── server.h
+    │   │   │   ├── authservice/
+    │   │   │   │   ├── authcontroller.h
+    │   │   │   │   ├── authDataInputService.h
+    │   │   │   │   ├── authmanager.h
+    │   │   │   │   ├── JwtGenerator.h
+    │   │   │   │   ├── JwtUtils.h
+    │   │   │   │   ├── PasswordService.h
+    │   │   │   │   ├── RealAuthoritizer.h
+    │   │   │   │   ├── server.h
+    │   │   │   │   └── interfaces/
+    │   │   │   │       ├── IAuthManager.h
+    │   │   │   │       └── IGenerator.h
     │   │   │   └── entities/
     │   │   │       ├── AuthResponce.h
     │   │   │       └── RegisterRequest.h
-    │   │   └── src/
-    │   │       ├── authcontroller.cpp
-    │   │       ├── authmanager.cpp
-    │   │       ├── JwtUtils.cpp
+    │   │   ├── src/
+    │   │   │   ├── authcontroller.cpp
+    │   │   │   ├── authDataInputService.cpp
+    │   │   │   ├── authmanager.cpp
+    │   │   │   ├── JwtUtils.cpp
+    │   │   │   ├── main.cpp
+    │   │   │   └── server.cpp
+    │   │   └── tests/
+    │   │       ├── CMakeLists.txt
     │   │       ├── main.cpp
-    │   │       └── server.cpp
+    │   │       ├── test_authmanager.cpp
+    │   │       ├── test_authserver.cpp
+    │   │       ├── test_protected_authmanager.cpp
+    │   │       └── mocks/
+    │   │           ├── MockAuthManager.h
+    │   │           └── MockGenerator.h
     │   ├── ChatService/
     │   │   ├── CMakeLists.txt
     │   │   ├── include/
-    │   │   │   ├── chatmanager.h
-    │   │   │   ├── controller.h
-    │   │   │   ├── database.h
-    │   │   │   ├── NetworkManager.h
-    │   │   │   ├── server.h
-    │   │   │   └── TokenService.h
-    │   │   └── src/
-    │   │       ├── chatmanager.cpp
-    │   │       ├── controller.cpp
-    │   │       ├── database.cpp
+    │   │   │   └── chatservice/
+    │   │   │       ├── AutoritizerProvider.h
+    │   │   │       ├── chatcontroller.h
+    │   │   │       ├── chatmanager.h
+    │   │   │       ├── chatserver.h
+    │   │   │       ├── TokenService.h
+    │   │   │       └── interfaces/
+    │   │   │           └── IChatManager.h
+    │   │   ├── src/
+    │   │   │   ├── chatcontroller.cpp
+    │   │   │   ├── chatmanager.cpp
+    │   │   │   ├── chatserver.cpp
+    │   │   │   ├── main.cpp
+    │   │   │   └── TokenService.cpp
+    │   │   └── tests/
+    │   │       ├── CMakeLists.txt
     │   │       ├── main.cpp
-    │   │       ├── NetworkManager.cpp
-    │   │       └── server.cpp
+    │   │       ├── test_chatmanager.cpp
+    │   │       ├── test_chatserver.cpp
+    │   │       ├── test_controller.cpp
+    │   │       └── mocks/
+    │   │           └── MockChatManager.h
+    │   ├── common_mocks/
+    │   │   ├── CMakeLists.txt
+    │   │   └── mocks/
+    │   │       ├── FakeSqlExecutor.h
+    │   │       ├── MockAppWrapper.h
+    │   │       ├── MockAutoritizer.h
+    │   │       ├── MockCache.h
+    │   │       ├── MockConfigProvider.h
+    │   │       ├── MockDatabase.h
+    │   │       ├── MockNetworkManager.h
+    │   │       ├── MockQuery.h
+    │   │       ├── MockRabitMQClient.h
+    │   │       ├── MockTheadPool.h
+    │   │       └── MockUtils.h
     │   ├── MessageService/
     │   │   ├── CMakeLists.txt
     │   │   ├── include/
-    │   │   │   ├── controller.h
-    │   │   │   ├── messageworker.h
-    │   │   │   ├── server.h
+    │   │   │   └── messageservice/
+    │   │   │       ├── controller.h
+    │   │   │       ├── server.h
+    │   │   │       ├── dto/
+    │   │   │       │   └── GetMessagePack.h
+    │   │   │       ├── interfaces/
+    │   │   │       │   └── IController.h
+    │   │   │       └── managers/
+    │   │   │           ├── JwtUtils.h
+    │   │   │           └── MessageManager.h
+    │   │   ├── src/
+    │   │   │   ├── controller.cpp
+    │   │   │   ├── JwtUtils.cpp
+    │   │   │   ├── main.cpp
+    │   │   │   ├── server.cpp
     │   │   │   └── managers/
-    │   │   │       ├── JwtUtils.h
-    │   │   │       ├── MessageManager.h
-    │   │   │       ├── NetworkManager.h
-    │   │   │       └── notificationmanager.h
-    │   │   └── src/
-    │   │       ├── controller.cpp
-    │   │       ├── JwtUtils.cpp
+    │   │   │       └── MessageManager.cpp
+    │   │   └── tests/
+    │   │       ├── CMakeLists.txt
     │   │       ├── main.cpp
-    │   │       ├── messageworker.cpp
-    │   │       ├── server.cpp
-    │   │       └── managers/
-    │   │           ├── MessageManager.cpp
-    │   │           ├── NetworkManager.cpp
-    │   │           └── notificationmanager.cpp
+    │   │       ├── test_controller.cpp
+    │   │       ├── test_messagemanager.cpp
+    │   │       ├── test_server.cpp
+    │   │       └── mocks/
+    │   │           ├── MockController.h
+    │   │           ├── SecondTestController.h
+    │   │           └── TestController.h
     │   ├── NotificationService/
     │   │   ├── CMakeLists.txt
     │   │   ├── include/
-    │   │   │   ├── JwtUtils.h
-    │   │   │   ├── server.h
     │   │   │   ├── entities/
     │   │   │   │   ├── Message.h
     │   │   │   │   └── MessageStatus.h
+    │   │   │   ├── interfaces/
+    │   │   │   │   └── ISocket.h
+    │   │   │   └── notificationservice/
+    │   │   │       ├── CrowSocket.h
+    │   │   │       ├── JwtUtils.h
+    │   │   │       ├── server.h
+    │   │   │       └── managers/
+    │   │   │           ├── notificationmanager.h
+    │   │   │           └── socketmanager.h
+    │   │   ├── src/
+    │   │   │   ├── main.cpp
+    │   │   │   ├── server.cpp
     │   │   │   └── managers/
-    │   │   │       ├── networkmanager.h
-    │   │   │       ├── notificationmanager.h
-    │   │   │       └── SocketManager.h
-    │   │   └── src/
+    │   │   │       ├── notificationmanager.cpp
+    │   │   │       └── socketmanager.cpp
+    │   │   └── tests/
+    │   │       ├── CMakeLists.txt
     │   │       ├── main.cpp
-    │   │       ├── server.cpp
-    │   │       └── managers/
-    │   │           ├── networkmanager.cpp
-    │   │           ├── notificationmanager.cpp
-    │   │           └── socketmanager.cpp
+    │   │       ├── test_notificationmanager.cpp
+    │   │       ├── test_server.cpp
+    │   │       └── mocks/
+    │   │           └── MockSocket.h
     │   └── shared_keys/
     │       └── public_key.pem
     ├── common/
+    │   ├── constants/
+    │   │   ├── CMakeLists.txt
+    │   │   └── include/
+    │   │       ├── codes.h
+    │   │       ├── ports.h
+    │   │       ├── ProdConfigProvider.h
+    │   │       ├── Routes.h
+    │   │       └── interfaces/
+    │   │           └── IConfigProvider.h
     │   ├── entities/
     │   │   ├── CMakeLists.txt
     │   │   └── include/
+    │   │       ├── Fields.h
     │   │       └── entities/
     │   │           ├── Chat.h
     │   │           ├── ChatMember.h
     │   │           ├── Message.h
     │   │           ├── MessageStatus.h
+    │   │           ├── PrivateChat.h
     │   │           ├── User.h
     │   │           └── UserCredentials.h
     │   ├── Metrics/
@@ -262,6 +328,24 @@ Directory structure:
     │   │   │   └── ScopedRequestsTimer.h
     │   │   └── src/
     │   │       └── metrics.cpp
+    │   ├── Network/
+    │   │   ├── CMakeLists.txt
+    │   │   ├── include/
+    │   │   │   ├── NetworkFacade.h
+    │   │   │   ├── NetworkManager.h
+    │   │   │   ├── RealCrowApp.h
+    │   │   │   └── interfaces/
+    │   │   │       ├── IApp.h
+    │   │   │       ├── IAutoritizer.h
+    │   │   │       ├── IChatNetworkManager.h
+    │   │   │       ├── IMessageNetworkManager.h
+    │   │   │       ├── INetworkManagerBase.h
+    │   │   │       └── IUserNetworkManager.h
+    │   │   └── src/
+    │   │       ├── IChatNetworkManager.cpp
+    │   │       ├── IMessageNetworkManager.cpp
+    │   │       ├── INetworkManagerBase.cpp
+    │   │       └── IUserNetworkManager.cpp
     │   ├── Persistence/
     │   │   ├── CMakeLists.txt
     │   │   ├── benchmarks/
@@ -291,12 +375,12 @@ Directory structure:
     │   │   │       ├── BaseQuery.h
     │   │   │       ├── IDataBase.h
     │   │   │       ├── IEntityBuilder.h
-    │   │   │       └── ISqlExecutor.h
+    │   │   │       ├── ISqlExecutor.h
+    │   │   │       └── IThreadPool.h
     │   │   ├── inl/
     │   │   │   ├── GenericRepository.inl
     │   │   │   ├── Query.inl
-    │   │   │   ├── SqlBuilder.inl
-    │   │   │   └── ThreadPool.inl
+    │   │   │   └── SqlBuilder.inl
     │   │   ├── src/
     │   │   │   ├── GenericRepository.cpp
     │   │   │   ├── Query.cpp
@@ -305,18 +389,16 @@ Directory structure:
     │   │   │   └── ThreadPool.cpp
     │   │   └── tests/
     │   │       ├── CMakeLists.txt
+    │   │       ├── main.cpp
     │   │       ├── test_genericrepository.cpp
     │   │       ├── test_query.cpp
-    │   │       └── mocks/
-    │   │           ├── FakeSqlExecutor.h
-    │   │           ├── main.cpp
-    │   │           ├── MockCache.h
-    │   │           ├── MockDatabase.h
-    │   │           └── MockQuery.h
+    │   │       └── test_sqlitedatabase.cpp
     │   ├── RabbitMQClient/
     │   │   ├── CMakeLists.txt
     │   │   ├── include/
-    │   │   │   └── RabbitMQClient.h
+    │   │   │   ├── RabbitMQClient.h
+    │   │   │   └── interfaces/
+    │   │   │       └── IRabitMQClient.h
     │   │   └── src/
     │   │       └── rabbitmqclient.cpp
     │   └── RedisCache/
@@ -356,6 +438,7 @@ Directory structure:
     │   │   ├── interfaces/
     │   │   │   ├── ICache.h
     │   │   │   ├── IMainWindow.h
+    │   │   │   ├── IMessageListView.h
     │   │   │   ├── INetworkAccessManager.h
     │   │   │   ├── ISocket.h
     │   │   │   └── ITheme.h
@@ -374,6 +457,7 @@ Directory structure:
     │   │       └── UserModel.h
     │   ├── src/
     │   │   ├── datainputservice.cpp
+    │   │   ├── IMessageListView.cpp
     │   │   ├── main.cpp
     │   │   ├── mainwindow.cpp
     │   │   ├── model.cpp
@@ -401,19 +485,27 @@ Directory structure:
     │       ├── CTestTestfile.cmake
     │       ├── DartConfiguration.tcl
     │       ├── main.cpp
+    │       ├── test_chatitemdelegate.cpp
     │       ├── test_chatmanager.cpp
     │       ├── test_datainputservice.cpp
+    │       ├── test_datamanager.cpp
     │       ├── test_messagemanager.cpp
     │       ├── test_model.cpp
     │       ├── test_presenter.cpp
     │       ├── test_sessionmanager.cpp
     │       ├── test_socketmanager.cpp
     │       ├── test_usermanager.cpp
+    │       ├── test_usermodel.cpp
     │       └── mocks/
     │           ├── FakeSocket.h
     │           ├── MockAccessManager.h
     │           ├── MockCache.h
+    │           ├── MockMainWindow.h
+    │           ├── MockMessageListView.h
     │           └── MockReply.h
+    ├── Testing/
+    │   └── Temporary/
+    │       └── CTestCostData.txt
     ├── .github/
     │   └── workflows/
     │       └── ci.yml
@@ -422,17 +514,88 @@ Directory structure:
         └── QtDeployTargets.cmake
 ```
 
+# 📊 API Gateway Metrics & Monitoring
 
-## Technologies
-- **Language:** C++17 / C++20  
-- **GUI:** Qt6  
-- **Web Framework / HTTP API:** Crow (REST API backend)
-- **Networking:** ASIO, RabbitMQ, Redis++  
-- **Database:** SQLite3  
-- **Logging:** spdlog  
-- **Testing & Coverage:** Catch2, lcov, Codecov  
-- **Build System:** CMake + Ninja  
-- **Code Formatting:** clang-format, clang-tidy, cpplint
+## Prometheus Metrics Endpoint
+
+### Available Metrics
+
+**Counters** – accumulate over time:
+
+| Metric | Description | Labels |
+|--------|------------|--------|
+| `gateway_cache_hits_total` | Number of cache hits | `path` |
+| `gateway_cache_misses_total` | Number of cache misses | `path` |
+| `gateway_cache_store_total` | Number of times a response was stored in cache | `path` |
+| `gateway_ratelimit_hits_total` | Requests blocked by rate limiter | `path`, `key` |
+| `gateway_ratelimit_allowed_total` | Requests allowed by rate limiter | `path`, `key` |
+| `gateway_backend_errors_total` | Backend requests that failed | `path` |
+| `gateway_backend_timeout_total` | Backend request timeouts | `path` |
+| `gateway_backend_status_total` | Backend status codes | `path`, `status` |
+| `gateway_auth_ok_total` | Successful authentications | `path` |
+| `gateway_auth_fail_total` | Failed authentications | `path` |
+| `api_gateway_requests_total` | Total incoming requests | `path` |
+
+**Gauges** – instantaneous values:
+
+| Metric | Description |
+|--------|------------|
+| `gateway_active_clients` | Current number of connected clients |
+| `gateway_active_requests` | Current number of in-flight requests |
+
+**Histograms** – distribution of values:
+
+| Metric | Description |
+|--------|------------|
+| `gateway_call_latency_seconds` | Backend call latency |
+| `gateway_request_size_bytes` | Request sizes |
+| `gateway_response_size_bytes` | Response sizes |
+| `gateway_message_size_bytes` | Message sizes (incoming/outgoing) |
+
+---
+
+# Technologies
+
+## Language & Standards
+- **C++17** fallback for wider compatibility
+
+## Build & Tooling
+- **CMake + Ninja** 
+- **clang-format / clang-tidy / cpplint** (formatting & static analysis)
+- **vcpkg** 
+
+## Networking & Web
+- **Crow** (REST API backend)
+- **WebSocket support** via Crow or `uWebSockets`
+
+## Database & Caching
+- **SQLite3** (lightweight embedded DB)
+- **Redis++** (caching, rate limiting, pub/sub)
+
+## Messaging / Queueing
+- **RabbitMQ** (task queues, async messaging)
+
+## Metrics & Monitoring
+- **Prometheus-cpp** 
+- **Grafana** 
+- Metrics types:
+  - **Counters**: requests, cache hits/misses, auth success/fail
+  - **Gauges**: active clients, active requests
+  - **Histograms**: latency, request size, response size, message size
+
+## Logging & Tracing
+- **spdlog** (structured, async logging)
+
+## Testing & CI/CD
+- **Catch2** (unit testing)
+- **lcov + Codecov** (coverage reporting)
+- **CI/CD**: GitHub Actions 
+
+## Security / Auth
+- JWT authentication (`JwtUtils`)
+
+## Frontend / GUI
+- **Qt6** (native desktop GUI)
 
 ## Links
 - **C++ CI:**(https://github.com/roma3214185/messanger/actions/workflows/ci.yml/badge.svg)
