@@ -26,6 +26,7 @@ add_library(ApiGateWayCore
     ${APIGATE_SRC_DIR}/proxyclient.cpp
     ${APIGATE_SRC_DIR}/JwtUtils.cpp
     ${APIGATE_SRC_DIR}/websocketbridge.cpp
+    ${APIGATE_SRC_DIR}/Logger.cpp
 )
 
 target_include_directories(ApiGateWayCore PUBLIC
