@@ -44,7 +44,7 @@ void ChatController::createPrivateChat(const crow::request& req, crow::response&
   optional<User> user    = getUserById(user_id);
 
   if (!user) {
-    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().userNotFound);
+    sendResponse(res, provider_->statusCodes().userError, provider_->issueMessages().userNotFound);
     return;
   }
 
@@ -163,11 +163,11 @@ void ChatController::sendError(crow::response& res, int status, const std::strin
   sendResponse(res, status, message);
 }
 
-std::optional<int> ChatController::authorizeUser(const crow::request& req, crow::response& res) {
+std::optional<int> ChatController::authorizeUser(const crow::request& req, crow::response& res) { //TODO: extract from here crow::response& res
   auto user_id = autoritize(req);
   if (!user_id) {
     LOG_ERROR("[GetChat] Can't verify token");
-    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
+    sendResponse(res, provider_->statusCodes().userError, provider_->issueMessages().invalidToken);
   }
   return user_id;
 }

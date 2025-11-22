@@ -86,13 +86,13 @@ void AuthController::handleMe(const crow::request& req, crow::response& responce
   auto [user_id, token] = verifyToken(req);
   if (!user_id) {
     LOG_ERROR("Invalid token");
-    return sendResponse(responce, provider_->statusCodes().unauthorized, provider_->statusCodes().invalidToken);
+    return sendResponse(responce, provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken);
   }
 
   std::optional<User> user = manager_->getUser(*user_id);
   if(!user) {
     LOG_ERROR("User with id {} not found", *user_id);
-    return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
+    return sendResponse(responce, provider_->statusCodes().notFound, provider_->issueMessages().userNotFound);
   }
 
   sendResponse(responce, provider_->statusCodes().success, userToJson(*user, token).dump());

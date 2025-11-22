@@ -30,39 +30,12 @@ std::string getMethod(const crow::HTTPMethod& method) {
 
 }  // namespace
 
-constexpr int kInvalidTokenCode    = 401;
-constexpr int kRateLimitExceedCode = 429;
-
-constexpr int kMaxRequests = 300;
-constexpr int kWindowSec = 900;
-
-GatewayServer::GatewayServer(crow::SimpleApp& app, ICacheService* cache, IConfigProvider* provider)
+GatewayServer::GatewayServer(crow::SimpleApp& app, ICacheService* cache, IClient* client, IConfigProvider* provider)
     : app_(app)
     , provider_(provider)
+    , proxy_(client)
     , cache_(cache)
-    //, rate_limiter_(kMaxRequests, std::chrono::seconds(kWindowSec))
-    //, proxy_repository_(proxy_repository)
-    , metrics_(provider->ports().metrics)
-    // , authProxy_(provider->ports().authService)
-    // , chatProxy_(provider->ports().chatService)
-    // , messageProxy_(provider->ports().messageService)
-    // , notificationProxy_(provider->ports().notificationService)
-    // , metrics_(metrics) {
-  //   , exposer_(std::make_unique<prometheus::Exposer>("0.0.0.0:8089"))
-  //   , registry_(std::make_shared<prometheus::Registry>())
-  //   , request_counter_family_(prometheus::BuildCounter()
-  //                                 .Name("api_gateway_requests_total")
-  //                                 .Help("Total number of requests")
-  //                                 .Register(*registry_))
-  //   , request_latency_(prometheus::BuildHistogram()
-  //                          .Name("api_gateway_request_duration_seconds")
-  //                          .Help("Request duration in seconds")
-  //                          .Register(*registry_)
-  //                          .Add({},
-  //                               prometheus::Histogram::BucketBoundaries{
-  //                                   0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10})) {
-  // exposer_->RegisterCollectable(registry_);
-{
+    , metrics_(provider->ports().metrics) {
   registerRoutes();
 }
 
@@ -82,7 +55,7 @@ bool GatewayServer::checkRateLimit(const crow::request& req) {
   return rate_limiter_.allow(ip);
 }
 
-void GatewayServer::sendResponde(crow::response& res, const RequestDTO& request_info, int res_code, const std::string& message, bool hitKey) {
+void GatewayServer::sendResponse(crow::response& res, const RequestDTO& request_info, int res_code, const std::string& message, bool hitKey) {
   logger_.logResponse(res_code, message, request_info, hitKey);
 
   res.code = res_code;
@@ -93,36 +66,36 @@ void GatewayServer::sendResponde(crow::response& res, const RequestDTO& request_
 }
 
 void GatewayServer::registerRoutes() {
-  registerRoute("/auth", proxy_repository_.auth(), false);
-  registerRoute("/users", proxy_repository_.auth(), false);
-  registerRoute("/chats", proxy_repository_.chat(), false);
-  registerRoute("/messages", proxy_repository_.message(), false);
-  registerRoute("/notification", proxy_repository_.notification(), false);
+  registerRoute("/auth", provider_->ports().authService, false);
+  registerRoute("/users", provider_->ports().authService, false);
+  registerRoute("/chats", provider_->ports().chatService, false);
+  registerRoute("/messages", provider_->ports().messageService, false);
+  registerRoute("/notification", provider_->ports().notificationService, false);
   registerHealthCheck();
   registerWebSocketRoutes();
 }
 
 void GatewayServer::registerRoute(const std::string& basePath,
-                                  ProxyClient&       proxy,
+                                  int port,
                                   bool               requireAuth) {
   app_.route_dynamic(basePath + "/<path>")
       .methods("GET"_method,
-               "POST"_method)([this, &proxy, basePath, requireAuth](
+               "POST"_method)([this, port, basePath, requireAuth](
                                   const crow::request& req, crow::response& res, std::string path) {
         LOG_INFO("{}/{}", basePath, path);
-        handleProxyRequest(req, res, proxy, basePath + "/" + path, requireAuth);
+        handleProxyRequest(req, res, port, basePath + "/" + path, requireAuth);
         LOG_INFO("Res code:{} and res: {}", res.code, res.body);
       });
 
   app_.route_dynamic(basePath).methods("GET"_method, "POST"_method)(
-      [this, &proxy, basePath, requireAuth](const crow::request& req, crow::response& res) {
+      [this, port, basePath, requireAuth](const crow::request& req, crow::response& res) {
         LOG_INFO("{}", basePath);
-        handleProxyRequest(req, res, proxy, basePath, requireAuth);
+        handleProxyRequest(req, res, port, basePath, requireAuth);
         LOG_INFO("Res code:{} and res: {}", res.code, res.body);
       });
 }
 
-std::string GatewayServer::extractIP(const crow::request& req) {
+std::string GatewayServer::extractIP(const crow::request& req) const {
   auto ip = req.get_header_value("X-Forwarded-For");
   if (ip.empty()) {
     ip = req.remote_ip_address;
@@ -153,7 +126,7 @@ void GatewayServer::saveInCache(const crow::request& req, std::string key, std::
 
 void GatewayServer::handleProxyRequest(const crow::request& req,
                                        crow::response&      res,
-                                       ProxyClient&         proxy,
+                                       int port,
                                        const std::string&   path,
                                        bool                 requireAuth) {
   auto tracker = metrics_.getTracker(path);
@@ -164,18 +137,18 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
   request_info.path = path;
   logger_.logRequest(req, request_info);
 
-  if(!checkRateLimit(req)) return sendResponde(res, request_info, kRateLimitExceedCode, "Rate limit exceeded");
-  if(!checkAuth(req, requireAuth)) return sendResponde(res, request_info, kInvalidTokenCode, "Invalid token");
+  if(!checkRateLimit(req)) return sendResponse(res, request_info, provider_->statusCodes().rateLimit, provider_->issueMessages().rateLimitExceed);
+  if(!checkAuth(req, requireAuth)) return sendResponse(res, request_info, provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken);
 
   auto key = makeCacheKey(req);
-  if(auto cached = checkCache(key)) { // TODO: ttl good way to  check if data still valid??
-    return sendResponde(res, request_info, provider_->statusCodes().success, cached.value(), true);
+  if(auto cached = checkCache(key)) { // TODO: small ttl good way to check if data still valid??
+    return sendResponse(res, request_info, provider_->statusCodes().success, cached.value(), true);
   }
 
-  auto result = proxy.forward(req, path, request_info.method);
+  auto result = proxy_.forward(req, request_info, port);
 
   saveInCache(req, key, result.second, std::chrono::milliseconds(60));
-  sendResponde(res, request_info, result.first, result.second); // <- logs metrics about leave
+  sendResponse(res, request_info, result.first, result.second);
 }
 
 void GatewayServer::registerWebSocketRoutes() {

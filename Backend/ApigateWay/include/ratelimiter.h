@@ -8,14 +8,15 @@
 
 class RateLimiter {
  public:
-  using IP = std::string;
 
   struct Entry {
-    int                                   requests = 0;
-    std::chrono::steady_clock::time_point windowStart{};
+      int                                   requests = 0;
+      std::chrono::steady_clock::time_point windowStart{};
   };
 
+  using IP = std::string;
   using EntriesMap = std::unordered_map<IP, Entry>;
+
 
   explicit RateLimiter(int maxReq = 300, std::chrono::seconds win = std::chrono::seconds(900))
       : maxRequests(maxReq), window(win) {}

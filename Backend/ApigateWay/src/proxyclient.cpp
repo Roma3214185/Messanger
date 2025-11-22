@@ -2,40 +2,19 @@
 
 using namespace std;
 
-ProxyClient::ProxyClient(int port) : port_(port) {
-  string host_with_port = "localhost:" + to_string(port);
-  client_          = make_unique<httplib::Client>(host_with_port.c_str());
-  client_->set_read_timeout(5, 0);
-  client_->set_connection_timeout(5, 0);
+constexpr int kBadGatewayCode = 502;
+const string kBadGatewayMessage = "Bad Gateway: downstream no response";
+
+namespace {
+
+string getContentType(const crow::request& req) {
+  string content_type = req.get_header_value("content-type");
+  if (content_type.empty()) content_type = "application/json";
+  return content_type;
 }
 
-pair<int, string> ProxyClient::post_json(const string&                       path,
-                                         const nlohmann::json&                         body,
-                                         const vector<pair<string, string>>& headers) {
-  auto             s = body.dump();
-  httplib::Headers h;
-  h.emplace("Content-Type", "application/json");
-  for (auto& p : headers) h.emplace(p.first, p.second);
-  auto res = client_->Post(path.c_str(), h, s, "application/json");
-  if (!res) return {502, "Bad Gateway"};
-  return {(int)res->status, res->body};
-}
-
-pair<int, string> ProxyClient::forward(const crow::request&                req,
-                                       const string&                       path,
-                                       const string&                       method,
-                                       const vector<pair<string, string>>& extra_headers) {
-  httplib::Headers headers;
-
-  for (auto& h : req.headers) {
-    headers.emplace(h.first, h.second);
-  }
-
-  for (auto& h : extra_headers) {
-    headers.emplace(h.first, h.second);
-  }
-
-  string full_path = path;
+string getFullPath(const crow::request& req, const RequestDTO& request_info) {
+  string full_path = request_info.path;
   auto   keys      = req.url_params.keys();
   if (!keys.empty()) {
     full_path += "?";
@@ -48,27 +27,44 @@ pair<int, string> ProxyClient::forward(const crow::request&                req,
       first = false;
     }
   }
+  return full_path;
+}
 
-  cout << "METHOD: " << method << endl;
-  cout << "PATH: " << full_path << endl;
-
-  string content_type = req.get_header_value("content-type");
-  if (content_type.empty()) content_type = "application/json";  // або default
-
-  httplib::Result res(std::unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
-  if (method == "GET") {
-    res = client_->Get(full_path.c_str(), headers);
-  } else if (method == "DELETE") {
-    res = client_->Delete(full_path.c_str(), headers);
-  } else if (method == "PUT") {
-    res = client_->Put(full_path.c_str(), headers, req.body, content_type.c_str());
-  } else {
-    res = client_->Post(full_path.c_str(), headers, req.body, content_type.c_str());
+httplib::Headers getHeaders(const crow::request& req, const RequestDTO& request_info) {
+  httplib::Headers headers;
+  for (auto& h : req.headers) {
+    headers.emplace(h.first, h.second);
   }
 
-  if (!res) {
-    return {502, "Bad Gateway: downstream no response"};
+  for (auto& h : request_info.extra_headers) {
+    headers.emplace(h.first, h.second);
   }
 
-  return {static_cast<int>(res->status), res->body};
+  return headers;
+}
+
+}  // namespace
+
+NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const std::string& method) {
+  if (method == "GET") return client_->Get(request);
+  if (method == "DELETE") return client_->Delete(request);
+  if (method == "PUT") return client_->Put(request);
+  if (method == "POST") return client_->Post(request);
+  return {kBadGatewayCode, kBadGatewayMessage};
+}
+
+std::string get_host_with_port(int port) {
+  return "localhost:" + to_string(port);
+}
+
+NetworkResponse ProxyClient::forward(const crow::request& req,
+                                       RequestDTO& request_info,
+                                       int port) {
+  ForwardRequestDTO forward_request;
+  forward_request.host_with_port = get_host_with_port(port); //TODO: make another DTO
+  forward_request.headers = getHeaders(req, request_info);
+  forward_request.body = req.body;
+  forward_request.full_path = getFullPath(req, request_info);
+  forward_request.content_type = getContentType(req);
+  return makeRequest(forward_request, request_info.method);
 }

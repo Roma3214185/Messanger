@@ -13,6 +13,7 @@ find_package(Catch2 3 REQUIRED)
 
 add_executable(ApigateTests
     main.cpp
+    test_gatewayserver.cpp
 )
 
 set_target_properties(ApigateTests PROPERTIES

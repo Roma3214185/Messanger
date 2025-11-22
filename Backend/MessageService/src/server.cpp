@@ -75,8 +75,7 @@ void Server::onGetMessagesFromChat(const crow::request& req, int chat_id, crow::
   std::string token = extractToken(req);
   std::optional<int> optional_user_id = getUserIdFromToken(token);
   if(!optional_user_id){
-    sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
-    return;
+    return sendResponse(res, provider_->statusCodes().userError, provider_->issueMessages().invalidToken);
   }
 
   int user_id = *optional_user_id;

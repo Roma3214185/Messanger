@@ -17,9 +17,14 @@ class MockConfigProvider : public IConfigProvider {
       return mock_codes;
     }
 
+    const IssueMessages& issueMessages() const override {
+      return mock_issue_message;
+    }
+
     Ports mock_ports;
     StatusCodes mock_codes;
     Routes mock_routes;
+    IssueMessages mock_issue_message;
 };
 
 #endif // MOCKCONFIGPROVIDER_H
