@@ -12,7 +12,6 @@
 #include "ratelimiter.h"
 #include "ProdConfigProvider.h"
 #include "Logger.h"
-#include "ProxyRepository.h"
 #include "GatewayMetrics.h"
 #include "ratelimiter.h"
 #include "proxyclient.h"

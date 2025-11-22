@@ -1,7 +1,6 @@
 #include "gatewayserver.h"
 #include "ProdConfigProvider.h"
 #include "RedisCache.h"
-#include "ProxyRepository.h"
 #include "GatewayMetrics.h"
 #include "proxyclient.h"
 
