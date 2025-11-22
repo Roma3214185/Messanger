@@ -14,8 +14,6 @@ find_package(Catch2 3 REQUIRED)
 add_executable(ApigateTests
     main.cpp
     test_gatewayserver.cpp
-    mocks/MockProxy.h
-    mocks/MockApiCache.h
 )
 
 set_target_properties(ApigateTests PROPERTIES

@@ -2,14 +2,14 @@
 #include "ProdConfigProvider.h"
 #include "RedisCache.h"
 #include "GatewayMetrics.h"
-#include "proxyclient.h"
+#include "RealHttpClient.h"
 
 int main() {
   ProdConfigProvider provider;
   crow::SimpleApp app;
   RedisCache& cache = RedisCache::instance();
-  ProxyClient proxy;
-  GatewayServer server(app, &cache, &proxy, &provider);
+  RealHttpClient client;
+  GatewayServer server(app, &cache, &client, &provider);
   server.run();
   return 0;
 }

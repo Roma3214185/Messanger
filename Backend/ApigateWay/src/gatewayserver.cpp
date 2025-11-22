@@ -30,10 +30,10 @@ std::string getMethod(const crow::HTTPMethod& method) {
 
 }  // namespace
 
-GatewayServer::GatewayServer(crow::SimpleApp& app, ICacheService* cache, IProxyClient* proxy, IConfigProvider* provider)
+GatewayServer::GatewayServer(crow::SimpleApp& app, ICacheService* cache, IClient* client, IConfigProvider* provider)
     : app_(app)
     , provider_(provider)
-    , proxy_(proxy)
+    , proxy_(client)
     , cache_(cache)
     , metrics_(provider->ports().metrics) {
   registerRoutes();
@@ -145,7 +145,7 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
     return sendResponse(res, request_info, provider_->statusCodes().success, cached.value(), true);
   }
 
-  auto result = proxy_->forward(req, request_info, port);
+  auto result = proxy_.forward(req, request_info, port);
 
   saveInCache(req, key, result.second, std::chrono::milliseconds(60));
   sendResponse(res, request_info, result.first, result.second);

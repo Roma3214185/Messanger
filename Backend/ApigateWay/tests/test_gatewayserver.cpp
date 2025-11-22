@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "gatewayserver.h"
-#include "mocks/MockProxy.h"
+#include "mocks/MockClient.h"
 #include "mocks/MockConfigProvider.h"
 #include "mocks/MockUtils.h"
 #include "mocks/MockApiCache.h"
@@ -50,7 +50,7 @@ class TestGatewayServer : public GatewayServer {
 struct TestGatewayServerFixrute {
     crow::SimpleApp app;
     MockApiCache cache;
-    MockProxy proxy;
+    MockClient client;
     MockConfigProvider provider;
     crow::request req;
     crow::response res;
@@ -58,7 +58,7 @@ struct TestGatewayServerFixrute {
     std::string mock_in_cache_ans = "TEST CACHE HIT";
 
     TestGatewayServerFixrute()
-        : server(app, &cache, &proxy, &provider) {
+        : server(app, &cache, &client, &provider) {
       provider.mock_codes.rateLimit = 4290;
       provider.mock_codes.unauthorized = 4010;
       provider.mock_issue_message.rateLimitExceed = "test_rate_limit";
@@ -115,28 +115,26 @@ TEST_CASE("Test apigate POST method") {
   }
 
   SECTION("Cache not hitted expected send request to service with valid route ans same request") {
-    int before_cnt_forward = fix.proxy.call_forward;
+    int before_cnt_forward = fix.client.call_post;
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.proxy.call_forward == before_cnt_forward + 1);
-    CHECK(fix.proxy.last_port == fix.provider.ports().authService);
-    CHECK(fix.proxy.last_request.body == fix.req.body);
-    CHECK(fix.proxy.last_request.method == fix.req.method);
-    CHECK(fix.proxy.last_request.url == fix.req.url);
-    CHECK(fix.proxy.last_request.url_params.keys() == fix.req.url_params.keys());
+    REQUIRE(fix.client.call_post == before_cnt_forward + 1);
+    CHECK(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().authService));
+    CHECK(fix.client.last_request.body == fix.req.body);
+    CHECK(fix.client.last_request.full_path == fix.req.url);
   }
 
   SECTION("Responce received expected no set cache(POST request) ans responce with same data") {
     int mock_code = 1234;
     std::string mock_body = "test_mock_body";
-    fix.proxy.mock_response = std::make_pair(mock_code, mock_body);
+    fix.client.mock_response = std::make_pair(mock_code, mock_body);
     int before_cnt_cache = fix.cache.call_set;
-    int before_cnt_forward = fix.proxy.call_forward;
+    int before_cnt_forward = fix.client.call_post;
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.proxy.call_forward == before_cnt_forward + 1);
+    REQUIRE(fix.client.call_post == before_cnt_forward + 1);
     REQUIRE(fix.res.code == mock_code);
     REQUIRE(fix.res.body == mock_body);
     REQUIRE(fix.cache.call_set == before_cnt_cache);
@@ -145,34 +143,33 @@ TEST_CASE("Test apigate POST method") {
 
 TEST_CASE("Test apigate GET method") {
   TestGatewayServerFixrute fix;
+  fix.req.body = "";
   fix.app.validate();
   fix.req.method = "GET"_method;
   int chat_id = 12;
   fix.req.url = fmt::format("/messages/{}", chat_id);
 
   SECTION("Send forward request has to have valid port, method and request") {
-    int before_forward_cnt = fix.proxy.call_forward;
+    int before_forward_cnt = fix.client.call_get;
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.proxy.call_forward == before_forward_cnt + 1);
-    CHECK(fix.proxy.last_port == fix.provider.ports().messageService);
-    CHECK(fix.proxy.last_request.body == fix.req.body);
-    CHECK(fix.proxy.last_request.method == fix.req.method);
-    CHECK(fix.proxy.last_request.url == fix.req.url);
-    CHECK(fix.proxy.last_request.url_params.keys() == fix.req.url_params.keys());
+    REQUIRE(fix.client.call_get == before_forward_cnt + 1);
+    CHECK(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().messageService));
+    CHECK(fix.client.last_request.body == fix.req.body);
+    CHECK(fix.client.last_request.full_path == fix.req.url);
   }
 
   SECTION("Cache not hitted expected after responce set result in cache and return answer from forward") {
-    int before_forward_cnt = fix.proxy.call_forward;
+    int before_forward_cnt = fix.client.call_get;
     int before_cnt_cache_set = fix.cache.call_set;
     int mock_code = 1234;
     std::string mock_body = "test_mock_body";
-    fix.proxy.mock_response = std::make_pair(mock_code, mock_body);
+    fix.client.mock_response = std::make_pair(mock_code, mock_body);
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.proxy.call_forward == before_forward_cnt + 1);
+    REQUIRE(fix.client.call_get == before_forward_cnt + 1);
     REQUIRE(fix.cache.call_set == before_cnt_cache_set + 1);
     REQUIRE(fix.res.code == mock_code);
     REQUIRE(fix.res.body == mock_body);
@@ -201,21 +198,23 @@ TEST_CASE("Test apigate healthz endpoint") {
 
 TEST_CASE("extractIP returns X-Forwarded-For when present") {
   TestGatewayServerFixrute fix;
-  fix.req.add_header("X-Forwarded-For", "123.45.67.89");
-  fix.req.remote_ip_address = "98.76.54.32";
+  std::string setted_ip = "123.45.67.89";
+  fix.req.add_header("X-Forwarded-For", setted_ip);
+  fix.req.remote_ip_address = "123.21.34.34";
 
   std::string ip = fix.server.extractIP(fix.req);
 
-  CHECK(ip == "123.45.67.89");
+  CHECK(ip == setted_ip);
 }
 
 TEST_CASE("extractIP falls back to remote_ip_address") {
   TestGatewayServerFixrute fix;
-  fix.req.remote_ip_address = "98.76.54.32";
+  std::string setted_ip = "98.76.54.32";
+  fix.req.remote_ip_address = setted_ip;
 
   std::string ip = fix.server.extractIP(fix.req);
 
-  CHECK(ip == "98.76.54.32");
+  CHECK(ip == setted_ip);
 }
 
 TEST_CASE("extractToken extracts Bearer token") {
@@ -229,11 +228,12 @@ TEST_CASE("extractToken extracts Bearer token") {
 
 TEST_CASE("extractToken returns raw Authorization header when not Bearer") {
   TestGatewayServerFixrute fix;
-  fix.req.add_header("Authorization", "Token xyz");
+  std::string setted_token = "Token xyz";
+  fix.req.add_header("Authorization", setted_token);
 
   std::string token = fix.server.extractToken(fix.req);
 
-  CHECK(token == "Token xyz");
+  CHECK(token == setted_token);
 }
 
 TEST_CASE("extractToken returns empty string when no Authorization header") {

@@ -20,7 +20,7 @@ class ICacheService;
 
 class GatewayServer {
  public:
-  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IProxyClient* proxy, IConfigProvider* provider);
+  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IClient* client, IConfigProvider* provider);
   void run();
 
  protected:
@@ -34,7 +34,7 @@ class GatewayServer {
   IConfigProvider* provider_;
   ICacheService* cache_;
   Logger logger_;
-  IProxyClient* proxy_;
+  ProxyClient proxy_;
   GatewayMetrics metrics_;
   RateLimiter rate_limiter_;
 

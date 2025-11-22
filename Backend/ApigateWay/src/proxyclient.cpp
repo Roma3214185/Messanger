@@ -13,29 +13,6 @@ string getContentType(const crow::request& req) {
   return content_type;
 }
 
-httplib::Result makeRequest(httplib::Client* client,
-                            const string& method,
-                            const string& full_path,
-                            const httplib::Headers& headers,
-                            const string& body = "",
-                            const string& content_type = "application/json") {
-  httplib::Result res(unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
-
-  if (method == "GET") {
-    res = client->Get(full_path.c_str(), headers);
-  } else if (method == "DELETE") {
-    res = client->Delete(full_path.c_str(), headers);
-  } else if (method == "PUT") {
-    res = client->Put(full_path.c_str(), headers, body, content_type.c_str());
-  } else if (method == "POST") {
-    res = client->Post(full_path.c_str(), headers, body, content_type.c_str());
-  } else {
-    res = httplib::Result(unique_ptr<httplib::Response>(nullptr), httplib::Error::Unknown);
-  }
-
-  return res;
-}
-
 string getFullPath(const crow::request& req, const RequestDTO& request_info) {
   string full_path = request_info.path;
   auto   keys      = req.url_params.keys();
@@ -68,23 +45,26 @@ httplib::Headers getHeaders(const crow::request& req, const RequestDTO& request_
 
 }  // namespace
 
-pair<int, string> ProxyClient::forward(const crow::request& req,
-                                       const RequestDTO& request_info,
+NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const std::string& method) {
+  if (method == "GET") return client_->Get(request);
+  if (method == "DELETE") return client_->Delete(request);
+  if (method == "PUT") return client_->Put(request);
+  if (method == "POST") return client_->Post(request);
+  return {kBadGatewayCode, kBadGatewayMessage};
+}
+
+std::string get_host_with_port(int port) {
+  return "localhost:" + to_string(port);
+}
+
+NetworkResponse ProxyClient::forward(const crow::request& req,
+                                       RequestDTO& request_info,
                                        int port) {
-
-  string host_with_port = "localhost:" + to_string(port);
-  auto client_          = make_unique<httplib::Client>(host_with_port.c_str());
-  client_->set_read_timeout(5, 0);
-  client_->set_connection_timeout(5, 0);
-
-  httplib::Headers headers = getHeaders(req, request_info);
-  string full_path = getFullPath(req, request_info);
-  string content_type = getContentType(req);
-  auto res = makeRequest(client_.get(), request_info.method, full_path, headers, req.body, content_type);
-
-  if (!res) {
-    return {kBadGatewayCode, kBadGatewayMessage};
-  }
-
-  return {static_cast<int>(res->status), res->body};
+  ForwardRequestDTO forward_request;
+  forward_request.host_with_port = get_host_with_port(port); //TODO: make another DTO
+  forward_request.headers = getHeaders(req, request_info);
+  forward_request.body = req.body;
+  forward_request.full_path = getFullPath(req, request_info);
+  forward_request.content_type = getContentType(req);
+  return makeRequest(forward_request, request_info.method);
 }
