@@ -38,6 +38,13 @@ class TestGatewayServer : public GatewayServer {
       if(hitKey) ++cnt_hit_key;
       GatewayServer::sendResponse(res, request_info, res_code, message, hitKey);
     }
+
+    std::string extractToken(const crow::request& req) const {
+      return GatewayServer::extractToken(req);
+    }
+    std::string extractIP(const crow::request& req) const {
+      return GatewayServer::extractIP(req);
+    }
 };
 
 struct TestGatewayServerFixrute {
@@ -59,15 +66,15 @@ struct TestGatewayServerFixrute {
     }
 };
 
-TEST_CASE("Test apigate") {
+TEST_CASE("Test apigate POST method") {
   TestGatewayServerFixrute fix;
+  fix.app.validate();
+  fix.req.method = "POST"_method;
+  fix.req.url = "/auth/login";
+  fix.req.body = R"({"email":"a","passwords":"b"})";
 
   SECTION("Check rate limit fails expected rateLimit code and rateLimitExceed message") {
     fix.server.shouldFail_check_limit = true;
-    fix.app.validate();
-    fix.req.method = "POST"_method;
-    fix.req.url = "/auth/login";
-    fix.req.body = R"({"email":"a","passwords":"b"})";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -77,10 +84,6 @@ TEST_CASE("Test apigate") {
 
   SECTION("Check auth  fails expected unauthorized code and invalidToken message") {
     fix.server.shouldFail_check_auth = true;
-    fix.app.validate();
-    fix.req.method = "POST"_method;
-    fix.req.url = "/auth/login";
-    fix.req.body = R"({"email":"a","passwords":"b"})";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -90,10 +93,6 @@ TEST_CASE("Test apigate") {
 
   SECTION("Hit cache expected hit cnt increasy by one and success status code") {
     fix.cache.mock_answer = nlohmann::json(fix.mock_in_cache_ans);
-    fix.app.validate();
-    fix.req.method = "POST"_method;
-    fix.req.url = "/auth/login";
-    fix.req.body = R"({"email":"a","passwords":"b"})";
     int before_hit_key = fix.server.cnt_hit_key;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -105,9 +104,6 @@ TEST_CASE("Test apigate") {
 
   SECTION("In any case send responce expected POST method, /auth/login path") {
     fix.app.validate();
-    fix.req.method = "POST"_method;
-    fix.req.url = "/auth/login";
-    fix.req.body = R"({"email":"a","passwords":"b"})";
     int before_cnt_send_response = fix.server.cnt_sendResponde;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -119,10 +115,6 @@ TEST_CASE("Test apigate") {
   }
 
   SECTION("Cache not hitted expected send request to service with valid route ans same request") {
-    fix.app.validate();
-    fix.req.method = "POST"_method;
-    fix.req.url = "/auth/login";
-    fix.req.body = R"({"email":"a","passwords":"b"})";
     int before_cnt_forward = fix.proxy.call_forward;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -140,11 +132,6 @@ TEST_CASE("Test apigate") {
     std::string mock_body = "test_mock_body";
     fix.proxy.mock_response = std::make_pair(mock_code, mock_body);
     int before_cnt_cache = fix.cache.call_set;
-
-    fix.app.validate();
-    fix.req.method = "POST"_method;
-    fix.req.url = "/auth/login";
-    fix.req.body = R"({"email":"a","passwords":"b"})";
     int before_cnt_forward = fix.proxy.call_forward;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -155,3 +142,105 @@ TEST_CASE("Test apigate") {
     REQUIRE(fix.cache.call_set == before_cnt_cache);
   }
 }
+
+TEST_CASE("Test apigate GET method") {
+  TestGatewayServerFixrute fix;
+  fix.app.validate();
+  fix.req.method = "GET"_method;
+  int chat_id = 12;
+  fix.req.url = fmt::format("/messages/{}", chat_id);
+
+  SECTION("Send forward request has to have valid port, method and request") {
+    int before_forward_cnt = fix.proxy.call_forward;
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.proxy.call_forward == before_forward_cnt + 1);
+    CHECK(fix.proxy.last_port == fix.provider.ports().messageService);
+    CHECK(fix.proxy.last_request.body == fix.req.body);
+    CHECK(fix.proxy.last_request.method == fix.req.method);
+    CHECK(fix.proxy.last_request.url == fix.req.url);
+    CHECK(fix.proxy.last_request.url_params.keys() == fix.req.url_params.keys());
+  }
+
+  SECTION("Cache not hitted expected after responce set result in cache and return answer from forward") {
+    int before_forward_cnt = fix.proxy.call_forward;
+    int before_cnt_cache_set = fix.cache.call_set;
+    int mock_code = 1234;
+    std::string mock_body = "test_mock_body";
+    fix.proxy.mock_response = std::make_pair(mock_code, mock_body);
+
+    fix.app.handle_full(fix.req, fix.res);
+
+    REQUIRE(fix.proxy.call_forward == before_forward_cnt + 1);
+    REQUIRE(fix.cache.call_set == before_cnt_cache_set + 1);
+    REQUIRE(fix.res.code == mock_code);
+    REQUIRE(fix.res.body == mock_body);
+  }
+}
+
+TEST_CASE("Test apigate healthz endpoint") {
+  TestGatewayServerFixrute fix;
+  fix.app.validate();
+  fix.req.method = "GET"_method;
+  fix.req.url = "/healthz";
+
+  fix.app.handle_full(fix.req, fix.res);
+
+  auto r = crow::json::load(fix.res.body);
+
+  CHECK(r["status"].s() == "ok");
+  long long ts = r["timestamp"].i();
+  long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                      std::chrono::system_clock::now().time_since_epoch())
+                      .count();
+
+  CHECK(std::llabs(now - ts) < 1000);
+  CHECK(fix.res.get_header_value("Content-Type") == "application/json");
+}
+
+TEST_CASE("extractIP returns X-Forwarded-For when present") {
+  TestGatewayServerFixrute fix;
+  fix.req.add_header("X-Forwarded-For", "123.45.67.89");
+  fix.req.remote_ip_address = "98.76.54.32";
+
+  std::string ip = fix.server.extractIP(fix.req);
+
+  CHECK(ip == "123.45.67.89");
+}
+
+TEST_CASE("extractIP falls back to remote_ip_address") {
+  TestGatewayServerFixrute fix;
+  fix.req.remote_ip_address = "98.76.54.32";
+
+  std::string ip = fix.server.extractIP(fix.req);
+
+  CHECK(ip == "98.76.54.32");
+}
+
+TEST_CASE("extractToken extracts Bearer token") {
+  TestGatewayServerFixrute fix;
+  fix.req.add_header("Authorization", "Bearer abc123");
+
+  std::string token = fix.server.extractToken(fix.req);
+
+  CHECK(token == "abc123");
+}
+
+TEST_CASE("extractToken returns raw Authorization header when not Bearer") {
+  TestGatewayServerFixrute fix;
+  fix.req.add_header("Authorization", "Token xyz");
+
+  std::string token = fix.server.extractToken(fix.req);
+
+  CHECK(token == "Token xyz");
+}
+
+TEST_CASE("extractToken returns empty string when no Authorization header") {
+  TestGatewayServerFixrute fix;
+
+  std::string token = fix.server.extractToken(fix.req);
+
+  CHECK(token.empty());
+}
+

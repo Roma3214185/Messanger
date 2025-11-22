@@ -21,11 +21,14 @@ class ICacheService;
 
 class GatewayServer {
  public:
-  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IProxyClient* proxy, IConfigProvider* provider); /*= &ProdConfigProvider::instance());*/
+  GatewayServer(crow::SimpleApp& app, ICacheService* cache, IProxyClient* proxy, IConfigProvider* provider);
   void run();
 
  protected:
   virtual void sendResponse(crow::response& res, const RequestDTO&, int res_code, const std::string& message, bool hitKey = false);
+  std::string extractToken(const crow::request&) const; //TODO: remove from here
+  std::string extractIP(const crow::request& req) const;
+
 
  private:
   crow::SimpleApp& app_;
@@ -39,7 +42,6 @@ class GatewayServer {
 
   void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path, bool requireAuth);
   void registerRoute(const std::string& basePath, int proxy, bool requireAuth = true);
-  std::string extractIP(const crow::request& req);  //TODO: remove from here
 
   void registerRoutes();
   void registerHealthCheck();
@@ -50,7 +52,6 @@ class GatewayServer {
 
   virtual bool checkRateLimit(const crow::request&);
   virtual bool checkAuth(const crow::request& req, bool requireAuth);
-  std::string extractToken(const crow::request&) const;
 };
 
 #endif  // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_

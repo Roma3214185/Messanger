@@ -1,0 +1,18 @@
+{
+	"ulid": "01KANCQ4PK9XBC6PEXKM5YZS0E",
+	"minTime": 1763791200652,
+	"maxTime": 1763798400000,
+	"stats": {
+		"numSamples": 75,
+		"numFloatSamples": 75,
+		"numSeries": 5,
+		"numChunks": 5
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KANCQ4PK9XBC6PEXKM5YZS0E"
+		]
+	},
+	"version": 1
+}

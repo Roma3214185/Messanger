@@ -95,7 +95,7 @@ void GatewayServer::registerRoute(const std::string& basePath,
       });
 }
 
-std::string GatewayServer::extractIP(const crow::request& req) {
+std::string GatewayServer::extractIP(const crow::request& req) const {
   auto ip = req.get_header_value("X-Forwarded-For");
   if (ip.empty()) {
     ip = req.remote_ip_address;
