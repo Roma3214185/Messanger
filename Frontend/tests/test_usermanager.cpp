@@ -43,23 +43,33 @@ TEST_CASE("Test user manager") {
                     {"avatar_path", user.avatarPath}};
   QJsonDocument doc(obj);
   QByteArray    json_data = doc.toJson();
+  QString token = "secret-token-123";
+  auto doGetUser = [&]() -> QFuture<std::optional<User>> {
+    return user_manager.getUser(user_id, token);
+  };
 
   SECTION("GetUserExpectedRightUrlCreated") {
     QUrl resolved_url("http://localhost:8083/users/4");
-    user_manager.getUser(user_id);
+    doGetUser();
     REQUIRE(network_manager.last_request.url() == resolved_url);
+  }
+
+  SECTION("GetUserExpectedRightSetToken") {
+    QUrl resolved_url("http://localhost:8083/users/4");
+    doGetUser();
+    REQUIRE(network_manager.last_request.rawHeader("Authorization") == token);
   }
 
   SECTION("GetUserExpectedGetMethod") {
     int before_get_calls = network_manager.get_counter;
-    user_manager.getUser(user_id);
+    doGetUser();
     REQUIRE(network_manager.get_counter == before_get_calls + 1);
   }
 
   SECTION("NoRespondFromServerExpectedEmittedErrorOccured") {
     QSignalSpy errorOccured(&user_manager, &UserManager::errorOccurred);
     int        before_calls = errorOccured.count();
-    user_manager.getUser(user_id);
+    doGetUser();
 
     QTRY_COMPARE_WITH_TIMEOUT(errorOccured.count(), before_calls + 1, times_out + 1);
   }
@@ -67,7 +77,7 @@ TEST_CASE("Test user manager") {
   SECTION("NoRespondFromServerExpectedReturnNullopt") {
     QSignalSpy errorOccured(&user_manager, &UserManager::errorOccurred);
     int        before_calls = errorOccured.count();
-    auto       future       = user_manager.getUser(user_id);
+    auto       future       = doGetUser();
 
     QTRY_COMPARE_WITH_TIMEOUT(errorOccured.count(), before_calls + 1, times_out + 1);
     REQUIRE(future.result() == std::nullopt);
@@ -81,7 +91,7 @@ TEST_CASE("Test user manager") {
     network_manager.setReply(mock_reply);
 
     QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
-    user_manager.getUser(user_id);
+    doGetUser();
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccured.count() == before_calls + 1);
@@ -95,7 +105,7 @@ TEST_CASE("Test user manager") {
     network_manager.setReply(mock_reply);
 
     QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
-    auto future = user_manager.getUser(user_id);
+    auto future = doGetUser();
     QCoreApplication::processEvents();
 
     std::optional<User> user = future.result();
@@ -110,7 +120,7 @@ TEST_CASE("Test user manager") {
     network_manager.setReply(mock_reply);
 
     QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
-    user_manager.getUser(user_id);
+    doGetUser();
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccured.count() == before_calls);
@@ -122,7 +132,7 @@ TEST_CASE("Test user manager") {
     network_manager.setReply(mock_reply);
 
     QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
-    auto future = user_manager.getUser(user_id);
+    auto future = doGetUser();
     QCoreApplication::processEvents();
 
     std::optional<User> user_from_server = future.result();
@@ -298,9 +308,10 @@ TEST_CASE("Test findUsersByTag") {
 
   QJsonDocument doc(root);
   QByteArray    json_data = doc.toJson();
+  QString currect_token = "test-token-123";
 
   SECTION("ExpectedFucntionCreateRightUrl") {
-    user_manager.findUsersByTag(tag);
+    user_manager.findUsersByTag(tag, currect_token);
 
     REQUIRE(network_manager.last_request.url() ==
             QUrl("http://localhost:8083/users/search?tag=roma222"));
@@ -308,15 +319,19 @@ TEST_CASE("Test findUsersByTag") {
 
   SECTION("ExpectedGetRequestSended") {
     int before_calls = network_manager.get_counter;
-    user_manager.findUsersByTag(tag);
+    user_manager.findUsersByTag(tag, currect_token);
 
     REQUIRE(network_manager.get_counter == before_calls + 1);
   }
 
+  // SECTION("Expected token is properly setted") {
+  //   user_manager.findUsersByTag(tag, currect_token);
+  // }
+
   SECTION("NoRespondFromServerExpectedErrorOccurred") {
     QSignalSpy spyErrorOccurred(&user_manager, &UserManager::errorOccurred);
     int        before_calls = spyErrorOccurred.count();
-    auto       future       = user_manager.findUsersByTag(tag);
+    auto       future       = user_manager.findUsersByTag(tag, currect_token);
 
     QTRY_COMPARE_WITH_TIMEOUT(spyErrorOccurred.count(), before_calls + 1, times_out + 1);
 
@@ -327,7 +342,7 @@ TEST_CASE("Test findUsersByTag") {
   SECTION("NoRespondFromServerExpectedReturnedEmptyList") {
     QSignalSpy spyErrorOccurred(&user_manager, &UserManager::errorOccurred);
     int        before_calls = spyErrorOccurred.count();
-    auto       future       = user_manager.findUsersByTag(tag);
+    auto       future       = user_manager.findUsersByTag(tag, currect_token);
 
     QTRY_COMPARE_WITH_TIMEOUT(spyErrorOccurred.count(), before_calls + 1, times_out + 1);
     REQUIRE(future.result().isEmpty());
@@ -342,7 +357,7 @@ TEST_CASE("Test findUsersByTag") {
     int        before_calls = spyErrorOccurred.count();
 
     QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
-    auto future = user_manager.findUsersByTag(tag);
+    auto future = user_manager.findUsersByTag(tag, currect_token);
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccurred.count() == before_calls + 1);
@@ -358,7 +373,7 @@ TEST_CASE("Test findUsersByTag") {
     int        before_calls = spyErrorOccurred.count();
 
     QTimer::singleShot(0, reply, &MockReply::emitFinished);
-    auto future = user_manager.findUsersByTag(tag);
+    auto future = user_manager.findUsersByTag(tag, currect_token);
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccurred.count() == before_calls);
@@ -376,7 +391,7 @@ TEST_CASE("Test findUsersByTag") {
     int        before_calls = spyErrorOccurred.count();
 
     QTimer::singleShot(0, reply, &MockReply::emitFinished);
-    auto future = user_manager.findUsersByTag(tag);
+    auto future = user_manager.findUsersByTag(tag, currect_token);
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccurred.count() == before_calls);

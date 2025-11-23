@@ -251,12 +251,12 @@ void Model::sendMessage(const Message& msg) {
 }
 
 auto Model::getUser(int user_id) -> optional<User> {
-  auto future = user_manager_->getUser(user_id);
+  auto future = user_manager_->getUser(user_id, current_token_);
   return waitForFuture(future);
 }
 
 void Model::getUserAsync(int user_id) {
-  QFuture<std::optional<User>> future = user_manager_->getUser(user_id);
+  QFuture<std::optional<User>> future = user_manager_->getUser(user_id, current_token_);
 
   auto *watcher = new QFutureWatcher<std::optional<User>>(this);
   connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher, user_id]() {
@@ -305,7 +305,7 @@ void Model::clearAllMessages() {
 }
 
 auto Model::findUsers(const QString& text) -> QList<User> {
-  auto future = user_manager_->findUsersByTag(text);
+  auto future = user_manager_->findUsersByTag(text, current_token_);
   return waitForFuture(future);
 }
 
