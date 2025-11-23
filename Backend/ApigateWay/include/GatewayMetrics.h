@@ -186,27 +186,4 @@ class GatewayMetrics {
     const std::vector<double> call_latency_buckets_ = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5};
 };
 
-struct MetricsTracker {
-    GatewayMetrics* metrics_;
-    std::chrono::steady_clock::time_point start;
-    std::string path_;
-
-    MetricsTracker(GatewayMetrics* metrics, const std::string& path)
-        : metrics_(metrics)
-        , path_(path)
-        , start(std::chrono::steady_clock::now()) {
-
-        metrics_->newRequest(path);
-    }
-
-    ~MetricsTracker() {
-      using namespace std::chrono;
-
-      auto end = steady_clock::now();
-      auto latency = duration<double>(end - start).count();
-      metrics_->saveRequestLatency(latency);
-    }
-};
-
-
 #endif // GATEWAYMETRICS_H

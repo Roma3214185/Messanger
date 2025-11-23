@@ -157,17 +157,17 @@ void GatewayServer::registerWebSocketRoutes() {
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
       .onopen([wsBridge, this](crow::websocket::connection& client) {
         wsBridge->onClientConnect(client);
-        metrics_.userConnected();
+        metrics_->userConnected();
       })
       .onmessage([wsBridge, this](crow::websocket::connection& client, const std::string& data, bool) {
         wsBridge->onClientMessage(client, data);
-        metrics_.newMessage(client.get_remote_ip());
+        metrics_->newMessage(client.get_remote_ip());
       })
       .onclose([wsBridge, this](crow::websocket::connection& client,
                           const std::string&           reason,
                           uint16_t code) {
         wsBridge->onClientClose(client, reason, code);
-        metrics_.userDisconnected();
+        metrics_->userDisconnected();
       });
 }
 
