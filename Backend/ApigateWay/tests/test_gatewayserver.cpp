@@ -145,6 +145,30 @@ TEST_CASE("Test apigate GET method") {
   }
 }
 
+
+TEST_CASE("Test simple base_path request") {
+  TestGatewayServerFixrute fix;
+  fix.req.method = "GET"_method;
+  fix.req.url = "/chats";
+
+  SECTION("Check server works with pool and right create path") {
+    int before_call_pool = fix.pool.call_count;
+
+    fix.makeCall();
+
+    REQUIRE(fix.server.last_request_info.path == "/chats");
+  }
+
+  SECTION("Expected server call Post proxy with right port") {
+    int before_post_calls = fix.client.call_get;
+
+    fix.makeCall();
+
+    REQUIRE(fix.client.call_get == before_post_calls + 1);
+    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().chatService));
+  }
+}
+
 TEST_CASE("Test apigate healthz endpoint") {
   TestGatewayServerFixrute fix;
   fix.app.validate();

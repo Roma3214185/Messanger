@@ -22,21 +22,8 @@ using std::string;
 
 namespace {
 
-std::string getMethod(const crow::HTTPMethod& method) {
-  switch (method) {
-    case crow::HTTPMethod::GET:
-      return "GET";
-    case crow::HTTPMethod::Delete:
-      return "DELETE";
-    case crow::HTTPMethod::Put:
-      return "PUT";
-    default:
-      return "POST";
-  }
-}
-
 std::string makeCacheKey(const crow::request& req) {
-  return "cache:" + getMethod(req.method) + ":" + req.url;
+  return "cache:" + crow::method_name(req.method) + ":" + req.url;
 }
 
 }  // namespace
@@ -83,7 +70,7 @@ void GatewayServer::registerRoute(const std::string& basePath,
                                   const crow::request& req, crow::response& res, std::string path) {
         pool_->enqueue([this, req = std::move(req), &res, port, basePath, requireAuth, path]() mutable {
           handleProxyRequest(req, res, port, basePath + "/" + path, requireAuth);
-          res.end();
+          //TODO: i need res.end() here or in handleProxyRequest
         });
       });
 
@@ -91,7 +78,6 @@ void GatewayServer::registerRoute(const std::string& basePath,
       [this, port, basePath, requireAuth](const crow::request& req, crow::response& res) {
         pool_->enqueue([this, req = std::move(req), &res, port, basePath, requireAuth]() mutable {
          handleProxyRequest(req, res, port, basePath, requireAuth);
-         res.end();
         });
       });
 }
@@ -110,7 +96,7 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
   PROFILE_SCOPE(path.c_str());
 
   RequestDTO request_info;
-  request_info.method = getMethod(req.method);
+  request_info.method = crow::method_name(req.method);
   request_info.path = path;
 
   auto result = proxy_.forward(req, request_info, port);

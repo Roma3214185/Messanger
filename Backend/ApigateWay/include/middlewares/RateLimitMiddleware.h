@@ -4,9 +4,11 @@
 #include <crow.h>
 
 #include "interfaces/IRateLimiter.h"
+#include "ProdConfigProvider.h"
 
 struct RateLimitMiddleware {
     IRateLimiter* rate_limiter_;
+    IConfigProvider* provider_ = &ProdConfigProvider::instance();
     struct context {};
 
     template<typename ParentCtx>
@@ -15,8 +17,8 @@ struct RateLimitMiddleware {
                        context& ctx,
                        ParentCtx& parent_ctx) {
       if(!rate_limiter_->allow(getIP(req))) {
-        res.code = 429;
-        res.write("Rate limit exceeded");
+        res.code = provider_->statusCodes().rateLimit;
+        res.write(provider_->issueMessages().rateLimitExceed);
         res.end();
       }
     }

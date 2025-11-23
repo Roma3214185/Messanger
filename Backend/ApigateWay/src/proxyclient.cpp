@@ -43,6 +43,10 @@ httplib::Headers getHeaders(const crow::request& req, const RequestDTO& request_
   return headers;
 }
 
+std::string get_host_with_port(int port) {
+  return "localhost:" + to_string(port);
+}
+
 }  // namespace
 
 NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const std::string& method) {
@@ -51,10 +55,6 @@ NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const
   if (method == "PUT") return client_->Put(request);
   if (method == "POST") return client_->Post(request);
   return {kBadGatewayCode, kBadGatewayMessage};
-}
-
-std::string get_host_with_port(int port) {
-  return "localhost:" + to_string(port);
 }
 
 NetworkResponse ProxyClient::forward(const crow::request& req,

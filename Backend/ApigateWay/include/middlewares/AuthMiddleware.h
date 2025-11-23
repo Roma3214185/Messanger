@@ -5,29 +5,30 @@
 
 #include "interfaces/IVerifier.h"
 #include "Debug_profiling.h"
+#include "interfaces/IConfigProvider.h"
+#include "ProdConfigProvider.h"
 
 struct AuthMiddleware {
     struct context {};
     IVerifier* verifier_;
+    IConfigProvider* provider = &ProdConfigProvider::instance();
 
     template<typename ParentCtx>
     void before_handle(const crow::request& req,
                        crow::response& res,
                        context& ctx,
                        ParentCtx& parent_ctx) {
-      if(req.url == "/auth/login" || req.url == "/auth/register" || req.url == "/ws") {
-        return;
-      }
+      if(!needToAuth(req.url)) return;
 
       auto token = fetchToken(req);
-      if(!token.empty() && verifier_->verifyTokenAndGetUserId(token)) {
+      if(verifier_->verifyTokenAndGetUserId(token)) {
         return;
       }
 
       LOG_INFO("Unautoritized {}", req.url);
 
-      res.code = 401;
-      res.write("Unauthorized");
+      res.code = provider->statusCodes().unauthorized;
+      res.write(provider->issueMessages().invalidToken);
       res.end();
     }
 
@@ -37,8 +38,14 @@ struct AuthMiddleware {
     }
 
   private:
+    inline static const std::vector<std::string> no_need_auth_urls {"/auth/login", "/auth/register", "/ws"};
+
     std::string fetchToken(const crow::request& req) {
       return req.get_header_value("Authorization");
+    }
+
+    bool needToAuth(const std::string& url) {
+      return std::find(no_need_auth_urls.begin(), no_need_auth_urls.end(), url) == no_need_auth_urls.end();
     }
 };
 

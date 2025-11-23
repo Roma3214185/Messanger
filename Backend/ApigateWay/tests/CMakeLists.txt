@@ -17,6 +17,7 @@ add_executable(ApigateTests
     mocks/MockVerifier.h
     mocks/MockRateLimiter.h
     mocks/MockMetrics.h
+    test_middlewares.cpp
 )
 
 set_target_properties(ApigateTests PROPERTIES
