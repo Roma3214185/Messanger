@@ -8,6 +8,13 @@
 #include "ScopedRequestsTimer.h"
 #include "websocketbridge.h"
 #include "interfaces/ICacheService.h"
+#include "middlewares/AuthMiddleware.h"
+#include "middlewares/CacheMiddleware.h"
+#include "middlewares/LoggingMiddleware.h"
+#include "middlewares/RateLimitMiddleware.h"
+#include "interfaces/IThreadPool.h"
+#include "interfaces/IMetrics.h"
+#include "MetricsTracker.h"
 
 using json = nlohmann::json;
 using namespace std::chrono_literals;
@@ -82,41 +89,19 @@ void GatewayServer::registerRoute(const std::string& basePath,
       .methods("GET"_method,
                "POST"_method)([this, port, basePath, requireAuth](
                                   const crow::request& req, crow::response& res, std::string path) {
-        LOG_INFO("{}/{}", basePath, path);
-        handleProxyRequest(req, res, port, basePath + "/" + path, requireAuth);
-        LOG_INFO("Res code:{} and res: {}", res.code, res.body);
+        pool_->enqueue([this, req = std::move(req), &res, port, basePath, requireAuth, path]() mutable {
+          handleProxyRequest(req, res, port, basePath + "/" + path, requireAuth);
+          res.end();
+        });
       });
 
   app_.route_dynamic(basePath).methods("GET"_method, "POST"_method)(
       [this, port, basePath, requireAuth](const crow::request& req, crow::response& res) {
-        LOG_INFO("{}", basePath);
-        handleProxyRequest(req, res, port, basePath, requireAuth);
-        LOG_INFO("Res code:{} and res: {}", res.code, res.body);
+        pool_->enqueue([this, req = std::move(req), &res, port, basePath, requireAuth]() mutable {
+         handleProxyRequest(req, res, port, basePath, requireAuth);
+         res.end();
+        });
       });
-}
-
-std::string GatewayServer::extractIP(const crow::request& req) const {
-  auto ip = req.get_header_value("X-Forwarded-For");
-  if (ip.empty()) {
-    ip = req.remote_ip_address;
-  }
-  return ip;
-}
-
-bool GatewayServer::checkAuth(const crow::request& req, bool requireAuth) {
-  if(!requireAuth) return true;
-  std::string token     = extractToken(req);
-  auto        userIdPtr = JwtUtils::verifyTokenAndGetUserId(token);
-  if (!userIdPtr) return false;
-  return true;
-}
-
-std::string makeCacheKey(const crow::request& req) {
-  return "cache:" + getMethod(req.method) + ":" + req.url;
-}
-
-std::optional<nlohmann::json> GatewayServer::checkCache(std::string key) {
-  return cache_->get(key);
 }
 
 void GatewayServer::saveInCache(const crow::request& req, std::string key, std::string value, std::chrono::milliseconds ttl) {
@@ -129,25 +114,17 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
                                        int port,
                                        const std::string&   path,
                                        bool                 requireAuth) {
-  auto tracker = metrics_.getTracker(path);
+  auto tracker = metrics_->getTracker(path);
   PROFILE_SCOPE(path.c_str());
 
   RequestDTO request_info;
   request_info.method = getMethod(req.method);
   request_info.path = path;
-  logger_.logRequest(req, request_info);
-
-  if(!checkRateLimit(req)) return sendResponse(res, request_info, provider_->statusCodes().rateLimit, provider_->issueMessages().rateLimitExceed);
-  if(!checkAuth(req, requireAuth)) return sendResponse(res, request_info, provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken);
-
-  auto key = makeCacheKey(req);
-  if(auto cached = checkCache(key)) { // TODO: small ttl good way to check if data still valid??
-    return sendResponse(res, request_info, provider_->statusCodes().success, cached.value(), true);
-  }
 
   auto result = proxy_.forward(req, request_info, port);
 
-  saveInCache(req, key, result.second, std::chrono::milliseconds(60));
+  auto key = makeCacheKey(req);
+  saveInCache(req, key, result.second);
   sendResponse(res, request_info, result.first, result.second);
 }
 

@@ -6,7 +6,9 @@
 #include <string>
 #include <unordered_map>
 
-class RateLimiter {
+#include "interfaces/iratelimiter.h"
+
+class RateLimiter : public IRateLimiter {
  public:
 
   struct Entry {
