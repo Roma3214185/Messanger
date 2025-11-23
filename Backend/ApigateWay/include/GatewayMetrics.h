@@ -9,12 +9,12 @@
 #include <prometheus/registry.h>
 #include <prometheus/gauge.h>
 #include <prometheus/registry.h>
+#include "interfaces/IMetrics.h"
+#include "MetricsTracker.h"
 
-struct MetricsTracker;
-
-class GatewayMetrics {
+class GatewayMetrics : public IMetrics {
   public:
-    GatewayMetrics(int port)
+    explicit GatewayMetrics(int port)
         : registry_(std::make_shared<prometheus::Registry>())
         , exposer_(std::make_unique<prometheus::Exposer>("127.0.0.1:" + std::to_string(port)))
         , cache_hits_(prometheus::BuildCounter()
@@ -104,7 +104,7 @@ class GatewayMetrics {
       active_requests_->Increment();
     }
 
-    void requestEnded(const std::string& path, int code, bool hitCache) {
+    void requestEnded(const std::string& path, int code, bool hitCache) override {
       active_requests_->Decrement();
       cacheStats(hitCache, path);
       backendStatus(path, code);
@@ -140,7 +140,7 @@ class GatewayMetrics {
       response_size_hist_->Observe(size);
     }
 
-    void newMessage(const std::string& ip) {
+    void newMessage(const std::string& ip) override {
       //TODO: count++;
       //TODO: save messages per user
       //TODO: save message size
@@ -150,8 +150,7 @@ class GatewayMetrics {
       msg_size_histogram_->Observe(size);
     }
 
-    std::unique_ptr<MetricsTracker> getTracker(const std::string& path) { return std::make_unique<MetricsTracker>(this, path); }
-
+    std::unique_ptr<MetricsTracker> getTracker(const std::string& path) override { return std::make_unique<MetricsTracker>(this, path); }
 
   private:
     std::shared_ptr<prometheus::Registry> registry_;

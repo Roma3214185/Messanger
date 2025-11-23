@@ -35,15 +35,20 @@ std::string getMethod(const crow::HTTPMethod& method) {
   }
 }
 
+std::string makeCacheKey(const crow::request& req) {
+  return "cache:" + getMethod(req.method) + ":" + req.url;
+}
+
 }  // namespace
 
-GatewayServer::GatewayServer(crow::SimpleApp& app, ICacheService* cache, IClient* client, IConfigProvider* provider)
+GatewayServer::GatewayServer(GatewayApp& app,
+                             ICacheService* cache, IClient* client, IThreadPool* pool, IMetrics* metrics, IConfigProvider* provider)
     : app_(app)
     , provider_(provider)
+    , metrics_(metrics)
     , proxy_(client)
     , cache_(cache)
-    , metrics_(provider->ports().metrics) {
-  registerRoutes();
+    , pool_(pool) {
 }
 
 void GatewayServer::run() {
@@ -51,25 +56,12 @@ void GatewayServer::run() {
   app_.port(provider_->ports().apigateService).multithreaded().run();
 }
 
-string GatewayServer::extractToken(const crow::request& req) const {
-  string authHeader = req.get_header_value("Authorization");
-  if (authHeader.empty()) return {};
-  return (authHeader.rfind("Bearer ", 0) == 0) ? authHeader.substr(7) : authHeader;
-}
-
-bool GatewayServer::checkRateLimit(const crow::request& req) {
-  string ip = extractIP(req);
-  return rate_limiter_.allow(ip);
-}
-
 void GatewayServer::sendResponse(crow::response& res, const RequestDTO& request_info, int res_code, const std::string& message, bool hitKey) {
-  logger_.logResponse(res_code, message, request_info, hitKey);
-
   res.code = res_code;
   res.write(message);
   res.end();
 
-  metrics_.requestEnded(request_info.path, res_code, hitKey);
+  metrics_->requestEnded(request_info.path, res_code, hitKey);
 }
 
 void GatewayServer::registerRoutes() {

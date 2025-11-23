@@ -45,6 +45,7 @@ target_link_libraries(ApiGateWayCore PUBLIC
     RedisCache
     nlohmann_json::nlohmann_json
     Constants
+    Persistence #TODO: remove IThreadPool from here
 )
 
 add_executable(ApiGateWay

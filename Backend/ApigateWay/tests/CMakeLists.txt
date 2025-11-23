@@ -14,6 +14,9 @@ find_package(Catch2 3 REQUIRED)
 add_executable(ApigateTests
     main.cpp
     test_gatewayserver.cpp
+    mocks/MockVerifier.h
+    mocks/MockRateLimiter.h
+    mocks/MockMetrics.h
 )
 
 set_target_properties(ApigateTests PROPERTIES

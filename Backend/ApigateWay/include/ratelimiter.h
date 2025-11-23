@@ -23,7 +23,7 @@ class RateLimiter : public IRateLimiter {
   explicit RateLimiter(int maxReq = 300, std::chrono::seconds win = std::chrono::seconds(900))
       : maxRequests(maxReq), window(win) {}
 
-  bool allow(const std::string& ip) {
+  bool allow(const std::string& ip) override {
     std::lock_guard<std::mutex> lock(mutex_);
     auto                        now = std::chrono::steady_clock::now();
 

@@ -1,0 +1,18 @@
+{
+	"ulid": "01KARTHK0M27BZTYYG144XDVNJ",
+	"minTime": 1763906406160,
+	"maxTime": 1763913600000,
+	"stats": {
+		"numSamples": 30043,
+		"numFloatSamples": 30043,
+		"numSeries": 67,
+		"numChunks": 203
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KARTHK0M27BZTYYG144XDVNJ"
+		]
+	},
+	"version": 1
+}
