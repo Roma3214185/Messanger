@@ -14,10 +14,15 @@ class MockApiCache : public ICacheService {
     }
 
     int call_set = 0;
+    std::string last_set_key;
+    std::string last_set_value;
+
     void set(const std::string&        key,
              const nlohmann::json&     value,
              std::chrono::milliseconds ttl = std::chrono::hours(24)) override {
       ++call_set;
+      last_set_key = key;
+      last_set_value = value;
     }
 
   private:
