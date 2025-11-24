@@ -30,7 +30,7 @@ using GatewayApp = crow::App<
 
 class GatewayServer {
  public:
-  GatewayServer(GatewayApp& app, ICacheService* cache, IClient* client,
+  GatewayServer(GatewayApp& app, IClient* client,
                  IThreadPool* pool, IConfigProvider* provider);
   void run();
   void registerRoutes();
@@ -46,11 +46,10 @@ class GatewayServer {
   IMetrics* metrics_;
   IThreadPool* pool_;
 
-  void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path, bool requireAuth);
-  void registerRoute(const std::string& basePath, int proxy, bool requireAuth = true);
+  void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path);
+  void registerRoute(const std::string& basePath, int proxy);
   void registerHealthCheck();
   void registerWebSocketRoutes();
-  void saveInCache(const crow::request& req, std::string key, std::string value, std::chrono::milliseconds ttl = std::chrono::milliseconds(60));
 };
 
 #endif  // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_

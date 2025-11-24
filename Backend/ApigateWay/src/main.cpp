@@ -34,7 +34,7 @@ int main() {
 
   RealHttpClient client;
   ThreadPool pool(8);
-  GatewayServer server(app, &cache, &client, &pool, &provider);
+  GatewayServer server(app, &client, &pool, &provider);
   server.registerRoutes();
   server.run();
   return 0;

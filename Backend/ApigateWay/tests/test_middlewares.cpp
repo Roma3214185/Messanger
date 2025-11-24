@@ -226,6 +226,12 @@ TEST_CASE("Test metrics middlewares") {
     fix.metrics_middleware.before_handle(fix.req, fix.res, fix.metrics_ctx, fix.dummy_parent_ctx);
   };
 
+  auto doCallAfter = [&]() {
+    MetricsMiddleware::context metrics_ctx;
+    metrics_ctx.tracker.startTimer(&fix.metrics);
+    fix.metrics_middleware.after_handle(fix.req, fix.res, metrics_ctx, fix.dummy_parent_ctx);
+  };
+
   SECTION("Expected before_handle call new request") {
     int before_call_new_request = fix.metrics.call_newRequest;
     doCallBefore();
@@ -235,11 +241,7 @@ TEST_CASE("Test metrics middlewares") {
   SECTION("Expected after_handle call request ended and save latency") {
     int before_call_request_end = fix.metrics.call_requestEnded;
     int before_call_save_latency = fix.metrics.call_saveRequestLatency;
-    {
-    MetricsMiddleware::context metrics_ctx;
-    metrics_ctx.tracker.startTimer(&fix.metrics);
-    fix.metrics_middleware.after_handle(fix.req, fix.res, metrics_ctx, fix.dummy_parent_ctx);
-    }
+    doCallAfter();
     CHECK(fix.metrics.call_requestEnded == before_call_request_end + 1);
     CHECK(fix.metrics.call_saveRequestLatency == before_call_save_latency + 1);
   }

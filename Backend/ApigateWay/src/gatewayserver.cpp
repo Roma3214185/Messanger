@@ -20,20 +20,10 @@ using json = nlohmann::json;
 using namespace std::chrono_literals;
 using std::string;
 
-namespace {
-
-std::string makeCacheKey(const crow::request& req) {
-  return "cache:" + crow::method_name(req.method) + ":" + req.url;
-}
-
-}  // namespace
-
-GatewayServer::GatewayServer(GatewayApp& app,
-                             ICacheService* cache, IClient* client, IThreadPool* pool, IConfigProvider* provider)
+GatewayServer::GatewayServer(GatewayApp& app, IClient* client, IThreadPool* pool, IConfigProvider* provider)
     : app_(app)
     , provider_(provider)
     , proxy_(client)
-    , cache_(cache)
     , pool_(pool) {
 }
 
@@ -49,46 +39,39 @@ void GatewayServer::sendResponse(crow::response& res, int res_code, const std::s
 }
 
 void GatewayServer::registerRoutes() {
-  registerRoute("/auth", provider_->ports().authService, false);
-  registerRoute("/users", provider_->ports().authService, false);
-  registerRoute("/chats", provider_->ports().chatService, false);
-  registerRoute("/messages", provider_->ports().messageService, false);
-  registerRoute("/notification", provider_->ports().notificationService, false);
+  registerRoute("/auth", provider_->ports().authService);
+  registerRoute("/users", provider_->ports().authService);
+  registerRoute("/chats", provider_->ports().chatService);
+  registerRoute("/messages", provider_->ports().messageService);
+  registerRoute("/notification", provider_->ports().notificationService);
   registerHealthCheck();
   registerWebSocketRoutes();
 }
 
 void GatewayServer::registerRoute(const std::string& basePath,
-                                  int port,
-                                  bool               requireAuth) {
+                                  int port) {
   app_.route_dynamic(basePath + "/<path>")
       .methods("GET"_method,
-               "POST"_method)([this, port, basePath, requireAuth](
+               "POST"_method)([this, port, basePath](
                                   const crow::request& req, crow::response& res, std::string path) {
-        pool_->enqueue([this, req = std::move(req), &res, port, basePath, requireAuth, path]() mutable {
-          handleProxyRequest(req, res, port, basePath + "/" + path, requireAuth);
+        pool_->enqueue([this, req = std::move(req), &res, port, basePath, path]() mutable {
+          handleProxyRequest(req, res, port, basePath + "/" + path);
           //TODO: i need res.end() here or in handleProxyRequest
         });
       });
 
   app_.route_dynamic(basePath).methods("GET"_method, "POST"_method)(
-      [this, port, basePath, requireAuth](const crow::request& req, crow::response& res) {
-        pool_->enqueue([this, req = std::move(req), &res, port, basePath, requireAuth]() mutable {
-         handleProxyRequest(req, res, port, basePath, requireAuth);
+      [this, port, basePath](const crow::request& req, crow::response& res) {
+        pool_->enqueue([this, req = std::move(req), &res, port, basePath]() mutable {
+         handleProxyRequest(req, res, port, basePath);
         });
       });
-}
-
-void GatewayServer::saveInCache(const crow::request& req, std::string key, std::string value, std::chrono::milliseconds ttl) {
-  if(req.method != crow::HTTPMethod::Get) return;
-  cache_->set(key, value, ttl);
 }
 
 void GatewayServer::handleProxyRequest(const crow::request& req,
                                        crow::response&      res,
                                        int port,
-                                       const std::string&   path,
-                                       bool                 requireAuth) {
+                                       const std::string&   path) {
   PROFILE_SCOPE(path.c_str());
 
   RequestDTO request_info;

@@ -29,7 +29,7 @@ struct TestGatewayServerFixrute {
 
     TestGatewayServerFixrute()
         : provider(MockUtils::getMockPorts())
-        , server(app, &cache, &client, &pool, &provider) {
+        , server(app, &client, &pool, &provider) {
       app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
       app.get_middleware<CacheMiddleware>().cache_ = &cache;
       app.get_middleware<LoggingMiddleware>();
