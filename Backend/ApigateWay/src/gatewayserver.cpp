@@ -29,10 +29,9 @@ std::string makeCacheKey(const crow::request& req) {
 }  // namespace
 
 GatewayServer::GatewayServer(GatewayApp& app,
-                             ICacheService* cache, IClient* client, IThreadPool* pool, IMetrics* metrics, IConfigProvider* provider)
+                             ICacheService* cache, IClient* client, IThreadPool* pool, IConfigProvider* provider)
     : app_(app)
     , provider_(provider)
-    , metrics_(metrics)
     , proxy_(client)
     , cache_(cache)
     , pool_(pool) {
@@ -43,12 +42,10 @@ void GatewayServer::run() {
   app_.port(provider_->ports().apigateService).multithreaded().run();
 }
 
-void GatewayServer::sendResponse(crow::response& res, const RequestDTO& request_info, int res_code, const std::string& message, bool hitKey) {
+void GatewayServer::sendResponse(crow::response& res, int res_code, const std::string& message) {
   res.code = res_code;
   res.write(message);
   res.end();
-
-  metrics_->requestEnded(request_info.path, res_code, hitKey);
 }
 
 void GatewayServer::registerRoutes() {
@@ -92,7 +89,6 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
                                        int port,
                                        const std::string&   path,
                                        bool                 requireAuth) {
-  auto tracker = metrics_->getTracker(path);
   PROFILE_SCOPE(path.c_str());
 
   RequestDTO request_info;
@@ -101,9 +97,7 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
 
   auto result = proxy_.forward(req, request_info, port);
 
-  auto key = makeCacheKey(req);
-  saveInCache(req, key, result.second);
-  sendResponse(res, request_info, result.first, result.second);
+  sendResponse(res, result.first, result.second);
 }
 
 void GatewayServer::registerWebSocketRoutes() {
@@ -127,14 +121,13 @@ void GatewayServer::registerWebSocketRoutes() {
 }
 
 void GatewayServer::registerHealthCheck() {
-  CROW_ROUTE(app_, "/healthz")([](const crow::request&, crow::response& res) {
+  CROW_ROUTE(app_, "/healthz")([this](const crow::request&, crow::response& res) {
     json info = {{"status", "ok"},
                  {"timestamp",
                   std::chrono::duration_cast<std::chrono::milliseconds>(
                       std::chrono::system_clock::now().time_since_epoch())
                       .count()}};
     res.set_header("Content-Type", "application/json");
-    res.write(info.dump());
-    res.end();
+    sendResponse(res, provider_->statusCodes().success, info.dump());
   });
 }

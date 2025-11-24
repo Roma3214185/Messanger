@@ -15,7 +15,6 @@ class IMetrics {
     virtual void userDisconnected() = 0;
     virtual void newRequest(const std::string& path) = 0;
     virtual void saveRequestLatency(const double latency) = 0;
-    virtual std::unique_ptr<MetricsTracker> getTracker(const std::string& path) = 0;
 };
 
 #endif // APIGATE_IMETRICS_H

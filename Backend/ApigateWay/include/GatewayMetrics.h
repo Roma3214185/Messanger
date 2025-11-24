@@ -150,8 +150,6 @@ class GatewayMetrics : public IMetrics {
       msg_size_histogram_->Observe(size);
     }
 
-    std::unique_ptr<MetricsTracker> getTracker(const std::string& path) override { return std::make_unique<MetricsTracker>(this, path); }
-
   private:
     std::shared_ptr<prometheus::Registry> registry_;
     std::unique_ptr<prometheus::Exposer> exposer_;

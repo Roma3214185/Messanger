@@ -12,6 +12,7 @@
 #include "middlewares/CacheMiddleware.h"
 #include "middlewares/LoggingMiddleware.h"
 #include "middlewares/RateLimitMiddleware.h"
+#include "middlewares/MetricsMiddleware.h"
 #include "interfaces/IMetrics.h"
 
 class ICacheService;
@@ -22,6 +23,7 @@ class IMetrics;
 using GatewayApp = crow::App<
     LoggingMiddleware,
     RateLimitMiddleware,
+    MetricsMiddleware,
     AuthMiddleware,
     CacheMiddleware
     >;
@@ -29,12 +31,12 @@ using GatewayApp = crow::App<
 class GatewayServer {
  public:
   GatewayServer(GatewayApp& app, ICacheService* cache, IClient* client,
-                 IThreadPool* pool, IMetrics* metrics, IConfigProvider* provider);
+                 IThreadPool* pool, IConfigProvider* provider);
   void run();
   void registerRoutes();
 
  protected:
-  virtual void sendResponse(crow::response& res, const RequestDTO&, int res_code, const std::string& message, bool hitKey = false);
+  virtual void sendResponse(crow::response& res, int res_code, const std::string& message);
 
  private:
   GatewayApp& app_;

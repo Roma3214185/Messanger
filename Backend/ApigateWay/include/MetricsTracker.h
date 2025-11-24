@@ -6,19 +6,16 @@
 #include "interfaces/IMetrics.h"
 
 struct MetricsTracker {
-    IMetrics* metrics_;
+    IMetrics* metrics_ = nullptr;
     std::chrono::steady_clock::time_point start;
-    std::string path_;
 
-    MetricsTracker(IMetrics* metrics, const std::string& path)
-        : metrics_(metrics)
-        , path_(path)
-        , start(std::chrono::steady_clock::now()) {
-
-      metrics_->newRequest(path);
+    void startTimer(IMetrics* metrics) {
+      metrics_ = metrics;
+      start = std::chrono::steady_clock::now();
     }
 
     ~MetricsTracker() {
+      if (!metrics_) return;
       using namespace std::chrono;
 
       auto end = steady_clock::now();

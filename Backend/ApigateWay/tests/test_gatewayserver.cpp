@@ -11,30 +11,14 @@
 #include "mocks/MockTheadPool.h"
 #include "mocks/MockMetrics.h"
 
-class TestGatewayServer : public GatewayServer {
-  public:
-    using GatewayServer::GatewayServer;
-
-    RequestDTO last_request_info;
-    int cnt_hit_key = 0;
-    int cnt_sendResponde = 0;
-
-    void sendResponse(crow::response& res, const RequestDTO& request_info, int res_code, const std::string& message, bool hitKey = false) override {
-      ++cnt_sendResponde;
-      last_request_info = request_info;
-      if(hitKey) ++cnt_hit_key;
-      GatewayServer::sendResponse(res, request_info, res_code, message, hitKey);
-    }
-};
-
 struct TestGatewayServerFixrute {
-    crow::App<LoggingMiddleware, RateLimitMiddleware, AuthMiddleware, CacheMiddleware> app;
+    GatewayApp app;
     MockApiCache cache;
     MockClient client;
     MockConfigProvider provider;
     crow::request req;
     crow::response res;
-    TestGatewayServer server;
+    GatewayServer server;
     MockMetrics metrics;
     std::string mock_client_ans = "TEST FORWARD";
     int mock_client_code = 1356;
@@ -45,11 +29,12 @@ struct TestGatewayServerFixrute {
 
     TestGatewayServerFixrute()
         : provider(MockUtils::getMockPorts())
-        , server(app, &cache, &client, &pool, &metrics, &provider) {
+        , server(app, &cache, &client, &pool, &provider) {
       app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
       app.get_middleware<CacheMiddleware>().cache_ = &cache;
       app.get_middleware<LoggingMiddleware>();
       app.get_middleware<RateLimitMiddleware>().rate_limiter_ = &rate_limiter;
+      app.get_middleware<MetricsMiddleware>().metrics_ = &metrics;
 
       provider.mock_codes = MockUtils::getMockCodes();
 
@@ -78,7 +63,8 @@ TEST_CASE("Test apigate POST method") {
 
     fix.makeCall();
 
-    REQUIRE(fix.server.last_request_info.path == "/auth/login");
+    REQUIRE(fix.client.last_request.full_path == "/auth/login");
+    REQUIRE(fix.pool.call_count == before_call_pool + 1);
   }
 
   SECTION("Expected server call Post proxy with right port") {
@@ -123,17 +109,6 @@ TEST_CASE("Test apigate GET method") {
     CHECK(fix.client.last_request.full_path == fix.req.url);
   }
 
-  SECTION("Returned results from client expectes set result in cache") {
-    int before_forward_cnt = fix.client.call_get;
-    int before_cnt_cache_set = fix.cache.call_set;
-
-    fix.makeCall();
-
-    REQUIRE(fix.client.call_get == before_forward_cnt + 1);
-    REQUIRE(fix.cache.call_set == before_cnt_cache_set + 1);
-    REQUIRE(fix.cache.last_set_value == fix.mock_client_ans);
-  }
-
   SECTION("Returned results from client expectes return same repsonse") {
     int before_forward_cnt = fix.client.call_get;
 
@@ -151,12 +126,12 @@ TEST_CASE("Test simple base_path request") {
   fix.req.method = "GET"_method;
   fix.req.url = "/chats";
 
-  SECTION("Check server works with pool and right create path") {
+  SECTION("Check server enqueue work in pool") {
     int before_call_pool = fix.pool.call_count;
 
     fix.makeCall();
 
-    REQUIRE(fix.server.last_request_info.path == "/chats");
+    REQUIRE(fix.pool.call_count == before_call_pool + 1);
   }
 
   SECTION("Expected server call Post proxy with right port") {

@@ -1,0 +1,18 @@
+{
+	"ulid": "01KASF4TPNGNDY2AV8PFZ350H6",
+	"minTime": 1763928014248,
+	"maxTime": 1763935200000,
+	"stats": {
+		"numSamples": 2773,
+		"numFloatSamples": 2773,
+		"numSeries": 64,
+		"numChunks": 80
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KASF4TPNGNDY2AV8PFZ350H6"
+		]
+	},
+	"version": 1
+}

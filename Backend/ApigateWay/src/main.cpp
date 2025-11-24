@@ -7,6 +7,7 @@
 #include "middlewares/CacheMiddleware.h"
 #include "middlewares/LoggingMiddleware.h"
 #include "middlewares/RateLimitMiddleware.h"
+#include "middlewares/MetricsMiddleware.h"
 #include "JWTVerifier.h"
 #include "ratelimiter.h"
 #include "ThreadPool.h"
@@ -22,17 +23,18 @@ int main() {
   JWTVerifier verifier(kPublicKeyFile, kIssuer);
   RedisCache& cache = RedisCache::instance();
   RateLimiter rate_limiter;
+  GatewayMetrics metrics(provider.ports().metrics);
 
   GatewayApp app;
   app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
+  app.get_middleware<MetricsMiddleware>().metrics_ = &metrics;
   app.get_middleware<CacheMiddleware>().cache_ = &cache;
   app.get_middleware<LoggingMiddleware>();
   app.get_middleware<RateLimitMiddleware>().rate_limiter_ = &rate_limiter;
 
   RealHttpClient client;
   ThreadPool pool(8);
-  GatewayMetrics metrics(provider.ports().metrics);
-  GatewayServer server(app, &cache, &client, &pool, &metrics, &provider);
+  GatewayServer server(app, &cache, &client, &pool, &provider);
   server.registerRoutes();
   server.run();
   return 0;
