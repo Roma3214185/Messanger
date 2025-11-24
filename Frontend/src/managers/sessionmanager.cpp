@@ -12,6 +12,17 @@
 #include "dto/User.h"
 #include "interfaces/INetworkAccessManager.h"
 
+namespace {
+
+auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkRequest {
+  auto request = QNetworkRequest(endpoint);
+  request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+  request.setRawHeader("Authorization", current_token.toUtf8());
+  return request;
+}
+
+}  // namespace
+
 void SessionManager::signIn(const LogInRequest& login_request) {
   PROFILE_SCOPE("SessionManager::signIn");
   LOG_INFO("[signIn] Attempting login for email '{}'", login_request.email.toStdString());
@@ -71,10 +82,8 @@ void SessionManager::signUp(const SignUpRequest& signup_request) {
 
 void SessionManager::authenticateWithToken(const QString& token) {
   QUrl endpoint = url_.resolved(QUrl("/auth/me"));
-  auto request  = QNetworkRequest(endpoint);
-  request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  request.setRawHeader("Authorization", token.toUtf8());
-  auto* reply = network_manager_->get(request);
+  auto req = getRequestWithToken(endpoint, token);
+  auto* reply = network_manager_->get(req);
   handleReplyWithTimeoutVoid(
       reply,
       [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },

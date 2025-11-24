@@ -33,8 +33,8 @@ QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_t
   query.addQueryItem("before_id", QString::number(before_id));
   endpoint.setQuery(query);
   auto  request = getRequestWithToken(endpoint, current_token);
-  auto* reply =
-      network_manager_->get(request);  // TODO(roma): make function getReplyGetChatMessages();
+  auto* reply = network_manager_->get(request);
+  // TODO(roma): make function getReplyGetChatMessages();
 
   return handleReplyWithTimeout<QList<Message>>(
       reply,

@@ -10,12 +10,23 @@
 #include "JsonService.h"
 #include "interfaces/INetworkAccessManager.h"
 
-QFuture<std::optional<User>> UserManager::getUser(int user_id) {
-  PROFILE_SCOPE("UserManager::getUser");
+namespace {
+
+auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkRequest {
+  auto request = QNetworkRequest(endpoint);
+  request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+  request.setRawHeader("Authorization", current_token.toUtf8());
+  return request;
+}
+
+}  // namespace
+
+QFuture<std::optional<User>> UserManager::getUser(int user_id, const QString& current_token) {
   LOG_INFO("[getUser] Loading user id={}", user_id);
+  PROFILE_SCOPE("UserManager::getUser");
 
   QUrl            endpoint = url_.resolved(QUrl(QString("/users/%1").arg(user_id)));
-  QNetworkRequest req(endpoint);
+  auto req = getRequestWithToken(endpoint, current_token);
   auto*           reply = network_manager_->get(req);
 
   return handleReplyWithTimeout<std::optional<User>>(
@@ -47,12 +58,13 @@ auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   return user;
 }
 
-QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag) {
+QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag, const QString& current_token) {
   PROFILE_SCOPE("UserManager::findUsersByTag");
   LOG_INFO("[findUsersByTag] Searching for users with tag={}", tag.toStdString());
 
   QUrl            endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
-  QNetworkRequest request(endpoint);
+  auto request = getRequestWithToken(endpoint, current_token);
+
   auto*           reply = network_manager_->get(request);
 
   return handleReplyWithTimeout<QList<User>>(

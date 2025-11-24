@@ -79,15 +79,6 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
   return nullptr;
 }
 
-// inline auto getPrivateChatFromJson(const QJsonObject& obj) -> ChatPtr {
-//   auto chat         = std::make_shared<PrivateChat>();
-//   chat->chat_id     = obj["chat_id"].toInt();
-//   chat->user_id     = obj["user_id"].toInt();
-//   chat->title       = obj["title"].toString();
-//   chat->avatar_path = obj["avatar"].toString();
-//   return chat;
-// }
-
 }  // namespace JsonService
 
 #endif  // JSONSERVER_H

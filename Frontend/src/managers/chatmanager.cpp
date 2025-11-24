@@ -28,13 +28,8 @@ auto getRequestWithToken(QUrl endpoint, const QString& current_token) -> QNetwor
 
 QFuture<QList<ChatPtr>> ChatManager::loadChats(const QString& current_token) {
   PROFILE_SCOPE("Model::loadChats");
-  LOG_INFO("[loadChats] Loading all chats");
-
-  // QUrl url("http://localhost:8081");
   QUrl            endpoint = url_.resolved(QUrl("/chats"));
-  QNetworkRequest req(endpoint);
-  req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  req.setRawHeader("Authorization", current_token.toUtf8());
+  auto req = getRequestWithToken(endpoint, current_token);
 
   auto* reply = network_manager_->get(req);
   return handleReplyWithTimeout<QList<ChatPtr>>(
@@ -79,13 +74,8 @@ auto ChatManager::onLoadChats(QNetworkReply* reply) -> QList<ChatPtr> {
 
 QFuture<ChatPtr> ChatManager::loadChat(const QString& current_token, int chat_id) {
   PROFILE_SCOPE("Model::loadChat");
-  LOG_INFO("[loadChat] Loading chat id={}", chat_id);
-
-  // QUrl url("http://localhost:8081");
   QUrl            endpoint = url_.resolved(QUrl(QString("/chats/%1").arg(chat_id)));
-  QNetworkRequest req(endpoint);
-  req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  req.setRawHeader("Authorization", current_token.toUtf8());
+  auto req = getRequestWithToken(endpoint, current_token);
 
   auto* reply = network_manager_->get(req);
   return handleReplyWithTimeout<ChatPtr>(
@@ -118,15 +108,12 @@ ChatPtr ChatManager::onChatLoaded(QNetworkReply* reply) {
 
 QFuture<ChatPtr> ChatManager::createPrivateChat(const QString& current_token, int user_id) {
   PROFILE_SCOPE("Model::createPrivateChat");
-  // QUrl url("http://localhost:8081");
   auto endpoint = url_.resolved(QUrl("/chats/private"));
-  auto request  = QNetworkRequest(endpoint);
-  request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  request.setRawHeader("Authorization", current_token.toUtf8());
+  auto req = getRequestWithToken(endpoint, current_token);
   auto body = QJsonObject{
       {"user_id", user_id},
   };
-  auto reply = network_manager_->post(request, QJsonDocument(body).toJson());
+  auto reply = network_manager_->post(req, QJsonDocument(body).toJson());
   return handleReplyWithTimeout<ChatPtr>(
       reply,
       [this](QNetworkReply* server_reply) { return onCreatePrivateChat(server_reply); },

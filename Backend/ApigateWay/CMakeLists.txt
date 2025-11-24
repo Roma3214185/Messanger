@@ -24,9 +24,8 @@ FetchContent_MakeAvailable(httplib)
 add_library(ApiGateWayCore
     ${APIGATE_SRC_DIR}/gatewayserver.cpp
     ${APIGATE_SRC_DIR}/proxyclient.cpp
-    ${APIGATE_SRC_DIR}/JwtUtils.cpp
+    ${APIGATE_SRC_DIR}/JWTVerifier.cpp
     ${APIGATE_SRC_DIR}/websocketbridge.cpp
-    ${APIGATE_SRC_DIR}/Logger.cpp
 )
 
 target_include_directories(ApiGateWayCore PUBLIC
@@ -46,6 +45,7 @@ target_link_libraries(ApiGateWayCore PUBLIC
     RedisCache
     nlohmann_json::nlohmann_json
     Constants
+    Persistence #TODO: remove IThreadPool from here
 )
 
 add_executable(ApiGateWay

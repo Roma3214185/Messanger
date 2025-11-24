@@ -9,12 +9,12 @@
 #include <prometheus/registry.h>
 #include <prometheus/gauge.h>
 #include <prometheus/registry.h>
+#include "interfaces/IMetrics.h"
+#include "MetricsTracker.h"
 
-struct MetricsTracker;
-
-class GatewayMetrics {
+class GatewayMetrics : public IMetrics {
   public:
-    GatewayMetrics(int port)
+    explicit GatewayMetrics(int port)
         : registry_(std::make_shared<prometheus::Registry>())
         , exposer_(std::make_unique<prometheus::Exposer>("127.0.0.1:" + std::to_string(port)))
         , cache_hits_(prometheus::BuildCounter()
@@ -104,7 +104,7 @@ class GatewayMetrics {
       active_requests_->Increment();
     }
 
-    void requestEnded(const std::string& path, int code, bool hitCache) {
+    void requestEnded(const std::string& path, int code, bool hitCache) override {
       active_requests_->Decrement();
       cacheStats(hitCache, path);
       backendStatus(path, code);
@@ -140,7 +140,7 @@ class GatewayMetrics {
       response_size_hist_->Observe(size);
     }
 
-    void newMessage(const std::string& ip) {
+    void newMessage(const std::string& ip) override {
       //TODO: count++;
       //TODO: save messages per user
       //TODO: save message size
@@ -149,9 +149,6 @@ class GatewayMetrics {
     void saveMessageSize(int size) {
       msg_size_histogram_->Observe(size);
     }
-
-    std::unique_ptr<MetricsTracker> getTracker(const std::string& path) { return std::make_unique<MetricsTracker>(this, path); }
-
 
   private:
     std::shared_ptr<prometheus::Registry> registry_;
@@ -185,28 +182,5 @@ class GatewayMetrics {
     const std::vector<double> msg_buckets_ = {100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000};
     const std::vector<double> call_latency_buckets_ = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5};
 };
-
-struct MetricsTracker {
-    GatewayMetrics* metrics_;
-    std::chrono::steady_clock::time_point start;
-    std::string path_;
-
-    MetricsTracker(GatewayMetrics* metrics, const std::string& path)
-        : metrics_(metrics)
-        , path_(path)
-        , start(std::chrono::steady_clock::now()) {
-
-        metrics_->newRequest(path);
-    }
-
-    ~MetricsTracker() {
-      using namespace std::chrono;
-
-      auto end = steady_clock::now();
-      auto latency = duration<double>(end - start).count();
-      metrics_->saveRequestLatency(latency);
-    }
-};
-
 
 #endif // GATEWAYMETRICS_H

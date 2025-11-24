@@ -5,6 +5,10 @@
 
 class MockConfigProvider : public IConfigProvider {
   public:
+    MockConfigProvider() {}
+    explicit MockConfigProvider(Ports ports) : mock_ports(ports) {}
+    explicit MockConfigProvider(StatusCodes codes) : mock_codes(codes) {}
+
     const Routes& routes() const override {
       return mock_routes;
     }
