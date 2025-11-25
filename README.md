@@ -145,98 +145,52 @@ ctest --test-dir build --output-on-failure
 Directory structure:
 └── roma3214185-messanger/
     ├── README.md
+    ├── external
     ├── Backend/
     │   ├── ApigateWay/
+    │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   ├── interfaces/
-    │   │   │   └── middlewares/
     │   │   ├── src/
     │   │   └── tests/
-    │   │       └── mocks/
     │   ├── AuthService/
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   ├── authservice/
-    │   │   │   │   └── interfaces/
-    │   │   │   └── entities/
     │   │   ├── src/
     │   │   └── tests/
-    │   │       └── mocks/
     │   ├── ChatService/
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   └── chatservice/
-    │   │   │       └── interfaces/
     │   │   ├── src/
     │   │   └── tests/
-    │   │       └── mocks/
-    │   ├── common_mocks/
-    │   │   └── mocks/
     │   ├── MessageService/
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   └── messageservice/
-    │   │   │       ├── dto/
-    │   │   │       ├── interfaces/
-    │   │   │       └── managers/
     │   │   ├── src/
-    │   │   │   └── managers/
     │   │   └── tests/
-    │   │       └── mocks/
     │   ├── NotificationService/
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   ├── entities/
-    │   │   │   ├── interfaces/
-    │   │   │   └── notificationservice/
-    │   │   │       └── managers/
     │   │   ├── src/
-    │   │   │   └── managers/
     │   │   └── tests/
-    │   │       └── mocks/
-    │   └── shared_keys/
     ├── common/
     │   ├── constants/
-    │   │   └── include/
-    │   │       └── interfaces/
     │   ├── entities/
-    │   │   └── include/
-    │   │       └── entities/
     │   ├── Metrics/
-    │   │   ├── include/
-    │   │   └── src/
     │   ├── Network/
-    │   │   ├── include/
-    │   │   │   └── interfaces/
-    │   │   └── src/
     │   ├── Persistence/
     │   │   ├── benchmarks/
     │   │   ├── include/
-    │   │   │   └── interfaces/
     │   │   ├── inl/
     │   │   ├── src/
     │   │   └── tests/
     │   ├── RabbitMQClient/
-    │   │   ├── include/
-    │   │   │   └── interfaces/
-    │   │   │       └── IRabitMQClient.h
-    │   │   └── src/
     │   └── RedisCache/
-    │       ├── include/
-    │       │   └── interfaces/
-    │       │       └── ICacheService.h
-    │       └── src/
     ├── Frontend/
     │   ├── config/
     │   ├── forms/
     │   ├── include/
-    │   │   ├── delegators/
-    │   │   ├── dto/
-    │   │   ├── interfaces/
-    │   │   ├── managers/
-    │   │   └── models/
     │   ├── src/
-    │   │   ├── delegators/
-    │   │   ├── managers/
-    │   │   └── models/
     │   └── tests/
-    │       └── mocks/
     ├── .github/
     │   └── workflows/
     │       └── ci.yml
