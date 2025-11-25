@@ -9,18 +9,33 @@
 
 class MockNetworkAccessManager : public INetworkAccessManager {
  public:
-  MockNetworkAccessManager(QNetworkReply* mock_reply) : reply(mock_reply) {}
-  QNetworkReply* post(const QNetworkRequest& req, const QByteArray& byte_array) override {
+  MockNetworkAccessManager(MockReply* mock_reply) : reply(mock_reply) {}
+
+  bool shouldFail = false;
+  bool shouldReturnResponce = true;
+
+  MockReply* post(const QNetworkRequest& req, const QByteArray& byte_array) override {
     last_data    = byte_array;
     last_request = req;
     ++post_counter;
+    if (!reply) LOG_WARN("[MockNetworkAccessManager] Reply in nullptr");
+
+    if(!shouldReturnResponce) return reply;
+
+    if(shouldFail) QTimer::singleShot(0, reply, &MockReply::errorOccurred);
+    else QTimer::singleShot(0, reply, &MockReply::emitFinished);
     return reply;
   }
 
-  QNetworkReply* get(const QNetworkRequest& req) override {
+  MockReply* get(const QNetworkRequest& req) override {
     last_request = req;
     ++get_counter;
     if (!reply) LOG_WARN("[MockNetworkAccessManager] Reply in nullptr");
+
+    if(!shouldReturnResponce) return reply;
+
+    if(shouldFail) QTimer::singleShot(0, reply, &MockReply::errorOccurred);
+    else QTimer::singleShot(0, reply, &MockReply::emitFinished);
     return reply;
   }
 
@@ -29,10 +44,10 @@ class MockNetworkAccessManager : public INetworkAccessManager {
   int             post_counter = 0;
   int             get_counter  = 0;
 
-  void setReply(QNetworkReply* reply) { this->reply = reply; }
+  void setReply(MockReply* reply) { this->reply = reply; }
 
  private:
-  QNetworkReply* reply = nullptr;
+  MockReply* reply = nullptr;
 };
 
 #endif  // MOCKACCESSMANAGER_H

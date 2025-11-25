@@ -43,9 +43,9 @@ TEST_CASE("Test MessageManager getChatMessages") {
 
   SECTION("No response from server emits timeout error and returns empty list") {
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    auto       future = message_manager.getChatMessages("token", 77, 0, 10);
+    network_manager.shouldReturnResponce = false;
 
-    // Wait for timeout
+    auto       future = message_manager.getChatMessages("token", 77, 0, 10);
     QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, timeout_ms + 5);
 
     REQUIRE(future.result().isEmpty());
@@ -57,9 +57,10 @@ TEST_CASE("Test MessageManager getChatMessages") {
     auto reply_with_error = new MockReply();
     reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, "connection refused");
     network_manager.setReply(reply_with_error);
+    network_manager.shouldFail = true;
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     auto future = message_manager.getChatMessages("token", 10, 0, 10);
     QCoreApplication::processEvents();
@@ -68,7 +69,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     REQUIRE(future.result().isEmpty());
 
     auto args = spyError.takeFirst();
-    REQUIRE(args.at(0).toString() == "Error occurred: connection refused");
+    REQUIRE(args.at(0).toString().toStdString() == "Error occurred: connection refused");
   }
 
   SECTION("Invalid JSON (not array) returns empty list and emits error") {
@@ -78,7 +79,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = message_manager.getChatMessages("token_xyz", 5, 0, 10);
     QCoreApplication::processEvents();
@@ -97,7 +98,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = message_manager.getChatMessages("token_ok", 42, 0, 2);
     QCoreApplication::processEvents();
@@ -121,6 +122,7 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   TestMessageManager       message_manager(&network_manager, url, timeout_ms);
 
   SECTION("Network error triggers error signal and returns empty list") {
+    network_manager.shouldFail = true;
     auto reply = new MockReply();
     reply->setMockError(QNetworkReply::TimeoutError, "timed out");
 

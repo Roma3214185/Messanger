@@ -47,6 +47,8 @@ TEST_CASE("Test ChatManager loadChats") {
 
   SECTION("No response from server emits error and returns empty list") {
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
+    network_manager.shouldReturnResponce = false;
+
     auto       future = chat_manager.loadChats("token");
 
     QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, times_out + 1);
@@ -59,7 +61,8 @@ TEST_CASE("Test ChatManager loadChats") {
     network_manager.setReply(reply_with_error);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    network_manager.shouldFail = true;
+    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
     auto future = chat_manager.loadChats("token");
     QCoreApplication::processEvents();
 
@@ -67,14 +70,14 @@ TEST_CASE("Test ChatManager loadChats") {
     REQUIRE(future.result().isEmpty());
 
     auto args = spyError.takeFirst();
-    REQUIRE(args.at(0).toString() == "Error occurred: auth failed");
+    REQUIRE(args.at(0).toString().toStdString() == "Error occurred: auth failed");
   }
 
   SECTION("Valid response returns proper chats") {
     auto reply = new MockReply();
     reply->setData(valid_json_data);
     network_manager.setReply(reply);
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChats("token");
     QCoreApplication::processEvents();
@@ -93,7 +96,7 @@ TEST_CASE("Test ChatManager loadChats") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChats("token");
     QCoreApplication::processEvents();
@@ -128,7 +131,8 @@ TEST_CASE("Test ChatManager loadChat") {
     network_manager.setReply(reply_with_error);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    network_manager.shouldFail = true;
+    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChat("token", 42);
     QCoreApplication::processEvents();
@@ -136,14 +140,14 @@ TEST_CASE("Test ChatManager loadChat") {
     REQUIRE(future.result() == nullptr);
     REQUIRE(spyError.count() == 1);
     auto args = spyError.takeFirst();
-    REQUIRE(args.at(0).toString() == "Error occurred: connection refused");
+    REQUIRE(args.at(0).toString().toStdString() == "Error occurred: connection refused");
   }
 
   SECTION("Valid response returns proper chat object") {
     auto reply = new MockReply();
     reply->setData(valid_json);
     network_manager.setReply(reply);
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChat("token", 42);
     QCoreApplication::processEvents();
@@ -159,7 +163,7 @@ TEST_CASE("Test ChatManager loadChat") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChat("token", 42);
     QCoreApplication::processEvents();
@@ -201,7 +205,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     network_manager.setReply(reply_with_error);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
@@ -214,7 +218,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     auto reply = new MockReply();
     reply->setData(valid_json);
     network_manager.setReply(reply);
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
@@ -232,7 +236,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
 
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
     int        before = spyError.count();
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
@@ -249,7 +253,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     network_manager.setReply(reply);
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
 
-    QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
 
@@ -265,7 +269,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, mock_error_message);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     chat_manager.onLoadChats(reply_with_error);
 
@@ -281,7 +285,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, mock_error_message);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     chat_manager.onChatLoaded(reply_with_error);
 

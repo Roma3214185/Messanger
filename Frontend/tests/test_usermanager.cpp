@@ -90,13 +90,13 @@ TEST_CASE("Test user manager") {
     mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError, "error");
     network_manager.setReply(mock_reply);
 
-    QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
+    network_manager.shouldFail = true;
     doGetUser();
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccured.count() == before_calls + 1);
     auto arguments = spyErrorOccured.takeFirst();
-    REQUIRE(arguments.at(0).toString() == "Error occurred: error");
+    REQUIRE(arguments.at(0).toString().toStdString() == "Error occurred: error");
   }
 
   SECTION("ErrorReplyExpectedReturnedNullopt") {
@@ -104,7 +104,7 @@ TEST_CASE("Test user manager") {
     mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError, "error");
     network_manager.setReply(mock_reply);
 
-    QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
     auto future = doGetUser();
     QCoreApplication::processEvents();
 
@@ -119,7 +119,7 @@ TEST_CASE("Test user manager") {
     mock_reply->setData(json_data);
     network_manager.setReply(mock_reply);
 
-    QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
     doGetUser();
     QCoreApplication::processEvents();
 
@@ -131,7 +131,7 @@ TEST_CASE("Test user manager") {
     mock_reply->setData(json_data);
     network_manager.setReply(mock_reply);
 
-    QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
+    //QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
     auto future = doGetUser();
     QCoreApplication::processEvents();
 
@@ -355,14 +355,15 @@ TEST_CASE("Test findUsersByTag") {
     network_manager.setReply(reply_with_error);
     QSignalSpy spyErrorOccurred(&user_manager, &BaseManager::errorOccurred);
     int        before_calls = spyErrorOccurred.count();
+    network_manager.shouldFail = true;
 
-    QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
     auto future = user_manager.findUsersByTag(tag, currect_token);
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccurred.count() == before_calls + 1);
     auto arguments = spyErrorOccurred.takeFirst();
-    REQUIRE(arguments.at(0).toString() == "Error occurred: there is no authentification");
+    REQUIRE(arguments.at(0).toString().toStdString() == "Error occurred: there is no authentification");
   }
 
   SECTION("ValidReplyExpectedNotEmittedError") {

@@ -14,13 +14,33 @@ class MockReply : public QNetworkReply {
     setUrl(QUrl("http://mock.url"));
   }
 
-  void setMockError(QNetworkReply::NetworkError code, const QString& str) { setError(code, str); }
+  QString mock_str = "Mock network error";
+  QNetworkReply::NetworkError mock_code = ConnectionRefusedError;
+
+  void setMockError(QNetworkReply::NetworkError code, const QString& str) {
+    setError(code, str);
+    mock_str = str;
+    mock_code = code;
+  }
 
   void abort() override {}
   void setData(const QByteArray& data) { this->data = data; }
-  void emitFinished() { Q_EMIT finished(); }
 
   QByteArray data;
+
+ public Q_SLOTS:
+  void emitFinished() {
+    setFinished(true);
+    setError(NoError, {});
+    Q_EMIT finished();
+  }
+
+  void errorOccurred() {
+    setFinished(true);
+    setError(mock_code, mock_str);
+    Q_EMIT QNetworkReply::errorOccurred(mock_code);
+    Q_EMIT finished();
+  }
 
  protected:
   qint64 readData(char* buffer, qint64 maxlen) override {
