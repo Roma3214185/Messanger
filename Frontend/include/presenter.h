@@ -34,12 +34,15 @@ class Presenter : public QObject {
   void sendButtonClicked(const QString& text_to_send);
   void onLogOutButtonClicked();
   void onScroll(int value);
-  void setId(int id);
+  //void setId(int id);
 
  protected:
   void setCurrentChatId(int chat_id);
   void newMessage(Message& message);
   void onNewResponce(QJsonObject& json_object);
+
+  OptionalInt          current_opened_chat_id_;
+  std::optional<User>  current_user_;
 
  private:
   void initialConnections();
@@ -48,12 +51,9 @@ class Presenter : public QObject {
   void onErrorOccurred(const QString& error);
   void onChatUpdated(int chat_id);
 
-  IMainWindow*       view_;
-  Model*             manager_;
-  IMessageListView*  message_list_view_;
-  OptionalInt        current_chat_id_;
-  OptionalInt        current_user_id_;
-  User               current_user;
+  IMainWindow*         view_;
+  Model*               manager_;
+  IMessageListView*    message_list_view_;
 };
 
 #endif  // PRESENTER_H

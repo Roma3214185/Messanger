@@ -113,7 +113,7 @@ void Model::deleteToken() const {
   LOG_INFO("[deleteToken] Token deleted");
 }
 
-void Model::setCurrentId(int current_id) { MessageModel::setCurrentUserId(current_id); }
+void Model::setCurrentUserId(int current_id) { MessageModel::setCurrentUserId(current_id); }
 
 void Model::signIn(const LogInRequest& login_request) { session_manager_->signIn(login_request); }
 
@@ -148,6 +148,7 @@ auto Model::loadChats() -> QList<ChatPtr> {
 
 auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
   int before_id = 0;
+  //TODO: cache request result for {chat_id before_id}
 
   auto message_model = data_manager_->getMessageModel(chat_id);
   if (message_model) {
@@ -161,7 +162,6 @@ auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
   }
 
   LOG_INFO("[getChatMessages] Loading messages for chatId={}, beforeId = '{}'", chat_id, before_id);
-
   auto future = message_manager_->getChatMessages(current_token_, chat_id, before_id, limit);
   return waitForFuture(future);
 }

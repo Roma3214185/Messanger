@@ -50,14 +50,14 @@ QList<Message> MessageManager::onGetChatMessages(QNetworkReply* reply) {
   if (reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onGetChatMessages] Network error: '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred("[network] " + reply->errorString());
-    return {};
+    return QList<Message>{};
   }
 
   auto doc = QJsonDocument::fromJson(reply->readAll());
   if (!doc.isArray()) {
     LOG_ERROR("[onGetChatMessages] Invalid JSON: expected array");
     Q_EMIT errorOccurred("Invalid JSON: expected array at root");
-    return {};
+    return QList<Message>{};
   }
 
   QList<Message> messages;

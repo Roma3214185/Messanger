@@ -80,7 +80,7 @@ class Model : public QObject {
 
   int         getNumberOfExistingChats() const;
   QModelIndex indexByChatId(int chat_id);
-  static void setCurrentId(int current_id);
+  static void setCurrentUserId(int current_id);
 
  Q_SIGNALS:
   void chatAdded(int id);

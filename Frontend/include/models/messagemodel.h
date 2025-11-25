@@ -19,6 +19,7 @@ class MessageModel : public QAbstractListModel {
  public:
   enum Roles {
     UsernameRole = Qt::UserRole + 1,
+    MessageIdRole,
     TextRole,
     AvatarRole,
     TimestampRole,
@@ -30,15 +31,15 @@ class MessageModel : public QAbstractListModel {
 
   explicit MessageModel(QObject* parent = nullptr);
 
-  [[nodiscard]] int                    rowCount(const QModelIndex& parent) const override;
-  [[nodiscard]] int                    rowCount() const { return rowCount(QModelIndex()); }
-  [[nodiscard]] QVariant               data(const QModelIndex& index, int role) const override;
-  [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+  int                    rowCount(const QModelIndex& parent = QModelIndex()) const override;
+  QVariant               data(const QModelIndex& index, int role) const override;
+  QModelIndex indexFromId(int messageId) const;
+  QHash<int, QByteArray> roleNames() const override;
   void addMessage(const Message& msg, const User& user);
   void clear();
-  [[nodiscard]] std::optional<Message> getLastMessage();
-  [[nodiscard]] std::optional<Message> getOldestMessage();
-  static void                          setCurrentUserId(int user_id);
+  std::optional<Message> getLastMessage() const;
+  std::optional<Message> getOldestMessage() const;
+  static void setCurrentUserId(int user_id);
   void                                 resetCurrentUseId();
 
  private:
