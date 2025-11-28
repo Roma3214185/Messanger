@@ -1,5 +1,7 @@
 #include "RedisCache.h"
 
+#include <random>
+
 namespace {
 
 template <typename Duration>
@@ -19,7 +21,6 @@ std::chrono::milliseconds getRangedTtl(Duration ttl) {
 }  // namespace
 
 void RedisCache::clearPrefix(const std::string& prefix) {
-  LOG_INFO("clearPrefix prefix '{}' from cashe", prefix);
   std::vector<std::string> keys;
   getRedis().keys(prefix + "*", std::back_inserter(keys));
   for (const auto& key : keys) {
@@ -29,21 +30,18 @@ void RedisCache::clearPrefix(const std::string& prefix) {
 
 bool RedisCache::exists(const std::string& key) {
   bool exist = getRedis().exists(key);
-  LOG_INFO("For key '{}' value exist:", key, exist);
   return exist;
 }
 
 void RedisCache::remove(const std::string& key) {
   try {
-    LOG_INFO("Remove key '{}' from cashe", key);
     getRedis().del(key);
   } catch (const std::exception& e) {
-    logError("remove", key, e);
+
   }
 }
 
 void RedisCache::incr(const std::string& key) {
-  LOG_INFO("INCREMENT key: '{}'", key);
   redis_->incr(key);
 }
 
@@ -66,37 +64,28 @@ sw::redis::Redis& RedisCache::getRedis() {
   return *redis_;
 }
 
-void RedisCache::logError(const std::string&    action,
-                          const std::string&    key,
-                          const std::exception& e) {
-  LOG_ERROR("'{}' ( '{}' ): '{}'", action, key, e.what());
-}
-
 void RedisCache::set(const std::string&        key,
-                     const nlohmann::json&     value,
+                     const std::string&     value,
                      std::chrono::milliseconds ttl) {
   try {
-    const std::string serialized_enity = value.dump();
-    LOG_INFO("set for key '{}' value: '{}'", key, serialized_enity);
     auto ranged_ttl = getRangedTtl(ttl);
-    getRedis().set(key, serialized_enity, ranged_ttl);
+    getRedis().set(key, value, ranged_ttl);
   } catch (const std::exception& e) {
-    logError("set", key, e);
+
   }
 }
 
-std::optional<nlohmann::json> RedisCache::get(const std::string& key) {
-  LOG_INFO("real get");
+std::optional<std::string> RedisCache::get(const std::string& key) {
   try {
-    if (auto value = getRedis().get(key)) return nlohmann::json::parse(*value);
+    if (auto value = getRedis().get(key)) return *value;
   } catch (const std::exception& e) {
-    logError("get", key, e);
+    return std::nullopt;
   }
   return std::nullopt;
 }
 
 void RedisCache::setPipelines(const std::vector<std::string>&    keys,
-                              const std::vector<nlohmann::json>& results,
+                              const std::vector<std::string>& results,
                               std::chrono::minutes               ttl) {
   try {
     assert(keys.size() == results.size() || keys.size() == 1);
@@ -105,15 +94,13 @@ void RedisCache::setPipelines(const std::vector<std::string>&    keys,
 
     for (int i = 0; i < keys.size(); i++) {
       const std::string&    key   = keys.size() == 1 ? keys[0] : keys[i];
-      const nlohmann::json& value = results[i];
-      LOG_INFO("Save ({}), {}", key, value.dump());
-      pipe.set(key, value.dump(), ttl);
+      const std::string& value = results[i];
+      pipe.set(key, value, ttl);
     }
 
     pipe.exec();
-    LOG_INFO("Saved {} entities in Redis pipeline", results.size());
   } catch (const sw::redis::Error& e) {
-    LOG_ERROR("Redis pipeline failed: {}", e.what());
+
   }
 }
 

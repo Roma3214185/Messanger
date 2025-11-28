@@ -80,8 +80,8 @@ void Server::onGetMessagesFromChat(const crow::request& req, int chat_id, crow::
 
   int user_id = *optional_user_id;
 
-  GetMessagePack pack { .before_id = getBeforeId(req), .chat_id = chat_id,
-                      .limit = getLimit(req), .user_id = user_id };
+  GetMessagePack pack {.chat_id = chat_id, .limit = getLimit(req),
+                      .before_id = getBeforeId(req), .user_id = user_id };
 
   auto messages = controller_->getMessages(pack);
   auto messages_status = controller_->getMessagesStatus(messages, user_id);

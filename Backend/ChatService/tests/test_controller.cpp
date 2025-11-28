@@ -8,8 +8,15 @@
 #include "chatservice/AutoritizerProvider.h"
 #include "mocks/MockUtils.h"
 #include "mocks/MockAutoritizer.h"
+#include <chrono>
 
 #include "ProdConfigProvider.h"
+
+inline long long currentSecsSinceEpoch() {
+  return std::chrono::duration_cast<std::chrono::seconds>(
+             std::chrono::system_clock::now().time_since_epoch()
+             ).count();
+}
 
 namespace TestController {
 
@@ -200,7 +207,7 @@ TEST_CASE("Test ChatController::GetChat") {
     REQUIRE(fix.res.body == "Chat not found");
   }
 
-  auto now = QDateTime::currentSecsSinceEpoch();
+  auto now = currentSecsSinceEpoch();
   Chat private_chat;
   private_chat.id = chat_id;
   private_chat.name = "This will not use here";
@@ -263,14 +270,14 @@ TEST_CASE("Test ChatController::GetAllChats") {
   Chat private_chat;
   private_chat.id = 1;
   private_chat.is_group = false;
-  private_chat.created_at = QDateTime::currentSecsSinceEpoch();
+  private_chat.created_at = currentSecsSinceEpoch();
 
   Chat group_chat;
   group_chat.id = 2;
   group_chat.is_group = true;
   group_chat.name = "GroupChatName";
   group_chat.avatar = "group/avatar.png";
-  group_chat.created_at = QDateTime::currentSecsSinceEpoch();
+  group_chat.created_at =   currentSecsSinceEpoch();
 
   fix.manager.mock_chat_by_id = {
       {private_chat.id, private_chat},
@@ -332,7 +339,8 @@ TEST_CASE("Test ChatController::GetAllChats") {
     };
     fix.manager.mock_other_member_id = other_user.id;
     fix.network_manager.mock_user = other_user;
-    fix.manager.mock_cht = 5;
+    constexpr int mock_cnt = 5;
+    fix.manager.mock_cht = mock_cnt;
 
     fix.controller.getAllChats(fix.req, fix.res);
 
@@ -353,6 +361,6 @@ TEST_CASE("Test ChatController::GetAllChats") {
     CHECK(c1["type"].s() == "group");
     CHECK(c1["name"].s() == group_chat.name);
     CHECK(c1["avatar"].s() == group_chat.avatar);
-    CHECK(c1["member_count"].i() == 5);
+    CHECK(c1["member_count"].i() == mock_cnt);
   }
 }

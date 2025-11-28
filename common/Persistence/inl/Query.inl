@@ -9,10 +9,11 @@
 
 template <typename T>
 std::optional<std::vector<T>> SelectQuery<T>::tryLoadFromCache(const std::string& key) const {
-  if (auto entity_json = cache_.get(key)) {
+  if (std::optional<std::string> entity_string = cache_.get(key)) {
     LOG_INFO("[QueryCache] HIT for key '{}'", key);
     try {
-      auto res = entity_json->template get<std::vector<T>>();
+      nlohmann::json json_obj = nlohmann::json::parse(*entity_string);
+      auto res = json_obj.template get<std::vector<T>>();
       LOG_INFO("[QueryCache] Parsed successfully: '{}'", res.size());
       return res;
     } catch (...) {
@@ -69,16 +70,18 @@ std::vector<T> SelectQuery<T>::buildResults(QSqlQuery& query) const {
 
 template <typename T>
 void SelectQuery<T>::updateCache(const std::string& key, const std::vector<T>& results) const {
-  std::vector<nlohmann::json> entities_jsons;
+  std::vector<std::string> entities_strings;
   std::vector<std::string> entities_keys;
 
   for (const auto& entity : results) {
-    entities_jsons.push_back(entity);
+    entities_strings.push_back(nlohmann::json(entity).dump());
     entities_keys.push_back(buildEntityKey(entity));
   }
 
-  cache_.setPipelines(entities_keys, entities_jsons);
-  cache_.set(key, results, std::chrono::hours(24));
+  nlohmann::json j = results;
+  std::string serialized = j.dump();
+  cache_.setPipelines(entities_keys, entities_strings);
+  cache_.set(key, serialized, std::chrono::hours(24));
 }
 
 template <typename T>
@@ -149,7 +152,7 @@ int SelectQuery<T>::getEntityId(const T& entity) const { return entity.id; }
 template <typename T>
 QString SelectQuery<T>::buildSelectQuery() const {
   QString sql =
-      QString("SELECT * FROM %1").arg(QString::fromStdString(this->table_name_));
+      QString("SELECT * FROM %1").arg(this->table_name_);
   sql += this->join_clause_;
   if (!this->filters_.empty()) sql += " WHERE " + this->filters_.join(" AND ");
   if (!this->order_.isEmpty()) sql += " " + this->order_;
@@ -161,9 +164,9 @@ template <typename T>
 auto SelectQuery<T>::getGenerations() const {
   std::unordered_map<std::string, long long> generations;
   for (const auto& table : this->involved_tables_) {
-    std::string key = "table_generation:" + table;
-    std::optional<nlohmann::json> json_ptr = cache_.get(key);
-    generations[table] = json_ptr ? std::stoll(json_ptr->dump()) : 0;
+    std::string key = std::string("table_generation:") + table.toStdString();
+    std::optional<std::string> string_ptr = cache_.get(key);
+    generations[table.toStdString()] = string_ptr ? std::stoll(*string_ptr) : 0;
   }
   return generations;
 }
@@ -197,7 +200,7 @@ std::size_t SelectQuery<T>::hashParams(QVector<QVariant>) const {
 
 template <typename T>
 std::string SelectQuery<T>::buildEntityKey(const T& entity) const {
-  return "entity_cache:" + this->table_name_ + ":" + EntityKey<T>::get(entity);
+  return "entity_cache:" + this->table_name_.toStdString() + ":" + EntityKey<T>::get(entity);
 }
 
 template <typename T>

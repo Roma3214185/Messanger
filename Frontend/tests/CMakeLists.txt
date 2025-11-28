@@ -8,7 +8,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
-find_package(spdlog REQUIRED)
 find_package(Catch2 3 REQUIRED)
 
 add_executable(FrontendServiceTests
@@ -24,27 +23,24 @@ add_executable(FrontendServiceTests
     test_datamanager.cpp
     test_chatitemdelegate.cpp
     test_usermodel.cpp
-    mocks/MockMainWindow.h
-    mocks/MockMessageListView.h
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES
     AUTOMOC ON
     AUTOUIC ON
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "/opt/homebrew/lib"
-    INSTALL_RPATH_USE_LINK_PATH ON
+    #BUILD_WITH_INSTALL_RPATH ON
+    #INSTALL_RPATH "/opt/homebrew/lib"
+    #INSTALL_RPATH_USE_LINK_PATH ON
 )
 
 target_link_libraries(FrontendServiceTests
     PRIVATE
         FrontendLib
-        Metrics
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test
-        prometheus-cpp::core
-        prometheus-cpp::pull
+        #prometheus-cpp::core
+        #prometheus-cpp::pull
 )
 
 set_target_properties(FrontendServiceTests PROPERTIES AUTOMOC ON)

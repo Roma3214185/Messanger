@@ -29,6 +29,12 @@ class MockMessageListView : public IMessageListView {
     void setMessageScrollBarValue(int value) override {
 
     }
+
+    int call_preserveFocusWhile = 0;
+    void preserveFocusWhile(MessageModel* message_model, std::function<void()> updateModel) override {
+      ++call_preserveFocusWhile;
+      updateModel();
+    }
 };
 
 #endif // MOCKMESSAGELISTVIEW_H

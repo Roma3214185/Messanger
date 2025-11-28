@@ -9,7 +9,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui)
-find_package(spdlog REQUIRED)
 
 set(FRONTEND_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(FRONTEND_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -85,6 +84,7 @@ add_executable(Frontend
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
+    Dockerfile
 )
 
 add_custom_command(TARGET Frontend POST_BUILD

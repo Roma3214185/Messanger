@@ -9,6 +9,7 @@
 #include "chatservice/interfaces/IChatManager.h"
 #include "NetworkFacade.h"
 #include "chatservice/AutoritizerProvider.h"
+#include "Debug_profiling.h"
 
 using std::optional;
 using std::string;

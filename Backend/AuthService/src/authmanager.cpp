@@ -58,7 +58,7 @@ OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
   auto users_with_same_tag = findUserWithSameTag(req.tag);
   if(users_with_same_tag) return std::nullopt;
 
-  User user_to_save{.username = req.name, .tag = req.tag, .email = req.email};
+  User user_to_save{.username = req.name, .email = req.email, .tag = req.tag};
 
   bool saved = rep_.save(user_to_save);
   if (!saved) return std::nullopt;

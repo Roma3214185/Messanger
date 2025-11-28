@@ -11,8 +11,6 @@
 #include "mocks/MockNetworkManager.h"
 
 #include <unordered_map>
-#include <QVector>
-
 
 TEST_CASE("Test handling messages") {
   MockRabitMQClient mock_rabit_client;
@@ -141,7 +139,7 @@ TEST_CASE("Notification manager handles message saved") {
   auto socket4 = std::make_shared<MockSocket>();
   auto socket0 = std::make_shared<MockSocket>();
 
-  QVector<int> user_ids(5);
+  std::vector<int> user_ids(5);
   user_ids[0] = 1;
   user_ids[1] = 2;
   user_ids[2] = 3;

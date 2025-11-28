@@ -1,19 +1,29 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(MessageService LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(MESSAGE_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(MESSAGE_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql)
-find_package(spdlog REQUIRED)
+add_compile_definitions(QT_NO_KEYWORDS)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common/Persistence ../../build_message_persistence)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common/RabbitMQClient ../../build_message_rabbit)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    Crow
+    GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+    GIT_TAG v1.3
+)
+FetchContent_MakeAvailable(Crow)
+
+find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(nlohmann_json REQUIRED)
 
 link_directories(/opt/homebrew/lib)
@@ -32,7 +42,7 @@ target_link_libraries(MessageServiceCore PUBLIC
   jwt-cpp
   nlohmann_json::nlohmann_json
   Constants
-  NetworkManager
+  Network
   Persistence
 )
 
@@ -43,6 +53,7 @@ target_include_directories(MessageServiceCore PUBLIC
 
 add_executable(MessageService
   ${MESSAGE_SERVICE_SRC_DIR}/main.cpp
+  Dockerfile
 )
 
 target_link_libraries(MessageService PRIVATE MessageServiceCore Qt6::Core)

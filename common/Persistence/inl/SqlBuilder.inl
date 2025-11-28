@@ -12,16 +12,7 @@ QVariant toVariant(const Field& f, const T& entity) {
     return QString::fromStdString(std::any_cast<std::string>(val));
   if (f.type == typeid(bool))
     return static_cast<int>(std::any_cast<bool>(val));
-  if (f.type == typeid(QDateTime)) {
-    QDateTime dt = std::any_cast<QDateTime>(val);
 
-    if (!dt.isValid()) {
-      LOG_WARN("in to variant was invalid datetimp");
-      dt = QDateTime::currentDateTime();
-    }
-
-    return QVariant(dt.toSecsSinceEpoch());
-  }
   return {};
 }
 
@@ -38,9 +29,6 @@ std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
 
   if (f.type == typeid(bool))
     return std::any(static_cast<bool>(v.toInt()));
-
-  if (f.type == typeid(QDateTime))
-    return std::any(v.toDateTime());
 
   return {};
 }

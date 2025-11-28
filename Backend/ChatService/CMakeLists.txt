@@ -2,12 +2,22 @@ cmake_minimum_required(VERSION 3.10)
 project(ChatService LANGUAGES CXX)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
-find_package(spdlog REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
 set(CHAT_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CHAT_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 find_package(nlohmann_json REQUIRED)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    Crow
+    GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+    GIT_TAG v1.3
+)
+FetchContent_MakeAvailable(Crow)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common/Persistence ../../build_chat_persistence)
 
 add_library(ChatServiceCore STATIC
   ${CHAT_SERVICE_SRC_DIR}/chatcontroller.cpp
@@ -24,7 +34,9 @@ target_link_libraries(ChatServiceCore PUBLIC
     nlohmann_json::nlohmann_json
     RabbitMQClient
     Entities
-    NetworkManager
+    RedisCache
+    Persistence
+    Network
 )
 
 target_include_directories(ChatServiceCore PUBLIC
@@ -34,6 +46,7 @@ target_include_directories(ChatServiceCore PUBLIC
 
 add_executable(ChatService
     ${CHAT_SERVICE_SRC_DIR}/main.cpp
+    Dockerfile
 )
 
 target_link_libraries(ChatService PRIVATE ChatServiceCore Qt6::Core)

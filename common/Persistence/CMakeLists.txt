@@ -5,13 +5,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
+find_package(nlohmann_json REQUIRED)
 
+if (NOT TARGET Persistence)
 add_library(Persistence STATIC
     src/GenericRepository.cpp
     src/SQLiteDatabase.cpp
-    src/ThreadPool.cpp
     src/SqlExecutor.cpp
-    include/interfaces/IThreadPool.h
 )
 
 target_include_directories(Persistence
@@ -25,5 +25,10 @@ target_link_libraries(Persistence
         Qt6::Core
         Qt6::Sql
         Metrics
+        ThreadPool
         RedisCache
+        Entities
+        nlohmann_json::nlohmann_json
 )
+
+endif()

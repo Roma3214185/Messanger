@@ -1,5 +1,3 @@
-#define CATCH_CONFIG_RUNNER
-#include <QCoreApplication>
 #include <QUrl>
 #include <catch2/catch_all.hpp>
 #include <QSignalSpy>
@@ -15,6 +13,7 @@
 #include "mocks/FakeSocket.h"
 #include "mocks/MockMessageListView.h"
 #include "managers/datamanager.h"
+#include "dto/SignUpRequest.h"
 
 class TestPresenter : public Presenter {
   public:
@@ -22,93 +21,134 @@ class TestPresenter : public Presenter {
     using Presenter::setCurrentChatId;
     using Presenter::newMessage;
     using Presenter::onNewResponce;
+
+    void setMockCurrentUser(User user) {
+      Presenter::current_user_ = user;
+    }
+
+    void setMockOpenedChatId(int chat_id) {
+       Presenter::current_opened_chat_id_ = chat_id;
+    }
 };
 
+struct TestPresenterFixrute {
+    std::unique_ptr<MockReply> reply;
+    MockNetworkAccessManager netManager;
+    FakeSocket fake_socket;
+    QUrl url;
+    MockCache cache;
+    DataManager data_manager;
+    Model model;
+    MockMainWindow window;
+    MockMessageListView message_list_view;
+    TestPresenter presenter;
+
+    QString email = "roma-test-email@gmail.com";
+    QString password = "password-test-password";
+    QString tag = "test-roma-228-tag";
+    QString name = "test-name";
+
+    TestPresenterFixrute()
+        : reply(std::make_unique<MockReply>())
+        , netManager(reply.get())
+        , model(url, &netManager, &cache, &fake_socket, &data_manager)
+        , message_list_view(2, 2)
+        , presenter(&window, &model) {
+      presenter.setMessageListView(&message_list_view);
+    }
+};
+
+//TODO: extract check login from mainwindow to session-manager/model???
+
 TEST_CASE("Test presenter communication with other classes", "[presenter]") {
-  auto* reply = new MockReply();
-  MockNetworkAccessManager netManager(reply);
-  FakeSocket fake_socket;
-  QUrl url("");
-  MockCache cache;
-  DataManager data_manager;
-  Model model(url, &netManager, &cache, &fake_socket, &data_manager);
-  MockMainWindow window;
-  MockMessageListView message_list_view(2, 2);
-  TestPresenter presenter(&window, &model);
-  presenter.setMessageListView(&message_list_view);
+  TestPresenterFixrute fix;
 
   SECTION("Initialise function tries to check existing token") {
-    int before_calls_cash_get = cache.get_calls;
-    presenter.initialise();
+    int before_calls_cash_get = fix.cache.get_calls;
+    fix.presenter.initialise();
 
-    REQUIRE(cache.get_calls == before_calls_cash_get + 1);
+    REQUIRE(fix.cache.get_calls == before_calls_cash_get + 1);
   }
 
   SECTION("Presenter receive responce but currend_user_id == nullopt expected throw exception") {
     QJsonObject json;
     json["type"] = "opened";
 
-    REQUIRE_THROWS(presenter.onNewResponce(json));
+    REQUIRE_THROWS(fix.presenter.onNewResponce(json));
   }
 
   SECTION("On chat clicked expected window->setChatWindow call") {
-    int before_calls = window.call_setChatWindow;
+    int before_calls = fix.window.call_setChatWindow;
     int chat_id = 4;
     int user_id = 5;
     auto private_chat = ChatFactory::createPrivateChat(chat_id, "Roma", "roma228", user_id, "offline");
-    model.addChat(private_chat);
+    fix.model.addChat(private_chat);
 
-    presenter.onChatClicked(chat_id);
+    fix.presenter.onChatClicked(chat_id);
 
-    REQUIRE(window.call_setChatWindow == before_calls + 1);
+    REQUIRE(fix.window.call_setChatWindow == before_calls + 1);
   }
+}
+
+TEST_CASE("Presenter handle CRUD operations") {
+  TestPresenterFixrute fix;
 
   SECTION("Add chat expexted emitted signal chat Added") {
     auto private_chat = ChatFactory::createPrivateChat(2, "t", "e", 4, "e");
-    QSignalSpy chat_added(&model, &Model::chatAdded);
+    QSignalSpy chat_added(&fix.model, &Model::chatAdded);
     int before = chat_added.count();
     MockReply* mockReply = new MockReply();
-    netManager.setReply(mockReply);
+    fix.netManager.setReply(mockReply);
 
-    model.addChat(private_chat);
+    fix.model.addChat(private_chat);
 
     REQUIRE(chat_added.count() == before + 1);
   }
 
-  SECTION("Send message with wothout opened chat expected throw exception") {
+  SECTION("Send message without opened chat expected no send message") {
     QString message_to_send = "Hi, i'm from test";
-    REQUIRE_THROWS(presenter.sendButtonClicked(message_to_send));
+    int before = fix.fake_socket.sendTextMessage_calls;
+    fix.presenter.sendButtonClicked(message_to_send);
+
+    REQUIRE(fix.fake_socket.sendTextMessage_calls == before);
   }
 
   int chat_id = 2;
   int user_id = 4;
-  presenter.setCurrentChatId(chat_id);
+  fix.presenter.setCurrentChatId(chat_id);
   auto private_chat = ChatFactory::createPrivateChat(chat_id, "r", "3", user_id, "o");
-  data_manager.addChat(private_chat);
-  presenter.setId(user_id);
+  fix.data_manager.addChat(private_chat);
+  User mock_user;
+  mock_user.id = user_id;
+  mock_user.email = fix.email;
+  mock_user.tag = fix.tag;
+  mock_user.name = fix.name;
+  mock_user.avatarPath = "avatar/test/path";
+
+  fix.presenter.setMockCurrentUser(mock_user);
 
   SECTION("Send message with valid chat_id expected socket gets message to send") {
     QString message_to_send = "Hi, i'm from test";
-    int before = fake_socket.sendTextMessage_calls;
-    presenter.sendButtonClicked(message_to_send);
+    int before = fix.fake_socket.sendTextMessage_calls;
+    fix.presenter.sendButtonClicked(message_to_send);
 
-    REQUIRE(fake_socket.sendTextMessage_calls == before + 1);
+    REQUIRE(fix.fake_socket.sendTextMessage_calls == before + 1);
   }
 
   SECTION("Send empty message expected message won't be send") {
     QString message_to_send = "";
-    int before = fake_socket.sendTextMessage_calls;
-    presenter.sendButtonClicked(message_to_send);
+    int before = fix.fake_socket.sendTextMessage_calls;
+    fix.presenter.sendButtonClicked(message_to_send);
 
-    REQUIRE(fake_socket.sendTextMessage_calls == before);
+    REQUIRE(fix.fake_socket.sendTextMessage_calls == before);
   }
 
   User user;
   user.id = 8;
   auto private_chat4 = ChatFactory::createPrivateChat(chat_id, "r", "3", 8, "2");
   auto message_model = std::make_shared<MessageModel>();
-  data_manager.addChat(private_chat4, message_model);
-  data_manager.saveUser(user);
+  fix.data_manager.addChat(private_chat4, message_model);
+  fix.data_manager.saveUser(user);
   Message first_message;
   first_message.id = 1;
   first_message.text = "Roma";
@@ -126,7 +166,7 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     new_message.local_id = "2local";
     int before = message_model->rowCount();
 
-    presenter.newMessage(new_message);
+    fix.presenter.newMessage(new_message);
 
     REQUIRE(message_model->rowCount() == before + 1);
   }
@@ -142,7 +182,7 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     new_message.timestamp = first_message.timestamp.addDays(1);
     int before = message_model->rowCount();
 
-    presenter.newMessage(new_message);
+    fix.presenter.newMessage(new_message);
 
     REQUIRE(message_model->rowCount() == before + 1);
 
@@ -164,7 +204,7 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
     new_message.timestamp = first_message.timestamp.addDays(-1);
     int before = message_model->rowCount();
 
-    presenter.newMessage(new_message);
+    fix.presenter.newMessage(new_message);
 
     REQUIRE(message_model->rowCount() == before + 1);
 
@@ -179,10 +219,95 @@ TEST_CASE("Test presenter communication with other classes", "[presenter]") {
   SECTION("Presenter receive responce socket connection opened expected send initial socket message") {
     QJsonObject json;
     json["type"] = "opened";
-    int before_calls = fake_socket.sendTextMessage_calls;
+    int before_calls = fix.fake_socket.sendTextMessage_calls;
 
-    presenter.onNewResponce(json);
+    fix.presenter.onNewResponce(json);
 
-    REQUIRE(fake_socket.sendTextMessage_calls == before_calls + 1);
+    REQUIRE(fix.fake_socket.sendTextMessage_calls == before_calls + 1);
+  }
+}
+
+TEST_CASE("Test sign in/up") {
+  TestPresenterFixrute fix;
+
+  SECTION("Presenter handle sig in expected network manager get to execute POST method with valid params") {
+    LogInRequest login {
+      .email = fix.email,
+      .password = fix.password
+    };
+    int before_cnt_post = fix.netManager.post_counter;
+    std::string expected_url = "/auth/login";
+
+    fix.presenter.signIn(login);
+
+    REQUIRE(fix.netManager.post_counter == before_cnt_post + 1);
+    CHECK(fix.netManager.last_request.url().toString().toStdString() == expected_url);
+    QJsonDocument doc = QJsonDocument::fromJson(fix.netManager.last_data);
+    REQUIRE(doc.isObject());
+
+    QJsonObject body = doc.object();
+    CHECK(body["email"].toString() == login.email);
+    CHECK(body["password"].toString() == login.password);
+  }
+
+  SECTION("Presenter handle sig in expected network manager get to execute POST method with valid params") {
+    SignUpRequest register_request {
+        .email = fix.email,
+        .password = fix.password,
+        .tag = fix.tag,
+        .name = fix.name
+    };
+    int before_cnt_post = fix.netManager.post_counter;
+    std::string expected_url = "/auth/register";
+
+    fix.presenter.signUp(register_request);
+
+    REQUIRE(fix.netManager.post_counter == before_cnt_post + 1);
+    CHECK(fix.netManager.last_request.url().toString().toStdString() == expected_url);
+    QJsonDocument doc = QJsonDocument::fromJson(fix.netManager.last_data);
+    REQUIRE(doc.isObject());
+
+    QJsonObject body = doc.object();
+    CHECK(body["email"].toString() == register_request.email);
+    CHECK(body["password"].toString() == register_request.password);
+    CHECK(body["tag"].toString() == register_request.tag);
+    CHECK(body["name"].toString() == register_request.name);
+  }
+}
+
+TEST_CASE("Test Presenter::onScroll") {
+  TestPresenterFixrute fix;
+  int chat_id = 1242;
+  int zero_value = 0;
+  fix.presenter.setMockOpenedChatId(chat_id);
+  fix.netManager.shouldFail = true;
+  auto reply_with_error = new MockReply();
+  reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, "connection refused");
+  fix.netManager.setReply(reply_with_error);
+
+  SECTION("On scroll received non-zero value expected no call getChatMessages") {
+    int value = 1;
+    int before_call_net_manager_ger = fix.netManager.get_counter;
+
+    fix.presenter.onScroll(value);
+
+    REQUIRE(fix.netManager.get_counter == before_call_net_manager_ger);
+  }
+
+  SECTION("On scroll received zero value but chat not opened expected no call getChatMessages") {
+    fix.presenter.onLogOutButtonClicked();
+    int before_call_net_manager_ger = fix.netManager.get_counter;
+
+    fix.presenter.onScroll(zero_value);
+
+    REQUIRE(fix.netManager.get_counter == before_call_net_manager_ger);
+  }
+
+  SECTION("All valid expected call to getChatMessages") {
+    int before_call_net_manager_ger = fix.netManager.get_counter;
+
+    fix.presenter.onScroll(zero_value);
+
+    REQUIRE(fix.netManager.get_counter == before_call_net_manager_ger + 1);
   }
 }

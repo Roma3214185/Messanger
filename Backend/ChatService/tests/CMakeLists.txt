@@ -8,7 +8,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
-find_package(spdlog REQUIRED)
 find_package(Catch2 3 REQUIRED)
 
 add_executable(ChatServiceTests
@@ -22,9 +21,6 @@ add_executable(ChatServiceTests
 set_target_properties(ChatServiceTests PROPERTIES
     AUTOMOC ON
     AUTOUIC ON
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "/opt/homebrew/lib"
-    INSTALL_RPATH_USE_LINK_PATH ON
 )
 
 target_link_libraries(ChatServiceTests

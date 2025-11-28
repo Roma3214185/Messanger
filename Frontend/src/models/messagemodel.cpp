@@ -15,6 +15,8 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
   const auto& msg = messages_[index.row()];
 
   switch (role) {
+    case MessageIdRole:
+      return msg.id;
     case UsernameRole:
       return users_by_message_id_.at(msg.id).name;
     case TextRole:
@@ -36,16 +38,25 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
   }
 }
 
+QModelIndex MessageModel::indexFromId(int messageId) const {
+  for (int row = 0; row < messages_.size(); ++row) {
+    if (messages_[row].id == messageId)
+      return index(row);
+  }
+
+  return QModelIndex(); // Not found
+}
+
 void MessageModel::setCurrentUserId(int user_id) { currentUserId = user_id; }
 
 void MessageModel::resetCurrentUseId() { currentUserId = std::nullopt; }
 
-std::optional<Message> MessageModel::getLastMessage() {
+std::optional<Message> MessageModel::getLastMessage() const {
   if (messages_.empty()) return std::nullopt;
   return messages_.back();
 }
 
-std::optional<Message> MessageModel::getOldestMessage() {
+std::optional<Message> MessageModel::getOldestMessage() const {
   if (messages_.empty()) return std::nullopt;
   return messages_.front();
 }

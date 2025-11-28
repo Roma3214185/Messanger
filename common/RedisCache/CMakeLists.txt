@@ -3,29 +3,34 @@ project(RedisCache LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(nlohmann_json REQUIRED)
+include(FetchContent)
 
+FetchContent_Declare(
+  hiredis
+  GIT_REPOSITORY https://github.com/redis/hiredis
+  GIT_TAG origin/master
+  GIT_SHALLOW TRUE
+  SOURCE_DIR _deps/hiredis
+  # Make sure redis++ finds fetched content with its find_package()
+  OVERRIDE_FIND_PACKAGE
+)
 
-find_path(HIREDIS_INCLUDE_DIR hiredis/hiredis.h PATHS /opt/homebrew/include)
-find_library(HIREDIS_LIBRARY NAMES hiredis PATHS /opt/homebrew/lib)
-
-find_path(REDISPP_INCLUDE_DIR sw/redis++/redis++.h PATHS $HOME/local/include)
-find_library(REDISPP_LIBRARY NAMES redis++ PATHS $HOME/local/lib)
+FetchContent_Declare(
+  redis-plus-plus
+  GIT_REPOSITORY https://github.com/sjanel/redis-plus-plus.git
+  GIT_TAG bugfix/hiredis-fetch-configure-file-found
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(redis-plus-plus)
 
 add_library(RedisCache STATIC src/RedisCache.cpp)
 
-target_include_directories(RedisCache PUBLIC
+target_include_directories(RedisCache
+  PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${HIREDIS_INCLUDE_DIR}
-    ${REDISPP_INCLUDE_DIR}
 )
-
 target_link_libraries(RedisCache PUBLIC
-    ${HIREDIS_LIBRARY}
-    ${REDISPP_LIBRARY}
-    Metrics
-    Qt6::Core
-    nlohmann_json::nlohmann_json
+    redis++_static
 )

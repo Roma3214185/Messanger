@@ -145,373 +145,57 @@ ctest --test-dir build --output-on-failure
 Directory structure:
 └── roma3214185-messanger/
     ├── README.md
-    ├── CMakeLists.txt
-    ├── coverage.info
-    ├── run-clang.sh
-    ├── .clang-tidy.save
-    ├── .lcovrc
+    ├── external
     ├── Backend/
     │   ├── ApigateWay/
-    │   │   ├── CMakeLists.txt
+    │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   ├── gatewayserver.h
-    │   │   │   ├── JwtUtils.h
-    │   │   │   ├── proxyclient.h
-    │   │   │   ├── ratelimiter.h
-    │   │   │   └── websocketbridge.h
-    │   │   └── src/
-    │   │       ├── gatewayserver.cpp
-    │   │       ├── JwtUtils.cpp
-    │   │       ├── main.cpp
-    │   │       ├── proxyclient.cpp
-    │   │       └── websocketbridge.cpp
+    │   │   ├── src/
+    │   │   └── tests/
     │   ├── AuthService/
-    │   │   ├── CMakeLists.txt
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   ├── authservice/
-    │   │   │   │   ├── authcontroller.h
-    │   │   │   │   ├── authDataInputService.h
-    │   │   │   │   ├── authmanager.h
-    │   │   │   │   ├── JwtGenerator.h
-    │   │   │   │   ├── JwtUtils.h
-    │   │   │   │   ├── PasswordService.h
-    │   │   │   │   ├── RealAuthoritizer.h
-    │   │   │   │   ├── server.h
-    │   │   │   │   └── interfaces/
-    │   │   │   │       ├── IAuthManager.h
-    │   │   │   │       └── IGenerator.h
-    │   │   │   └── entities/
-    │   │   │       ├── AuthResponce.h
-    │   │   │       └── RegisterRequest.h
     │   │   ├── src/
-    │   │   │   ├── authcontroller.cpp
-    │   │   │   ├── authDataInputService.cpp
-    │   │   │   ├── authmanager.cpp
-    │   │   │   ├── JwtUtils.cpp
-    │   │   │   ├── main.cpp
-    │   │   │   └── server.cpp
     │   │   └── tests/
-    │   │       ├── CMakeLists.txt
-    │   │       ├── main.cpp
-    │   │       ├── test_authmanager.cpp
-    │   │       ├── test_authserver.cpp
-    │   │       ├── test_protected_authmanager.cpp
-    │   │       └── mocks/
-    │   │           ├── MockAuthManager.h
-    │   │           └── MockGenerator.h
     │   ├── ChatService/
-    │   │   ├── CMakeLists.txt
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   └── chatservice/
-    │   │   │       ├── AutoritizerProvider.h
-    │   │   │       ├── chatcontroller.h
-    │   │   │       ├── chatmanager.h
-    │   │   │       ├── chatserver.h
-    │   │   │       ├── TokenService.h
-    │   │   │       └── interfaces/
-    │   │   │           └── IChatManager.h
     │   │   ├── src/
-    │   │   │   ├── chatcontroller.cpp
-    │   │   │   ├── chatmanager.cpp
-    │   │   │   ├── chatserver.cpp
-    │   │   │   ├── main.cpp
-    │   │   │   └── TokenService.cpp
     │   │   └── tests/
-    │   │       ├── CMakeLists.txt
-    │   │       ├── main.cpp
-    │   │       ├── test_chatmanager.cpp
-    │   │       ├── test_chatserver.cpp
-    │   │       ├── test_controller.cpp
-    │   │       └── mocks/
-    │   │           └── MockChatManager.h
-    │   ├── common_mocks/
-    │   │   ├── CMakeLists.txt
-    │   │   └── mocks/
-    │   │       ├── FakeSqlExecutor.h
-    │   │       ├── MockAppWrapper.h
-    │   │       ├── MockAutoritizer.h
-    │   │       ├── MockCache.h
-    │   │       ├── MockConfigProvider.h
-    │   │       ├── MockDatabase.h
-    │   │       ├── MockNetworkManager.h
-    │   │       ├── MockQuery.h
-    │   │       ├── MockRabitMQClient.h
-    │   │       ├── MockTheadPool.h
-    │   │       └── MockUtils.h
     │   ├── MessageService/
-    │   │   ├── CMakeLists.txt
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   └── messageservice/
-    │   │   │       ├── controller.h
-    │   │   │       ├── server.h
-    │   │   │       ├── dto/
-    │   │   │       │   └── GetMessagePack.h
-    │   │   │       ├── interfaces/
-    │   │   │       │   └── IController.h
-    │   │   │       └── managers/
-    │   │   │           ├── JwtUtils.h
-    │   │   │           └── MessageManager.h
     │   │   ├── src/
-    │   │   │   ├── controller.cpp
-    │   │   │   ├── JwtUtils.cpp
-    │   │   │   ├── main.cpp
-    │   │   │   ├── server.cpp
-    │   │   │   └── managers/
-    │   │   │       └── MessageManager.cpp
     │   │   └── tests/
-    │   │       ├── CMakeLists.txt
-    │   │       ├── main.cpp
-    │   │       ├── test_controller.cpp
-    │   │       ├── test_messagemanager.cpp
-    │   │       ├── test_server.cpp
-    │   │       └── mocks/
-    │   │           ├── MockController.h
-    │   │           ├── SecondTestController.h
-    │   │           └── TestController.h
     │   ├── NotificationService/
-    │   │   ├── CMakeLists.txt
+    │   │   ├── Dockerfile
     │   │   ├── include/
-    │   │   │   ├── entities/
-    │   │   │   │   ├── Message.h
-    │   │   │   │   └── MessageStatus.h
-    │   │   │   ├── interfaces/
-    │   │   │   │   └── ISocket.h
-    │   │   │   └── notificationservice/
-    │   │   │       ├── CrowSocket.h
-    │   │   │       ├── JwtUtils.h
-    │   │   │       ├── server.h
-    │   │   │       └── managers/
-    │   │   │           ├── notificationmanager.h
-    │   │   │           └── socketmanager.h
     │   │   ├── src/
-    │   │   │   ├── main.cpp
-    │   │   │   ├── server.cpp
-    │   │   │   └── managers/
-    │   │   │       ├── notificationmanager.cpp
-    │   │   │       └── socketmanager.cpp
     │   │   └── tests/
-    │   │       ├── CMakeLists.txt
-    │   │       ├── main.cpp
-    │   │       ├── test_notificationmanager.cpp
-    │   │       ├── test_server.cpp
-    │   │       └── mocks/
-    │   │           └── MockSocket.h
-    │   └── shared_keys/
-    │       └── public_key.pem
     ├── common/
     │   ├── constants/
-    │   │   ├── CMakeLists.txt
-    │   │   └── include/
-    │   │       ├── codes.h
-    │   │       ├── ports.h
-    │   │       ├── ProdConfigProvider.h
-    │   │       ├── Routes.h
-    │   │       └── interfaces/
-    │   │           └── IConfigProvider.h
     │   ├── entities/
-    │   │   ├── CMakeLists.txt
-    │   │   └── include/
-    │   │       ├── Fields.h
-    │   │       └── entities/
-    │   │           ├── Chat.h
-    │   │           ├── ChatMember.h
-    │   │           ├── Message.h
-    │   │           ├── MessageStatus.h
-    │   │           ├── PrivateChat.h
-    │   │           ├── User.h
-    │   │           └── UserCredentials.h
     │   ├── Metrics/
-    │   │   ├── CMakeLists.txt
-    │   │   ├── include/
-    │   │   │   ├── Debug_profiling.h
-    │   │   │   ├── metrics.h
-    │   │   │   └── ScopedRequestsTimer.h
-    │   │   └── src/
-    │   │       └── metrics.cpp
     │   ├── Network/
-    │   │   ├── CMakeLists.txt
-    │   │   ├── include/
-    │   │   │   ├── NetworkFacade.h
-    │   │   │   ├── NetworkManager.h
-    │   │   │   ├── RealCrowApp.h
-    │   │   │   └── interfaces/
-    │   │   │       ├── IApp.h
-    │   │   │       ├── IAutoritizer.h
-    │   │   │       ├── IChatNetworkManager.h
-    │   │   │       ├── IMessageNetworkManager.h
-    │   │   │       ├── INetworkManagerBase.h
-    │   │   │       └── IUserNetworkManager.h
-    │   │   └── src/
-    │   │       ├── IChatNetworkManager.cpp
-    │   │       ├── IMessageNetworkManager.cpp
-    │   │       ├── INetworkManagerBase.cpp
-    │   │       └── IUserNetworkManager.cpp
     │   ├── Persistence/
-    │   │   ├── CMakeLists.txt
     │   │   ├── benchmarks/
-    │   │   │   ├── README.md
-    │   │   │   ├── batcher_benchmark.cpp
-    │   │   │   ├── benchmark_entity.cpp
-    │   │   │   ├── benchmark_latency.cpp
-    │   │   │   ├── benchmarks_query.cpp
-    │   │   │   ├── build_entity.cpp
-    │   │   │   ├── CMakeLists.txt
-    │   │   │   ├── main.cpp
-    │   │   │   ├── preparedStatements_benchmark.cpp
-    │   │   │   ├── redis_cache_benchmark.cpp
-    │   │   │   └── thread_pool_benchmark.cpp
-    │   │   ├── benchmarks_build/
-    │   │   │   └── cmake_install.cmake
     │   │   ├── include/
-    │   │   │   ├── Batcher.h
-    │   │   │   ├── GenericRepository.h
-    │   │   │   ├── Meta.h
-    │   │   │   ├── Query.h
-    │   │   │   ├── SqlBuilder.h
-    │   │   │   ├── SqlExecutor.h
-    │   │   │   ├── SQLiteDataBase.h
-    │   │   │   ├── ThreadPool.h
-    │   │   │   └── interfaces/
-    │   │   │       ├── BaseQuery.h
-    │   │   │       ├── IDataBase.h
-    │   │   │       ├── IEntityBuilder.h
-    │   │   │       ├── ISqlExecutor.h
-    │   │   │       └── IThreadPool.h
     │   │   ├── inl/
-    │   │   │   ├── GenericRepository.inl
-    │   │   │   ├── Query.inl
-    │   │   │   └── SqlBuilder.inl
     │   │   ├── src/
-    │   │   │   ├── GenericRepository.cpp
-    │   │   │   ├── Query.cpp
-    │   │   │   ├── SqlExecutor.cpp
-    │   │   │   ├── SQLiteDatabase.cpp
-    │   │   │   └── ThreadPool.cpp
     │   │   └── tests/
-    │   │       ├── CMakeLists.txt
-    │   │       ├── main.cpp
-    │   │       ├── test_genericrepository.cpp
-    │   │       ├── test_query.cpp
-    │   │       └── test_sqlitedatabase.cpp
     │   ├── RabbitMQClient/
-    │   │   ├── CMakeLists.txt
-    │   │   ├── include/
-    │   │   │   ├── RabbitMQClient.h
-    │   │   │   └── interfaces/
-    │   │   │       └── IRabitMQClient.h
-    │   │   └── src/
-    │   │       └── rabbitmqclient.cpp
     │   └── RedisCache/
-    │       ├── CMakeLists.txt
-    │       ├── include/
-    │       │   ├── RedisCache.h
-    │       │   └── interfaces/
-    │       │       └── ICacheService.h
-    │       └── src/
-    │           └── RedisCache.cpp
     ├── Frontend/
-    │   ├── cmake_install.cmake
-    │   ├── CMakeLists.txt
     │   ├── config/
-    │   │   └── domains.txt
     │   ├── forms/
-    │   │   └── mainwindow.ui
     │   ├── include/
-    │   │   ├── DataInputService.h
-    │   │   ├── JsonService.h
-    │   │   ├── mainwindow.h
-    │   │   ├── MessageListView.h
-    │   │   ├── model.h
-    │   │   ├── presenter.h
-    │   │   ├── RealSocket.h
-    │   │   ├── RedisClient.h
-    │   │   ├── delegators/
-    │   │   │   ├── chatitemdelegate.h
-    │   │   │   ├── messagedelegate.h
-    │   │   │   └── userdelegate.h
-    │   │   ├── dto/
-    │   │   │   ├── ChatBase.h
-    │   │   │   ├── DrawData.h
-    │   │   │   ├── Message.h
-    │   │   │   ├── SignUpRequest.h
-    │   │   │   └── User.h
-    │   │   ├── interfaces/
-    │   │   │   ├── ICache.h
-    │   │   │   ├── IMainWindow.h
-    │   │   │   ├── IMessageListView.h
-    │   │   │   ├── INetworkAccessManager.h
-    │   │   │   ├── ISocket.h
-    │   │   │   └── ITheme.h
-    │   │   ├── managers/
-    │   │   │   ├── BaseManager.h
-    │   │   │   ├── chatmanager.h
-    │   │   │   ├── datamanager.h
-    │   │   │   ├── messagemanager.h
-    │   │   │   ├── networkaccessmanager.h
-    │   │   │   ├── sessionmanager.h
-    │   │   │   ├── socketmanager.h
-    │   │   │   └── usermanager.h
-    │   │   └── models/
-    │   │       ├── chatmodel.h
-    │   │       ├── messagemodel.h
-    │   │       └── UserModel.h
     │   ├── src/
-    │   │   ├── datainputservice.cpp
-    │   │   ├── IMessageListView.cpp
-    │   │   ├── main.cpp
-    │   │   ├── mainwindow.cpp
-    │   │   ├── model.cpp
-    │   │   ├── presenter.cpp
-    │   │   ├── delegators/
-    │   │   │   ├── ChatItemDelegate.cpp
-    │   │   │   ├── messagedelegate.cpp
-    │   │   │   └── UserDelegate.cpp
-    │   │   ├── managers/
-    │   │   │   ├── BaseManager.cpp
-    │   │   │   ├── chatmanager.cpp
-    │   │   │   ├── datamanager.cpp
-    │   │   │   ├── messagemanager.cpp
-    │   │   │   ├── NetworkAccessManager.cpp
-    │   │   │   ├── sessionmanager.cpp
-    │   │   │   ├── socketmanager.cpp
-    │   │   │   └── usermanager.cpp
-    │   │   └── models/
-    │   │       ├── chatmodel.cpp
-    │   │       ├── messagemodel.cpp
-    │   │       └── UserModel.cpp
     │   └── tests/
-    │       ├── cmake_install.cmake
-    │       ├── CMakeLists.txt
-    │       ├── CTestTestfile.cmake
-    │       ├── DartConfiguration.tcl
-    │       ├── main.cpp
-    │       ├── test_chatitemdelegate.cpp
-    │       ├── test_chatmanager.cpp
-    │       ├── test_datainputservice.cpp
-    │       ├── test_datamanager.cpp
-    │       ├── test_messagemanager.cpp
-    │       ├── test_model.cpp
-    │       ├── test_presenter.cpp
-    │       ├── test_sessionmanager.cpp
-    │       ├── test_socketmanager.cpp
-    │       ├── test_usermanager.cpp
-    │       ├── test_usermodel.cpp
-    │       └── mocks/
-    │           ├── FakeSocket.h
-    │           ├── MockAccessManager.h
-    │           ├── MockCache.h
-    │           ├── MockMainWindow.h
-    │           ├── MockMessageListView.h
-    │           └── MockReply.h
-    ├── Testing/
-    │   └── Temporary/
-    │       └── CTestCostData.txt
     ├── .github/
     │   └── workflows/
     │       └── ci.yml
-    └── .qt/
-        ├── QtDeploySupport.cmake
-        └── QtDeployTargets.cmake
+
+
 ```
 
 # 📊 API Gateway Metrics & Monitoring
@@ -554,6 +238,59 @@ Directory structure:
 
 ---
 
+## 🐳 Docker Support & Persistence Benchmarks
+
+### Docker Support
+All backend microservices can be built and run as Docker containers. This simplifies deployment, ensures consistent environments, and isolates dependencies.  
+
+**Quick Start with Docker:**
+1. Make sure Docker Desktop is running.
+2. Build and start all services using `docker-compose`:
+```bash
+docker-compose up --build
+``` 
+This will launch:  
+- **Redis** on port `6379`  
+- **RabbitMQ** on ports `5672` (AMQP) and `15672` (management UI)  
+- **Backend microservices**:  
+  - AuthService → `8083`  
+  - MessageService → `8082`  
+  - ChatService → `8081`  
+  - ApiGateway → `8084`  
+  - NotificationService → `8086`  
+
+**Key Points:**  
+- Each microservice has its own Dockerfile.  
+- `docker-compose.yml` orchestrates the services and their dependencies (Redis and RabbitMQ).  
+- Services communicate internally via Docker network using **service names**. For example, the frontend should connect to `authservice:8083` instead of `localhost:8083`.  
+- To stop all services:  
+```bash
+docker-compose down
+```
+
+## Persistence & GenericRepository Benchmarks
+
+The `Persistence` module and `GenericRepository` have been benchmarked to measure performance improvements using **caching, Redis pipelines, and optimized entity building**. Key takeaways:
+
+- **Query & Entity Cache:**  
+  - Query caching gives up to **6× speedup**.  
+  - Entity caching reduces repeated database access by **~4×**.  
+- **Redis Pipeline:**  
+  - Bulk saving 1000 entities is **~2× faster** with pipeline vs individual `SET`.  
+- **Entity Builders:**  
+  - Hand-written / inlined builders are **~45× faster** than dynamic builders.  
+  - Generic tuple-based builders are **~3–4× faster** than dynamic.  
+- **Async / Thread Pool:**  
+  - Useful for expensive queries, but adds minor overhead for cached operations.  
+- **Query Preparation:**  
+  - Caching prepared queries gives **~12× faster execution** than repeated preparation.  
+
+Benchmark scripts and detailed results can be found in:  
+```bache
+common/Persistence/benchmarks/
+```
+These optimizations ensure **high-performance, thread-safe, and low-latency data access** in the messenger backend.
+
 # Technologies
 
 ## Language & Standards
@@ -590,6 +327,8 @@ Directory structure:
 - **Catch2** (unit testing)
 - **lcov + Codecov** (coverage reporting)
 - **CI/CD**: GitHub Actions 
+
+TODO: info about docker and some benchmarks
 
 ## Security / Auth
 - JWT authentication (`JwtUtils`)

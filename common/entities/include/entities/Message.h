@@ -1,17 +1,14 @@
 #ifndef BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 #define BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 
-#include <crow.h>
-
-#include <QDateTime>
-#include <QString>
-#include <cstdint>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <tuple>
+#include <crow.h> //TODO: remove crow from here
+#include <nlohmann/json.hpp>
 
-#include "Meta.h"
 #include "Fields.h"
+#include "TimestampService.h"
+#include "Debug_profiling.h"
 
 struct Message {
   long long   id = 0;
@@ -22,59 +19,44 @@ struct Message {
   std::string local_id;
 };
 
-template <>
-struct Reflection<Message> {
-  static Meta meta() {
-    return Meta{.table_name = MessageTable::Table,
-                .fields     = {make_field<Message, long long>(MessageTable::Id, &Message::id),
-                               make_field<Message, long long>(MessageTable::SenderId, &Message::sender_id),
-                               make_field<Message, long long>(MessageTable::ChatId, &Message::chat_id),
-                               make_field<Message, std::string>(MessageTable::Text, &Message::text),
-                               make_field<Message, long long>(MessageTable::Timestamp, &Message::timestamp),
-                               make_field<Message, std::string>(MessageTable::LocalId, &Message::local_id)}};
+inline Message from_crow_json(const crow::json::rvalue& json_message) {
+  Message message;
+
+  message.id        = json_message.count(MessageTable::Id) ? json_message[MessageTable::Id].i() : 0;
+  message.chat_id   = json_message[MessageTable::ChatId].i();
+  message.sender_id = json_message[MessageTable::SenderId].i();
+  message.text      = json_message[MessageTable::Text].s();
+  message.local_id  = json_message[MessageTable::LocalId].s();
+
+  LOG_INFO("[Message] For text: {}, Local_id = ", message.text, message.local_id);
+
+  if (json_message.count(MessageTable::Timestamp)) {
+    const auto& ts_val = json_message[MessageTable::Timestamp];
+    if (ts_val.t() == crow::json::type::String) {
+      message.timestamp = TimestampService::parseTimestampISO8601(ts_val.s());
+    } else if (ts_val.t() == crow::json::type::Number) {
+      message.timestamp = static_cast<long long>(ts_val.i());
+    } else {
+      LOG_ERROR("Unexpected timestamp type");
+    }
   }
-};
 
-template <>
-struct Builder<Message> {
-  static Message build(QSqlQuery& query) {
-    Message message;
-    int     idx = 0;
+  return message;
+}
 
-    auto assign = [&](auto& field) -> void {
-      using TField         = std::decay_t<decltype(field)>;
-      const QVariant value = query.value(idx++);
-      if constexpr (std::is_same_v<TField, long long>) {
-        field = value.toLongLong();
-      } else if constexpr (std::is_same_v<TField, int>) {
-        field = value.toInt();
-      } else if constexpr (std::is_same_v<TField, std::string>) {
-        field = value.toString().toStdString();
-      } else if constexpr (std::is_same_v<TField, QString>) {
-        field = value.toString();
-      } else {
-        field = value.value<TField>();
-      }
-    };
+inline crow::json::wvalue to_crow_json(const Message& message) {
+  crow::json::wvalue json_message;
+  json_message[MessageTable::Id]        = message.id;
+  json_message[MessageTable::ChatId]   = message.chat_id;
+  json_message[MessageTable::SenderId] = message.sender_id;
+  json_message[MessageTable::Text]      = message.text;
+  json_message[MessageTable::Timestamp] = message.timestamp;
+  json_message[MessageTable::LocalId]  = message.local_id;
 
-    assign(message.id);
-    assign(message.chat_id);
-    assign(message.sender_id);
-    assign(message.timestamp);
-    assign(message.text);
-    assign(message.local_id);
+  LOG_INFO("Local_id for text {} is {}", message.text, message.local_id);
 
-    return message;
-  }
-};
-
-inline constexpr auto MessageFields = std::make_tuple(
-    &Message::id, &Message::chat_id, &Message::sender_id, &Message::text, &Message::timestamp);
-
-template <>
-struct EntityFields<Message> {
-  static constexpr auto& fields = MessageFields;
-};
+  return json_message;
+}
 
 namespace nlohmann {
 
@@ -100,63 +82,5 @@ struct adl_serializer<Message> {
 };
 
 }  // namespace nlohmann
-
-inline crow::json::wvalue to_crow_json(const Message& message) {
-  crow::json::wvalue json_message;
-  LOG_INFO(
-      "[Message] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' | "
-      "timestamp '{}'",
-      message.id,
-      message.chat_id,
-      message.sender_id,
-      message.text,
-      message.timestamp);
-  json_message[MessageTable::Id]        = message.id;
-  json_message[MessageTable::ChatId]   = message.chat_id;
-  json_message[MessageTable::SenderId] = message.sender_id;
-  json_message[MessageTable::Text]      = message.text;
-  json_message[MessageTable::Timestamp] =
-      QDateTime::fromSecsSinceEpoch(message.timestamp).toString(Qt::ISODate).toStdString();
-  json_message[MessageTable::LocalId] = message.local_id;
-  LOG_INFO("Local_id for text {} is {}", message.text, message.local_id);
-  return json_message;
-}
-
-inline Message from_crow_json(const crow::json::rvalue& json_message) {
-  Message message;
-  if (json_message.count(MessageTable::Id)) {
-    message.id = json_message[MessageTable::Id].i();
-  } else {
-    message.id = 0;
-  }
-
-  message.chat_id   = json_message[MessageTable::ChatId].i();
-  message.sender_id = json_message[MessageTable::SenderId].i();
-  message.text      = json_message[MessageTable::Text].s();
-  message.local_id  = json_message[MessageTable::LocalId].s();
-  LOG_INFO("[Message] For text: {}, Local_id = ", message.text, message.local_id);
-
-  if (json_message.count(MessageTable::Timestamp)) {
-    QString   timestamp = QString::fromStdString(json_message[MessageTable::Timestamp].s());
-    QDateTime datetime  = QDateTime::fromString(timestamp, Qt::ISODate);
-    if (!datetime.isValid()) {
-      message.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
-    } else {
-      message.timestamp = datetime.toSecsSinceEpoch();
-    }
-  } else {
-    message.timestamp = QDateTime::currentDateTime().toSecsSinceEpoch();
-  }
-
-  LOG_INFO(
-      "[Message from json] id '{}' | chat_id '{}' | sender_id '{}' | text '{}' "
-      "| timestamp '{}'",
-      message.id,
-      message.chat_id,
-      message.sender_id,
-      message.text,
-      message.timestamp);
-  return message;
-}
 
 #endif  // BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_

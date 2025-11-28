@@ -1,0 +1,18 @@
+{
+	"ulid": "01KAXRV0J5PYK415TABW9AKDY1",
+	"minTime": 1764072398829,
+	"maxTime": 1764079200000,
+	"stats": {
+		"numSamples": 45,
+		"numFloatSamples": 45,
+		"numSeries": 5,
+		"numChunks": 5
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KAXRV0J5PYK415TABW9AKDY1"
+		]
+	},
+	"version": 1
+}

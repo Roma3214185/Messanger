@@ -65,12 +65,17 @@ const QString CREATE_CREDENTIALS_TABLE = R"(
     )";
 
 const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE private_chats (
-    chat_id       SERIAL PRIMARY KEY,
-    user1_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    user2_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+    chat_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    user1_id      INTEGER NOT NULL,
+    user2_id      INTEGER NOT NULL,
 
-    CONSTRAINT unique_private_chat UNIQUE (LEAST(user1_id, user2_id), GREATEST(user1_id, user2_id))
+    user_min      INTEGER GENERATED ALWAYS AS (CASE WHEN user1_id < user2_id THEN user1_id ELSE user2_id END) VIRTUAL,
+    user_max      INTEGER GENERATED ALWAYS AS (CASE WHEN user1_id > user2_id THEN user1_id ELSE user2_id END) VIRTUAL,
+
+    CONSTRAINT fk_user1 FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_user2 FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
+
+    CONSTRAINT unique_private_chat UNIQUE (user_min, user_max)
     );
   )";
 
