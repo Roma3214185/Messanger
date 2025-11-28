@@ -1,6 +1,8 @@
 #ifndef FIELDS_H
 #define FIELDS_H
 
+#include <string>
+
 namespace MessageTable {
 
 inline static constexpr const char* Table = "messages";

@@ -4,24 +4,25 @@ project(RabbitMQClient LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
+if(NOT TARGET RabbitMQClient)
+
 find_package(rabbitmq-c REQUIRED CONFIG)
 
-add_library(RabbitMQClient STATIC src/rabbitmqclient.cpp
-    include/interfaces/IRabitMQClient.h)
+add_library(RabbitMQClient STATIC
+    src/rabbitmqclient.cpp)
 
 target_include_directories(RabbitMQClient
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../external/SimpleAmqpClient/src
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-
+        ${CMAKE_SOURCE_DIR}/external/SimpleAmqpClient/src
 )
 
 target_link_libraries(RabbitMQClient
     PUBLIC
         SimpleAmqpClient
         rabbitmq::rabbitmq
-        Qt6::Core
-        Persistence
+        ThreadPool
         Metrics
 )
+
+endif()

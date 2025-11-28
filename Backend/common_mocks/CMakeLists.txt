@@ -19,5 +19,5 @@ target_link_libraries(BackendMocks
         Metrics
         RedisCache
         Persistence
-        NetworkManager
+        Network
 )

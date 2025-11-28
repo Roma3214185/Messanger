@@ -26,14 +26,7 @@ crow::json::wvalue userToJson(const User& user, const std::string& token = "") {
   res["user"]["tag"]   = user.tag;
   res["user"]["avatar"] = user.avatar;
 
-  LOG_INFO(
-      "[user][id] = '{}' | [email] = '{}' | "
-      "[name] = '{}' | [tag] = '{}', token = '{}'",
-      user.id,
-      user.username,
-      user.email,
-      user.tag,
-      token);
+  LOG_INFO("User to return {}", res.dump());
   return res;
 }
 
@@ -44,11 +37,8 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
 }
 
 std::string fetchTag(const crow::request& req) {
-  const char* t = req.url_params.get("tag");
-  if (!t) {
-    return "";
-  }
-  return std::string(t);
+  const char* tag = req.url_params.get("tag");
+  return !tag ? "" : std::string(tag);
 }
 
 }  // namespace
@@ -62,7 +52,7 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
     LOG_ERROR("Invalid json");
     return sendResponse(responce, provider_->statusCodes().badRequest, "Invalid Json");
   }
-  LoginRequest login_request{
+  LoginRequest login_request {
       .email    = body["email"].s(),
       .password = body["password"].s(),
   };
@@ -101,7 +91,7 @@ void AuthController::handleMe(const crow::request& req, crow::response& responce
 void AuthController::findByTag(const crow::request& req,
                                crow::response&      responce) {
   std::string tag = fetchTag(req);
-  if (tag.empty()) {
+  if (tag.empty()) { //TODO: fully check tag to not go to databse
     LOG_ERROR("Missing tag parametr");
     return sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr");
   }
@@ -132,7 +122,7 @@ void AuthController::findById(const crow::request& req, int user_id, crow::respo
   sendResponse(responce, provider_->statusCodes().success, user_json["user"].dump());
 }
 
-std::pair<std::optional<long long>, std::string> AuthController::verifyToken(const crow::request& req) {
+std::pair<AuthController::OptionalId, AuthController::Token> AuthController::verifyToken(const crow::request& req) {
   auto token = req.get_header_value("Authorization");
   return std::make_pair(authoritizer_->autoritize(token), token);
 }
@@ -160,6 +150,7 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
            register_request.name,
            register_request.tag);
 
+  //TODO: create middleware for check valid input??
   std::optional<User> register_user = manager_->registerUser(register_request);
   if (!register_user) {
     LOG_ERROR("User not registered");

@@ -1,0 +1,17 @@
+.git
+.gitignore
+
+build/
+cmake-build-debug/
+*.o
+*.obj
+*.exe
+
+.idea/
+.vscode/
+*.swp
+*.DS_Store
+
+*.log
+coverage.info
+CTestCostData.txt

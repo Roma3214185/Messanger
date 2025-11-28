@@ -5,17 +5,13 @@
 
 #include <algorithm>
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
-#include "Debug_profiling.h"
 #include "interfaces/ICacheService.h"
 
 class RedisCache : public ICacheService {
  public:
-  using json = nlohmann::json;
-
   static RedisCache& instance();
   void               incr(const std::string& key) override;
   void               remove(const std::string& key) override;
@@ -24,14 +20,14 @@ class RedisCache : public ICacheService {
   void               clearPrefix(const std::string& prefix) override;
 
   void setPipelines(const std::vector<std::string>&    keys,
-                    const std::vector<nlohmann::json>& results,
+                    const std::vector<std::string>& results,
                     std::chrono::minutes               ttl = std::chrono::minutes(30)) override;
 
   void set(const std::string&        key,
-           const nlohmann::json&     value,
+           const std::string&     value,
            std::chrono::milliseconds ttl = std::chrono::minutes(30)) override;
 
-  std::optional<nlohmann::json> get(const std::string& key) override;
+  std::optional<std::string> get(const std::string& key) override;
 
  private:
   std::unique_ptr<sw::redis::Redis> redis_;
@@ -46,8 +42,6 @@ class RedisCache : public ICacheService {
   sw::redis::Redis& getRedis();
 
   int getTtlWithJitter(std::chrono::seconds ttl);
-
-  void logError(const std::string& action, const std::string& key, const std::exception& e);
 
   RedisCache()                             = default;
   RedisCache(const RedisCache&)            = delete;

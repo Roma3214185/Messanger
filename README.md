@@ -238,6 +238,59 @@ Directory structure:
 
 ---
 
+## 🐳 Docker Support & Persistence Benchmarks
+
+### Docker Support
+All backend microservices can be built and run as Docker containers. This simplifies deployment, ensures consistent environments, and isolates dependencies.  
+
+**Quick Start with Docker:**
+1. Make sure Docker Desktop is running.
+2. Build and start all services using `docker-compose`:
+```bash
+docker-compose up --build
+``` 
+This will launch:  
+- **Redis** on port `6379`  
+- **RabbitMQ** on ports `5672` (AMQP) and `15672` (management UI)  
+- **Backend microservices**:  
+  - AuthService → `8083`  
+  - MessageService → `8082`  
+  - ChatService → `8081`  
+  - ApiGateway → `8084`  
+  - NotificationService → `8086`  
+
+**Key Points:**  
+- Each microservice has its own Dockerfile.  
+- `docker-compose.yml` orchestrates the services and their dependencies (Redis and RabbitMQ).  
+- Services communicate internally via Docker network using **service names**. For example, the frontend should connect to `authservice:8083` instead of `localhost:8083`.  
+- To stop all services:  
+```bash
+docker-compose down
+```
+
+## Persistence & GenericRepository Benchmarks
+
+The `Persistence` module and `GenericRepository` have been benchmarked to measure performance improvements using **caching, Redis pipelines, and optimized entity building**. Key takeaways:
+
+- **Query & Entity Cache:**  
+  - Query caching gives up to **6× speedup**.  
+  - Entity caching reduces repeated database access by **~4×**.  
+- **Redis Pipeline:**  
+  - Bulk saving 1000 entities is **~2× faster** with pipeline vs individual `SET`.  
+- **Entity Builders:**  
+  - Hand-written / inlined builders are **~45× faster** than dynamic builders.  
+  - Generic tuple-based builders are **~3–4× faster** than dynamic.  
+- **Async / Thread Pool:**  
+  - Useful for expensive queries, but adds minor overhead for cached operations.  
+- **Query Preparation:**  
+  - Caching prepared queries gives **~12× faster execution** than repeated preparation.  
+
+Benchmark scripts and detailed results can be found in:  
+```bache
+common/Persistence/benchmarks/
+```
+These optimizations ensure **high-performance, thread-safe, and low-latency data access** in the messenger backend.
+
 # Technologies
 
 ## Language & Standards
@@ -274,6 +327,8 @@ Directory structure:
 - **Catch2** (unit testing)
 - **lcov + Codecov** (coverage reporting)
 - **CI/CD**: GitHub Actions 
+
+TODO: info about docker and some benchmarks
 
 ## Security / Auth
 - JWT authentication (`JwtUtils`)

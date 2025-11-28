@@ -40,7 +40,7 @@ class NotificationManager {
   virtual void handleMessageSaved(const std::string& payload);
 
  protected:
-  QVector<int> fetchChatMembers(int chat_id);
+  std::vector<int> fetchChatMembers(int chat_id);
   void subscribeMessageSaved();
 };
 

@@ -1,5 +1,4 @@
 #include <crow.h>
-#include <QCoreApplication>
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
@@ -20,8 +19,7 @@ RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   return config;
 }
 
-int main(int argc, char* argv[]) {
-  QCoreApplication    a(argc, argv);
+int main() {
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
   ThreadPool pool;

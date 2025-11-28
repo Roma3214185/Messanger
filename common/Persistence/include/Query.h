@@ -7,6 +7,14 @@
 #include "interfaces/BaseQuery.h"
 #include "interfaces/ICacheService.h"
 
+#include "metaentity/ChatMeta.h"
+#include "metaentity/ChatMemberMeta.h"
+#include "metaentity/MessageStatusMeta.h"
+#include "metaentity/PrivateChatMeta.h"
+#include "metaentity/UserMeta.h"
+#include "metaentity/MessageMeta.h"
+#include "metaentity/UserCredentialsMeta.h"
+
 struct Meta;
 
 template <typename T>

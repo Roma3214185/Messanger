@@ -26,7 +26,7 @@ TEST_CASE("handleSocketOnMessage init type registers user") {
   TestServer server(8080, &nm);
   auto socket = std::make_shared<MockSocket>();
 
-  auto now = QDateTime::currentSecsSinceEpoch();
+  long long now = getCurrentTime();
   Message new_message;
   new_message.chat_id = 1;
   new_message.sender_id = 2;
@@ -46,7 +46,7 @@ TEST_CASE("handleSocketOnMessage init type registers user") {
 
   SECTION("Handle socket on message receive new message expected publishing it in rabiqMQ") {
     nlohmann::json init_msg;
-    init_msg["type"] =  "send_message";
+    init_msg["type"] =  std::string("send_message");
     init_msg["id"]  = new_message.id;
     init_msg["chat_id"]  = new_message.chat_id;
     init_msg["sender_id"]  = new_message.sender_id;

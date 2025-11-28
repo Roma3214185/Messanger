@@ -1,73 +1,62 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(AuthService LANGUAGES CXX)
 
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-
-set(AUTH_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(AUTH_SERVICE_INCUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-link_directories(
-    /usr/local/lib
-    /opt/homebrew/lib
-)
+add_compile_definitions(QT_NO_KEYWORDS)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common/Persistence ../../build_persistence)
 
 include(FetchContent)
-FetchContent_Declare(
-    libsodium
-    GIT_REPOSITORY https://github.com/jedisct1/libsodium.git
-    GIT_TAG        stable
-)
-FetchContent_MakeAvailable(libsodium)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Sql)
-find_package(SQLite3 REQUIRED)
-find_package(nlohmann_json REQUIRED)
+FetchContent_Declare(
+    Crow
+    GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+    GIT_TAG v1.3
+)
+FetchContent_MakeAvailable(Crow)
+
+find_package(Qt6 REQUIRED COMPONENTS Core Sql Widgets Gui)
+find_package(OpenSSL REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SODIUM REQUIRED libsodium)
+
+link_directories(/opt/homebrew/lib /usr/local/lib)
 
 add_library(AuthServiceCore STATIC
-  ${AUTH_SERVICE_SRC_DIR}/authcontroller.cpp
-  ${AUTH_SERVICE_SRC_DIR}/authmanager.cpp
-  ${AUTH_SERVICE_SRC_DIR}/JwtUtils.cpp
-  ${AUTH_SERVICE_SRC_DIR}/server.cpp
-  ${AUTH_SERVICE_SRC_DIR}/authDataInputService.cpp
-)
-
-target_link_libraries(AuthServiceCore PUBLIC
-  Qt${QT_VERSION_MAJOR}::Core
-  Crow::Crow
-  SQLite::SQLite3
-  jwt-cpp
-  sodium
-  Entities
-  Constants
-  NetworkManager
-  nlohmann_json::nlohmann_json
+    src/authcontroller.cpp
+    src/authmanager.cpp
+    src/JwtUtils.cpp
+    src/server.cpp
+    src/authDataInputService.cpp
 )
 
 target_include_directories(AuthServiceCore PUBLIC
-  ${AUTH_SERVICE_INCUDE_DIR}/
-  ${libsodium_SOURCE_DIR}/src/libsodium/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${SODIUM_INCLUDE_DIRS}
 )
 
-add_executable(AuthService
-  ${AUTH_SERVICE_SRC_DIR}/main.cpp
+target_compile_options(AuthServiceCore PRIVATE -Wno-deprecated-declarations)
+
+target_link_libraries(AuthServiceCore PUBLIC
+    Qt6::Core Qt6::Sql Qt6::Widgets Qt6::Gui
+    OpenSSL::SSL OpenSSL::Crypto
+    ${SODIUM_LIBRARIES}
+    Crow::Crow
+    jwt-cpp
+    Metrics
+    sodium
+    Constants
+    Entities
+    Network
+    Persistence
+    nlohmann_json::nlohmann_json
 )
 
+add_executable(AuthService src/main.cpp)
 target_link_libraries(AuthService PRIVATE AuthServiceCore)
-
-include(GNUInstallDirs)
-install(TARGETS AuthService
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-set_target_properties(AuthService PROPERTIES
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib"
-    INSTALL_RPATH_USE_LINK_PATH TRUE
-)

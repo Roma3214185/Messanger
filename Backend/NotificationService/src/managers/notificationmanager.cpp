@@ -74,8 +74,7 @@ void NotificationManager::userConnected(int user_id, SocketPtr socket) {
 void NotificationManager::onMarkReadMessage(Message& message, int read_by) {
   const MessageStatus message_status{.message_id  = message.id,
                                      .receiver_id = read_by,
-                                     .is_read     = true,
-                                     .read_at     = QDateTime::currentSecsSinceEpoch()};
+                                     .is_read     = true};
 
   // manager.saveMessageStatus(status);
   notifyMessageRead(message.id, message_status);
@@ -122,7 +121,7 @@ void NotificationManager::saveMessageStatus(MessageStatus& status) {
 
 void NotificationManager::onUserSaved() {}
 
-QVector<UserId> NotificationManager::fetchChatMembers(int chat_id) {
+std::vector<UserId> NotificationManager::fetchChatMembers(int chat_id) {
   return network_facade_.chat().getMembersOfChat(chat_id);
 }
 

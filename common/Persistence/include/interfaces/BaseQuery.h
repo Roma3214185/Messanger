@@ -15,17 +15,17 @@ template <typename T>
 class BaseQuery {
  protected:
   ISqlExecutor*            executor_;
-  std::vector<std::string> involved_tables_;
+  std::vector<QString>     involved_tables_;
   inline static ThreadPool pool{4};
   QStringList              filters_;
   QVector<QVariant>        values_;
   QString                  limit_clause_;
-  std::string              join_clause_;
-  std::string              table_name_;
+  QString                  join_clause_;
+  QString                  table_name_;
 
  public:
   explicit BaseQuery(ISqlExecutor* executor) : executor_(executor) {
-    table_name_ = Reflection<T>::meta().table_name;
+    table_name_ = QString::fromStdString(Reflection<T>::meta().table_name);
     involved_tables_.push_back(table_name_);
   }
 
@@ -52,8 +52,12 @@ class BaseQuery {
   BaseQuery& join(const std::string& table,
                   const std::string& first,
                   const std::string& second) {
-    join_clause_ += " JOIN " + table + " ON " + first + " = " + second;
-    involved_tables_.push_back(table);
+    join_clause_ += QString(" JOIN %1 ON %2 = %3")
+      .arg(QString::fromStdString(table))
+        .arg(QString::fromStdString(first))
+        .arg(QString::fromStdString(second));
+
+    involved_tables_.push_back(QString::fromStdString(table));
     return *this;
   }
   private:

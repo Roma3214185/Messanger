@@ -202,8 +202,9 @@ TEST_CASE("Test integration with cache while saving") {
     REQUIRE(cache.getCalls(tableKey) == before_table + 1);
     REQUIRE(cache.getCalls(entityKey) == before_entity + 1);
 
-    auto json = cache.get(entityKey);
-    REQUIRE(nlohmann::json(user) == json);
+    auto user_from_cache = cache.get(entityKey);
+    REQUIRE(user_from_cache != std::nullopt);
+    REQUIRE(nlohmann::json(user).dump() == *user_from_cache);
   }
 
   SECTION("Saved message_status with custom key exepected updated cache") {
@@ -221,8 +222,9 @@ TEST_CASE("Test integration with cache while saving") {
     REQUIRE(cache.getCalls(tableKey) == before_table + 1);
     REQUIRE(cache.getCalls(entityKey) == before_entity + 1);
 
-    auto json = cache.get(entityKey);
-    REQUIRE(nlohmann::json(status) == json);
+    auto json_from_cache = cache.get(entityKey);
+    REQUIRE(json_from_cache != std::nullopt);
+    REQUIRE(nlohmann::json(status).dump() == *json_from_cache);
   }
 
   SECTION("Saved user_credentials with custom key exepected updated cache") {
@@ -240,8 +242,9 @@ TEST_CASE("Test integration with cache while saving") {
     REQUIRE(cache.getCalls(tableKey) == before_table + 1);
     REQUIRE(cache.getCalls(entityKey) == before_entity + 1);
 
-    auto json = cache.get(entityKey);
-    REQUIRE(nlohmann::json(credentials) == json);
+    auto json_from_cache = cache.get(entityKey);
+    REQUIRE(json_from_cache != std::nullopt);
+    REQUIRE(nlohmann::json(credentials).dump() == *json_from_cache);
   }
 
   SECTION("Saved chat_members with custom key exepected updated cache") {
@@ -260,7 +263,8 @@ TEST_CASE("Test integration with cache while saving") {
     REQUIRE(cache.getCalls(entityKey) == before_entity + 1);
 
     auto json = cache.get(entityKey);
-    REQUIRE(nlohmann::json(member) == json);
+    REQUIRE(json != std::nullopt);
+    REQUIRE(nlohmann::json(member).dump() == *json);
   }
 
   SECTION("Clear cache expected clear all data") {

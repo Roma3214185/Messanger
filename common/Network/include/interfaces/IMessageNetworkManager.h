@@ -2,7 +2,6 @@
 #define IMESSAGENETWORKMANAGER_H
 
 #include "interfaces/INetworkManagerBase.h"
-#include <QVector>
 
 using UserId = int;
 

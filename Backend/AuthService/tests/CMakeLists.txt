@@ -8,7 +8,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
-find_package(spdlog REQUIRED)
 find_package(Catch2 3 REQUIRED)
 
 link_directories(
@@ -33,12 +32,6 @@ add_executable(AuthServiceTests
     test_authmanager.cpp
 )
 
-set_target_properties(AuthServiceTests PROPERTIES
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "/opt/homebrew/lib"
-    INSTALL_RPATH_USE_LINK_PATH ON
-)
-
 target_include_directories(AuthServiceTests PRIVATE
     ${libsodium_SOURCE_DIR}/src/libsodium/include
     ${libsodium_BINARY_DIR}/src/libsodium/include
@@ -54,7 +47,6 @@ target_link_libraries(AuthServiceTests
         Qt6::Test
         Qt6::Network
         BackendMocks
-        Network
         sodium
 )
 

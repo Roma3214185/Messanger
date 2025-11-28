@@ -68,7 +68,7 @@ bool GenericRepository::save(T& entity) {
     return false;
   }
 
-  cache_.set(makeKey<T>(entity), entity);
+  cache_.set(makeKey<T>(entity), nlohmann::json(entity).dump());
   cache_.incr(std::string("table_generation:") + meta.table_name);
   return true;
 }

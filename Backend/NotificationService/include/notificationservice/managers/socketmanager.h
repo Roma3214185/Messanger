@@ -1,7 +1,8 @@
-#ifndef SOCKETMANAGER_H
-#define SOCKETMANAGER_H
+#ifndef BACKEND_NOTIFICATION_SOCKETMANAGER_H
+#define BACKEND_NOTIFICATION_SOCKETMANAGER_H
 
 #include <unordered_map>
+#include <memory>
 
 #include "interfaces/ISocket.h"
 
@@ -20,4 +21,4 @@ class SocketsManager {
   Sockets user_sockets_;
 };
 
-#endif  // SOCKETMANAGER_H
+#endif  // BACKEND_NOTIFICATION_SOCKETMANAGER_H

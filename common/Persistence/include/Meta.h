@@ -1,7 +1,6 @@
 #ifndef BACKEND_GENERICREPOSITORY_META_H_
 #define BACKEND_GENERICREPOSITORY_META_H_
 
-#include <QDateTime>
 #include <QtSql/QSqlQuery>
 #include <any>
 #include <functional>
@@ -43,33 +42,14 @@ Field make_field(const char* name, M T::* member) {
                    [member](void* obj, const std::any& val) {
                      T* element = static_cast<T*>(obj);
 
-                     if constexpr (std::is_same_v<M, QDateTime>) {
-                       if (!val.has_value()) {
-                         LOG_ERROR("!has value");
-                         return;
-                       }
-
-                       if (val.type() == typeid(QDateTime)) {
-                         element->*member = std::any_cast<QDateTime>(val);
-                       } else if (val.type() == typeid(long long)) {
-                         element->*member =
-                             QDateTime::fromSecsSinceEpoch(std::any_cast<long long>(val));
-                       } else if (val.type() == typeid(int)) {
-                         element->*member = QDateTime::fromSecsSinceEpoch(std::any_cast<int>(val));
-                       } else {
-                         LOG_ERROR("Invalid type for QDateTime: '{}'", val.type().name());
-                       }
-                     } else {
-                       if (!val.has_value()) return;
-                       if constexpr (std::is_same_v<M, std::string>) {
-                         if (val.type() == typeid(const char*))
-                           (element->*member) = std::string(std::any_cast<const char*>(val));
-                         else
-                           (element->*member) = std::any_cast<M>(val);
-                       } else {
-                         (element->*member) = std::any_cast<M>(val);
-                       }
-                     }
+                       // if constexpr (std::is_same_v<M, std::string>) {
+                       //    if (val.type() == typeid(const char*)) {
+                       //     (element->*member) = std::string(std::any_cast<const char*>(val));
+                       //    }
+                       //    else
+                      (element->*member) = std::any_cast<M>(val);
+                       //} /
+                     //}
                    }};
 }
 

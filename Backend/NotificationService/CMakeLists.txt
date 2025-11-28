@@ -7,14 +7,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(NOTIFICATION_SERVICE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(NOTIFICATION_SERVICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common/RabbitMQClient ../../build_notification_rabbit)
 
-find_package(Qt6 REQUIRED COMPONENTS Core WebSockets Sql Test)
-find_package(spdlog REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_package(Catch2 3 REQUIRED)
+
+add_compile_definitions(QT_NO_KEYWORDS)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    Crow
+    GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+    GIT_TAG v1.3
+)
+FetchContent_MakeAvailable(Crow)
 
 add_library(NotificationServiceCore STATIC
     ${NOTIFICATION_SERVICE_SRC_DIR}/managers/notificationmanager.cpp
@@ -33,30 +39,21 @@ target_link_directories(NotificationServiceCore PRIVATE
 )
 
 target_link_libraries(NotificationServiceCore PUBLIC
-    Qt6::Core
-    Qt6::WebSockets
-    Qt6::Sql
     Crow::Crow
-    spdlog::spdlog
     nlohmann_json::nlohmann_json
     Metrics
     jwt-cpp
     RabbitMQClient
-    NetworkManager
+    Network
     Constants
 )
 
 add_executable(NotificationService
     ${NOTIFICATION_SERVICE_SRC_DIR}/main.cpp
+    Dockerfile
 )
 
-target_link_libraries(NotificationService PRIVATE NotificationServiceCore Qt6::Core)
-
-set_target_properties(NotificationService PROPERTIES
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "@executable_path;@executable_path/../lib;/opt/homebrew/lib;/usr/local/lib"
-    INSTALL_RPATH_USE_LINK_PATH TRUE
-)
+target_link_libraries(NotificationService PRIVATE NotificationServiceCore)
 
 include(GNUInstallDirs)
 install(TARGETS NotificationService

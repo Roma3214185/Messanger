@@ -1,40 +1,40 @@
 #include "interfaces/IChatNetworkManager.h"
-
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
 
-QVector<UserId> IChatNetworkManager::getMembersOfChat(int chat_id) {
-  QVector<UserId> members;
-  std::string     path = "/chats/" + std::to_string(chat_id) + "/members";
+using json = nlohmann::json;
+
+std::vector<UserId> IChatNetworkManager::getMembersOfChat(int chat_id) {
+  std::vector<UserId> members;
+  std::string path = "/chats/" + std::to_string(chat_id) + "/members";
 
   auto res = forward(provider_->ports().chatService, "", path, "GET");
+
   if (res.first != provider_->statusCodes().success) {
-    LOG_ERROR("GetMembersOfChat failed '{}' and reason: '{}' ", res.first, res.second);
+    LOG_ERROR("GetMembersOfChat failed '{}' reason: '{}'", res.first, res.second);
     return members;
   }
 
-  auto response_data = QByteArray::fromStdString(res.second);
-  auto json_response = QJsonDocument::fromJson(response_data);
+  try {
+    json json_response = json::parse(res.second);
 
-  if (!json_response.isObject()) {
-    LOG_ERROR("Invalid JSON format in getMembersOfChat");
-    return members;
+    if (!json_response.contains("members") || !json_response["members"].is_array()) {
+      LOG_ERROR("getMembersOfChat: missing 'members' array");
+      return members;
+    }
+
+    for (const auto& v : json_response["members"]) {
+      if (v.is_number_integer()) {
+        members.push_back(v.get<UserId>());
+      }
+    }
+
+    LOG_INFO("getMembersOfChat success '{}'", members.size());
+  }
+  catch (const std::exception& e) {
+    LOG_ERROR("JSON parse error in getMembersOfChat: {}", e.what());
   }
 
-  auto obj = json_response.object();
-  if (!obj.contains("members") || !obj["members"].isArray()) {
-    LOG_ERROR("getMembersOfChat: no 'members' field found");
-    return members;
-  }
-
-  auto arr = obj["members"].toArray();
-  for (const auto& v : arr) {
-    members.append(v.toInt());
-  }
-
-  LOG_INFO("getMembersOfChat success '{}'", members.size());
   return members;
 }

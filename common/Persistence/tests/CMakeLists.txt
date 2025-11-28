@@ -7,13 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
+
 add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Sql)
-find_package(spdlog REQUIRED)
 find_package(Catch2 3 REQUIRED)
-
-#add_subdirectory(.. ${CMAKE_CURRENT_BINARY_DIR}/PersistenceBuild)
 
 add_executable(PersistenceTests
     test_genericrepository.cpp
@@ -27,10 +25,10 @@ target_link_libraries(PersistenceTests
         Persistence
         Metrics
         Entities
+        BackendMocks
         Qt6::Core
         Qt6::Sql
         Catch2::Catch2WithMain
-        spdlog::spdlog
 )
 
 target_include_directories(PersistenceTests
