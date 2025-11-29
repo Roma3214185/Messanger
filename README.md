@@ -136,10 +136,10 @@ Directory structure:
     ├── external/
     ├── Backend/
     │   ├── Gateway/
+    │   │   ├── Dockerfile
     │   │   ├── include/
     │   │   ├── src/
-    │   │   ├── tests/    
-    │   │   └── Dockerfile
+    │   │   └── tests/
     │   ├── AuthService/
     │   │   ├── Dockerfile
     │   │   ├── include/
@@ -257,7 +257,7 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 
 ## Networking & Web
 - **Crow** (REST API backend)
-- **WebSocket support** via Crow or `uWebSockets`
+- **WebSocket support** via Crow or `IXWebSocket`
 
 ## Database & Caching
 - **SQLite3** (lightweight embedded DB)
@@ -280,17 +280,18 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 ## Docker Support
 - All backend microservices can be built and run as Docker containers.
 
-## Benchmrks
+## Benchmarks
 - The `Persistence` module have been benchmarked to measure performance improvements 
 
 ## Testing & CI/CD
 - **Unit tests:** Catch2  
 - **Code coverage:** lcov + Codecov  
-- **CI/CD:** GitHub Actions  
-- Current test coverage: **~74%**
+- **CI/CD:** GitHub Actions 
+
+📊 Current coverage: **~74%**
 
 ## Security / Auth
-- JWT authentication (`JwtUtils`)
+- JWT authentication with public and private keys
 
 ## Frontend / GUI
 - **Qt6** (native desktop GUI)
