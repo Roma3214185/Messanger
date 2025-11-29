@@ -38,14 +38,6 @@ brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio
 ./external/vcpkg/bootstrap-vcpkg.sh
 ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 hiredis sqlite3
 
-git clone --depth 1 https://github.com/sewenew/redis-plus-plus.git redis-plus-plus
-cd redis-plus-plus
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/local
-cmake --build . --parallel
-cmake --install .
-cd ../..
-
 rm -rf build
 cmake -S . -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Debug \
@@ -55,18 +47,8 @@ cmake -S . -B build -G Ninja \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
     -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
-    -DREDISPP_INCLUDE_DIR=$HOME/local/include \
-    -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
     -DTRACY_ENABLE=ON
 cmake --build build --parallel
-
-ctest --test-dir build --output-on-failure
-
-lcov --directory build --capture --output-file coverage.info
-lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/include/*' --output-file coverage.info
-genhtml coverage.info --output-directory coverage-report
-
-codecov -f coverage.info
 ```
 
 ## Usage
@@ -133,11 +115,17 @@ Send and receive messages in real time.
 - Logs: Each service uses spdlog for structured logging.
 - Metrics: Prometheus-compatible metrics are exposed via /metrics endpoints.
 
-### 4. Running tests
+### 4. Running tests and generate coverage
 All tests are integrated with CTest.
 You can run them after building the project:
 ```bash
 ctest --test-dir build --output-on-failure
+
+lcov --directory build --capture --output-file coverage.info
+lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/include/*' --output-file coverage.info
+genhtml coverage.info --output-directory coverage-report
+
+codecov -f coverage.info
 ```
 
 ## Project Structure
