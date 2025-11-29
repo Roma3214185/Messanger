@@ -135,8 +135,8 @@ Directory structure:
     ├── README.md
     ├── external
     ├── Backend/
-    │   ├── ApigateWay/
-    │   ├── Dockerfile
+    │   ├── Gateway/
+    │   │   ├── Dockerfile
     │   │   ├── include/
     │   │   ├── src/
     │   │   └── tests/
@@ -291,7 +291,7 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 
 ## Networking & Web
 - **Crow** (REST API backend)
-- **WebSocket support** via Crow or `uWebSockets`
+- **WebSocket support** via Crow or `IXWebSocket`
 
 ## Database & Caching
 - **SQLite3** (lightweight embedded DB)
@@ -311,15 +311,20 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 ## Logging & Tracing
 - **spdlog** (structured, async logging)
 
-## Testing & CI/CD
-- **Catch2** (unit testing)
-- **lcov + Codecov** (coverage reporting)
-- **CI/CD**: GitHub Actions 
+## Docker Support
+- All backend microservices can be built and run as Docker containers.
 
-TODO: info about docker and some benchmarks
+## Benchmarks
+- The `Persistence` module have been benchmarked to measure performance improvements 
+
+## Testing & CI/CD
+- **Unit tests:** Catch2  
+- **Code coverage:** lcov + Codecov  
+- **CI/CD:** GitHub Actions 
+- Current coverage: **~74%**
 
 ## Security / Auth
-- JWT authentication (`JwtUtils`)
+- JWT authentication with public and private keys
 
 ## Frontend / GUI
 - **Qt6** (native desktop GUI)
