@@ -1,6 +1,4 @@
 build/
-data/
-Testing/
 CMakeFiles/
 CMakeCache.txt
 Makefile
@@ -14,9 +12,6 @@ Makefile
 *_autogen/
 *.sh
 *.info
-*.log
-*.info
-*.sh
 *.user
 *.autosave
 *.pro.user
@@ -30,7 +25,10 @@ Thumbs.db
 *.swp
 *.tmp
 keys/private.pem
-.qt/
+keys/*.key
+secrets/*.pem
+secrets/*.key
+.qt
 *.qrc
 *.jpeg
 .clang-tidy

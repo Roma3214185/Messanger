@@ -54,35 +54,38 @@ set(ALL_SERVICES
 )
 
 if (DEFINED TARGET)
-message(STATUS "Building only microservice: ${TARGET}")
+    message(STATUS "Building only microservice: ${TARGET}")
 
-list(FIND ALL_SERVICES ${TARGET} _index)
-if (_index EQUAL -1)
-    message(FATAL_ERROR "Unknown TARGET '${TARGET}'. Valid: ${ALL_SERVICES}")
-endif()
+    list(FIND ALL_SERVICES ${TARGET} _index)
+    if (_index EQUAL -1)
+        message(FATAL_ERROR "Unknown TARGET '${TARGET}'. Valid: ${ALL_SERVICES}")
+    endif()
 
-add_subdirectory(Backend/${TARGET})
+    add_subdirectory(Backend/${TARGET})
 else()
+    message(STATUS "Building ALL targets")
+    foreach(service ${ALL_SERVICES})
+        add_subdirectory(Backend/${service})
+    endforeach()
 
-# Microservices
-message(STATUS "Building ALL targets")
-foreach(service ${ALL_SERVICES})
-    add_subdirectory(Backend/${service})
-endforeach()
+    # -------------------------
+    # Frontend
+    # -------------------------
+    add_subdirectory(Frontend)
 
-# Frontend
-add_subdirectory(Frontend)
+    # -------------------------
+    # Mocks for backend tests
+    # -------------------------
+    add_subdirectory(Backend/common_mocks)
 
-# Mocks for backend tests
-add_subdirectory(Backend/common_mocks)
-
-# Tests
-include(CTest)
-enable_testing()
-add_subdirectory(common/Persistence/tests)
-add_subdirectory(Frontend/tests)
-foreach(service ${ALL_SERVICES})
-    add_subdirectory(Backend/${service}/tests)
-endforeach()
-
+    # -------------------------
+    # Tests
+    # -------------------------
+    include(CTest)
+    enable_testing()
+    add_subdirectory(common/Persistence/tests)
+    add_subdirectory(Frontend/tests)
+    foreach(service ${ALL_SERVICES})
+        add_subdirectory(Backend/${service}/tests)
+    endforeach()
 endif()
