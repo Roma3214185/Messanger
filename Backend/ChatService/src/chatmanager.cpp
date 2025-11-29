@@ -6,15 +6,6 @@
 ChatManager::ChatManager(GenericRepository* repository) : repository_(repository) {}
 
 std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_user_id) {
-  // 1) check in db "private_chats" exists of pair min(first_user_id, second_user) and max(first_user_id, second_user)
-  // 2) if chat exist -> return id
-  // 3) else (returned empty list)
-  // 4) create in db "chat" chat with is_group = false
-  // 5) if success -> get id and save in db
-            //"private_chats" (chat_id, min(first_user_id, second_user) max(first_user_id, second_user)
-  //6) save in chat_members pair chat_id, first_user_id
-  //7) save in chat_members pair chat_id, second_user_id
-
   if(first_user_id == second_user_id) {
     LOG_ERROR("User id is same");
     return std::nullopt;
@@ -77,12 +68,13 @@ bool ChatManager::addMembersToChat(ID chat_id, const std::vector<ID>& members_id
       return false;
     }
   }
-  // TODO: repository_->save(chat_members);
+  // TODO: repository_->save(chat_members) (pipeline);
   return true;
 }
 
 std::vector<ID> ChatManager::getMembersOfChat(ID chat_id) {
-  std::vector<ChatMember> chat_members = repository_->findByField<ChatMember>(ChatMemberTable::ChatId, chat_id);
+  auto chat_members = repository_->findByField<ChatMember>(ChatMemberTable::ChatId, chat_id);
+  //TODO: make select only id of chat_members
   LOG_INFO("[getMembersOfChat] for chat_id {} finded {} members", chat_id, chat_members.size());
   std::vector<ID> chat_members_id;
   for (auto member : chat_members) {
