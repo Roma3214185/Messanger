@@ -150,11 +150,8 @@ Directory structure:
     │   ├── Gateway/
     │   │   ├── include/
     │   │   ├── src/
-    │   │   └── tests/    
-    │   ├── Dockerfile
-    │   │   ├── include/
-    │   │   ├── src/
-    │   │   └── tests/
+    │   │   ├── tests/    
+    │   │   └── Dockerfile
     │   ├── AuthService/
     │   │   ├── Dockerfile
     │   │   ├── include/
