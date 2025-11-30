@@ -63,17 +63,18 @@ void GatewayServer::registerRoute(const std::string& basePath,
       .methods("GET"_method,
                "POST"_method)([this, port, basePath](
                                   const crow::request& req, crow::response& res, std::string path) {
-        pool_->enqueue([this, req = std::move(req), &res, port, basePath, path]() mutable {
+        //pool_->enqueue([this, req = std::move(req), &res, port, basePath, path]() mutable {
           handleProxyRequest(req, res, port, basePath + "/" + path);
           //TODO: res.end() here or in handleProxyRequest
-        });
+          //TODO: make async
+       // });
       });
 
   app_.route_dynamic(basePath).methods("GET"_method, "POST"_method)(
       [this, port, basePath](const crow::request& req, crow::response& res) {
-        pool_->enqueue([this, req = std::move(req), &res, port, basePath]() mutable {
+        //pool_->enqueue([this, req = std::move(req), &res, port, basePath]() mutable {
          handleProxyRequest(req, res, port, basePath);
-        });
+        //});
       });
 }
 
@@ -91,26 +92,24 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
 }
 
 void GatewayServer::registerWebSocketRoutes() {
-  std::string backend_url = fmt::format(
-      "ws://127.0.0.1:{}/ws",
-      provider_->ports().notificationService
-      );
+  std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws",
+      provider_->ports().notificationService);
   auto wsBridge = std::make_shared<WebSocketBridge>(backend_url);
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
       .onopen([wsBridge, this](crow::websocket::connection& client) {
         wsBridge->onClientConnect(client);
-        metrics_->userConnected();
+        //metrics_->userConnected();
       })
       .onmessage([wsBridge, this](crow::websocket::connection& client, const std::string& data, bool) {
         wsBridge->onClientMessage(client, data);
-        metrics_->newMessage(client.get_remote_ip());
+        //metrics_->newMessage(client.get_remote_ip());
       })
       .onclose([wsBridge, this](crow::websocket::connection& client,
                           const std::string&           reason,
                           uint16_t code) {
         wsBridge->onClientClose(client, reason, code);
-        metrics_->userDisconnected();
+        //metrics_->userDisconnected();
       });
 }
 

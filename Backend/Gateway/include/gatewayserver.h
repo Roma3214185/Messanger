@@ -39,7 +39,6 @@ class GatewayServer {
   IConfigProvider* provider_;
   ICacheService* cache_;
   ProxyClient proxy_;
-  IMetrics* metrics_;
   IThreadPool* pool_;
 
   void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path);
