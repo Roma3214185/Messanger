@@ -1,4 +1,4 @@
-#include "SQLiteDataBase.h"
+#include "DataBase.h"
 
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -64,7 +64,7 @@ const QString CREATE_CREDENTIALS_TABLE = R"(
         );
     )";
 
-const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE IF NOT EXISTS private_chats (
+const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE private_chats (
     chat_id       INTEGER PRIMARY KEY AUTOINCREMENT,
     user1_id      INTEGER NOT NULL,
     user2_id      INTEGER NOT NULL,
@@ -81,12 +81,12 @@ const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE IF NOT EXISTS private
 
 } // namespace
 
-SQLiteDatabase::SQLiteDatabase(const QString& db_path)
+ProsteSQLDatabase::ProsteSQLDatabase(const QString& db_path)
     : IDataBase(db_path) {
   initializeSchema();
 }
 
-void SQLiteDatabase::initializeSchema() {
+void ProsteSQLDatabase::initializeSchema() {
   QSqlDatabase db = getThreadDatabase();
 
   const std::vector<std::pair<QString, QString>> tables = {
@@ -108,7 +108,7 @@ void SQLiteDatabase::initializeSchema() {
   LOG_INFO("Database schema initialized successfully");
 }
 
-bool SQLiteDatabase::executeSql(QSqlDatabase& db, const QString& sql) {
+bool ProsteSQLDatabase::executeSql(QSqlDatabase& db, const QString& sql) {
   QSqlQuery query(db);
   if (!query.exec(sql)) {
     LOG_ERROR("SQL error: {}", query.lastError().text().toStdString());
@@ -117,12 +117,12 @@ bool SQLiteDatabase::executeSql(QSqlDatabase& db, const QString& sql) {
   return true;
 }
 
-bool SQLiteDatabase::deleteTable(QSqlDatabase& db, const QString& name) {
+bool ProsteSQLDatabase::deleteTable(QSqlDatabase& db, const QString& name) {
   const QString sql = QString("DROP TABLE IF EXISTS \"%1\"").arg(name);
   return executeSql(db, sql);
 }
 
-bool SQLiteDatabase::tableExists(QSqlDatabase& db, const QString& tableName) {
+bool ProsteSQLDatabase::tableExists(QSqlDatabase& db, const QString& tableName) {
   QSqlQuery query(db);
   query.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?;");
   query.addBindValue(tableName);

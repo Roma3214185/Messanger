@@ -129,7 +129,9 @@ class GatewayMetrics : public IMetrics {
 
     void authOk(const std::string& path) { auth_ok_.Add({{"path", path}}).Increment(); }
     void authFail(const std::string& path) { auth_fail_.Add({{"path", path}}).Increment(); }
-    void userConnected() { active_clients_->Increment(); }
+    void userConnected() {
+      active_clients_->Increment();
+    }
     void userDisconnected() { active_clients_->Decrement(); }
     void saveRequestLatency(const double latency) { call_latency_->Observe(latency); }
 

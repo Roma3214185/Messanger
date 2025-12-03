@@ -50,6 +50,8 @@ struct LoggingMiddleware {
       json["event"] = "response_sent";
       json["method"] = crow::method_name(req.method);
       json["url"] = req.url;
+      json["status_code"] = res.code;
+      json["responce"] = res.body;
       json["client_ip"] = req.remote_ip_address;
       json["duration_ms"] = ms;
 

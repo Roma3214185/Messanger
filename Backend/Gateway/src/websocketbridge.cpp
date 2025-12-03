@@ -1,27 +1,34 @@
 #include "websocketbridge.h"
 #include "Debug_profiling.h"
 
+namespace{
+
+std::string makeClientId(crow::websocket::connection& client) {
+  return client.get_remote_ip() + ":" + std::to_string((uintptr_t)&client);
+}
+
+} // namespace
+
 WebSocketBridge::WebSocketBridge(const std::string& backend_url) : backend_url_(backend_url) {}
 
 std::shared_ptr<ix::WebSocket> WebSocketBridge::createBackendConnection(
-    crow::websocket::connection& client) {
+    const std::string& client_id) {
   auto backend_ws = std::make_shared<ix::WebSocket>();
   backend_ws->setUrl(backend_url_);
 
-  backend_ws->setOnMessageCallback([&client](const ix::WebSocketMessagePtr& msg) {
+  backend_ws->setOnMessageCallback([this, client_id](const ix::WebSocketMessagePtr& msg) {
     switch (msg->type) {
       case ix::WebSocketMessageType::Open:
         LOG_INFO("Backend WS connected");
         break;
       case ix::WebSocketMessageType::Message:
-        client.send_text(msg->str);
+        clients_.at(client_id)->send_text(msg->str);
         break;
       case ix::WebSocketMessageType::Close:
         LOG_INFO(
             "Backend WS closed: code={}, reason={}", msg->closeInfo.code, msg->closeInfo.reason);
         break;
       case ix::WebSocketMessageType::Error:
-        LOG_ERROR("Backend WS error: {} ({})", msg->errorInfo.reason, msg->errorInfo.http_status);
         break;
       default:
         break;
@@ -33,28 +40,32 @@ std::shared_ptr<ix::WebSocket> WebSocketBridge::createBackendConnection(
 }
 
 void WebSocketBridge::onClientConnect(crow::websocket::connection& client) {
-  LOG_INFO("Frontend WS connected: {}", client.get_remote_ip());
-  connections_[&client] = createBackendConnection(client);
+  std::string client_id = makeClientId(client);
+  auto backend_connection = createBackendConnection(client_id);
+  clients_[client_id] =  &client;
+  connections_[client_id] = backend_connection;
 }
 
 void WebSocketBridge::onClientMessage(crow::websocket::connection& client,
                                       const std::string&           data) {
-  auto it = connections_.find(&client);
+  std::string client_id = makeClientId(client);
+  auto it = connections_.find(client_id);
   if (it != connections_.end() && it->second) {
     it->second->send(data);
   }
 }
 
 void WebSocketBridge::onClientClose(crow::websocket::connection& client,
-                                    const std::string&           reason,
-                                    uint16_t                     code) {
-  LOG_INFO("Frontend WS closed: reason='{}', code={}", reason, code);
-  auto it = connections_.find(&client);
+                                    const std::string& reason,
+                                    uint16_t code) {
+  std::string id = makeClientId(client);
+
+  auto it = connections_.find(id);
   if (it != connections_.end()) {
-    auto backend_ws = it->second;
-    if (backend_ws && backend_ws->getReadyState() == ix::ReadyState::Open) {
-      backend_ws->close();
-    }
+    if (it->second && it->second->getReadyState() == ix::ReadyState::Open)
+      it->second->close();
     connections_.erase(it);
   }
+
+  clients_.erase(id);
 }

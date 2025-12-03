@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #ifdef ENABLE_TRACY
 #include "../external/tracy/public/tracy/Tracy.hpp"
@@ -19,10 +20,26 @@
 // #define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
 #endif
 
-#define LOG_INFO(...) spdlog::info(__VA_ARGS__)
-#define LOG_WARN(...) spdlog::warn(__VA_ARGS__)
-#define LOG_ERROR(...) spdlog::error(__VA_ARGS__)
-#define LOG_DEBUG(...) spdlog::debug(__VA_ARGS__)
+inline std::string extract_class_and_function(const char* pretty_func) {
+  std::string s(pretty_func);
+
+  auto first_space = s.find(' ');
+  if(first_space != std::string::npos) {
+    s = s.substr(first_space + 1);
+  }
+
+  auto paren = s.find('(');
+  if(paren != std::string::npos) {
+    s = s.substr(0, paren);
+  }
+
+  return s;
+}
+
+#define LOG_INFO(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
+#define LOG_WARN(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::warn, __VA_ARGS__)
+#define LOG_ERROR(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::err, __VA_ARGS__)
+#define LOG_DEBUG(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::debug, __VA_ARGS__)
 
 class ScopedTimer {
   std::string                                    name_;
@@ -31,7 +48,7 @@ class ScopedTimer {
  public:
   explicit ScopedTimer(std::string name)
       : name_(std::move(name)), start_(std::chrono::high_resolution_clock::now()) {
-    spdlog::info("[TIMER START] {}", name_);
+    //spdlog::info("[TIMER START] {}", name_);
   }
 
   ~ScopedTimer() noexcept {
@@ -39,25 +56,16 @@ class ScopedTimer {
     double duration_seconds = std::chrono::duration<double>(end - start_).count();
 
     try {
-      spdlog::info("[TIMER END] {} took {:.3f} s", name_, duration_seconds);
+      const std::string func_name = extract_class_and_function(__PRETTY_FUNCTION__);
+      spdlog::log(spdlog::source_loc{__FILE__, __LINE__, func_name.c_str()},
+                  spdlog::level::info,
+                  "Function took {:.3f} s",
+                  duration_seconds);
     } catch (...) {
       LOG_ERROR("Error in destructor");
     }
-    // if (record_metrics_) {
-    //   auto& metrics = GlobalMetrics::metrics();
-    //   metrics.request_counter.Increment();
-    //   metrics.request_latency.Observe(duration_seconds);
-    // }
   }
 };
-
-// inline void enable_sqlite_logging(sqlite3* db) {
-//     sqlite3_trace_v2(db, SQLITE_TRACE_STMT, [](unsigned, void*, void* p,
-//     void*) -> int {
-//         std::cout << "[SQL QUERY] " << static_cast<const char*>(p) <<
-//         std::endl; return 0;
-//     }, nullptr);
-// }
 
 inline void measure_network_call(const std::string& name, const std::function<void()>& func) {
   auto start = std::chrono::high_resolution_clock::now();
@@ -70,11 +78,14 @@ inline void measure_network_call(const std::string& name, const std::function<vo
 
 inline void init_logger(const std::string& service_name) {
   try {
-    constexpr size_t  kMaxLogFileSize = 5 * 1024 * 1024;  // 5 MB
-    constexpr size_t  kMaxLogFiles    = 3;
-    const std::string kLogDirectory   = "logs/";
-    const std::string kLogExtension   = ".log";
-    const std::string kLogPattern     = "[%Y-%m-%d %H:%M:%S.%e] [%l] [%n] %v";
+    constexpr int fiveMB = 5 * 1024 * 1024;
+    constexpr size_t kMaxLogFileSize = fiveMB;
+    constexpr size_t kMaxLogFiles = 3;
+    const std::string kLogDirectory = "/Users/roma/QtProjects/Chat/logs/";
+    const std::string kLogExtension = ".log";
+    const std::string kLogPattern = "[%d-%m %H:%M:%S] [%l] [%!] %v";
+
+    std::filesystem::create_directories(kLogDirectory);
 
     std::string filename = kLogDirectory + service_name + kLogExtension;
 
@@ -87,6 +98,7 @@ inline void init_logger(const std::string& service_name) {
     spdlog::set_default_logger(logger);
     spdlog::set_pattern(kLogPattern);
     spdlog::set_level(spdlog::level::info);
+    spdlog::flush_on(spdlog::level::info);
 
     spdlog::info("Logger initialized for service '{}'", service_name);
   } catch (const spdlog::spdlog_ex& ex) {

@@ -7,7 +7,9 @@
 
 using ClientSocket = crow::websocket::connection;
 using BackendSocket = std::shared_ptr<ix::WebSocket>;
-using SocketConnectionsMap = std::unordered_map<ClientSocket*, BackendSocket>;
+using ClientId = std::string;
+using BackendSocketConnectionsMap = std::unordered_map<ClientId, BackendSocket>;
+using ClientsSocketConnnectionsMap = std::unordered_map<ClientId, ClientSocket*>;
 using Url = std::string;
 
 class WebSocketBridge {
@@ -19,8 +21,9 @@ class WebSocketBridge {
   void onClientClose(ClientSocket& client, const std::string& reason, uint16_t code);
 
  private:
-  SocketConnectionsMap connections_;
+  ClientsSocketConnnectionsMap clients_;
+  BackendSocketConnectionsMap connections_;
   Url backend_url_;
 
-  BackendSocket createBackendConnection(ClientSocket& client);
+  BackendSocket createBackendConnection(const ClientId&);
 };
