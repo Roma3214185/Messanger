@@ -1,0 +1,38 @@
+
+[sources.cpp_logs]
+type = "file"
+
+include = [
+  "logs/*.log",
+  "logs/*.log.*"
+]
+
+read_from = "beginning"
+
+
+[transforms.parse_spdlog]
+type = "regex_parser"
+inputs = ["cpp_logs"]
+regex = '''^\[(?P<timestamp>[^]]+)\] \[(?P<level>[^]]+)\] \[(?P<logger>[^]]+)\] (?P<message>.*)$'''
+
+# Convert timestamp to Vector datetime (optional)
+[transforms.normalize_timestamp]
+type = "remap"
+inputs = ["parse_spdlog"]
+source = '''
+.timestamp = to_timestamp!(.timestamp, format: "%F %T%.f")
+'''
+
+[sinks.loki_out]
+type = "loki"
+inputs = ["normalize_timestamp"]
+endpoint = "http://localhost:3100"
+
+encoding.codec = "json"
+
+labels = {
+  job   = "my_cpp_service",
+  host  = "${HOSTNAME}",
+  level = "{{level}}",
+  name  = "{{logger}}"
+}

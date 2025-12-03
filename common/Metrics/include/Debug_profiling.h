@@ -70,7 +70,8 @@ inline void measure_network_call(const std::string& name, const std::function<vo
 
 inline void init_logger(const std::string& service_name) {
   try {
-    constexpr size_t  kMaxLogFileSize = 5 * 1024 * 1024;  // 5 MB
+    constexpr int fiveMB = 5 * 1024 * 1024;
+    constexpr size_t  kMaxLogFileSize = fiveMB;
     constexpr size_t  kMaxLogFiles    = 3;
     const std::string kLogDirectory   = "logs/";
     const std::string kLogExtension   = ".log";
