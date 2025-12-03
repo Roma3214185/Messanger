@@ -64,7 +64,7 @@ const QString CREATE_CREDENTIALS_TABLE = R"(
         );
     )";
 
-const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE private_chats (
+const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE IF NOT EXISTS private_chats (
     chat_id       INTEGER PRIMARY KEY AUTOINCREMENT,
     user1_id      INTEGER NOT NULL,
     user2_id      INTEGER NOT NULL,

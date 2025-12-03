@@ -20,6 +20,7 @@ RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
 }
 
 int main() {
+   init_logger("NotifiactionService");
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
   ThreadPool pool;

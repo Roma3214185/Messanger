@@ -14,6 +14,7 @@ const std::string   kPublicKeyFile = kKeysDir + "public_key.pem";
 const std::string   kIssuer        = "auth_service";
 
 int main() {
+  init_logger("Gateway");
   ProdConfigProvider provider;
 
   JWTVerifier verifier(kPublicKeyFile, kIssuer);
