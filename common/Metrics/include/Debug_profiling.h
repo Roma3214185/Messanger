@@ -19,10 +19,26 @@
 // #define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
 #endif
 
-#define LOG_INFO(...) spdlog::info(__VA_ARGS__)
-#define LOG_WARN(...) spdlog::warn(__VA_ARGS__)
-#define LOG_ERROR(...) spdlog::error(__VA_ARGS__)
-#define LOG_DEBUG(...) spdlog::debug(__VA_ARGS__)
+inline std::string extract_class_and_function(const char* pretty_func) {
+  std::string s(pretty_func);
+
+  auto first_space = s.find(' ');
+  if(first_space != std::string::npos) {
+    s = s.substr(first_space + 1);
+  }
+
+  auto paren = s.find('(');
+  if(paren != std::string::npos) {
+    s = s.substr(0, paren);
+  }
+
+  return s;
+}
+
+#define LOG_INFO(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
+#define LOG_WARN(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::warn, __VA_ARGS__)
+#define LOG_ERROR(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::err, __VA_ARGS__)
+#define LOG_DEBUG(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::debug, __VA_ARGS__)
 
 class ScopedTimer {
   std::string                                    name_;
