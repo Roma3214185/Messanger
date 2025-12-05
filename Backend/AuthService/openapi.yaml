@@ -82,19 +82,146 @@ paths:
                     $ref: "#/components/schemas/ErrorResponse"
 
 
+/auth/login:
+  post:
+      summary: login a existing user
+      operationId: LoginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+          "200":
+              description: User login successfully
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      token:
+                        $ref: "#/components/schemas/Token"
+          "400":
+              description: Missing or invalid data
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/ErrorResponse"
+          "404":
+            description: User with such email not found
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
+          "500":
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
 
 
+/auth/me:
+  post:
+      summary: Login current user
+      operationId: authMe
+      parameters:
+        - name: token
+          in: path
+          description: Token of the user
+          required: true
+          schema:
+            type: string
+
+      responses:
+          "200":
+              description: User authentificate successfully
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      token:
+                        $ref: "#/components/schemas/Token"
+          "401":
+              description: Missing or invalid token
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/ErrorResponse"
+          "404":
+            description: User for this token not found
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
+          "500":
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
 
 
-
-
-
-CROW_ROUTE(app_, "/auth/register")
-    .methods(crow::HTTPMethod::Post)([this](const crow::request& req, crow::response& res) {
-      PROFILE_SCOPE("/auth/register");
-      controller_->registerUser(req, res);
-      LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
-    });
+/users/search:
+  get:
+    summary: Find users by tag
+    operationId: findUsersByTag
+    description: Returns a list of users whose `tag` matches or is similar to the query.
+    parameters:
+      - name: tag
+        in: query
+        description: Tag or partial tag to search for
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Maximum number of users to return
+        required: false
+        schema:
+          type: integer
+          default: 50
+      - name: offset
+        in: query
+        description: Number of users to skip (for pagination)
+        required: false
+        schema:
+          type: integer
+          default: 0
+    responses:
+      "200":
+        description: List of matching users
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/User"
+      "400":
+        description: Missing or invalid query parameter
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
