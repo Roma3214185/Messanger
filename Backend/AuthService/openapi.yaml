@@ -2,10 +2,15 @@ openapi: 3.1.0
 info:
   title: User API
   version: 1.0.0
-  description: API for managing users
+  description: API for user management
+  license:
+    name: MIT
 
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8083
+    description: Local development server
+
+security: []
 
 paths:
   /users/{user_id}:
@@ -31,60 +36,59 @@ paths:
 
   /auth/register:
     post:
-        summary: Register a new user
-        operationId: RegisterUser
-        requestBody:
-          required: true
+      summary: Register a new user
+      operationId: RegisterUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, name, tag, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                name:
+                  type: string
+                tag:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: User registered successfully
           content:
             application/json:
               schema:
                 type: object
-                required: [email, name, tag, password]
                 properties:
-                  email:
-                    type: string
-                    format: email
-                  name:
-                    type: string
-                  tag:
-                    type: string
-                  password:
-                    type: string
-        responses:
-            "200":
-                description: User registered successfully
-                content:
-                  application/json:
-                    schema:
-                      type: object
-                      properties:
-                        user:
-                          $ref: "#/components/schemas/User"
-                        token:
-                          $ref: "#/components/schemas/Token"
-            "400":
-                description: Missing or invalid data
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/ErrorResponse"
-            "409":
-              description: Email is already registered
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/ErrorResponse"
-            "500":
-              description: Server error
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/ErrorResponse"
+                  user:
+                    $ref: "#/components/schemas/User"
+                  token:
+                    $ref: "#/components/schemas/Token"
+        "400":
+          description: Missing or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email is already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-
-/auth/login:
-  post:
-      summary: login a existing user
+  /auth/login:
+    post:
+      summary: Login existing user
       operationId: LoginUser
       requestBody:
         required: true
@@ -100,128 +104,114 @@ paths:
                 password:
                   type: string
       responses:
-          "200":
-              description: User login successfully
-              content:
-                application/json:
-                  schema:
-                    type: object
-                    properties:
-                      user:
-                        $ref: "#/components/schemas/User"
-                      token:
-                        $ref: "#/components/schemas/Token"
-          "400":
-              description: Missing or invalid data
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/ErrorResponse"
-          "404":
-            description: User with such email not found
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorResponse"
-          "500":
-            description: Server error
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: User login successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                  token:
+                    $ref: "#/components/schemas/Token"
+        "400":
+          description: Missing or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User with such email not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
+  /auth/me:
+    post:
+      summary: Authenticate current user
+      operationId: AuthMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required: [token]
+      responses:
+        "200":
+          description: User authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                  token:
+                    $ref: "#/components/schemas/Token"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User for this token not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-/auth/me:
-  post:
-      summary: Login current user
-      operationId: authMe
+  /users/search:
+    get:
+      summary: Find users by tag
+      operationId: findUsersByTag
+      description: Returns a list of users whose tag matches or is similar to the query.
       parameters:
-        - name: token
-          in: path
-          description: Token of the user
+        - name: tag
+          in: query
+          description: Tag or partial tag to search for
           required: true
           schema:
             type: string
-
       responses:
-          "200":
-              description: User authentificate successfully
-              content:
-                application/json:
-                  schema:
-                    type: object
-                    properties:
-                      user:
-                        $ref: "#/components/schemas/User"
-                      token:
-                        $ref: "#/components/schemas/Token"
-          "401":
-              description: Missing or invalid token
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/ErrorResponse"
-          "404":
-            description: User for this token not found
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorResponse"
-          "500":
-            description: Server error
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorResponse"
-
-
-/users/search:
-  get:
-    summary: Find users by tag
-    operationId: findUsersByTag
-    description: Returns a list of users whose `tag` matches or is similar to the query.
-    parameters:
-      - name: tag
-        in: query
-        description: Tag or partial tag to search for
-        required: true
-        schema:
-          type: string
-      - name: limit
-        in: query
-        description: Maximum number of users to return
-        required: false
-        schema:
-          type: integer
-          default: 50
-      - name: offset
-        in: query
-        description: Number of users to skip (for pagination)
-        required: false
-        schema:
-          type: integer
-          default: 0
-    responses:
-      "200":
-        description: List of matching users
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/User"
-      "400":
-        description: Missing or invalid query parameter
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
-      "500":
-        description: Server error
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: List of matching users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "400":
+          description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
@@ -235,12 +225,13 @@ components:
         email:
           type: string
         tag:
-            type: string
+          type: string
       required:
         - id
         - name
         - email
         - tag
+
     Token:
       type: object
       properties:
@@ -248,6 +239,7 @@ components:
           type: string
         expires_in:
           type: integer
+
     ErrorResponse:
       type: object
       properties:
@@ -255,5 +247,3 @@ components:
           type: string
         message:
           type: string
-
-
