@@ -2,11 +2,11 @@ name: OpenAPI CI
 
 on:
   push:
-    #paths:
-    #  - "**/openapi.yaml"
+    paths:
+      - "**/openapi.yaml"
   pull_request:
-    #paths:
-    #  - "**/openapi.yaml"
+    paths:
+      - "**/openapi.yaml"
 
 jobs:
   openapi:
