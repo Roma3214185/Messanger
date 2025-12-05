@@ -1,0 +1,266 @@
+openapi: 3.1.0
+info:
+  title: User API
+  version: 1.0.0
+  description: API for chat management
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit/
+
+servers:
+  - url: http://localhost:8081
+    description: Local development server
+
+security:
+  - TokenAuth: []
+
+paths:
+  /chats/private:
+    post:
+      summary: Create private chat
+      operationId: CreatePrivateChat
+      parameters:
+        - name: token
+          in: query
+          description: Token of the current user
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: integer
+      responses:
+        "200":
+          description: Private chat created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivateChat"
+        "404":
+          description: User with the given ID not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Missing or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Chat already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /chats:
+    get:
+      summary: Get all chats of the current user (by token)
+      operationId: GetAllUserChats
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All user chats returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Chat"
+        "404":
+          description: Chats not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /chats/{chat_id}:
+    get:
+      summary: Get chat info by chat ID
+      operationId: GetChatById
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: chat_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Chat info returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chat"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Missing or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /chats/{chat_id}/members:
+    get:
+      summary: Get members of a chat
+      operationId: GetAllChatMembers
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: chat_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Chat members returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMember"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Missing or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: query
+      name: token
+  schemas:
+    Chat:
+      type: object
+      properties:
+        id:
+          type: integer
+        is_group:
+          type: integer
+        name:
+          type: string
+        avatar:
+          type: string
+        created_at:
+          type: integer
+      required:
+        - id
+        - is_group
+        - name
+        - avatar
+        - created_at
+
+    PrivateChat:
+      type: object
+      properties:
+        chat_id:
+          type: integer
+        first_user:
+          type: integer
+        second_user:
+          type: integer
+
+    ChatMember:
+      type: object
+      properties:
+        chat_id:
+          type: integer
+        user_id:
+          type: integer
+        status:
+          type: string
+        added_at:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string

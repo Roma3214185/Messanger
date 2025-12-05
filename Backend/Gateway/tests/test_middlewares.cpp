@@ -211,7 +211,7 @@ TEST_CASE("Test cacheMiddleware") {
     doCallAfter();
 
     REQUIRE(fix.cache.call_set == before_call_cache_set + 1);
-    REQUIRE(fix.cache.last_set_key == "cache:GET:/test/auth|user=2");
+    REQUIRE(fix.cache.last_set_key == "cache:GET:/test/auth|user=2|body=user=2");
     REQUIRE(fix.cache.last_set_value == fix.res.body);
   }
 }

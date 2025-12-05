@@ -13,7 +13,7 @@ struct Routes{
   std::string messageStatusSavedQueue = "QueueMessageStatusSaved";
   std::string exchange                = "app.events";
   std::string messageStatusSaved      = "message_status_saved";
-  std::string exchangeType            = "topic";
+  std::string exchangeType            = "direct";
 };
 
 #endif // ROUTES_H

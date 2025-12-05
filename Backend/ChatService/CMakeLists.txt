@@ -47,6 +47,7 @@ target_include_directories(ChatServiceCore PUBLIC
 add_executable(ChatService
     ${CHAT_SERVICE_SRC_DIR}/main.cpp
     Dockerfile
+    openapi.yaml
 )
 
 target_link_libraries(ChatService PRIVATE ChatServiceCore Qt6::Core)

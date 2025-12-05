@@ -1,0 +1,41 @@
+name: OpenAPI CI
+
+on:
+  push:
+    paths:
+      - "**/openapi.yaml"
+  pull_request:
+    paths:
+      - "**/openapi.yaml"
+
+jobs:
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli@latest
+
+      - name: Validate OpenAPI
+        run: |
+          redocly lint Backend/AuthService/openapi.yaml
+          redocly lint Backend/ChatService/openapi.yaml
+          redocly lint Backend/MessageService/openapi.yaml
+
+      - name: Build HTML docs
+        run: |
+          mkdir -p docs
+          redocly build-docs Backend/AuthService/openapi.yaml -o docs/auth.html
+          redocly build-docs Backend/ChatService/openapi.yaml -o docs/chat.html
+          redocly build-docs Backend/MessageService/openapi.yaml -o docs/message.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages

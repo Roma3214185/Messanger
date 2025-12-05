@@ -25,6 +25,7 @@ struct CacheMiddleware {
         res.write(val.value());
         auto& metrics_ctx = parent_ctx.template get<MetricsMiddleware>();
         metrics_ctx.hit_cache = true;
+        LOG_INFO("Hit cache");
         res.end();
       }
     }
@@ -38,8 +39,19 @@ struct CacheMiddleware {
 
   private:
     std::string makeCacheKey(const crow::request& req) {
-      //TODO: think about valid of this key
-      return "cache:" + crow::method_name(req.method) + ":" + req.url + (req.body.empty() ? "" : "|" + req.body);
+      std::string key = "cache:" + crow::method_name(req.method) + ":" + req.url + (req.body.empty() ? "" : "|" + req.body);
+      auto keys = req.url_params.keys();
+      std::sort(keys.begin(), keys.end());
+
+      for (auto& k : keys) {
+        key += "|" + k + "=" + req.url_params.get(k);
+      }
+
+      if (!req.body.empty()) {
+        key += "|body=" + req.body;
+      }
+
+      return key;
     }
 };
 

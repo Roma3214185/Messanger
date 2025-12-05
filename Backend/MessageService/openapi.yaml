@@ -1,0 +1,120 @@
+openapi: 3.1.0
+info:
+  title: Message API
+  version: 1.0.0
+  description: API for message management
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8083
+    description: Local development server
+
+security:
+  - TokenAuth: []
+
+paths:
+  /messages/{chat_id}:
+    get:
+      summary: Get messages of a chat
+      operationId: getMessages
+      parameters:
+        - name: chat_id
+          in: path
+          description: ID of the chat
+          required: true
+          schema:
+            type: integer
+
+        - name: limit
+          in: query
+          description: How many messages to return
+          required: false
+          schema:
+            type: integer
+            default: 100
+
+        - name: before_id
+          in: query
+          description: Return messages before this message ID
+          required: false
+          schema:
+            type: integer
+            default: 0
+
+      responses:
+        "200":
+          description: Returned messages of the chat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+
+        "400":
+          description: Missing or invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "404":
+          description: Chat or messages not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: query
+      name: token
+
+  schemas:
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        chat_id:
+          type: integer
+        sender_id:
+          type: integer
+        timestamp:
+          type: integer
+        text:
+          type: string
+        local_id:
+          type: string
+      required:
+        - id
+        - chat_id
+        - sender_id
+        - timestamp
+        - text
+        - local_id
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string

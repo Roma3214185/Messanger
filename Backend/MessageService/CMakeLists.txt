@@ -54,6 +54,7 @@ target_include_directories(MessageServiceCore PUBLIC
 add_executable(MessageService
   ${MESSAGE_SERVICE_SRC_DIR}/main.cpp
   Dockerfile
+  openapi.yaml
 )
 
 target_link_libraries(MessageService PRIVATE MessageServiceCore Qt6::Core)
