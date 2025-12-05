@@ -2,21 +2,23 @@ name: OpenAPI CI
 
 on:
   push:
-    paths:
-      - "**/openapi.yaml"
+    #paths:
+    #  - "**/openapi.yaml"
   pull_request:
+    #paths:
+    #  - "**/openapi.yaml"
 
 jobs:
   openapi:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - run: npm install -g @redocly/cli@2.22.0
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli@latest
 
       - name: Validate OpenAPI
         run: |
