@@ -1,9 +1,9 @@
 [submodule "external/IXWebSocket"]
 	path = external/IXWebSocket
 	url = https://github.com/machinezone/IXWebSocket.git
-[submodule "prometheus-cpp"]
-	path = prometheus-cpp
-	url = https://github.com/jupp0r/prometheus-cpp.git
+[submodule "external/prometheus-cpp"]
+    path = external/prometheus-cpp
+    url = https://github.com/jupp0r/prometheus-cpp.git
 [submodule "external/SimpleAmqpClient"]
 	path = external/SimpleAmqpClient
 	url = https://github.com/alanxz/SimpleAmqpClient.git
@@ -19,3 +19,4 @@
 [submodule "external/libsodium"]
 	path = external/libsodium
 	url = https://github.com/jedisct1/libsodium
+
