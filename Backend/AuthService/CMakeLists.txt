@@ -6,7 +6,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 add_compile_definitions(QT_NO_KEYWORDS)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common/Persistence ../../build_persistence)
@@ -58,5 +57,6 @@ target_link_libraries(AuthServiceCore PUBLIC
     nlohmann_json::nlohmann_json
 )
 
-add_executable(AuthService src/main.cpp)
+add_executable(AuthService src/main.cpp
+    openapi.yaml)
 target_link_libraries(AuthService PRIVATE AuthServiceCore)

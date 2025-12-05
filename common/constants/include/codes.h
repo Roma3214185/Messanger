@@ -9,6 +9,7 @@ struct StatusCodes {
   int userError = 400;
   int badRequest = 400;
   int unauthorized = 401;
+  int conflict = 409;
   int notFound = 404;
   int rateLimit = 429;
 };
