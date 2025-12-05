@@ -33,8 +33,9 @@ jobs:
           redocly build-docs Backend/ChatService/openapi.yaml -o docs/chat.html
           redocly build-docs Backend/MessageService/openapi.yaml -o docs/message.html
 
-      - name: Upload API docs
-        uses: actions/upload-artifact@v4
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v6
         with:
-          name: API-docs
-          path: docs/
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
