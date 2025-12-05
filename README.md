@@ -297,6 +297,7 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 - **Qt6** (native desktop GUI)
 
 ## Links
-- **C++ CI:**(https://github.com/roma3214185/messanger/actions/workflows/ci.yml/badge.svg)
-- **Code Coverage (Codecov):** [https://app.codecov.io/github/roma3214185/messanger]
 
+- **C++ CI:** ![CI](https://github.com/roma3214185/Messanger/actions/workflows/ci.yml/badge.svg)  
+- **Code Coverage (Codecov):** [View on Codecov](https://app.codecov.io/github/roma3214185/Messanger)  
+- **Documentation (OpenAPI):** [View on GitHub Pages](https://roma3214185.github.io/Messanger/)
