@@ -1,0 +1,38 @@
+name: OpenAPI CI
+
+on:
+  push:
+    paths:
+      - "**/openapi.yaml"
+  pull_request:
+
+jobs:
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - run: npm install -g @redocly/cli@2.22.0
+
+      - name: Validate OpenAPI
+        run: |
+          redocly lint Backend/AuthService/openapi.yaml
+          redocly lint Backend/ChatService/openapi.yaml
+          redocly lint Backend/MessageService/openapi.yaml
+
+      - name: Build HTML docs
+        run: |
+          mkdir -p docs
+          redocly build-docs Backend/AuthService/openapi.yaml -o docs/auth.html
+          redocly build-docs Backend/ChatService/openapi.yaml -o docs/chat.html
+          redocly build-docs Backend/MessageService/openapi.yaml -o docs/message.html
+
+      - name: Upload API docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: API-docs
+          path: docs/
