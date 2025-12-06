@@ -17,14 +17,9 @@ target_link_libraries(Metrics PUBLIC
     fmt::fmt
     spdlog::spdlog
 
-    "/opt/homebrew/opt/opentelemetry-cpp/lib/libopentelemetry_common.dylib"
-    "/opt/homebrew/opt/opentelemetry-cpp/lib/libopentelemetry_trace.dylib"
-    "/opt/homebrew/opt/opentelemetry-cpp/lib/libopentelemetry_exporter_otlp_grpc.dylib"
-    "/opt/homebrew/opt/opentelemetry-cpp/lib/libopentelemetry_resources.dylib"
-    "/opt/homebrew/opt/opentelemetry-cpp/lib/libopentelemetry_proto.dylib"
-    "/opt/homebrew/opt/opentelemetry-cpp/lib/libopentelemetry_proto_grpc.dylib"
-)
-
-set_target_properties(Metrics PROPERTIES
-    INSTALL_RPATH "/opt/homebrew/opt/opentelemetry-cpp/lib"
+    opentelemetry_trace
+    opentelemetry_common
+    opentelemetry_resources
+    opentelemetry_sdk
+    opentelemetry_exporter_otlp_grpc
 )
