@@ -15,7 +15,7 @@ class ProxyClient {
     IClient* client_;
   public:
     ProxyClient(IClient* client) : client_(client) { }
-    NetworkResponse forward(const crow::request&, RequestDTO&, int port);
+    NetworkResponse forward(const crow::request&, const RequestDTO&, int port);
 
   private:
     NetworkResponse makeRequest(const ForwardRequestDTO&, const std::string& method);

@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fmt/format.h>
+#include <uuid/uuid.h>
 
 #include "Debug_profiling.h"
 #include "websocketbridge.h"
@@ -24,6 +25,14 @@ namespace {
 inline long long getCurrentTime() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
+inline std::string generateRequestID() {
+  uuid_t uuid;
+  uuid_generate_random(uuid);
+  char str[37];
+  uuid_unparse(uuid, str);
+  return std::string(str);
 }
 
 }  // namespace
@@ -52,8 +61,24 @@ void GatewayServer::registerRoutes() {
   registerRoute("/chats", provider_->ports().chatService);
   registerRoute("/messages", provider_->ports().messageService);
   registerRoute("/notification", provider_->ports().notificationService);
+  registerRequestRoute();
   registerHealthCheck();
   registerWebSocketRoutes();
+}
+
+void GatewayServer::registerRequestRoute() {
+  CROW_ROUTE(app_, "/request/<string>/status")
+  .methods("GET"_method)
+      ([this](const crow::request& req, crow::response& res, std::string task_id) {
+
+        std::optional<std::string> status = cache_->get("request:" + task_id);
+
+        if (!status) {
+          sendResponse(res, 404, "{\"error\": \"request not found\"}");
+        } else {
+          sendResponse(res, 200, status.value());
+        }
+      });
 }
 
 void GatewayServer::registerRoute(const std::string& basePath,
@@ -86,8 +111,25 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
   request_info.path = path;
 
   auto result = proxy_.forward(req, request_info, port);
-
   sendResponse(res, result.first, result.second);
+}
+
+void GatewayServer::handlePostRequest(const crow::request& req,
+                                       crow::response&      res,
+                                       int port,
+                                       const std::string&   path) {
+  RequestDTO request_info;
+  request_info.method = crow::method_name(req.method);
+  request_info.path = path;
+  request_info.request_id = generateRequestID();
+
+  cache_->set("request:" + request_info.request_id, "{ \"state\": \"queued\" }");
+
+  std::thread([this, req, request_info, port] {
+    proxy_.forward(req, request_info, port);  //TODO: rabit mq??
+  }).detach();
+
+  sendResponse(res, 202, request_info.request_id);
 }
 
 void GatewayServer::registerWebSocketRoutes() {

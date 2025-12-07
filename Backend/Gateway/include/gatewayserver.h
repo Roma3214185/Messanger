@@ -42,6 +42,8 @@ class GatewayServer {
   IThreadPool* pool_;
 
   void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path);
+  void handlePostRequest(const crow::request& req, crow::response& res, int port, const std::string& path);
+  void registerRequestRoute();
   void registerRoute(const std::string& basePath, int proxy);
   void registerHealthCheck();
   void registerWebSocketRoutes();
