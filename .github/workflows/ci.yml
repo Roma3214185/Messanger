@@ -73,6 +73,10 @@ jobs:
             -DREDISPP_INCLUDE_DIR=$HOME/local/include \
             -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
             -DTRACY_ENABLE=ON \
+            -DOTEL_TRACE_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_trace.dylib \
+            -DOTEL_COMMON_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_common.dylib \
+            -DOTEL_RESOURCES_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_resources.dylib \
+            -DOTEL_EXPORTER_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_exporter_otlp_grpc.dylib \
             -Wno-dev
 
       # 9️⃣ Build project
