@@ -1,4 +1,4 @@
-name: OpenAPI CI
+name: OpenAPI Docs CI/CD
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - "**/openapi.yaml"
 
 jobs:
-  openapi:
+  build-and-deploy-docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,10 +17,9 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install Redocly CLI
-        run: npm install -g @redocly/cli@latest
+      - run: npm install -g @redocly/cli
 
-      - name: Validate OpenAPI
+      - name: Lint OpenAPI
         run: |
           redocly lint Backend/AuthService/openapi.yaml
           redocly lint Backend/ChatService/openapi.yaml
@@ -33,9 +32,31 @@ jobs:
           redocly build-docs Backend/ChatService/openapi.yaml -o docs/chat.html
           redocly build-docs Backend/MessageService/openapi.yaml -o docs/message.html
 
+      - name: Generate index.html
+        run: |
+          cat > docs/index.html <<EOL
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>API Documentation</title>
+          </head>
+          <body>
+              <h1>API Documentation</h1>
+              <ul>
+                  <li><a href="auth.html">AuthService</a></li>
+                  <li><a href="chat.html">ChatService</a></li>
+                  <li><a href="message.html">MessageService</a></li>
+              </ul>
+          </body>
+          </html>
+          EOL
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GH_PAGES_TOKEN }}
           publish_dir: ./docs
           publish_branch: gh-pages
+          user_name: github-actions
+          user_email: github-actions@github.com

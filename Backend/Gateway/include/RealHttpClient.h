@@ -14,6 +14,9 @@ class RealHttpClient : public IClient {
     NetworkResponse Get(const ForwardRequestDTO& request) override {
       auto client = setupClient(request.host_with_port);
       auto res = client->Get(request.full_path, request.headers);
+      // auto res = send_with_retrying_and_timeout([]({
+      //   client->Get(request.full_path, request.headers);
+      // }));
       if(!res) return {kBadGatewayCode, kBadGatewayMessage};
       return {static_cast<int>(res->status), res->body};
     }

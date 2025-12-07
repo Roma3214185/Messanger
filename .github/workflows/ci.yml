@@ -46,7 +46,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja qt6 boost catch2 sqlite3 spdlog fmt rabbitmq-c asio libsodium openssl@3 nlohmann-json ccache lcov clang-format
+          brew install cmake ninja qt6 boost catch2 sqlite3 opentelemetry-cpp spdlog fmt rabbitmq-c asio libsodium openssl@3 nlohmann-json ccache lcov clang-format
           ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 sqlite3
 
       # 7️⃣ Auto-format code
@@ -73,6 +73,10 @@ jobs:
             -DREDISPP_INCLUDE_DIR=$HOME/local/include \
             -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
             -DTRACY_ENABLE=ON \
+            -DOTEL_TRACE_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_trace.dylib \
+            -DOTEL_COMMON_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_common.dylib \
+            -DOTEL_RESOURCES_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_resources.dylib \
+            -DOTEL_EXPORTER_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_exporter_otlp_grpc.dylib \
             -Wno-dev
 
       # 9️⃣ Build project

@@ -11,61 +11,32 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include "tracy.h"
 
-#ifdef ENABLE_TRACY
-#include "../external/tracy/public/tracy/Tracy.hpp"
-#define PROFILE_SCOPE(name) ZoneScopedN(name)
-#else
+class ScopedTimer;
+
 #define PROFILE_SCOPE(name) ScopedTimer timer##__LINE__(name)
-// #define PROFILE_SCOPE_WITH_METRICS(name) ScopedTimer timer##__LINE__(name, true)
-#endif
 
-inline std::string extract_class_and_function(const char* pretty_func) {
-  std::string s(pretty_func);
+// inline std::string extract_class_and_function(const char* pretty_func) {
+//   std::string s(pretty_func);
 
-  auto first_space = s.find(' ');
-  if(first_space != std::string::npos) {
-    s = s.substr(first_space + 1);
-  }
+//   auto first_space = s.find(' ');
+//   if(first_space != std::string::npos) {
+//     s = s.substr(first_space + 1);
+//   }
 
-  auto paren = s.find('(');
-  if(paren != std::string::npos) {
-    s = s.substr(0, paren);
-  }
+//   auto paren = s.find('(');
+//   if(paren != std::string::npos) {
+//     s = s.substr(0, paren);
+//   }
 
-  return s;
-}
+//   return s;
+// }
 
-#define LOG_INFO(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
-#define LOG_WARN(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::warn, __VA_ARGS__)
-#define LOG_ERROR(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::err, __VA_ARGS__)
-#define LOG_DEBUG(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::debug, __VA_ARGS__)
-
-class ScopedTimer {
-  std::string                                    name_;
-  std::chrono::high_resolution_clock::time_point start_;
-
- public:
-  explicit ScopedTimer(std::string name)
-      : name_(std::move(name)), start_(std::chrono::high_resolution_clock::now()) {
-    //spdlog::info("[TIMER START] {}", name_);
-  }
-
-  ~ScopedTimer() noexcept {
-    auto   end              = std::chrono::high_resolution_clock::now();
-    double duration_seconds = std::chrono::duration<double>(end - start_).count();
-
-    try {
-      const std::string func_name = extract_class_and_function(__PRETTY_FUNCTION__);
-      spdlog::log(spdlog::source_loc{__FILE__, __LINE__, func_name.c_str()},
-                  spdlog::level::info,
-                  "Function took {:.3f} s",
-                  duration_seconds);
-    } catch (...) {
-      LOG_ERROR("Error in destructor");
-    }
-  }
-};
+#define LOG_INFO(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::info, __VA_ARGS__)
+#define LOG_WARN(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::warn, __VA_ARGS__)
+#define LOG_ERROR(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::err, __VA_ARGS__)
+#define LOG_DEBUG(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::debug, __VA_ARGS__)
 
 inline void measure_network_call(const std::string& name, const std::function<void()>& func) {
   auto start = std::chrono::high_resolution_clock::now();

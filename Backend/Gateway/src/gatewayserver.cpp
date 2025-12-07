@@ -6,7 +6,6 @@
 #include <fmt/format.h>
 
 #include "Debug_profiling.h"
-#include "ScopedRequestsTimer.h"
 #include "websocketbridge.h"
 #include "interfaces/ICacheService.h"
 #include "middlewares/AuthMiddleware.h"

@@ -3,6 +3,8 @@
 
 #include "messageservice/interfaces/IController.h"
 #include "messageservice/dto/GetMessagePack.h"
+#include "entities/Message.h"
+#include "entities/MessageStatus.h"
 
 struct MockController : public IController {
    std::vector<Message> mock_messages;
