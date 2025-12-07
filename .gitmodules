@@ -19,7 +19,3 @@
 [submodule "external/libsodium"]
 	path = external/libsodium
 	url = https://github.com/jedisct1/libsodium
-
-[submodule "external/opentelemetry-cpp"]
-	path = external/opentelemetry-cpp
-	url = https://github.com/open-telemetry/opentelemetry-cpp.git

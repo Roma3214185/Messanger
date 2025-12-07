@@ -13,12 +13,20 @@ set(CROW_BUILD_CGI OFF CACHE BOOL "" FORCE)
 set(CROW_DISABLE_SSL OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(RABBITMQ_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
+
 set(WITH_BENCHMARK OFF CACHE BOOL "" FORCE)
 set(WITH_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(WITH_TEST OFF CACHE BOOL "" FORCE)
 set(WITH_OTLP_GRPC ON CACHE BOOL "" FORCE)
 set(WITH_OTLP_HTTP OFF CACHE BOOL "" FORCE)
 set(gRPC_SSL_PROVIDER "package" CACHE STRING "" FORCE)
+set(WITH_OTLP OFF)
+set(WITH_OTLP_GRPC OFF)
+set(WITH_OTLP_HTTP OFF)
+set(WITH_PROMETHEUS OFF)
+set(WITH_ZIPKIN OFF)
+set(BUILD_TESTING OFF)
+set(WITH_EXAMPLES OFF)
 
 set(CMAKE_PREFIX_PATH "/opt/homebrew" ${CMAKE_PREFIX_PATH})
 add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
@@ -34,7 +42,6 @@ add_subdirectory(external/jwt-cpp)
 add_subdirectory(external/tracy)
 add_subdirectory(external/SimpleAmqpClient)
 add_subdirectory(external/prometheus-cpp)
-add_subdirectory(external/opentelemetry-cpp)
 
 # -------------------------
 # My libraries

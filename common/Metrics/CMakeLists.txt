@@ -17,9 +17,9 @@ target_link_libraries(Metrics PUBLIC
     fmt::fmt
     spdlog::spdlog
 
-    opentelemetry_trace
-    opentelemetry_common
-    opentelemetry_resources
-    opentelemetry_sdk
-    opentelemetry_exporter_otlp_grpc
+    /opt/homebrew/lib/libopentelemetry_trace.a
+    /opt/homebrew/lib/libopentelemetry_common.a
+    /opt/homebrew/lib/libopentelemetry_resources.a
+    /opt/homebrew/lib/libopentelemetry_sdk.a
+    /opt/homebrew/lib/libopentelemetry_exporter_otlp_grpc.a
 )
