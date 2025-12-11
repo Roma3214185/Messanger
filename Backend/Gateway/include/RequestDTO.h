@@ -5,9 +5,9 @@
 #include <vector>
 
 struct RequestDTO{
-    //TODO: int request_id
     std::string path;
     std::string method;
+    std::string request_id;
     std::vector<std::pair<std::string, std::string>> extra_headers = {};
 };
 

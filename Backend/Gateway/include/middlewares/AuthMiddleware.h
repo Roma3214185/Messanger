@@ -38,14 +38,18 @@ struct AuthMiddleware {
     }
 
   private:
-    inline static const std::vector<std::string> no_need_auth_urls {"/auth/login", "/auth/register", "/ws"};
+    inline static const std::vector<std::string> no_need_auth_urls {"/auth/login", "/auth/register", "/ws", "/request"};
 
     std::string fetchToken(const crow::request& req) {
       return req.get_header_value("Authorization");
     }
 
     bool needToAuth(const std::string& url) {
-      return std::find(no_need_auth_urls.begin(), no_need_auth_urls.end(), url) == no_need_auth_urls.end();
+      LOG_INFO("Check to auth url {}", url);
+      for(const auto &need_auth_url : no_need_auth_urls) {
+        if(url.substr(0, need_auth_url.length()) == need_auth_url) return false;
+      }
+      return true;
     }
 };
 

@@ -43,7 +43,7 @@ auto ChatManager::onLoadChats(QNetworkReply* reply) -> QList<ChatPtr> {
   PROFILE_SCOPE("Model::onLoadChats");
   QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (reply->error() != QNetworkReply::NoError) {
+  if (!reply || reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onLoadChats] Network error: '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred(reply->errorString());
     return {};
@@ -87,13 +87,14 @@ QFuture<ChatPtr> ChatManager::loadChat(const QString& current_token, int chat_id
 
 ChatPtr ChatManager::onChatLoaded(QNetworkReply* reply) {
   PROFILE_SCOPE("Model::onChatLoaded");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (reply->error() != QNetworkReply::NoError) {
+  if (!reply || reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onChatLoaded] Network error: '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred(reply->errorString());
     return nullptr;
   }
+
+  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
   auto doc = QJsonDocument::fromJson(reply->readAll());
   if (!doc.isObject()) {
@@ -123,8 +124,8 @@ QFuture<ChatPtr> ChatManager::createPrivateChat(const QString& current_token, in
 
 auto ChatManager::onCreatePrivateChat(QNetworkReply* reply) -> ChatPtr {
   PROFILE_SCOPE("Model::onCreatePrivateChat");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-  if (reply->error() != QNetworkReply::NoError) {
+  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  if (!reply || reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onCreatePrivateChat] error '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred("onCreatePrivateChat" + reply->errorString());
     return nullptr;

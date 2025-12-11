@@ -58,7 +58,7 @@ NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const
 }
 
 NetworkResponse ProxyClient::forward(const crow::request& req,
-                                       RequestDTO& request_info,
+                                       const RequestDTO& request_info,
                                        int port) {
   ForwardRequestDTO forward_request;
   forward_request.host_with_port = get_host_with_port(port);

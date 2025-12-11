@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <fmt/format.h>
+#include <uuid/uuid.h>
+#include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
 #include "websocketbridge.h"
@@ -28,7 +30,15 @@ inline long long getCurrentTime() {
       .count();
 }
 
+inline std::string generateRequestID() {
+  uuid_t uuid;
+  uuid_generate_random(uuid);
+  char str[37];
+  uuid_unparse(uuid, str);
+  return std::string(str);
 }
+
+}  // namespace
 
 GatewayServer::GatewayServer(GatewayApp& app, IClient* client, IThreadPool* pool, IConfigProvider* provider)
     : app_(app)
@@ -54,6 +64,7 @@ void GatewayServer::registerRoutes() {
   registerRoute("/chats", provider_->ports().chatService);
   registerRoute("/messages", provider_->ports().messageService);
   registerRoute("/notification", provider_->ports().notificationService);
+  registerRequestRoute();
   registerHealthCheck();
   registerWebSocketRoutes();
 }
@@ -88,8 +99,47 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
   request_info.path = path;
 
   auto result = proxy_.forward(req, request_info, port);
-
   sendResponse(res, result.first, result.second);
+}
+
+void GatewayServer::handlePostRequest(const crow::request& req,
+                                       crow::response&      res,
+                                       int port,
+                                       const std::string&   path) {
+  RequestDTO request_info;
+  request_info.method = crow::method_name(req.method);
+  request_info.path = path;
+  request_info.request_id = generateRequestID();
+
+  cache_->set("request:" + request_info.request_id, "{ \"state\": \"queued\" }");
+
+  std::thread([this, req, request_info, port] {
+    auto res = proxy_.forward(req, request_info, port);  //TODO: rabit mq??
+    cache_->set("request:" + request_info.request_id, "{\"state\":\"finished\"}");
+    cache_->set("request_id:" + request_info.request_id, std::to_string(res.first));
+    cache_->set("request_body:" + request_info.request_id, res.second + "\n{\"state\":\"finished\"}");
+  }).detach();
+
+  sendResponse(res, 202, request_info.request_id);
+}
+
+void GatewayServer::registerRequestRoute() {
+  CROW_ROUTE(app_, "/request/<string>/status")
+  .methods("GET"_method)
+      ([this](const crow::request& req, crow::response& res, std::string task_id) {
+
+        std::optional<std::string> status = cache_->get("request:" + task_id);
+        nlohmann::json responce;
+        std::optional<std::string> id = cache_->get("request_id:" + task_id);
+        std::optional<std::string> body = cache_->get("request_body:" + task_id);
+
+        if (!status || !id || !body) {
+          responce["state"] = "not_found";
+          sendResponse(res, 404, responce.dump());
+        } else {
+          sendResponse(res, stoi(*id), *body);
+        }
+      });
 }
 
 void GatewayServer::registerWebSocketRoutes() {

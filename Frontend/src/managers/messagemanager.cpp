@@ -45,9 +45,9 @@ QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_t
 
 QList<Message> MessageManager::onGetChatMessages(QNetworkReply* reply) {
   PROFILE_SCOPE("ChatManager::onGetChatMessages");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (reply->error() != QNetworkReply::NoError) {
+  if (!reply || reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onGetChatMessages] Network error: '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred("[network] " + reply->errorString());
     return QList<Message>{};

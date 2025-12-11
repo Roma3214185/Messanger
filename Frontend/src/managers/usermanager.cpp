@@ -38,9 +38,9 @@ QFuture<std::optional<User>> UserManager::getUser(int user_id, const QString& cu
 
 auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
   PROFILE_SCOPE("UserManager::onGetUser");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (reply->error() != QNetworkReply::NoError) {
+  if (!reply || reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onGetUser] Network error: '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred("get user: " + reply->errorString());
     return std::nullopt;
@@ -75,8 +75,8 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag, const QStri
 }
 
 QList<User> UserManager::onFindUsersByTag(QNetworkReply* reply) {
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-  if (reply->error() != QNetworkReply::NoError) {
+  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  if (!reply || reply->error() != QNetworkReply::NoError) {
     Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
     return {};
   }
