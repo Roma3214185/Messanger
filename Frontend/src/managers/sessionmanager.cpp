@@ -42,9 +42,9 @@ void SessionManager::signIn(const LogInRequest& login_request) {
 
 void SessionManager::onReplyFinished(QNetworkReply* reply) {
   PROFILE_SCOPE("SessionManager::onReplyFinished");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (reply->error() != QNetworkReply::NoError) {
+  if (!reply || reply->error() != QNetworkReply::NoError) {
     LOG_ERROR("[onReplyFinished] Network error: '{}'", reply->errorString().toStdString());
     Q_EMIT errorOccurred(reply->errorString());
     return;
@@ -74,6 +74,7 @@ void SessionManager::signUp(const SignUpRequest& signup_request) {
                    {"name", signup_request.name},
                    {"tag", signup_request.tag}};
   auto*       reply = network_manager_->post(req, QJsonDocument(body).toJson());
+
   handleReplyWithTimeoutVoid(
       reply,
       [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },

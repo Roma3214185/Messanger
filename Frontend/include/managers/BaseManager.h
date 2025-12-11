@@ -7,8 +7,11 @@
 #include <QPromise>
 #include <QTimer>
 #include <QUrl>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include "interfaces/INetworkAccessManager.h"
+#include "Debug_profiling.h"
 
 class BaseManager : public QObject {
   Q_OBJECT
@@ -81,19 +84,77 @@ class BaseManager : public QObject {
     });
 
     QObject::connect(
-        reply, &QNetworkReply::finished, reply, [reply, promisePtr, isCompleted, onFinished]() {
+        reply, &QNetworkReply::finished, reply, [this, reply, promisePtr, isCompleted, onFinished]() {
           if (isCompleted->exchange(true)) {
             reply->deleteLater();
             return;
           }
 
-          onFinished(reply);
+          int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+          if(httpStatus == 202) {
+            std::string task_id = extractTaskId(reply);
+            auto new_reply = getRequestStatus(task_id);
+            onFinished(new_reply);
+          } else {
+            onFinished(reply);
+          }
 
           promisePtr->finish();
           reply->deleteLater();
         });
 
     return future;
+  }
+
+  QNetworkReply* getRequestStatus(const std::string& task_id, int attempts = 5) {
+    LOG_INFO("Get request status for task with id {}", task_id);
+
+    QString path = QString("/request/%1/status").arg(QString::fromStdString(task_id));
+    QUrl endpoint = url_.resolved(QUrl(path));
+
+    LOG_INFO("Url for sending: {}", endpoint.toString().toStdString());
+
+    for (int i = 1; i <= attempts; i++) {
+      LOG_INFO("Attempt #{}", i);
+
+      QNetworkRequest request(endpoint);
+      request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+      QNetworkReply* reply = network_manager_->get(request);
+
+      QByteArray raw = reply->readAll();
+      auto doc = QJsonDocument::fromJson(raw);
+
+      if (!doc.isObject() || !doc.object().contains("status")) {
+        LOG_ERROR("Reply doesn't have status, skip");
+        reply->deleteLater();
+        continue;
+      }
+
+      QString status = doc["status"].toString();
+      if (status != "finished") {
+        LOG_INFO("Status not finished");
+        reply->deleteLater();
+        continue;
+      }
+
+      return reply;
+    }
+
+    LOG_INFO("All attempts failed");
+    return nullptr;
+  }
+
+
+  std::string extractTaskId(QNetworkReply* reply) {
+    QByteArray raw = reply->readAll();
+    auto doc = QJsonDocument::fromJson(raw);
+    if (!doc.isObject() || !doc.object().contains("task_id")) {
+      LOG_ERROR("Reply don't have status, skip");
+      return "";
+    }
+
+    return doc["task_id"].toString().toStdString();
   }
 
  protected:
