@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fmt/format.h>
 #include <uuid/uuid.h>
-#include <json/json.h>
+#include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
 #include "websocketbridge.h"
