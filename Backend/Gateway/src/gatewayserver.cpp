@@ -70,8 +70,7 @@ void GatewayServer::registerRoutes() {
 void GatewayServer::registerRoute(const std::string& basePath,
                                   int port) {
   app_.route_dynamic(basePath + "/<path>")
-      .methods("GET"_method,
-               "POST"_method)([this, port, basePath](
+      .methods("GET"_method)([this, port, basePath](
                                   const crow::request& req, crow::response& res, std::string path) {
         //pool_->enqueue([this, req = std::move(req), &res, port, basePath, path]() mutable {
           handleProxyRequest(req, res, port, basePath + "/" + path);
@@ -80,10 +79,27 @@ void GatewayServer::registerRoute(const std::string& basePath,
        // });
       });
 
-  app_.route_dynamic(basePath).methods("GET"_method, "POST"_method)(
+  app_.route_dynamic(basePath + "/<path>")
+      .methods("POST"_method)([this, port, basePath](
+                                  const crow::request& req, crow::response& res, std::string path) {
+        //pool_->enqueue([this, req = std::move(req), &res, port, basePath, path]() mutable {
+        handlePostRequest(req, res, port, basePath + "/" + path);
+        //TODO: res.end() here or in handleProxyRequest
+        //TODO: make async
+        // });
+      });
+
+  app_.route_dynamic(basePath).methods("GET"_method)(
       [this, port, basePath](const crow::request& req, crow::response& res) {
         //pool_->enqueue([this, req = std::move(req), &res, port, basePath]() mutable {
          handleProxyRequest(req, res, port, basePath);
+        //});
+      });
+
+  app_.route_dynamic(basePath).methods("POST"_method)(
+      [this, port, basePath](const crow::request& req, crow::response& res) {
+        //pool_->enqueue([this, req = std::move(req), &res, port, basePath]() mutable {
+        handlePostRequest(req, res, port, basePath);
         //});
       });
 }
@@ -109,16 +125,18 @@ void GatewayServer::handlePostRequest(const crow::request& req,
   request_info.path = path;
   request_info.request_id = generateRequestID();
 
-  cache_->set("request:" + request_info.request_id, "{ \"state\": \"queued\" }");
+  //cache_->set("request:" + request_info.request_id, "{ \"state\": \"queued\" }");
+  auto result = proxy_.forward(req, request_info, port);  // TODO: rabbit mq??
+  return sendResponse(res, result.first, result.second);
 
-  std::thread([this, req, request_info, port] {
-    auto res = proxy_.forward(req, request_info, port);  //TODO: rabit mq??
-    cache_->set("request:" + request_info.request_id, "{\"state\":\"finished\"}");
-    cache_->set("request_id:" + request_info.request_id, std::to_string(res.first));
-    cache_->set("request_body:" + request_info.request_id, res.second + "\n{\"state\":\"finished\"}");
-  }).detach();
+  // std::thread([this, req, request_info, port] {
+  //   auto res = proxy_.forward(req, request_info, port);  //TODO: rabit mq??
+  //   cache_->set("request:" + request_info.request_id, "{\"state\":\"finished\"}");
+  //   cache_->set("request_id:" + request_info.request_id, std::to_string(res.first));
+  //   cache_->set("request_body:" + request_info.request_id, res.second + "\n{\"state\":\"finished\"}");
+  // }).detach();
 
-  sendResponse(res, 202, request_info.request_id);
+  // sendResponse(res, 202, request_info.request_id);
 }
 
 void GatewayServer::registerRequestRoute() {

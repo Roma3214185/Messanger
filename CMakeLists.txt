@@ -93,6 +93,7 @@ add_subdirectory(Backend/common_mocks)
 # Tests
 include(CTest)
 enable_testing()
+
 add_subdirectory(common/Persistence/tests)
 add_subdirectory(Frontend/tests)
 foreach(service ${ALL_SERVICES})
@@ -100,3 +101,7 @@ foreach(service ${ALL_SERVICES})
 endforeach()
 
 endif()
+
+# Benchmarks
+add_subdirectory(Backend/Gateway/benchmarks)
+

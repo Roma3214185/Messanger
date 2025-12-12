@@ -51,7 +51,6 @@ target_link_libraries(GatewayCore PUBLIC
 
 add_executable(Gateway
     ${GATEWAY_SRC_DIR}/main.cpp
-    include/RetryOptions.h
 )
 
 target_link_libraries(Gateway PRIVATE GatewayCore)
