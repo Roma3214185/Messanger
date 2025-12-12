@@ -14,6 +14,56 @@
 #include "interfaces/IMessageListView.h"
 #include <iostream>
 
+namespace {
+
+void debug(const QString& log, const User& user) {
+  LOG_INFO("{}: User '{}' | email '{}' | tag '{}' id '{}'",
+           log.toStdString(),
+           user.name.toStdString(),
+           user.email.toStdString(),
+           user.tag.toStdString(),
+           user.id);
+}
+
+void debug(const QString& log, const Message& message) {
+  LOG_INFO("{}: Message chat_id '{}' | sender_id '{}' | text '{}' timestamp '{}', local_id {}",
+           log.toStdString(),
+           message.chatId,
+           message.senderId,
+           message.text.toStdString(),
+           message.timestamp.toString().toStdString(),
+           message.local_id.toStdString());
+}
+
+bool checkOpenedChatAndUser(const std::optional<int>& current_opened_chat_id_, const std::optional<User>& current_user_) {
+  if(!current_opened_chat_id_) {
+    LOG_ERROR("There is no opened chat");
+    return false;
+  }
+
+  if(!current_user_) {
+    LOG_ERROR("User is no initailized");
+    return false;
+  }
+
+  return true;
+}
+
+class EntityFactory {
+  public:
+    static Message createMessage(int chat_id, int sender_id, const QString& text, const QString& local_id, QDateTime timestamp = QDateTime::currentDateTime()) {
+      Message message{.chatId        = chat_id,
+                      .senderId      = sender_id,
+                      .text          = text,
+                      .status_sended = false,
+                      .timestamp     = timestamp,
+                      .local_id      = local_id};
+      return message;
+    }
+};
+
+} // namespace
+
 Presenter::Presenter(IMainWindow* window, Model* manager) : view_(window), manager_(manager) {}
 
 void Presenter::initialise() {
@@ -50,7 +100,7 @@ void Presenter::initialConnections() {
 }
 
 void Presenter::onNewResponce(QJsonObject& json_object) {
-  QString       type           = json_object["type"].toString();
+  const QString type           = json_object["type"].toString();
   const QString openedType     = "opened";
   const QString newMessageType = "new_message";
 
@@ -86,8 +136,8 @@ void Presenter::onScroll(int value) {
 
   PROFILE_SCOPE("Presenter::onScroll");
   int chat_id = *current_opened_chat_id_;
-
-  auto newMessages = manager_->getChatMessages(chat_id, 20);
+  constexpr int limit_of_loading_messages = 20;
+  auto newMessages = manager_->getChatMessages(chat_id, limit_of_loading_messages);
   if (newMessages.empty()) return;
 
   auto message_model = manager_->getMessageModel(chat_id);
@@ -98,26 +148,14 @@ void Presenter::onScroll(int value) {
       manager_->addMessageToChat(chat_id, msg); //TODO: make pipeline
     }
   });
-
-  /*  TODO: auto message_model = manager_->getMessageModel(chat_id);
-  auto future = manager_->getChatMessages(chat_id, 20);
-  future.then([this](auto newMessages) {
-    message_list_view_->preserveFocusWhile(message_model, [&]{
-      for (const auto& msg : newMessages)
-        manager_->addMessageToChat(chat_id, msg); //TODO: make pipeline
-    });
-  });*/
+  // TODO: think about future / then
 }
 
 void Presenter::onErrorOccurred(const QString& error) { view_->showError(error); }
 
 void Presenter::setUser(const User& user, const QString& token) {
   PROFILE_SCOPE("Presenter::setUser");
-  LOG_INFO("Set user name: '{}' | email '{}' | tag '{}' id '{}'",
-           user.name.toStdString(),
-           user.email.toStdString(),
-           user.tag.toStdString(),
-           user.id);
+  debug("In set user:", user);
 
   current_user_ = user;
   view_->setUser(user);
@@ -135,6 +173,7 @@ void Presenter::setUser(const User& user, const QString& token) {
 }
 
 void Presenter::setCurrentChatId(int chat_id) {
+  assert(chat_id > 0);
   current_opened_chat_id_ = chat_id;
 }
 
@@ -147,10 +186,7 @@ void Presenter::newMessage(Message& msg) {
   }
 
   if (msg.senderId == current_user_->id) msg.readed_by_me = true;
-  LOG_INFO("New messages for chat {} :({}) with local_id {}",
-           msg.chatId,
-           msg.text.toStdString(),
-           msg.local_id.toStdString());
+  debug("New message received from socket", msg);
 
   int max   = message_list_view_->getMaximumMessageScrollBar();
   int value = message_list_view_->getMessageScrollBarValue();
@@ -185,13 +221,9 @@ void Presenter::openChat(int chat_id) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
   setCurrentChatId(chat_id);
   auto message_model = manager_->getMessageModel(chat_id);
-  LOG_INFO("Message model is getted");
   message_list_view_->setMessageModel(message_model);
-  LOG_INFO("Message model is setted");
   message_list_view_->scrollToBottom();
-  LOG_INFO("Scroll to bottom");
   auto chat = manager_->getChat(chat_id);
-  LOG_INFO("Getted chat");
   view_->setChatWindow(chat);
 }
 
@@ -222,15 +254,7 @@ void Presenter::onUserClicked(int user_id, bool is_user) {
 }
 
 void Presenter::sendButtonClicked(const QString& text_to_send) {
-  if(!current_opened_chat_id_) {
-    LOG_ERROR("There is no opened chat");
-    return;
-  }
-
-  if(!current_user_) {
-    LOG_ERROR("User is no initailized");
-    return;
-  }
+  if(!checkOpenedChatAndUser(current_opened_chat_id_, current_user_)) return;
 
   if (text_to_send.isEmpty()) {
     LOG_WARN("Presenter receive to send empty text");
@@ -238,16 +262,10 @@ void Presenter::sendButtonClicked(const QString& text_to_send) {
   }
 
   //TODO: what if multithreaded will make here current_user is nullopt, after checking (?)
-
-  Message message_to_send{.chatId        = *current_opened_chat_id_,
-                          .senderId      = current_user_->id,
-                          .text          = text_to_send,
-                          .status_sended = false,
-                          .timestamp     = QDateTime::currentDateTime(),
-                          .local_id      = QUuid::createUuid().toString()};
-  LOG_INFO("Set for message {} local_id {}",
-           message_to_send.text.toStdString(),
-           message_to_send.local_id.toStdString());
+  auto message_to_send = EntityFactory::createMessage(*current_opened_chat_id_,
+                                                      current_user_->id, text_to_send,
+                                                      QUuid::createUuid().toString());
+  debug("Message to send", message_to_send);
   manager_->addOfflineMessageToChat(message_to_send.chatId, *current_user_, message_to_send);
   message_list_view_->scrollToBottom();
   manager_->sendMessage(message_to_send);
@@ -255,6 +273,6 @@ void Presenter::sendButtonClicked(const QString& text_to_send) {
 
 void Presenter::onLogOutButtonClicked() {
   manager_->logout();
-  current_user_ = std::nullopt;
-  current_opened_chat_id_ = std::nullopt;
+  current_user_ .reset();
+  current_opened_chat_id_.reset();
 }
