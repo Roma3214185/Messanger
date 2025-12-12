@@ -54,7 +54,7 @@ struct BenchmarkGatewayServerFixrute {
     }
 };
 
-static void BM_SyncRequestResponce(benchmark::State& state) {
+static void BM_AsyncRequestResponceWithThread(benchmark::State& state) {
   BenchmarkGatewayServerFixrute fix;
 
   for (auto _ : state) {
@@ -65,4 +65,4 @@ static void BM_SyncRequestResponce(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_SyncRequestResponce)->Arg(10)->Arg(100)->Arg(1000);
+BENCHMARK(BM_AsyncRequestResponceWithThread)->Arg(10)->Arg(100)->Arg(1000);

@@ -24,9 +24,23 @@ return sendResponse(res, result.first, result.second);
 ### Results of POST request with pattern and std::thread
 
 ```bach
+cache_->set("request:" + request_info.request_id, "{ \"state\": \"queued\" }");
 
+std::thread([this, req, request_info, port] {
+  auto res = proxy_.forward(req, request_info, port);  //TODO: rabit mq??
+  cache_->set("request:" + request_info.request_id, "{\"state\":\"finished\"}");
+  cache_->set("request_id:" + request_info.request_id, std::to_string(res.first));
+  cache_->set("request_body:" + request_info.request_id, res.second + "\n{\"state\":\"finished\"}");
+}).detach();
+
+sendResponse(res, 202, request_info.request_id);
 ```
 
+| Benchmark | Time (ns) | CPU (ns) | Iterations |
+|-----------|-----------|-----------|------------|
+| BM_SyncRequestResponce/10 | 1546222708 | 295900 | 10 |
+| BM_SyncRequestResponce/100  | 1.5476e+10 | 2601000 | 1 |
+| BM_SyncRequestResponce/100    | 1.5366e+11  | 82470000  | 1 |
 
 ### Results of POST request with pattern and ThreadPool
 

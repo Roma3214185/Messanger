@@ -36,6 +36,33 @@ inline std::string generateRequestID() {
   return std::string(str);
 }
 
+std::string getContentType(const crow::request& req) {
+  string content_type = req.get_header_value("content-type");
+  if (content_type.empty()) content_type = "application/json";
+  return content_type;
+}
+
+
+RequestDTO getRequestInfo(const crow::request& req, const std::string& path) {
+  RequestDTO request_info;
+  request_info.method = crow::method_name(req.method);
+  request_info.path = path;
+  request_info.body = req.body;
+  request_info.content_type = getContentType(req);
+  request_info.request_id = generateRequestID();
+
+  auto keys = req.url_params.keys();
+  for (const std::string& key : keys) {
+    request_info.url_params.emplace(key, req.url_params.get(key));
+  }
+
+  for (auto const& h : req.headers) {
+    request_info.headers.emplace_back(h.first, h.second);
+  }
+
+  return request_info;
+}
+
 }  // namespace
 
 GatewayServer::GatewayServer(GatewayApp& app, IClient* client, IThreadPool* pool, IConfigProvider* provider)
@@ -108,11 +135,9 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
                                        crow::response&      res,
                                        int port,
                                        const std::string&   path) {
-  RequestDTO request_info;
-  request_info.method = crow::method_name(req.method);
-  request_info.path = path;
+  RequestDTO request_info = getRequestInfo(req, path);
 
-  auto result = proxy_.forward(req, request_info, port);
+  auto result = proxy_.forward(request_info, port);
   sendResponse(res, result.first, result.second);
 }
 
@@ -120,23 +145,17 @@ void GatewayServer::handlePostRequest(const crow::request& req,
                                        crow::response&      res,
                                        int port,
                                        const std::string&   path) {
-  RequestDTO request_info;
-  request_info.method = crow::method_name(req.method);
-  request_info.path = path;
-  request_info.request_id = generateRequestID();
+  RequestDTO request_info = getRequestInfo(req, path);
+  cache_->set("request:" + request_info.request_id, "{ \"state\": \"queued\" }");
 
-  //cache_->set("request:" + request_info.request_id, "{ \"state\": \"queued\" }");
-  auto result = proxy_.forward(req, request_info, port);  // TODO: rabbit mq??
-  return sendResponse(res, result.first, result.second);
+  std::thread([this, request_info, port] {
+    auto result = proxy_.forward(request_info, port);  //TODO: rabit mq??
+    cache_->set("request:" + request_info.request_id, "{\"state\":\"finished\"}");
+    cache_->set("request_id:" + request_info.request_id, std::to_string(result.first));
+    cache_->set("request_body:" + request_info.request_id, result.second + "\n{\"state\":\"finished\"}");
+  }).detach();
 
-  // std::thread([this, req, request_info, port] {
-  //   auto res = proxy_.forward(req, request_info, port);  //TODO: rabit mq??
-  //   cache_->set("request:" + request_info.request_id, "{\"state\":\"finished\"}");
-  //   cache_->set("request_id:" + request_info.request_id, std::to_string(res.first));
-  //   cache_->set("request_body:" + request_info.request_id, res.second + "\n{\"state\":\"finished\"}");
-  // }).detach();
-
-  // sendResponse(res, 202, request_info.request_id);
+  sendResponse(res, 202, request_info.request_id);
 }
 
 void GatewayServer::registerRequestRoute() {
