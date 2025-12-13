@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
+
+# if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+#     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+#         CACHE FILEPATH "vcpkg toolchain file")
+# endif()
+
 project(Chat LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -14,6 +20,8 @@ set(CROW_DISABLE_SSL OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(RABBITMQ_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(WITH_BENCHMARK OFF CACHE BOOL "" FORCE)
 set(WITH_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(WITH_TEST OFF CACHE BOOL "" FORCE)
@@ -77,29 +85,30 @@ if (DEFINED TARGET)
 
     add_subdirectory(Backend/${TARGET})
 else()
-    message(STATUS "Building ALL targets")
-    foreach(service ${ALL_SERVICES})
-        add_subdirectory(Backend/${service})
-    endforeach()
 
-    # -------------------------
-    # Frontend
-    # -------------------------
-    add_subdirectory(Frontend)
+# Microservices
+message(STATUS "Building ALL targets")
+foreach(service ${ALL_SERVICES})
+    add_subdirectory(Backend/${service})
+endforeach()
 
-    # -------------------------
-    # Mocks for backend tests
-    # -------------------------
-    add_subdirectory(Backend/common_mocks)
+# Frontend
+add_subdirectory(Frontend)
 
-    # -------------------------
-    # Tests
-    # -------------------------
-    include(CTest)
-    enable_testing()
-    add_subdirectory(common/Persistence/tests)
-    add_subdirectory(Frontend/tests)
-    foreach(service ${ALL_SERVICES})
-        add_subdirectory(Backend/${service}/tests)
-    endforeach()
+# Mocks for backend tests
+add_subdirectory(Backend/common_mocks)
+
+# Tests
+include(CTest)
+enable_testing()
+
+add_subdirectory(common/Persistence/tests)
+add_subdirectory(Frontend/tests)
+foreach(service ${ALL_SERVICES})
+    add_subdirectory(Backend/${service}/tests)
+endforeach()
 endif()
+
+# Benchmarks
+add_subdirectory(Backend/Gateway/benchmarks)
+

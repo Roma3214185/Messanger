@@ -96,7 +96,7 @@ TEST_CASE("Test Authmiddleware") {
   SECTION("After handle expected no throw") {
     REQUIRE_NOTHROW(doCallAfter());
   }
-}
+ }
 
 TEST_CASE("Test RateLimitMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
@@ -128,7 +128,7 @@ TEST_CASE("Test RateLimitMiddleware") {
   SECTION("After handle expected no throw") {
     REQUIRE_NOTHROW(doCallAfter());
   }
-}
+ }
 
 TEST_CASE("Test LogMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
@@ -148,7 +148,7 @@ TEST_CASE("Test LogMiddleware") {
   SECTION("After handle expected no throw") {
     REQUIRE_NOTHROW(doCallAfter());
   }
-}
+ }
 
 TEST_CASE("Test cacheMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
@@ -214,7 +214,7 @@ TEST_CASE("Test cacheMiddleware") {
     REQUIRE(fix.cache.last_set_key == "cache:GET:/test/auth|user=2|body=user=2");
     REQUIRE(fix.cache.last_set_value == fix.res.body);
   }
-}
+ }
 
 TEST_CASE("Test metrics middlewares") {
   TestGatewayMiddlewaresFixrute fix;

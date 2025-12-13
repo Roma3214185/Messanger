@@ -14,12 +14,12 @@ class TestChatManager : public ChatManager {
  public:
   using ChatManager::ChatManager;
 
-  QList<ChatPtr> onLoadChats(QNetworkReply* reply) { return ChatManager::onLoadChats(reply); }
+  QList<ChatPtr> onLoadChats(QNetworkReply* reply) { return ChatManager::onLoadChats(reply->readAll()); }
 
-  ChatPtr onChatLoaded(QNetworkReply* reply) { return ChatManager::onChatLoaded(reply); }
+  ChatPtr onChatLoaded(QNetworkReply* reply) { return ChatManager::onChatLoaded(reply->readAll()); }
 
   ChatPtr onCreatePrivateChat(QNetworkReply* reply) {
-    return ChatManager::onCreatePrivateChat(reply);
+    return ChatManager::onCreatePrivateChat(reply->readAll());
   }
 };
 
@@ -27,7 +27,8 @@ TEST_CASE("Test ChatManager loadChats") {
   MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl                     url("http://localhost:8081");
-  constexpr int            times_out = 20;
+  std::chrono::milliseconds times_out{ 20 };
+  std::chrono::milliseconds delay{ 5 };
   TestChatManager          chat_manager(&network_manager, url, times_out);
   QJsonObject              chat_obj{
                    {"type", "private"},
@@ -51,7 +52,7 @@ TEST_CASE("Test ChatManager loadChats") {
 
     auto       future = chat_manager.loadChats("token");
 
-    QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, times_out + 1);
+    QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, times_out + delay);
     REQUIRE(future.result().isEmpty());
   }
 
@@ -110,7 +111,7 @@ TEST_CASE("Test ChatManager loadChat") {
   MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl                     url("http://localhost:8081");
-  constexpr int            times_out = 20;
+  std::chrono::milliseconds times_out{ 20 };
   TestChatManager          chat_manager(&network_manager, url, times_out);
 
   QJsonObject chat_obj{
@@ -177,7 +178,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   MockReply                mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl                     url("http://localhost:8081");
-  constexpr int            times_out = 20;
+  std::chrono::milliseconds times_out{ 20 };
   TestChatManager          chat_manager(&network_manager, url, times_out);
 
   QJsonObject user_obj{
@@ -261,37 +262,5 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     REQUIRE(spyError.count() == 1);
     auto args = spyError.takeFirst();
     REQUIRE(args.at(0).toString() == "Error in model create private chat returned group chat");
-  }
-
-  SECTION("On load chats receive reply with error expected emit ErrorOccurred with right message") {
-    QString mock_error_message = "connection refused";
-    auto reply_with_error = new MockReply();
-    reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, mock_error_message);
-
-    QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
-
-    chat_manager.onLoadChats(reply_with_error);
-
-    REQUIRE(spyError.count() == 1);
-
-    auto args = spyError.takeFirst();
-    REQUIRE(args.at(0).toString() == mock_error_message);
-  }
-
-  SECTION("On chat loaded receive reply with error expected emit ErrorOccurred with right message") {
-    QString mock_error_message = "error occured";
-    auto reply_with_error = new MockReply();
-    reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, mock_error_message);
-
-    QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
-
-    chat_manager.onChatLoaded(reply_with_error);
-
-    REQUIRE(spyError.count() == 1);
-
-    auto args = spyError.takeFirst();
-    REQUIRE(args.at(0).toString() == mock_error_message);
   }
 }

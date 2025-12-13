@@ -34,25 +34,20 @@ QFuture<QList<ChatPtr>> ChatManager::loadChats(const QString& current_token) {
   auto* reply = network_manager_->get(req);
   return handleReplyWithTimeout<QList<ChatPtr>>(
       reply,
-      [this](QNetworkReply* server_reply) { return onLoadChats(server_reply); },
+      [this](const QByteArray& responce_data) { return onLoadChats(responce_data); },
       timeout_ms_,
       QList<ChatPtr>{});
 }
 
-auto ChatManager::onLoadChats(QNetworkReply* reply) -> QList<ChatPtr> {
+auto ChatManager::onLoadChats(const QByteArray& responce_data) -> QList<ChatPtr> {
   PROFILE_SCOPE("Model::onLoadChats");
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  // if(!checkReply(reply)) return {};
+  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (!reply || reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onLoadChats] Network error: '{}'", reply->errorString().toStdString());
-    Q_EMIT errorOccurred(reply->errorString());
-    return {};
-  }
+  //QByteArray raw = reply->readAll();
+  //spdlog::warn("[onLoadChats] RAW RESPONSE ({} bytes):\n{}", responce_data.size(), responce_data.toStdString());
 
-  QByteArray raw = reply->readAll();
-  spdlog::warn("[onLoadChats] RAW RESPONSE ({} bytes):\n{}", raw.size(), raw.toStdString());
-
-  auto doc = QJsonDocument::fromJson(raw);
+  auto doc = QJsonDocument::fromJson(responce_data);
   if (!doc.isObject() || !doc.object().contains("chats") || !doc.object()["chats"].isArray()) {
     LOG_ERROR("LoadChats: invalid JSON");
     Q_EMIT errorOccurred("LoadChats: invalid JSON");
@@ -80,23 +75,17 @@ QFuture<ChatPtr> ChatManager::loadChat(const QString& current_token, int chat_id
   auto* reply = network_manager_->get(req);
   return handleReplyWithTimeout<ChatPtr>(
       reply,
-      [this](QNetworkReply* server_reply) { return onChatLoaded(server_reply); },
+      [this](const QByteArray& responce_data) { return onChatLoaded(responce_data); },
       timeout_ms_,
       nullptr);
 }
 
-ChatPtr ChatManager::onChatLoaded(QNetworkReply* reply) {
+ChatPtr ChatManager::onChatLoaded(const QByteArray& responce_data) {
   PROFILE_SCOPE("Model::onChatLoaded");
+  // if(!checkReply(reply)) return nullptr;
+  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (!reply || reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onChatLoaded] Network error: '{}'", reply->errorString().toStdString());
-    Q_EMIT errorOccurred(reply->errorString());
-    return nullptr;
-  }
-
-  QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-
-  auto doc = QJsonDocument::fromJson(reply->readAll());
+  auto doc = QJsonDocument::fromJson(responce_data);
   if (!doc.isObject()) {
     LOG_ERROR("[onChatLoaded] Invalid JSON, expected object at root");
     Q_EMIT errorOccurred("loadChat: invalid JSON root");
@@ -117,22 +106,18 @@ QFuture<ChatPtr> ChatManager::createPrivateChat(const QString& current_token, in
   auto reply = network_manager_->post(req, QJsonDocument(body).toJson());
   return handleReplyWithTimeout<ChatPtr>(
       reply,
-      [this](QNetworkReply* server_reply) { return onCreatePrivateChat(server_reply); },
+      [this](const QByteArray& responce_data) { return onCreatePrivateChat(responce_data); },
       timeout_ms_,
       nullptr);
 }
 
-auto ChatManager::onCreatePrivateChat(QNetworkReply* reply) -> ChatPtr {
+auto ChatManager::onCreatePrivateChat(const QByteArray& responce_data) -> ChatPtr {
   PROFILE_SCOPE("Model::onCreatePrivateChat");
-  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-  if (!reply || reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onCreatePrivateChat] error '{}'", reply->errorString().toStdString());
-    Q_EMIT errorOccurred("onCreatePrivateChat" + reply->errorString());
-    return nullptr;
-  }
+  // if(!checkReply(reply)) return nullptr;
+  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  auto responseData = reply->readAll();
-  auto doc          = QJsonDocument::fromJson(responseData);
+  // auto responseData = reply->readAll();
+  auto doc          = QJsonDocument::fromJson(responce_data);
   if (!doc.isObject()) {
     LOG_ERROR("[onCreatePrivateChat] Invalid JSON: expected object at root");
     Q_EMIT errorOccurred("Invalid JSON: expected object at root");

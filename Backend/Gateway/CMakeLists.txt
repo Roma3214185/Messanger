@@ -45,13 +45,14 @@ target_link_libraries(GatewayCore PUBLIC
     RedisCache
     nlohmann_json::nlohmann_json
     Constants
+    RabbitMQClient
     ThreadPool
     fmt::fmt
+    BackendMocks
 )
 
 add_executable(Gateway
     ${GATEWAY_SRC_DIR}/main.cpp
-    include/RetryOptions.h
 )
 
 target_link_libraries(Gateway PRIVATE GatewayCore)

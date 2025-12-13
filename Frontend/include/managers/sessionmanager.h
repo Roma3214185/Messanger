@@ -22,7 +22,7 @@ class SessionManager : public BaseManager {
   void authenticateWithToken(const QString& token);
 
  protected:
-  virtual void onReplyFinished(QNetworkReply* reply);
+  virtual void onReplyFinished(const QByteArray& responce);
 
  Q_SIGNALS:
   void userCreated(const User& user, const QString& token);

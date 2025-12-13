@@ -26,7 +26,7 @@ class MessageManager : public BaseManager {
                                           int            limit);
 
  protected:
-  QList<Message> onGetChatMessages(QNetworkReply* reply);
+  QList<Message> onGetChatMessages(const QByteArray& responce_data);
 };
 
 #endif  // MESSAGEMANAGER_H

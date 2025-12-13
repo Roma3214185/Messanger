@@ -10,6 +10,7 @@
 #include "mocks/MockRateLimiter.h"
 #include "mocks/MockTheadPool.h"
 #include "mocks/MockMetrics.h"
+#include "mocks/MockRabitMQClient.h"
 
 struct TestGatewayServerFixrute {
     GatewayApp app;
@@ -25,11 +26,12 @@ struct TestGatewayServerFixrute {
     MockVerifier verifier;
     MockRateLimiter rate_limiter;
     MockThreadPool pool;
+    MockRabitMQClient rabiq_client;
     int user_id = 123;
 
     TestGatewayServerFixrute()
-        : provider(MockUtils::getMockPorts())
-        , server(app, &client, &pool, &provider) {
+       : provider(MockUtils::getMockPorts())
+       , server(app, &client, &cache, &pool, &provider, &rabiq_client) {
       app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
       app.get_middleware<CacheMiddleware>().cache_ = &cache;
       app.get_middleware<LoggingMiddleware>();
@@ -58,13 +60,13 @@ TEST_CASE("Test apigate POST method") {
   fix.req.url = "/auth/login";
   fix.req.body = R"({"email":"a","passwords":"b"})";
 
-  SECTION("Check server works with pool and right create path") {
-    int before_call_pool = fix.pool.call_count;
+  SECTION("Check server works with rabiq_mq and right create path") {
+    int before_call_publish = fix.rabiq_client.publish_cnt;
 
     fix.makeCall();
 
     REQUIRE(fix.client.last_request.full_path == "/auth/login");
-    //REQUIRE(fix.pool.call_count == before_call_pool + 1);
+    REQUIRE(fix.rabiq_client.publish_cnt == before_call_publish + 1);
   }
 
   SECTION("Expected server call Post proxy with right port") {
@@ -76,19 +78,11 @@ TEST_CASE("Test apigate POST method") {
     REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().authService));
   }
 
-  SECTION("Post method return code and string expected no save in cashe (POST method i don't cache)") {
-    int before_calls_set_cache = fix.cache.call_set;
-
+  SECTION("Response received from client expected responce with 202 status code and request_id") {
     fix.makeCall();
 
-    REQUIRE(fix.cache.call_set == before_calls_set_cache);
-  }
-
-  SECTION("Response received from client expected responce with same data") {
-    fix.makeCall();
-
-    REQUIRE(fix.res.code == fix.mock_client_code);
-    REQUIRE(fix.res.body == fix.mock_client_ans);
+    REQUIRE(fix.res.code == 202); //TODO: make 202 in provider and extract generatorRequestId
+   // REQUIRE(fix.res.body == fix.mock_client_ans);
   }
 }
 

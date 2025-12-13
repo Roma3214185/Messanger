@@ -22,8 +22,8 @@ class UserManager : public BaseManager {
   QFuture<std::optional<User>> getUser(int user_id, const QString& current_token);
 
  protected:
-  QList<User>         onFindUsersByTag(QNetworkReply* reply);
-  std::optional<User> onGetUser(QNetworkReply* reply);
+  QList<User>         onFindUsersByTag(const QByteArray& responce_data) const;
+  std::optional<User> onGetUser(const QByteArray& responce_data) const;
 };
 
 #endif  // USERMANAGER_H

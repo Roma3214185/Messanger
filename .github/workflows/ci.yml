@@ -37,17 +37,40 @@ jobs:
           key: vcpkg-${{ runner.os }}
           restore-keys: vcpkg-${{ runner.os }}
 
-      # 4️⃣ Bootstrap vcpkg
-      - name: Bootstrap vcpkg
-        run: ./external/vcpkg/bootstrap-vcpkg.sh
-
       # 5️⃣ Install dependencies
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           set -eux
           brew update
           brew install cmake ninja qt6 boost catch2 sqlite3 opentelemetry-cpp spdlog fmt rabbitmq-c asio libsodium openssl@3 ccache lcov clang-format
-          ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 sqlite3
+
+       # Bootstrap vcpkg
+      - name: Bootstrap vcpkg
+        run: |
+           set -eux
+           ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+       # Clean vcpkg to avoid protobuf mismatch
+      - name: Clean vcpkg
+        run: |
+           set -eux
+           ./external/vcpkg/vcpkg remove --outdated --recurse || true
+           rm -rf ./external/vcpkg/installed/*
+           rm -rf ./external/vcpkg/buildtrees/*
+
+       # Install all vcpkg dependencies together
+      - name: Install vcpkg dependencies
+        run: |
+           set -eux
+           ./external/vcpkg/vcpkg install \
+             boost-asio \
+             spdlog \
+             nlohmann-json \
+             openssl \
+             catch2 \
+             sqlite3 \
+             "opentelemetry-cpp[otlp-grpc]:arm64-osx" \
+             --recurse
 
       # 7️⃣ Auto-format code
       - name: Run clang-format (auto-fix)
@@ -73,10 +96,6 @@ jobs:
             -DREDISPP_INCLUDE_DIR=$HOME/local/include \
             -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
             -DTRACY_ENABLE=ON \
-            -DOTEL_TRACE_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_trace.dylib \
-            -DOTEL_COMMON_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_common.dylib \
-            -DOTEL_RESOURCES_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_resources.dylib \
-            -DOTEL_EXPORTER_LIB=$HOMEBREW_PREFIX/lib/libopentelemetry_exporter_otlp_grpc.dylib \
             -Wno-dev
 
       # 9️⃣ Build project

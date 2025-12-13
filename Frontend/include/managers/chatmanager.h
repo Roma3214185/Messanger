@@ -24,9 +24,9 @@ class ChatManager : public BaseManager {
   QFuture<ChatPtr>        createPrivateChat(const QString& current_token, int user_id);
 
  protected:
-  QList<ChatPtr> onLoadChats(QNetworkReply* reply);
-  ChatPtr        onChatLoaded(QNetworkReply* reply);
-  ChatPtr        onCreatePrivateChat(QNetworkReply* reply);
+  QList<ChatPtr> onLoadChats(const QByteArray& responce_data);
+  ChatPtr        onChatLoaded(const QByteArray& responce_data);
+  ChatPtr        onCreatePrivateChat(const QByteArray& responce_data);
 };
 
 #endif  // CHATMANAGER_H
