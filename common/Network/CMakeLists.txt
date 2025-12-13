@@ -9,6 +9,7 @@ find_package(nlohmann_json REQUIRED)
 
 include(FetchContent)
 
+# Fetch cpp-httplib
 FetchContent_Declare(
     httplib
     GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
@@ -16,6 +17,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(httplib)
 
+# Create Network library
 add_library(Network STATIC
     src/IChatNetworkManager.cpp
     src/INetworkManagerBase.cpp
@@ -23,13 +25,28 @@ add_library(Network STATIC
     src/IMessageNetworkManager.cpp
 )
 
+# Include directories
 target_include_directories(Network
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${httplib_SOURCE_DIR}
+    PRIVATE
+        SYSTEM          # SYSTEM tells compiler these are external headers
+        ${httplib_SOURCE_DIR}/
 )
 
-target_link_libraries(Network
+target_compile_options(Network PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-old-style-cast>
+)
+
+find_program(CLANG_TIDY_EXECUTABLE /opt/homebrew/opt/llvm/bin/clang-tidy)
+if(CLANG_TIDY_EXECUTABLE)
+    set_target_properties(Network PROPERTIES
+        CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE};-header-filter=^${CMAKE_CURRENT_SOURCE_DIR}/include"
+    )
+endif()
+
+# Link libraries
+target_link_libraries(Network PRIVATE
     Entities
     Metrics
     Crow::Crow

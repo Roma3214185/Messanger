@@ -22,11 +22,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Crow)
 
-add_library(NotificationServiceCore STATIC
-    ${NOTIFICATION_SERVICE_SRC_DIR}/managers/notificationmanager.cpp
-    ${NOTIFICATION_SERVICE_SRC_DIR}/managers/socketmanager.cpp
-    ${NOTIFICATION_SERVICE_SRC_DIR}/server.cpp
-)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+add_library(NotificationServiceCore STATIC ${MY_SOURCES})
 
 target_include_directories(NotificationServiceCore PUBLIC
     ${NOTIFICATION_SERVICE_INCLUDE_DIR}
@@ -46,6 +43,7 @@ target_link_libraries(NotificationServiceCore PUBLIC
     RabbitMQClient
     Network
     Constants
+    Entities
 )
 
 add_executable(NotificationService
