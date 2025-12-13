@@ -45,8 +45,10 @@ target_link_libraries(GatewayCore PUBLIC
     RedisCache
     nlohmann_json::nlohmann_json
     Constants
+    RabbitMQClient
     ThreadPool
     fmt::fmt
+    BackendMocks
 )
 
 add_executable(Gateway

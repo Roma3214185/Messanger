@@ -30,10 +30,6 @@ httplib::Headers getHeaders(const RequestDTO& request_info) {
     headers.emplace(h.first, h.second);
   }
 
-  // for (auto& h : request_info.extra_headers) {
-  //   headers.emplace(h.first, h.second);
-  // }
-
   return headers;
 }
 
@@ -51,10 +47,9 @@ NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const
   return {kBadGatewayCode, kBadGatewayMessage};
 }
 
-NetworkResponse ProxyClient::forward(const RequestDTO& request_info,
-                                       int port) {
+NetworkResponse ProxyClient::forward(const RequestDTO& request_info) {
   ForwardRequestDTO forward_request;
-  forward_request.host_with_port = get_host_with_port(port);
+  forward_request.host_with_port = get_host_with_port(request_info.port);
   forward_request.headers = getHeaders(request_info);
   forward_request.body = request_info.body;
   forward_request.full_path = getFullPath(request_info);

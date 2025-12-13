@@ -11,6 +11,7 @@
 #include "middlewares/Middlewares.h"
 #include "interfaces/IMetrics.h"
 
+class IRabitMQClient;
 class ICacheService;
 class IThreadPool;
 class IClient;
@@ -26,8 +27,8 @@ using GatewayApp = crow::App<
 
 class GatewayServer {
  public:
-  GatewayServer(GatewayApp& app, IClient* client,
-                 IThreadPool* pool, IConfigProvider* provider);
+  GatewayServer(GatewayApp& app, IClient* client, ICacheService* cache,
+                 IThreadPool* pool, IConfigProvider* provider, IRabitMQClient* queue);
   void run();
   void registerRoutes();
 
@@ -40,6 +41,7 @@ class GatewayServer {
   ICacheService* cache_;
   ProxyClient proxy_;
   IThreadPool* pool_;
+  IRabitMQClient* queue_;
 
   void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path);
   void handlePostRequest(const crow::request& req, crow::response& res, int port, const std::string& path);
@@ -47,6 +49,7 @@ class GatewayServer {
   void registerRoute(const std::string& basePath, int proxy);
   void registerHealthCheck();
   void registerWebSocketRoutes();
+  void subscribeOnNewRequest(); //TODO: worker class ?
 };
 
 #endif  // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_
