@@ -10,6 +10,7 @@
 #include "mocks/MockRateLimiter.h"
 #include "mocks/MockTheadPool.h"
 #include "mocks/MockMetrics.h"
+#include "mocks/MockRabitMQClient.h"
 
 struct BenchmarkGatewayServerFixrute {
     GatewayApp app;
@@ -20,6 +21,7 @@ struct BenchmarkGatewayServerFixrute {
     crow::response res;
     GatewayServer server;
     MockMetrics metrics;
+    MockRabitMQClient rabit_mq;
     std::string mock_client_ans = "TEST FORWARD";
     int mock_client_code = 1356;
     MockVerifier verifier;
@@ -29,7 +31,7 @@ struct BenchmarkGatewayServerFixrute {
 
     BenchmarkGatewayServerFixrute()
         : provider(MockUtils::getMockPorts())
-        , server(app, &client, &pool, &provider) {
+        , server(app, &client, &cache, &pool, &provider, &rabit_mq) {
       app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
       app.get_middleware<CacheMiddleware>().cache_ = &cache;
       app.get_middleware<LoggingMiddleware>();
@@ -54,7 +56,7 @@ struct BenchmarkGatewayServerFixrute {
     }
 };
 
-static void BM_AsyncRequestResponceWithThread(benchmark::State& state) {
+static void BM_AsyncRequestResponceWithRabiqMQ(benchmark::State& state) {
   BenchmarkGatewayServerFixrute fix;
 
   for (auto _ : state) {
@@ -65,4 +67,4 @@ static void BM_AsyncRequestResponceWithThread(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_AsyncRequestResponceWithThread)->Arg(10)->Arg(100)->Arg(1000);
+BENCHMARK(BM_AsyncRequestResponceWithRabiqMQ)->Arg(10)->Arg(100)->Arg(1000);
