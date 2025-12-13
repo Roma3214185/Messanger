@@ -23,7 +23,6 @@ target_include_directories(Metrics PUBLIC
 target_link_libraries(Metrics PUBLIC
     fmt::fmt
     spdlog::spdlog
-    #opentelemetry_cpp::opentelemetry_cpp
     opentelemetry-cpp::sdk
     opentelemetry-cpp::metrics
     opentelemetry-cpp::trace

@@ -47,7 +47,7 @@ jobs:
           set -eux
           brew update
           brew install cmake ninja qt6 boost catch2 sqlite3 spdlog fmt rabbitmq-c asio libsodium openssl@3 ccache lcov clang-format
-          ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 sqlite3 opentelemetry-cpp
+          ./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 sqlite3 opentelemetry-cpp   "opentelemetry-cpp[otlp-grpc]:arm64-osx" --recurse
 
       # 7️⃣ Auto-format code
       - name: Run clang-format (auto-fix)
