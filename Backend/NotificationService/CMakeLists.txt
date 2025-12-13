@@ -43,6 +43,7 @@ target_link_libraries(NotificationServiceCore PUBLIC
     RabbitMQClient
     Network
     Constants
+    Entities
 )
 
 add_executable(NotificationService

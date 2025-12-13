@@ -13,6 +13,8 @@ target_include_directories(Entities INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_link_libraries(Entities INTERFACE ProjectOptions)
+
 target_link_libraries(Entities INTERFACE
     nlohmann_json::nlohmann_json
     Crow::Crow

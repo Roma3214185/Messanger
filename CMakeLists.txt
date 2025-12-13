@@ -43,6 +43,32 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/scripts/bui
     CACHE STRING "Vcpkg toolchain file")
 
 # -------------------------
+# Global INTERFACE target for warnings, sanitizers, PCH
+# -------------------------
+add_library(ProjectOptions INTERFACE)
+
+# Include compiler warnings
+# include(cmake/CompilerWarnings.cmake)
+# set_project_warnings(ProjectOptions)
+
+# Include sanitizers if supported
+include(cmake/Sanitizers.cmake)
+enable_sanitizers(ProjectOptions)
+
+# Precompiled headers (optional)
+# option(ENABLE_PCH "Enable Precompiled Headers" OFF)
+# if (ENABLE_PCH)
+#     target_precompile_headers(ProjectOptions INTERFACE
+#         <vector>
+#         <string>
+#         <map>
+#         <utility>)
+# endif()
+
+# Static analyzers
+include(cmake/StaticAnalyzers.cmake)
+
+# -------------------------
 # Submodules
 # -------------------------
 add_subdirectory(external/IXWebSocket)
@@ -52,7 +78,7 @@ add_subdirectory(external/SimpleAmqpClient)
 add_subdirectory(external/prometheus-cpp)
 
 # -------------------------
-# My libraries
+# Common Libraries
 # -------------------------
 add_subdirectory(common/Entities build_entities)
 add_subdirectory(common/Metrics build_metrics)
@@ -66,7 +92,6 @@ add_subdirectory(common/ThreadPool build_thread_pool)
 # -------------------------
 # Microservices
 # -------------------------
-
 set(ALL_SERVICES
     AuthService
     MessageService
@@ -76,38 +101,40 @@ set(ALL_SERVICES
 )
 
 if (DEFINED TARGET)
-message(STATUS "Building only microservice: ${TARGET}")
+    message(STATUS "Building only microservice: ${TARGET}")
 
-list(FIND ALL_SERVICES ${TARGET} _index)
-if (_index EQUAL -1)
-    message(FATAL_ERROR "Unknown TARGET '${TARGET}'. Valid: ${ALL_SERVICES}")
-endif()
+    list(FIND ALL_SERVICES ${TARGET} _index)
+    if (_index EQUAL -1)
+        message(FATAL_ERROR "Unknown TARGET '${TARGET}'. Valid: ${ALL_SERVICES}")
+    endif()
 
-add_subdirectory(Backend/${TARGET})
+    add_subdirectory(Backend/${TARGET})
+    target_link_libraries(${TARGET} INTERFACE ProjectOptions)
+
 else()
+    message(STATUS "Building ALL targets")
 
-# Microservices
-message(STATUS "Building ALL targets")
-foreach(service ${ALL_SERVICES})
-    add_subdirectory(Backend/${service})
-endforeach()
+    foreach(service ${ALL_SERVICES})
+        add_subdirectory(Backend/${service})
+        #target_link_libraries(${service} INTERFACE ProjectOptions)
+    endforeach()
 
-# Frontend
-add_subdirectory(Frontend)
+    # Frontend
+    add_subdirectory(Frontend)
+    target_link_libraries(Frontend INTERFACE ProjectOptions)
 
-# Mocks for backend tests
-add_subdirectory(Backend/common_mocks)
+    # Mocks for backend tests
+    add_subdirectory(Backend/common_mocks)
 
-# Tests
-include(CTest)
-enable_testing()
+    # Tests
+    include(CTest)
+    enable_testing()
 
-add_subdirectory(common/Persistence/tests)
-add_subdirectory(Frontend/tests)
-foreach(service ${ALL_SERVICES})
-    add_subdirectory(Backend/${service}/tests)
-endforeach()
-
+    add_subdirectory(common/Persistence/tests)
+    add_subdirectory(Frontend/tests)
+    foreach(service ${ALL_SERVICES})
+        add_subdirectory(Backend/${service}/tests)
+    endforeach()
 endif()
 
 # Benchmarks

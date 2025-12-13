@@ -33,6 +33,7 @@ target_link_libraries(ChatServiceCore PUBLIC
     Entities
     RedisCache
     Persistence
+    Constants
     Network
 )
 

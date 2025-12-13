@@ -19,6 +19,7 @@ class INetworkManagerBase {
         const std::string&    path,
         const std::string&    method,
         const Headers&        extra_headers = {});
+    virtual ~INetworkManagerBase() = default;
   protected:
     IConfigProvider* provider_;
 };
