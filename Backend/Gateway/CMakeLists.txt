@@ -20,12 +20,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Crow)
 
-add_library(GatewayCore
-    ${GATEWAY_SRC_DIR}/gatewayserver.cpp
-    ${GATEWAY_SRC_DIR}/proxyclient.cpp
-    ${GATEWAY_SRC_DIR}/JWTVerifier.cpp
-    ${GATEWAY_SRC_DIR}/websocketbridge.cpp
-)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+add_library(GatewayCore STATIC ${MY_SOURCES})
 
 target_include_directories(GatewayCore PUBLIC
     ${GATEWAY_INCLUDE_DIR}/

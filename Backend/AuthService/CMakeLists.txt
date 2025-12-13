@@ -27,13 +27,9 @@ pkg_check_modules(SODIUM REQUIRED libsodium)
 
 link_directories(/opt/homebrew/lib /usr/local/lib)
 
-add_library(AuthServiceCore STATIC
-    src/authcontroller.cpp
-    src/authmanager.cpp
-    src/JwtUtils.cpp
-    src/server.cpp
-    src/authDataInputService.cpp
-)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+
+add_library(AuthServiceCore STATIC ${MY_SOURCES})
 
 target_include_directories(AuthServiceCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

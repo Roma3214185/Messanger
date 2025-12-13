@@ -28,12 +28,8 @@ find_package(nlohmann_json REQUIRED)
 
 link_directories(/opt/homebrew/lib)
 
-add_library(MessageServiceCore STATIC
-  ${MESSAGE_SERVICE_SRC_DIR}/controller.cpp
-  ${MESSAGE_SERVICE_SRC_DIR}/server.cpp
-  ${MESSAGE_SERVICE_SRC_DIR}/managers/MessageManager.cpp
-  ${MESSAGE_SERVICE_SRC_DIR}/JwtUtils.cpp
-)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+add_library(MessageServiceCore STATIC ${MY_SOURCES})
 
 target_link_libraries(MessageServiceCore PUBLIC
   Crow::Crow

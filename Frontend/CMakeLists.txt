@@ -15,25 +15,10 @@ set(FRONTEND_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(FRONTEND_FORMS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/forms)
 set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+
 add_library(FrontendLib STATIC
-    ${FRONTEND_SRC_DIR}/presenter.cpp
-    ${FRONTEND_SRC_DIR}/model.cpp
-    ${FRONTEND_SRC_DIR}/datainputservice.cpp
-    ${FRONTEND_SRC_DIR}/models/messagemodel.cpp
-    ${FRONTEND_SRC_DIR}/models/chatmodel.cpp
-    ${FRONTEND_SRC_DIR}/models/UserModel.cpp
-    ${FRONTEND_SRC_DIR}/delegators/messagedelegate.cpp
-    ${FRONTEND_SRC_DIR}/delegators/UserDelegate.cpp
-    ${FRONTEND_SRC_DIR}/delegators/ChatItemDelegate.cpp
-    ${FRONTEND_SRC_DIR}/managers/NetworkAccessManager.cpp
-    ${FRONTEND_SRC_DIR}/managers/sessionmanager.cpp
-    ${FRONTEND_SRC_DIR}/managers/chatmanager.cpp
-    ${FRONTEND_SRC_DIR}/managers/messagemanager.cpp
-    ${FRONTEND_SRC_DIR}/managers/usermanager.cpp
-    ${FRONTEND_SRC_DIR}/managers/socketmanager.cpp
-    ${FRONTEND_SRC_DIR}/managers/BaseManager.cpp
-    ${FRONTEND_SRC_DIR}/managers/datamanager.cpp
-    ${FRONTEND_SRC_DIR}/IMessageListView.cpp
+    ${MY_SOURCES}
 
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
 

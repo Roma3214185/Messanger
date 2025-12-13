@@ -19,12 +19,9 @@ FetchContent_MakeAvailable(Crow)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common/Persistence ../../build_chat_persistence)
 
-add_library(ChatServiceCore STATIC
-  ${CHAT_SERVICE_SRC_DIR}/chatcontroller.cpp
-  ${CHAT_SERVICE_SRC_DIR}/chatserver.cpp
-  ${CHAT_SERVICE_SRC_DIR}/chatmanager.cpp
-  ${CHAT_SERVICE_SRC_DIR}/TokenService.cpp
-)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+
+add_library(ChatServiceCore STATIC ${MY_SOURCES})
 
 target_link_libraries(ChatServiceCore PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
