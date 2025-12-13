@@ -76,14 +76,14 @@ set(ALL_SERVICES
 )
 
 if (DEFINED TARGET)
-message(STATUS "Building only microservice: ${TARGET}")
+    message(STATUS "Building only microservice: ${TARGET}")
 
-list(FIND ALL_SERVICES ${TARGET} _index)
-if (_index EQUAL -1)
-    message(FATAL_ERROR "Unknown TARGET '${TARGET}'. Valid: ${ALL_SERVICES}")
-endif()
+    list(FIND ALL_SERVICES ${TARGET} _index)
+    if (_index EQUAL -1)
+        message(FATAL_ERROR "Unknown TARGET '${TARGET}'. Valid: ${ALL_SERVICES}")
+    endif()
 
-add_subdirectory(Backend/${TARGET})
+    add_subdirectory(Backend/${TARGET})
 else()
 
 # Microservices
@@ -107,7 +107,6 @@ add_subdirectory(Frontend/tests)
 foreach(service ${ALL_SERVICES})
     add_subdirectory(Backend/${service}/tests)
 endforeach()
-
 endif()
 
 # Benchmarks
