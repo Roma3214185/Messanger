@@ -38,22 +38,22 @@ QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_t
 
   return handleReplyWithTimeout<QList<Message>>(
       reply,
-      [this](QNetworkReply* server_reply) { return onGetChatMessages(server_reply); },
+      [this](const QByteArray& responce_data) { return onGetChatMessages(responce_data); },
       timeout_ms_,
       QList<Message>{});
 }
 
-QList<Message> MessageManager::onGetChatMessages(QNetworkReply* reply) {
+QList<Message> MessageManager::onGetChatMessages(const QByteArray& responce_data) {
   PROFILE_SCOPE("ChatManager::onGetChatMessages");
   //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (!reply || reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onGetChatMessages] Network error: '{}'", reply->errorString().toStdString());
-    Q_EMIT errorOccurred("[network] " + reply->errorString());
-    return QList<Message>{};
-  }
+  // if (!reply || reply->error() != QNetworkReply::NoError) {
+  //   LOG_ERROR("[onGetChatMessages] Network error: '{}'", reply->errorString().toStdString());
+  //   Q_EMIT errorOccurred("[network] " + reply->errorString());
+  //   return QList<Message>{};
+  // }
 
-  auto doc = QJsonDocument::fromJson(reply->readAll());
+  auto doc = QJsonDocument::fromJson(responce_data);
   if (!doc.isArray()) {
     LOG_ERROR("[onGetChatMessages] Invalid JSON: expected array");
     Q_EMIT errorOccurred("Invalid JSON: expected array at root");

@@ -36,28 +36,25 @@ void SessionManager::signIn(const LogInRequest& login_request) {
 
   handleReplyWithTimeoutVoid(
       reply,
-      [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },
+      [this](const QByteArray& responce_data) {
+        return onReplyFinished(responce_data);
+      },
       timeout_ms_);
 }
 
-void SessionManager::onReplyFinished(QNetworkReply* reply) {
+void SessionManager::onReplyFinished(const QByteArray& responce) {
   PROFILE_SCOPE("SessionManager::onReplyFinished");
-  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  // if(!checkReply(reply)) return;
+  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (!reply || reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onReplyFinished] Network error: '{}'", reply->errorString().toStdString());
-    Q_EMIT errorOccurred(reply->errorString());
-    return;
-  }
-
-  auto    jsonResponse  = QJsonDocument::fromJson(reply->readAll());
+  auto    jsonResponse  = QJsonDocument::fromJson(responce);
   auto    responseObj   = jsonResponse.object();
   auto    createdUser   = JsonService::getUserFromResponse(responseObj["user"].toObject());
   QString current_token = responseObj["token"].toString();
 
   LOG_INFO("[onReplyFinished] User created. User: '{}', Token: '{}'",
            createdUser.name.toStdString(),
-           current_token.toStdString());
+           current_token.toStdString()); //TODO: debug(createdUser);
   Q_EMIT userCreated(createdUser, current_token);
 }
 
@@ -77,7 +74,7 @@ void SessionManager::signUp(const SignUpRequest& signup_request) {
 
   handleReplyWithTimeoutVoid(
       reply,
-      [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },
+      [this](const QByteArray& responce_data) { return onReplyFinished(responce_data); },
       timeout_ms_);
 }
 
@@ -87,6 +84,6 @@ void SessionManager::authenticateWithToken(const QString& token) {
   auto* reply = network_manager_->get(req);
   handleReplyWithTimeoutVoid(
       reply,
-      [this](QNetworkReply* server_reply) { return onReplyFinished(server_reply); },
+      [this](const QByteArray& responce_data) { return onReplyFinished(responce_data); },
       timeout_ms_);
 }

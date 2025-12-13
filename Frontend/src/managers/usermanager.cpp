@@ -31,22 +31,17 @@ QFuture<std::optional<User>> UserManager::getUser(int user_id, const QString& cu
 
   return handleReplyWithTimeout<std::optional<User>>(
       reply,
-      [this](QNetworkReply* server_reply) { return onGetUser(server_reply); },
+      [this](const QByteArray& responce_data) { return onGetUser(responce_data); },
       timeout_ms_,
       std::nullopt);
 }
 
-auto UserManager::onGetUser(QNetworkReply* reply) -> optional<User> {
+auto UserManager::onGetUser(const QByteArray& responce_data) const -> optional<User> {
   PROFILE_SCOPE("UserManager::onGetUser");
-  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  // if(!checkReply(reply)) return std::nullopt;
+  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  if (!reply || reply->error() != QNetworkReply::NoError) {
-    LOG_ERROR("[onGetUser] Network error: '{}'", reply->errorString().toStdString());
-    Q_EMIT errorOccurred("get user: " + reply->errorString());
-    return std::nullopt;
-  }
-
-  auto doc = QJsonDocument::fromJson(reply->readAll());
+  auto doc = QJsonDocument::fromJson(responce_data);
   if (!doc.isObject()) {
     LOG_ERROR("[onGetUser] Invalid JSON: expected object at root");
     Q_EMIT errorOccurred("Invalid JSON: expected object at root");
@@ -69,19 +64,17 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag, const QStri
 
   return handleReplyWithTimeout<QList<User>>(
       reply,
-      [this](QNetworkReply* server_reply) { return onFindUsersByTag(server_reply); },
+      [this](const QByteArray& responce_data) { return onFindUsersByTag(responce_data); },
       timeout_ms_,
       QList<User>{});
 }
 
-QList<User> UserManager::onFindUsersByTag(QNetworkReply* reply) {
-  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-  if (!reply || reply->error() != QNetworkReply::NoError) {
-    Q_EMIT errorOccurred("onFindUsers" + reply->errorString());
-    return {};
-  }
-  auto responseData = reply->readAll();
-  auto doc          = QJsonDocument::fromJson(responseData);
+QList<User> UserManager::onFindUsersByTag(const QByteArray& responce_data) const {
+  // if(!checkReply(reply)) return {};
+  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+
+  // auto responseData = reply->readAll();
+  auto doc          = QJsonDocument::fromJson(responce_data);
 
   if (!doc.isObject()) {
     Q_EMIT errorOccurred("Invalid JSON: expected object at root");

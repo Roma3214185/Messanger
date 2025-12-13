@@ -19,9 +19,9 @@ class TestSessionManager : public SessionManager {
 
   int on_reply_finished_calls = 0;
 
-  void onReplyFinished(QNetworkReply* reply) override {
+  void onReplyFinished(const QByteArray& responce_data) override {
     ++on_reply_finished_calls;
-    SessionManager::onReplyFinished(reply);
+    SessionManager::onReplyFinished(responce_data);
   }
 };
 
@@ -178,20 +178,6 @@ TEST_CASE("Test onSignInFinished") {
   MockNetworkAccessManager network_manager(&mock_reply);
   TestSessionManager       session_manager(&network_manager, url_auth_service);
 
-  SECTION("ReplyWithErrorExpectedErrorOccured") {
-    auto* reply = new MockReply();
-    reply->setMockError(QNetworkReply::ContentNotFoundError, "Invalid parameters");
-    QSignalSpy spyErrorOccurred(&session_manager, &TestSessionManager::errorOccurred);
-    int        before = spyErrorOccurred.count();
-
-    session_manager.onReplyFinished(reply);
-
-    REQUIRE(spyErrorOccurred.count() == before + 1);
-
-    auto arguments = spyErrorOccurred.takeFirst();
-    REQUIRE(arguments.at(0).toString() == "Invalid parameters");
-  }
-
   SECTION("ExpectedEmittingUserCreated") {
     auto*      reply = new MockReply();
     QByteArray json_data =
@@ -201,7 +187,7 @@ TEST_CASE("Test onSignInFinished") {
     QSignalSpy spyUserCreated(&session_manager, &TestSessionManager::userCreated);
     int        before = spyUserCreated.count();
 
-    session_manager.onReplyFinished(reply);
+    session_manager.onReplyFinished(reply->readAll());
 
     REQUIRE(spyUserCreated.count() == before + 1);
   }
@@ -216,7 +202,7 @@ TEST_CASE("Test onSignInFinished") {
     QSignalSpy spyUserCreated(&session_manager, &TestSessionManager::userCreated);
     int        before = spyUserCreated.count();
 
-    session_manager.onReplyFinished(reply);
+    session_manager.onReplyFinished(reply->readAll());
 
     QCoreApplication::processEvents();
 
