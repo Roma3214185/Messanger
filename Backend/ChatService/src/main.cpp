@@ -11,13 +11,16 @@
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
 #include "NetworkFacade.h"
+#include "GeneratorId.h"
 
 int main(int argc, char* argv[]) {
   init_logger("ChatService");
   QCoreApplication  a(argc, argv);
   SQLiteDatabase    database;
   SqlExecutor       executor(database);
-  GenericRepository genetic_rep(database, &executor, RedisCache::instance());
+  constexpr int service_id = 2;
+  GeneratorId generator(service_id);
+  GenericRepository genetic_rep(database, &executor, RedisCache::instance(), &generator);
   ChatManager       manager(&genetic_rep); //TODO: pass executor to mock
   NetworkManager    network_manager;
   ProdConfigProvider provider;

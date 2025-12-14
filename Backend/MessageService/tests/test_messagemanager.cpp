@@ -6,13 +6,15 @@
 #include "mocks/MockCache.h"
 #include "mocks/MockTheadPool.h"
 #include "messageservice/dto/GetMessagePack.h"
+#include "mocks/MockIdGenerator.h"
 
 TEST_CASE("Test") {
   MockDatabase db;
   MockThreadPool pool;
   MockCache cache;
   FakeSqlExecutor executor;
-  GenericRepository repository(db, &executor, cache, &pool);
+  MockIdGenerator generator;
+  GenericRepository repository(db, &executor, cache, &generator, &pool);
   MessageManager manager(&repository, &executor, cache);
 
   SECTION("getChatMessages expected create valid sql request") {
@@ -75,7 +77,6 @@ TEST_CASE("Test") {
     to_save.is_read = true;
     to_save.read_at = 123;
     int before_execute = executor.execute_calls;
-    int before_return_id_execute = executor.execute_returning_id_calls;
 
     manager.saveMessageStatus(to_save);
 
@@ -84,7 +85,6 @@ TEST_CASE("Test") {
 
     REQUIRE(executor.execute_calls == before_execute + 1);
     CHECK(executor.lastSql.toStdString() == expected_sql);
-    CHECK(executor.execute_returning_id_calls == before_return_id_execute);
 
     CHECK(executor.lastValues.size() == 4);
     CHECK(executor.lastValues[0] == to_save.message_id);
@@ -95,7 +95,6 @@ TEST_CASE("Test") {
 
   SECTION("Get message status expected create right sql") {
     int before_execute = executor.execute_calls;
-    int before_return_id_execute = executor.execute_returning_id_calls;
     int message_id = 23;
     int receiver_id = 156;
 
@@ -105,7 +104,6 @@ TEST_CASE("Test") {
 
     REQUIRE(executor.execute_calls == before_execute + 1);
     CHECK(executor.lastSql.toStdString() == expected_sql);
-    CHECK(executor.execute_returning_id_calls == before_return_id_execute);
 
     CHECK(executor.lastValues.size() == 2);
     CHECK(executor.lastValues[0] == message_id);

@@ -28,17 +28,20 @@ using FutureResultList = std::future<std::vector<T>>;
 class ISqlExecutor;
 class ICacheService;
 class IThreadPool;
+class IIdGenerator;
 
 class GenericRepository {
   ISqlExecutor*  executor_;
   ICacheService& cache_;
   IThreadPool*    pool_;
   IDataBase&     database_;
+  IIdGenerator* generator_;
 
  public:
   GenericRepository(IDataBase&     database,
                     ISqlExecutor*  executor,
                     ICacheService& cache,
+                    IIdGenerator* generator,
                     IThreadPool*    pool_ = nullptr);
 
   ISqlExecutor* getExecutor() { return executor_; }

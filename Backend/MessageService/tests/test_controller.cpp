@@ -1,25 +1,16 @@
 #include <catch2/catch_all.hpp>
+#include <crow.h>
+#include <QNetworkReply>
 
-#include "messageservice/controller.h"
-#include "mocks/MockRabitMQClient.h"
 #include "GenericRepository.h"
 #include "interfaces/IDataBase.h"
 #include "interfaces/ISqlExecutor.h"
 #include "interfaces/ICacheService.h"
 #include "messageservice/managers/MessageManager.h"
-
-#include "mocks/MockConfigProvider.h"
-#include "mocks/MockRabitMQClient.h"
-#include "mocks/MockCache.h"
-#include "mocks/FakeSqlExecutor.h"
-#include "mocks/MockDatabase.h"
-#include "mocks/TestController.h"
-#include "mocks/SecondTestController.h"
-#include "mocks/MockUtils.h"
-#include "mocks/MockTheadPool.h"
-
-#include <crow.h>
-#include <QNetworkReply>
+#include "messageservice/controller.h"
+#include "mocks/messageservice/TestController.h"
+#include "mocks/messageservice/SecondTestController.h"
+#include "mocks.h"
 
 struct SharedFixture {
     MockRabitMQClient rabit_client;
@@ -31,11 +22,12 @@ struct SharedFixture {
     GenericRepository rep;
     MessageManager manager;
     MockThreadPool pool;
+    MockIdGenerator generator;
 
     SharedFixture()
         : mock_routes(MockUtils::getMockRoutes()),
           provider(),
-          rep(db, &executor, cache),
+          rep(db, &executor, cache, &generator, &pool),
           manager(&rep, &executor)
     {
         provider.mock_routes = mock_routes;

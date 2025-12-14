@@ -9,7 +9,7 @@
 namespace {
 const QString CREATE_USERS_TABLE = R"(
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
             tag TEXT NOT NULL,
             username TEXT NOT NULL
@@ -18,7 +18,7 @@ const QString CREATE_USERS_TABLE = R"(
 
 const QString CREATE_MESSAGES_TABLE = R"(
         CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             chat_id INT,
             sender_id INT,
             text TEXT,
@@ -39,7 +39,7 @@ const QString CREATE_MESSAGES_STATUS_TABLE = R"(
 
 const QString CREATE_CHATS_TABLE = R"(
         CREATE TABLE IF NOT EXISTS chats (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             is_group INTEGER NOT NULL DEFAULT 0,
             name TEXT,
             avatar TEXT,
@@ -63,9 +63,9 @@ const QString CREATE_CREDENTIALS_TABLE = R"(
             hash_password TEXT NOT NULL
         );
     )";
-
+//TODO: commit when insert private_chat and in table chat
 const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE IF NOT EXISTS private_chats (
-    chat_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id       INTEGER PRIMARY KEY,
     user1_id      INTEGER NOT NULL,
     user2_id      INTEGER NOT NULL,
 

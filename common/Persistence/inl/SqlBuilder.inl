@@ -21,6 +21,8 @@ std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
   if (!v.isValid())
     return {};
 
+  //TODO: free function???
+
   if (f.type == typeid(long long))
     return std::any(v.toLongLong());
 
@@ -38,7 +40,7 @@ std::pair<QStringList, QStringList> buildInsertParts(
     const Meta& meta, const T& entity, QList<QVariant>& values) {
   QStringList cols, ph;
   for (const auto& f : meta.fields) {
-    if (std::string(f.name) == "id" && toVariant<T>(f, entity) == 0) continue;
+    //if (std::string(f.name) == "id" && toVariant<T>(f, entity) == 0) continue;
 
     cols << f.name;
     ph << "?";
@@ -55,7 +57,7 @@ SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity, bool 
   res.values = values;
 
   QString row_sql = "INSERT OR REPLACE INTO %1 (%2) VALUES (%3)";
-  if(need_to_return_id) row_sql += " RETURNING id";
+  //if(need_to_return_id) row_sql += " RETURNING id";
 
   res.query = row_sql
               .arg(QString::fromStdString(meta.table_name))

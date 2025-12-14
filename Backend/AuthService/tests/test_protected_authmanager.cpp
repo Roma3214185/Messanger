@@ -7,6 +7,7 @@
 #include "mocks/MockTheadPool.h"
 #include "mocks/MockDatabase.h"
 #include "entities/UserCredentials.h"
+#include "mocks/MockIdGenerator.h"
 
 struct TestProtectedAuthManager : public AuthManager {
     using AuthManager::AuthManager;
@@ -23,7 +24,7 @@ struct TestAuthManagerProtectedFixture {
     int user_id = 12;
     User user;
     UserCredentials user_credentials;
-
+    MockIdGenerator generator;
     GenericRepository rep;
     TestProtectedAuthManager manager;
 
@@ -35,7 +36,7 @@ struct TestAuthManagerProtectedFixture {
     std::string hash_password = "secret-hash-password-123";
 
     TestAuthManagerProtectedFixture()
-        : rep(db, &executor, cache, &pool)
+        : rep(db, &executor, cache, &generator, &pool)
         , manager(rep) {
       user.id = user_id;
       user.email = email;
@@ -45,7 +46,7 @@ struct TestAuthManagerProtectedFixture {
 
       user_credentials.user_id = user_id;
       user_credentials.hash_password = hash_password;
-      executor.mocked_id = user_id;
+      generator.mocked_id = user_id;
     }
 };
 

@@ -13,11 +13,8 @@ find_package(Catch2 3 REQUIRED)
 add_executable(MessageServiceTests
     main.cpp
     test_controller.cpp
-    mocks/TestController.h
-    mocks/SecondTestController.h
     test_messagemanager.cpp
     test_server.cpp
-    mocks/MockController.h
 )
 
 target_link_libraries(MessageServiceTests

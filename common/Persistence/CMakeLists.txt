@@ -12,6 +12,7 @@ add_library(Persistence STATIC
     src/GenericRepository.cpp
     src/SQLiteDatabase.cpp
     src/SqlExecutor.cpp
+    include/GeneratorId.h
 )
 
 target_include_directories(Persistence

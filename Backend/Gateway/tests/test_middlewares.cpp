@@ -4,12 +4,10 @@
 
 #include "middlewares/Middlewares.h"
 #include "mocks/MockUtils.h"
-#include "mocks/MockApiCache.h"
-#include "mocks/MockVerifier.h"
-#include "mocks/MockRateLimiter.h"
 #include "mocks/MockTheadPool.h"
-#include "mocks/MockMetrics.h"
 #include "mocks/MockConfigProvider.h"
+
+#include "mocks/gateway/GatewayMocks.h"
 
 struct DummyParentCtx {
     MetricsMiddleware::context metrics_ctx;

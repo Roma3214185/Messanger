@@ -31,17 +31,17 @@ bool SqlExecutor::execute(const QString& sql, QSqlQuery& outQuery, const QList<Q
   return true;
 }
 
-std::optional<long long> SqlExecutor::executeReturningId(const QString&         sql,
-                                                         QSqlQuery&             outQuery,
-                                                         const QList<QVariant>& values) {
-  if (!execute(sql, outQuery, values)) return std::nullopt;
+// std::optional<long long> SqlExecutor::executeReturningId(const QString&         sql,
+//                                                          QSqlQuery&             outQuery,
+//                                                          const QList<QVariant>& values) {
+//   if (!execute(sql, outQuery, values)) return std::nullopt;
 
-  if (!outQuery.next()) {
-    LOG_WARN("No row returned for SQL returning ID: {}", sql.toStdString());
-    return std::nullopt;
-  }
+//   if (!outQuery.next()) {
+//     LOG_WARN("No row returned for SQL returning ID: {}", sql.toStdString());
+//     return std::nullopt;
+//   }
 
-  auto returned_id = outQuery.value(0).toLongLong();
-  LOG_INFO("Returned id fromt SqlExecuter {}", returned_id);
-  return returned_id;
-}
+//   auto returned_id = outQuery.value(0).toLongLong();
+//   LOG_INFO("Returned id fromt SqlExecuter {}", returned_id);
+//   return returned_id;
+// }

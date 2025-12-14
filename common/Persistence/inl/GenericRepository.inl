@@ -3,6 +3,7 @@
 #include "interfaces/BaseQuery.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
+#include "interfaces/IIdGenerator.h"
 #include "SqlBuilder.h"
 
 namespace {
@@ -56,7 +57,12 @@ bool GenericRepository::save(T& entity) {
   const auto& meta = Reflection<T>::meta();
   const Field* idField = meta.find("id");
   bool need_to_return_id = needsIdReturn<T>(idField, entity);
-  LOG_INFO("Need to return id {}", need_to_return_id);
+  if(need_to_return_id) {
+    auto generated_id = generator_->generateId();
+    idField->set(&entity, generated_id);
+    LOG_INFO("Generated id {}", generated_id);
+  }
+  need_to_return_id = false; //TODO: refactor to delete this line
 
   SqlBuilder<T> builder;
   SqlStatement stmt = builder.buildInsert(meta, entity, need_to_return_id);
@@ -84,17 +90,17 @@ bool GenericRepository::save(std::vector<T>& entity) {
 
 template <typename T>
 bool GenericRepository::executeStatement(const SqlStatement& stmt, const Field* idField, T& entity, QSqlQuery& query, bool need_to_return_id) {
-  if (!need_to_return_id) {
-    return executor_->execute(stmt.query, query, stmt.values);
-  }
+  //TODO: now u don't need separate function after deleting executeReturningId
+  return executor_->execute(stmt.query, query, stmt.values);
 
-  auto returned_id = executor_->executeReturningId(stmt.query, query, stmt.values);
-  if (!returned_id.has_value()) return false;
 
-  assert(idField != nullptr);
-  LOG_INFO("Returned id {}", *returned_id);
-  idField->set(&entity, *returned_id);
-  return true;
+  // auto returned_id = executor_->executeReturningId(stmt.query, query, stmt.values);
+  // if (!returned_id.has_value()) return false;
+
+  // assert(idField != nullptr);
+  // LOG_INFO("Returned id {}", *returned_id);
+  // idField->set(&entity, *returned_id);
+  // return true;
 }
 
 template <typename T>

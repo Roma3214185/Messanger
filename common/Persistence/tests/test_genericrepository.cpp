@@ -11,12 +11,14 @@
 #include "mocks/FakeSqlExecutor.h"
 #include "mocks/MockCache.h"
 #include "mocks/MockDatabase.h"
+#include "mocks/MockIdGenerator.h"
 
 TEST_CASE("Test saving entity in database") {
   MockDatabase      db;
   MockCache         cache;
   FakeSqlExecutor   executor;
-  GenericRepository rep(db, &executor, cache);
+  MockIdGenerator generator;
+  GenericRepository rep(db, &executor, cache, &generator);
 
   User user;
   user.email    = "romanlobach@gmail.com";
@@ -36,7 +38,7 @@ TEST_CASE("Test saving entity in database") {
   }
 
   SECTION("Save user expected returned mocked id") {
-    executor.mocked_id = 6;
+    generator.mocked_id = 6;
     user.id            = 0;
     rep.save(user);
     REQUIRE(user.id == 6);
@@ -64,71 +66,35 @@ TEST_CASE("Test saving entity in database") {
     rep.save(message);
     REQUIRE(message.id == 10);
   }
-
-  SECTION("Save message with id expected don't call executedReturnID") {
-    Message message;
-    message.id       = 10;
-    int before_calls = executor.execute_returning_id_calls;
-    rep.save(message);
-
-    REQUIRE(executor.execute_returning_id_calls == before_calls);
-  }
-
-  SECTION("Save message without id expected call executedReturnID") {
-    Message message;
-    int     before_calls = executor.execute_returning_id_calls;
-    rep.save(message);
-
-    REQUIRE(executor.execute_returning_id_calls == before_calls + 1);
-  }
 }
 
 TEST_CASE("For every entity creates valid sql command") {
   MockDatabase      db;
   MockCache         cache;
   FakeSqlExecutor   executor;
-  GenericRepository rep(db, &executor, cache);
+   MockIdGenerator generator;
+  GenericRepository rep(db, &executor, cache, &generator);
 
-  SECTION("Save user without id expected right created sql command") {
-    QString valid_sql =
-        "INSERT OR REPLACE INTO users (username, tag, email) "
-        "VALUES (?, ?, ?) RETURNING id";
-    User user;
-    rep.save(user);
-    LOG_INFO("Last sql {}", executor.lastSql.toStdString());
-    REQUIRE(executor.lastSql == valid_sql);
-  }
-
-  SECTION("Save user with id expected right created sql command") {
-    QString valid_sql =
+  SECTION("Save user expected right created sql command") {
+    std::string valid_sql =
         "INSERT OR REPLACE INTO users (id, username, tag, email) "
         "VALUES (?, ?, ?, ?)";
     User user;
-    user.id = 1;
     rep.save(user);
     LOG_INFO("Last sql {}", executor.lastSql.toStdString());
-    REQUIRE(executor.lastSql == valid_sql);
+    REQUIRE(executor.lastSql.toStdString() == valid_sql);
   }
 
   SECTION("Save message_status expected right created sql command") {
-    QString valid_sql =
+    std::string valid_sql =
         "INSERT OR REPLACE INTO messages_status (message_id, receiver_id, is_read, read_at) "
         "VALUES (?, ?, ?, ?)";
     MessageStatus message_status;
     rep.save(message_status);
-    REQUIRE(executor.lastSql == valid_sql);
+    REQUIRE(executor.lastSql.toStdString() == valid_sql);
   }
 
-  SECTION("Save message without id expected right created sql command") {
-    QString valid_sql =
-        "INSERT OR REPLACE INTO messages (sender_id, chat_id, text, timestamp, local_id) "
-        "VALUES (?, ?, ?, ?, ?) RETURNING id";
-    Message message;
-    rep.save(message);
-    REQUIRE(executor.lastSql == valid_sql);
-  }
-
-  SECTION("Save message with id expected right created sql command") {
+  SECTION("Save message expected right created sql command") {
     QString valid_sql =
         "INSERT OR REPLACE INTO messages (id, sender_id, chat_id, text, timestamp, local_id) "
         "VALUES (?, ?, ?, ?, ?, ?)";
@@ -139,17 +105,7 @@ TEST_CASE("For every entity creates valid sql command") {
     REQUIRE(executor.lastSql == valid_sql);
   }
 
-  SECTION("Save chat without id expected right created sql command") {
-    QString valid_sql =
-        "INSERT OR REPLACE INTO chats (is_group, name, avatar, created_at) "
-        "VALUES (?, ?, ?, ?) RETURNING id";
-
-    Chat chat;
-    rep.save(chat);
-    REQUIRE(executor.lastSql == valid_sql);
-  }
-
-  SECTION("Save chat with id expected right created sql command") {
+  SECTION("Save chat expected right created sql command") {
     QString valid_sql =
         "INSERT OR REPLACE INTO chats (id, is_group, name, avatar, created_at) "
         "VALUES (?, ?, ?, ?, ?)";
@@ -186,7 +142,8 @@ TEST_CASE("Test integration with cache while saving") {
   MockDatabase      db;
   MockCache         cache;
   FakeSqlExecutor   executor;
-  GenericRepository rep(db, &executor, cache);
+  MockIdGenerator generator;
+  GenericRepository rep(db, &executor, cache, &generator);
 
   SECTION("Saved entity eepected updated cache") {
     User user;

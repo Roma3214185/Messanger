@@ -13,8 +13,8 @@ class FakeSqlExecutor : public ISqlExecutor {
   QList<QVariant> lastValues;
   bool            shouldFail                 = false;
   int             execute_calls              = 0;
-  int             execute_returning_id_calls = 0;
-  int             mocked_id                  = 0;
+  //int             execute_returning_id_calls = 0;
+  //int             mocked_id                  = 0;
   std::vector<std::string> last_sqls;
 
   bool execute(const QString& sql, QSqlQuery& outQuery, const QList<QVariant>& values) override {
@@ -25,13 +25,13 @@ class FakeSqlExecutor : public ISqlExecutor {
     return !shouldFail;
   }
 
-  virtual std::optional<long long> executeReturningId(const QString&         sql,
-                                                      QSqlQuery&             outQuery,
-                                                      const QList<QVariant>& values) override {
-    ++execute_returning_id_calls;
-    if (!execute(sql, outQuery, values)) return std::nullopt;
-    return mocked_id;
-  }
+  // virtual std::optional<long long> executeReturningId(const QString&         sql,
+  //                                                     QSqlQuery&             outQuery,
+  //                                                     const QList<QVariant>& values) override {
+  //   ++execute_returning_id_calls;
+  //   if (!execute(sql, outQuery, values)) return std::nullopt;
+  //   return mocked_id;
+  // }
 };
 
 #endif  // FAKESQLEXECUTOR_H
