@@ -6,7 +6,7 @@
 #include "interfaces/IMessageNetworkManager.h"
 #include "interfaces/IUserNetworkManager.h"
 #include "NetworkFacade.h"
-#include "mocks/MockSocket.h"
+#include "mocks/notificationservice/MockSocket.h"
 #include "mocks/MockConfigProvider.h"
 #include "mocks/MockNetworkManager.h"
 

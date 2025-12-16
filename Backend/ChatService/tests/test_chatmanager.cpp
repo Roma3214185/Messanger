@@ -6,6 +6,7 @@
 #include "mocks/MockCache.h"
 #include "mocks/MockTheadPool.h"
 #include "mocks/MockDatabase.h"
+#include "mocks/MockIdGenerator.h"
 
 namespace TestChatManager {
 
@@ -16,8 +17,14 @@ struct TestFixture {
     MockDatabase db;
     GenericRepository repository;
     ChatManager manager;
+    MockIdGenerator generator;
 
-    TestFixture() : repository(db, &executor, cache, &pool), manager(&repository) {}
+    TestFixture()
+        : repository(db, &executor, cache, &generator, &pool)
+        , manager(&repository)
+    {
+
+    }
 };
 
 }  //namespace TestChatManager

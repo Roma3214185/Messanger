@@ -7,6 +7,7 @@
 #include "mocks/MockTheadPool.h"
 #include "mocks/MockDatabase.h"
 #include "entities/UserCredentials.h"
+#include "mocks/MockIdGenerator.h"
 
 struct TestAuthManager : public AuthManager {
     using AuthManager::AuthManager;
@@ -60,7 +61,7 @@ struct TestAuthManagerFixture {
     int user_id = 12;
     User user;
     UserCredentials user_credentials;
-
+    MockIdGenerator generator;
     GenericRepository rep;
     TestAuthManager manager;
 
@@ -72,7 +73,7 @@ struct TestAuthManagerFixture {
     std::string hash_password = "secret-hash-password-123";
 
     TestAuthManagerFixture()
-        : rep(db, &executor, cache, &pool)
+        : rep(db, &executor, cache, &generator, &pool)
         , manager(rep) {
       user.id = user_id;
       user.email = email;
@@ -82,7 +83,7 @@ struct TestAuthManagerFixture {
 
       user_credentials.user_id = user_id;
       user_credentials.hash_password = hash_password;
-      executor.mocked_id = user_id;
+      generator.mocked_id = user_id;
     }
 };
 
@@ -161,16 +162,18 @@ TEST_CASE("Test AuthManager::register") {
      REQUIRE(res == std::nullopt);
    }
 
-   SECTION("Save fails axpected return std::nullopt") {
+   SECTION("Save fails expected return std::nullopt") {
      fix.executor.shouldFail = true;
-     std::string expected_sql = "INSERT OR REPLACE INTO users (username, tag, email) VALUES (?, ?, ?) RETURNING id";
+     fix.generator.mocked_id = 13424;
+     std::string expected_sql = "INSERT OR REPLACE INTO users (id, username, tag, email) VALUES (?, ?, ?, ?)";
      auto res = fix.manager.registerUser(reg_req);
 
      REQUIRE(fix.executor.lastSql.toStdString() == expected_sql);
-     REQUIRE(fix.executor.lastValues.size() == 3);
-     CHECK(fix.executor.lastValues[0].toString().toStdString() == reg_req.name);
-     CHECK(fix.executor.lastValues[1].toString().toStdString() == reg_req.tag);
-     CHECK(fix.executor.lastValues[2].toString().toStdString() == reg_req.email);
+     REQUIRE(fix.executor.lastValues.size() == 4);
+     CHECK(fix.executor.lastValues[0].toInt() == fix.generator.mocked_id);
+     CHECK(fix.executor.lastValues[1].toString().toStdString() == reg_req.name);
+     CHECK(fix.executor.lastValues[2].toString().toStdString() == reg_req.tag);
+     CHECK(fix.executor.lastValues[3].toString().toStdString() == reg_req.email);
      REQUIRE(res == std::nullopt);
    }
 

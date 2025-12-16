@@ -1,29 +1,35 @@
 #ifndef MOCKQUERY_H
 #define MOCKQUERY_H
 
-// #include <QSqlQuery>
+#include "interfaces/IQuery.h"
 
-// class MockQuery : public QSqlQuery {
-//   public:
-//     MockQuery() {
-//       index_ = -1;
-//     }
+class MockQuery : public IQuery {
+  public:
+    void bind(const QVariant& v) override {
+      bindings.push_back(v);
+    }
 
-//     void setMockRecords(const std::vector<std::vector<QVariant>>& records)
-//         : records_(records) {}
+    bool exec() override {
+      return !exec_should_fail;
+    }
 
-//     bool next() override {
-//       ++index_;
-//       return index_ < records_.size();
-//     }
+    bool next_should_fail = false;
+    bool next() override {
+      return !next_should_fail;
+    }
 
-//     QVariant value(int column) override {
-//       return records_[index_][column];
-//     }
+    QVariant value(int i) const override {
+      return mock_variant;
+      //todo: make different easier for tests fuucntion: valueString(), valueInt(), in real use retunr value().toString()
+    }
 
-//   private:
-//     std::vector<std::vector<QVariant>> records_;
-//     int index_;
-// };
+    QVariant value(const std::string& field) const override {
+      return mock_variant;
+    }
+
+    QVariant mock_variant = QVariant("4");
+    bool exec_should_fail = false;
+    std::vector<QVariant> bindings;
+};
 
 #endif  // MOCKQUERY_H

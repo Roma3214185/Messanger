@@ -31,7 +31,7 @@ class AuthManager : public IAuthManager {
   virtual std::optional<User> findUserWithSameTag(const std::string& tag);
 
  private:
-  GenericRepository rep_;
+  GenericRepository& rep_;
 };
 
 #endif  // BACKEND_AUTHSERVICE_SRC_AUTHMANAGER_AUTHMANAGER_H_

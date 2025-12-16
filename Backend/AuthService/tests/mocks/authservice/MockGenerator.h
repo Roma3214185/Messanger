@@ -3,7 +3,7 @@
 
 #include "authservice/interfaces/IGenerator.h"
 
-class MockGenerator : public IGenerator {
+class MockTokenGenerator : public IGenerator {
   public:
     int last_user_id;
     std::string mock_token;

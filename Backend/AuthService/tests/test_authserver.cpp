@@ -2,11 +2,12 @@
 
 #include "authservice/server.h"
 #include "authservice/authcontroller.h"
-#include "mocks/MockAuthManager.h"
 #include "mocks/MockAutoritizer.h"
 #include "mocks/MockConfigProvider.h"
 #include "mocks/MockUtils.h"
-#include "mocks/MockGenerator.h"
+#include "mocks/MockIdGenerator.h"
+#include "mocks/authservice/MockAuthManager.h"
+#include "mocks/authservice/MockGenerator.h"
 
 namespace Test {
 
@@ -24,7 +25,7 @@ struct TestFixture {
     MockConfigProvider provider;
     User user;
     std::string token = "secret-test-token";
-    MockGenerator generator;
+    MockTokenGenerator generator;
 
     TestFixture()
         : controller(&manager, &authoritizer, &generator, &provider)

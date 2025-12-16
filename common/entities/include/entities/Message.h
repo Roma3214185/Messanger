@@ -9,8 +9,9 @@
 #include "Fields.h"
 #include "TimestampService.h"
 #include "Debug_profiling.h"
+#include "interfaces/entity.h"
 
-struct Message {
+struct Message : public IEntity {
   long long   id = 0;
   long long   chat_id;
   long long   sender_id;

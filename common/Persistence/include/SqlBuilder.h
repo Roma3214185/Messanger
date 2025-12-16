@@ -14,7 +14,7 @@ struct SqlStatement {
 template <typename T>
 class SqlBuilder {
  public:
-  SqlStatement buildInsert(const Meta& meta, const T& entity, bool withReturningId);
+  SqlStatement buildInsert(const Meta& meta, const T& entity);
   static std::any getFieldValue(const QVariant& v, const Field& f);
 };
 

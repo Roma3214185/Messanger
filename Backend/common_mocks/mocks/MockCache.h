@@ -36,11 +36,13 @@ class MockCache : public ICacheService {
 
   int set_calls          = 0;
   int set_pipeline_calls = 0;
+  std::string mock_get_string;
+  bool get_should_fail = false;
 
   std::optional<std::string> get(const std::string& key) override {
     auto it = cache.find(key);
-    if (it == cache.end()) return std::nullopt;
-    return it->second;
+    if(!get_should_fail) return std::nullopt;
+    return mock_get_string;
   }
 
   void set(const std::string&        key,

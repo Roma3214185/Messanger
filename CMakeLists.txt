@@ -139,4 +139,5 @@ endif()
 
 # Benchmarks
 add_subdirectory(Backend/Gateway/benchmarks)
+add_subdirectory(Backend/AuthService/benchmarks)
 

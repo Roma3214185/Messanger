@@ -6,7 +6,7 @@
 Server::Server(crow::SimpleApp& app, int port, AuthController* controller)
     : app_(app), port_(port), controller_(controller) {
   initRoutes();
-  // generateKeys();
+  generateKeys(); //todo: make check version of keys in other services, but geenrate each time here
 }
 
 void Server::run() {

@@ -3,6 +3,7 @@
 #include "interfaces/BaseQuery.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
+#include "interfaces/IIdGenerator.h"
 #include "SqlBuilder.h"
 
 namespace {
@@ -22,6 +23,11 @@ bool needsIdReturn(const Field* idField, const T& entity) {
     return std::any_cast<qulonglong>(idAny) == 0;
 
   return false;
+}
+
+void bindToQuery(std::unique_ptr<IQuery>& query, const QList<QVariant>& values) {
+  if(!query) return;
+  for (int i = 0; i < values.size(); ++i) query->bind(values[i]);
 }
 
 }  // namespace
@@ -56,19 +62,48 @@ bool GenericRepository::save(T& entity) {
   const auto& meta = Reflection<T>::meta();
   const Field* idField = meta.find("id");
   bool need_to_return_id = needsIdReturn<T>(idField, entity);
-  LOG_INFO("Need to return id {}", need_to_return_id);
+  if(need_to_return_id) {
+    auto generated_id = generator_->generateId();
+    idField->set(&entity, generated_id);
+    LOG_INFO("Generated id {}", generated_id);
+  }
+  need_to_return_id = false; //TODO: refactor to delete this line
 
   SqlBuilder<T> builder;
-  SqlStatement stmt = builder.buildInsert(meta, entity, need_to_return_id);
+  SqlStatement smt_entity = builder.buildInsert(meta, entity);
+  database_.transaction();
 
-  QSqlQuery query;
-  if (!executeStatement(stmt, idField, entity, query, need_to_return_id)) {
-    LOG_ERROR("[repository] Save batch failed: '{}'",
-              query.lastError().text().toStdString());
+  SqlStatement smt_outbox;
+  smt_outbox.query = "INSERT INTO outbox (table_trigered, payload, processed) "
+                     "VALUES (?, ?, 0)";
+
+  std::string entity_json = nlohmann::json(entity).dump();
+
+  smt_outbox.values =  QList<QVariant>{ QVariant(meta.table_name), QVariant(QString::fromStdString(entity_json)) };
+  auto main_query = database_.prepare(smt_entity.query);
+
+  auto outbox_query = database_.prepare( smt_outbox.query);
+
+  if(!main_query || !outbox_query) {
+    database_.rollback();
+    LOG_INFO("Failed to prepare");
     return false;
   }
 
-  cache_.set(makeKey<T>(entity), nlohmann::json(entity).dump());
+  bindToQuery(main_query, smt_entity.values);
+  bindToQuery(outbox_query, smt_outbox.values);
+
+  if (!main_query->exec() || !outbox_query->exec()) {
+    LOG_ERROR("[repository] Save failed for entity: {}", entity_json);
+    database_.rollback();
+    return false;
+  }
+
+  LOG_INFO("Save succeed for json: {}", entity_json);
+
+  database_.commit();
+
+  cache_.set(makeKey<T>(entity), entity_json);
   cache_.incr(std::string("table_generation:") + meta.table_name);
   return true;
 }
@@ -80,21 +115,6 @@ bool GenericRepository::save(std::vector<T>& entity) {
     res |= save(el);
   }
   return res;
-}
-
-template <typename T>
-bool GenericRepository::executeStatement(const SqlStatement& stmt, const Field* idField, T& entity, QSqlQuery& query, bool need_to_return_id) {
-  if (!need_to_return_id) {
-    return executor_->execute(stmt.query, query, stmt.values);
-  }
-
-  auto returned_id = executor_->executeReturningId(stmt.query, query, stmt.values);
-  if (!returned_id.has_value()) return false;
-
-  assert(idField != nullptr);
-  LOG_INFO("Returned id {}", *returned_id);
-  idField->set(&entity, *returned_id);
-  return true;
 }
 
 template <typename T>
@@ -147,11 +167,10 @@ void GenericRepository::deleteById(long long entity_id) {
 
   std::string stmKey = meta.table_name + std::string(":deleteById");
 
-
-  QSqlQuery query(database_.getThreadDatabase());
-  if(!executor_->execute(sql, query, {entity_id})) {
-    LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
-              query.lastError().text().toStdString());
+  //auto query = database_.prepare(sql);
+  if(!executor_->execute(sql, {entity_id})) {
+    // LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
+    //           query.lastError().text().toStdString());
     return;
   }
 
@@ -167,6 +186,7 @@ std::vector<T> GenericRepository::findByField(const std::string& field,
 
 template <typename T>
 std::vector<T> GenericRepository::findByField(const std::string& field, const QVariant& value) {
+  LOG_INFO("findByField {}", field);
   auto query = QueryFactory::createSelect<T>(executor_, cache_);
   query->where(field, value);
   return query->execute();

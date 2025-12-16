@@ -2,46 +2,49 @@
 #define IDATABASE_H
 
 #include <QString>
-#include <QThread>
-#include <QtSql/QSqlDatabase>
 
-#include "Debug_profiling.h"
+#include "interfaces/IQuery.h"
 
 class IDataBase {
-  QString db_path_;
-
  public:
-  explicit IDataBase(const QString& db_path = "test_path.sqlite") : db_path_(db_path) {}
+   virtual ~IDataBase() = default;
 
-  QSqlDatabase& getThreadDatabase() {
-    PROFILE_SCOPE("QSqlDatabase::getThreadDatabase");
-    thread_local QSqlDatabase db;
-    thread_local bool         initialized = false;
+   virtual bool exec(const QString& sql) = 0;
+   virtual std::unique_ptr<IQuery> prepare(const QString& sql) = 0;
+   virtual std::unique_ptr<IQuery> prepare(const std::string& sql) = 0;
+   virtual bool commit() = 0;
+   virtual void rollback() = 0;
+   virtual bool transaction() = 0;
 
-    if (!initialized) {
-      static std::atomic<int> connCounter{0};
+  //QSqlDatabase& getThreadDatabase() {
+  //   PROFILE_SCOPE("QSqlDatabase::getThreadDatabase");
+  //   thread_local QSqlDatabase db;
+  //   thread_local bool         initialized = false;
 
-      QString connection_name = QString("conn_%1_%2")
-                                    .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()))
-                                    .arg(connCounter++);
+  //   if (!initialized) {
+  //     static std::atomic<int> connCounter{0};
 
-      db = QSqlDatabase::addDatabase("QSQLITE", connection_name);
-      db.setDatabaseName(db_path_);
+  //     QString connection_name = QString("conn_%1_%2")
+  //                                   .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()))
+  //                                   .arg(connCounter++);
 
-      if (!db.open()) {
-        throw std::runtime_error("Cannot open database for this thread");
-      }
+  //     db = QSqlDatabase::addDatabase("QSQLITE", connection_name);
+  //     db.setDatabaseName(db_path_);
 
-      QObject::connect(QThread::currentThread(), &QThread::finished, [connection_name]() -> void {
-        QSqlDatabase::removeDatabase(connection_name);
-      });
+  //     if (!db.open()) {
+  //       throw std::runtime_error("Cannot open database for this thread");
+  //     }
 
-      initialized = true;
-    }
+  //     QObject::connect(QThread::currentThread(), &QThread::finished, [connection_name]() -> void {
+  //       QSqlDatabase::removeDatabase(connection_name);
+  //     });
 
-    return db;
-  }
-  virtual ~IDataBase() = default;
+  //     initialized = true;
+  //   }
+
+  //   return db;
+  // }
+  // virtual ~IDataBase() = default;
 };
 
 #endif  // IDATABASE_H

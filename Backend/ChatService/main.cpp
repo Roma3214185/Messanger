@@ -11,13 +11,27 @@
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
 #include "NetworkFacade.h"
+#include "GeneratorId.h"
 
 int main(int argc, char* argv[]) {
   init_logger("ChatService");
   QCoreApplication  a(argc, argv);
-  SQLiteDatabase    database;
+  QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
+  sqlite.setDatabaseName("chat_service.sqlite");
+
+  if (!sqlite.open()) {
+    qFatal("Cannot open DB");
+  }
+
+  SQLiteDatabase database(sqlite);
+  if(!database.initializeSchema()) {
+    qFatal("Cannot initialise DB");
+  }
+
   SqlExecutor       executor(database);
-  GenericRepository genetic_rep(database, &executor, RedisCache::instance());
+  constexpr int service_id = 2;
+  GeneratorId generator(service_id);
+  GenericRepository genetic_rep(database, &executor, RedisCache::instance(), &generator);
   ChatManager       manager(&genetic_rep); //TODO: pass executor to mock
   NetworkManager    network_manager;
   ProdConfigProvider provider;

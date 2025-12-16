@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include "chatservice/chatserver.h"
 #include "chatservice/chatcontroller.h"
-#include "mocks/MockChatManager.h"
+#include "mocks/chatservice/MockChatManager.h"
 #include "mocks/MockNetworkManager.h"
 #include "mocks/MockConfigProvider.h"
 #include "NetworkFacade.h"

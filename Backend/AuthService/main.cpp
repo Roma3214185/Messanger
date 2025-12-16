@@ -11,14 +11,28 @@
 #include "authservice/authcontroller.h"
 #include "authservice/RealAuthoritizer.h"
 #include "authservice/JwtGenerator.h"
+#include "GeneratorId.h"
 
 int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
   init_logger("AuthService");
 
-  SQLiteDatabase db;
+  QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
+  sqlite.setDatabaseName("chat_service.sqlite");
+
+  if (!sqlite.open()) {
+    qFatal("Cannot open DB");
+  }
+
+  SQLiteDatabase db(sqlite);
+  if(!db.initializeSchema()) {
+    qFatal("Cannot initialise DB");
+  }
+
   SqlExecutor executor(db);
-  GenericRepository rep(db, &executor, RedisCache::instance());
+  constexpr int service_id = 1;
+  GeneratorId id_generator(service_id);
+  GenericRepository rep(db, &executor, RedisCache::instance(), &id_generator);
 
   AuthManager manager(rep);
   ProdConfigProvider provider;

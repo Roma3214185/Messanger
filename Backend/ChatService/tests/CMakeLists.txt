@@ -10,13 +10,8 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
 find_package(Catch2 3 REQUIRED)
 
-add_executable(ChatServiceTests
-    main.cpp
-    test_chatserver.cpp
-    mocks/MockChatManager.h
-    test_controller.cpp
-    test_chatmanager.cpp
-)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+add_executable(ChatServiceTests ${MY_SOURCES})
 
 set_target_properties(ChatServiceTests PROPERTIES
     AUTOMOC ON

@@ -46,9 +46,19 @@ void SessionManager::onReplyFinished(const QByteArray& responce) {
   PROFILE_SCOPE("SessionManager::onReplyFinished");
   // if(!checkReply(reply)) return;
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-
+  LOG_INFO("Raw responce: {}", responce.toStdString());
   auto    jsonResponse  = QJsonDocument::fromJson(responce);
   auto    responseObj   = jsonResponse.object();
+  if(!responseObj.contains("user")) { //TODO: common checkField(responseObj, "user") function;
+    LOG_ERROR("Reply doen't contain 'user' filed");
+    return;
+  }
+
+  if(!responseObj.contains("token")) {
+    LOG_ERROR("Reply doen't contain 'token' filed");
+    return;
+  }
+
   auto    createdUser   = JsonService::getUserFromResponse(responseObj["user"].toObject());
   QString current_token = responseObj["token"].toString();
 

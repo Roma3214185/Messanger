@@ -1,7 +1,8 @@
 #include <catch2/catch_all.hpp>
 #include <crow.h>
-#include "mocks/MockController.h"
+
 #include "messageservice/server.h"
+#include "mocks/messageservice/MockController.h"
 #include "mocks/MockConfigProvider.h"
 
 struct TestFixture{

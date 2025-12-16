@@ -11,6 +11,7 @@
 #include "interfaces/IThreadPool.h"
 #include "ThreadPool.h"
 #include "messageservice/controller.h"
+#include "GeneratorId.h"
 
 RabbitMQConfig getConfig(const ProdConfigProvider& provider) {
   RabbitMQConfig config;
@@ -33,10 +34,23 @@ std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config
 int main(int argc, char* argv[]) {
   init_logger("MessageService");
   QCoreApplication  a(argc, argv);
-  SQLiteDatabase    bd;
+  QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
+  sqlite.setDatabaseName("chat_service.sqlite");
+
+  if (!sqlite.open()) {
+    qFatal("Cannot open DB");
+  }
+
+  SQLiteDatabase bd(sqlite);
+  if(!bd.initializeSchema()) {
+    qFatal("Cannot initialise DB");
+  }
+
   SqlExecutor       executor(bd);
   ThreadPool pool;
-  GenericRepository genetic_rep(bd, &executor, RedisCache::instance(), &pool);
+  constexpr int service_id = 3;
+  GeneratorId generator(service_id);
+  GenericRepository genetic_rep(bd, &executor, RedisCache::instance(), &generator, &pool);
   MessageManager  manager(&genetic_rep, &executor);
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);

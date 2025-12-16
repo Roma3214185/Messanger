@@ -6,6 +6,7 @@
 #include <QString>
 
 #include "interfaces/ISqlExecutor.h"
+#include "mocks/MockQuery.h"
 
 class FakeSqlExecutor : public ISqlExecutor {
  public:
@@ -13,25 +14,27 @@ class FakeSqlExecutor : public ISqlExecutor {
   QList<QVariant> lastValues;
   bool            shouldFail                 = false;
   int             execute_calls              = 0;
-  int             execute_returning_id_calls = 0;
-  int             mocked_id                  = 0;
+  //int             execute_returning_id_calls = 0;
+  //int             mocked_id                  = 0;
   std::vector<std::string> last_sqls;
+  MockQuery mock_query;
 
-  bool execute(const QString& sql, QSqlQuery& outQuery, const QList<QVariant>& values) override {
+  std::unique_ptr<IQuery> execute(const QString& sql, const QList<QVariant>& values) override {
     ++execute_calls;
     lastSql    = sql;
     lastValues = values;
     last_sqls.push_back(lastSql.toStdString());
-    return !shouldFail;
+    if(shouldFail) return nullptr;
+    return std::make_unique<MockQuery>(mock_query);
   }
 
-  virtual std::optional<long long> executeReturningId(const QString&         sql,
-                                                      QSqlQuery&             outQuery,
-                                                      const QList<QVariant>& values) override {
-    ++execute_returning_id_calls;
-    if (!execute(sql, outQuery, values)) return std::nullopt;
-    return mocked_id;
-  }
+  // virtual std::optional<long long> executeReturningId(const QString&         sql,
+  //                                                     QSqlQuery&             outQuery,
+  //                                                     const QList<QVariant>& values) override {
+  //   ++execute_returning_id_calls;
+  //   if (!execute(sql, outQuery, values)) return std::nullopt;
+  //   return mocked_id;
+  // }
 };
 
 #endif  // FAKESQLEXECUTOR_H

@@ -48,7 +48,7 @@ target_include_directories(MessageServiceCore PUBLIC
 )
 
 add_executable(MessageService
-  ${MESSAGE_SERVICE_SRC_DIR}/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
   Dockerfile
   openapi.yaml
 )

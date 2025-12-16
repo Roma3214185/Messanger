@@ -2,7 +2,7 @@
 
 #include "interfaces/ISocket.h"
 #include "notificationservice/managers/notificationmanager.h"
-#include "mocks/MockSocket.h"
+#include "mocks/notificationservice/MockSocket.h"
 #include "notificationservice/server.h"
 #include "mocks/MockRabitMQClient.h"
 #include "mocks/MockNetworkManager.h"

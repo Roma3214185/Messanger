@@ -2,14 +2,10 @@
 #include <benchmark/benchmark.h>
 
 #include "gatewayserver.h"
-#include "mocks/MockClient.h"
+#include "mocks/gateway/GatewayMocks.h"
 #include "mocks/MockConfigProvider.h"
 #include "mocks/MockUtils.h"
-#include "mocks/MockApiCache.h"
-#include "mocks/MockVerifier.h"
-#include "mocks/MockRateLimiter.h"
 #include "mocks/MockTheadPool.h"
-#include "mocks/MockMetrics.h"
 #include "mocks/MockRabitMQClient.h"
 
 struct BenchmarkGatewayServerFixrute {
