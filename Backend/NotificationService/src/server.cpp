@@ -4,10 +4,18 @@
 
 #include "notificationservice/managers/notificationmanager.h"
 #include "notificationservice/CrowSocket.h"
+#include "handlers/MessageHanldlers.h"
 
 Server::Server(int port, NotificationManager* notification_manager)
     : notification_manager_(notification_manager), notification_port_(port) {
   initRoutes();
+  initHanlers();
+}
+
+void Server::initHanlers() {
+  handlers_["init"] = std::make_unique<InitMessageHandler>();
+  handlers_["send_message"] = std::make_unique<SendMessageHandler>();
+  handlers_["mark_read"] = std::make_unique<MarkReadMessageHandler>();
 }
 
 void Server::run() {
@@ -40,7 +48,7 @@ void Server::handleSocketRoutes() {
 void Server::handleSocketOnMessage(std::shared_ptr<ISocket> socket, const std::string& data) {
   auto message_ptr = crow::json::load(data);
   if (!message_ptr) {
-    LOG_ERROR("[onMessage] Failed in loading message");
+    LOG_ERROR("[onMessage] Failed in loading data: {}", data);
     return;
   }
 
@@ -50,31 +58,12 @@ void Server::handleSocketOnMessage(std::shared_ptr<ISocket> socket, const std::s
   }
 
   const std::string& type = message_ptr["type"].s();
-  if (type == "init") {
-    if (!message_ptr.has("user_id")) {
-      LOG_ERROR("[onMessage] No user_id in init message");
-      return;
-    }
-    int user_id = message_ptr["user_id"].i();
-    notification_manager_->userConnected(user_id, socket);
-    LOG_INFO("[onMessage] Socket registered for userId '{}'", user_id);
-
-  } else if (type == "send_message") {
-    LOG_INFO("[temp] send_message");
-    auto message = from_crow_json(message_ptr);
-    notification_manager_->onSendMessage(message);
-
-  } else if (type == "mark_read") {
-    if (!message_ptr.has("readed_by")) {
-      LOG_ERROR("[onMessage] No readed_by in mark_read message");
-      return;
-    }
-    auto message = from_crow_json(message_ptr);
-    int read_by = message_ptr["readed_by"].i();
-    notification_manager_->onMarkReadMessage(message, read_by);
-
-  } else {
+  auto it = handlers_.find(type);
+  if (it == handlers_.end()) {
     LOG_ERROR("[onMessage] Invalid type '{}'", type);
+    return;
   }
+
+  it->second->handle(message_ptr, socket, *notification_manager_);
 }
 
