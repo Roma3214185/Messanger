@@ -31,35 +31,41 @@ SelectQuery<T>::SelectQuery(ISqlExecutor* executor, ICacheService& cache)
 
 template <typename T>
 std::vector<T> SelectQuery<T>::execute() const {
-  auto sql = buildSelectQuery();
-  auto cache_key = computeCacheKey(sql);
-
+  QString sql = buildSelectQuery();
+  std::string cache_key = computeCacheKey(sql);
   if (auto cached = tryLoadFromCache(cache_key)) {
     return *cached;
   }
 
-  auto query = runDatabaseQuery(sql);
+  auto query = this->executor_->execute(sql, this->values_);
+  if(!query) {
+    LOG_ERROR("query {} failed", sql.toStdString());
+    return std::vector<T>{};
+  }
+  LOG_INFO("query {} succeed", sql.toStdString());
   auto results = buildResults(query);
+  LOG_INFO("Results has {} size", results.size());
   updateCache(cache_key, results);
 
   return results;
 }
 
-template <typename T>
-QSqlQuery SelectQuery<T>::runDatabaseQuery(const QString& sql) const {
-  QSqlQuery query;
-  if (!this->executor_->execute(sql, query, this->values_)) {
-    LOG_ERROR("[QueryExecutor] SQL execution failed: '{}'", sql.toStdString());
-  }
-  return query;
-}
+// template <typename T>
+// QSqlQuery SelectQuery<T>::runDatabaseQuery(const QString& sql) const {
+//   QSqlQuery query;
+//   if (!this->executor_->execute(sql, this->values_)) {
+//     //LOG_ERROR("[QueryExecutor] SQL execution failed: '{}'", sql.toStdString());
+//   }
+//   return query;
+// }
 
 template <typename T>
-std::vector<T> SelectQuery<T>::buildResults(QSqlQuery& query) const {
+std::vector<T> SelectQuery<T>::buildResults(std::unique_ptr<IQuery>& query) const {
+  if(!query) return {};
   std::vector<T> results;
   auto meta = Reflection<T>::meta();
 
-  while (query.next()) {
+  while (query->next()) {
     T entity = buildEntity(query, meta);
     LOG_INFO("Select {}", nlohmann::json(entity).dump());
     results.push_back(std::move(entity));
@@ -86,6 +92,7 @@ void SelectQuery<T>::updateCache(const std::string& key, const std::vector<T>& r
 
 template <typename T>
 std::string SelectQuery<T>::computeCacheKey(const QString& sql) const {
+  LOG_INFO("computeCacheKey start");
   auto generations = getGenerations();
   auto generation_hash = hashGenerations(generations);
   auto params_hash = hashParams(this->values_);
@@ -137,10 +144,11 @@ void SelectQuery<T>::saveEntityInCache(
 }
 
 template <typename T>
-T SelectQuery<T>::buildEntity(QSqlQuery& query, const Meta& meta) const {  
+T SelectQuery<T>::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const {
+  if(!query) throw std::runtime_error("Nullptr in buildEntity"); //TODO: make NullptrObject
   T entity;
   for (const auto& f : meta.fields) {
-    std::any val = SqlBuilder<T>::getFieldValue(query.value(f.name), f);
+    std::any val = SqlBuilder<T>::getFieldValue(query->value(f.name), f);
     f.set(&entity, val);
   }
   return entity;
@@ -162,21 +170,23 @@ QString SelectQuery<T>::buildSelectQuery() const {
 
 template <typename T>
 auto SelectQuery<T>::getGenerations() const {
-  std::unordered_map<std::string, long long> generations;
+  std::unordered_map<std::string, std::string> generations;
   for (const auto& table : this->involved_tables_) {
     std::string key = std::string("table_generation:") + table.toStdString();
     std::optional<std::string> string_ptr = cache_.get(key);
-    generations[table.toStdString()] = string_ptr ? std::stoll(*string_ptr) : 0;
+    generations[table.toStdString()] = string_ptr ? *string_ptr : "0";
   }
   return generations;
 }
 
+using Table = std::string;
+
 template <typename T>
 std::size_t SelectQuery<T>::hashGenerations(
-    const std::unordered_map<std::string, long long>& generations) const {
+    const std::unordered_map<Table, std::string>& generations) const {
   std::size_t generation_hash = 0;
   for (const auto& [table, gen] : generations)
-    generation_hash ^= std::hash<std::string>{}(table + std::to_string(gen));
+    generation_hash ^= std::hash<std::string>{}(table + gen);
   return generation_hash;
 }
 
@@ -191,9 +201,9 @@ SelectQuery<T>& SelectQuery<T>::orderBy(const std::string& field,
 }
 
 template <typename T>
-std::size_t SelectQuery<T>::hashParams(QVector<QVariant>) const {
+std::size_t SelectQuery<T>::hashParams(const  QVector<QVariant>& values) const {
   std::size_t params_hash = 0;
-  for (const auto& v : this->values_)
+  for (const auto& v : values)
     params_hash ^= std::hash<std::string>{}(v.toString().toStdString());
   return params_hash;
 }

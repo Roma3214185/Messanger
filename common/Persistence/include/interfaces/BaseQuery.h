@@ -31,10 +31,24 @@ class BaseQuery {
 
   virtual std::vector<T> execute() const = 0;
 
+  BaseQuery& from(const std::string& table_name) {
+    table_name_ = QString::fromStdString(table_name);
+    involved_tables_.push_back(table_name_); //TODO: remove from constructor table_name_ = (...)
+    return *this;
+  }
+
+  BaseQuery& where(const std::string& field, const std::string& value) {
+    return where(field, QString::fromStdString(value));
+  }
+
   BaseQuery& where(const std::string& field, const QVariant& value) {
     filters_.push_back(QString("%1 = ?").arg(QString::fromStdString(field)));
     values_.push_back(value);
     return *this;
+  }
+
+  BaseQuery& where(const std::string& field, const Operator& op, const std::string& value) {
+    return where(field, op, QString::fromStdString(value));
   }
 
   BaseQuery& where(const std::string& field, const Operator& op, const QVariant& value) {

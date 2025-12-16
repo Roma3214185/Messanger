@@ -25,6 +25,11 @@ bool needsIdReturn(const Field* idField, const T& entity) {
   return false;
 }
 
+void bindToQuery(std::unique_ptr<IQuery>& query, const QList<QVariant>& values) {
+  if(!query) return;
+  for (int i = 0; i < values.size(); ++i) query->bind(values[i]);
+}
+
 }  // namespace
 
 template <typename T>
@@ -89,21 +94,6 @@ bool GenericRepository::save(std::vector<T>& entity) {
 }
 
 template <typename T>
-bool GenericRepository::executeStatement(const SqlStatement& stmt, const Field* idField, T& entity, QSqlQuery& query, bool need_to_return_id) {
-  //TODO: now u don't need separate function after deleting executeReturningId
-  return executor_->execute(stmt.query, query, stmt.values);
-
-
-  // auto returned_id = executor_->executeReturningId(stmt.query, query, stmt.values);
-  // if (!returned_id.has_value()) return false;
-
-  // assert(idField != nullptr);
-  // LOG_INFO("Returned id {}", *returned_id);
-  // idField->set(&entity, *returned_id);
-  // return true;
-}
-
-template <typename T>
 void GenericRepository::saveAsync(T& entity) {
   if (!pool_) {
     LOG_WARN("Pool isn't initialized");
@@ -153,11 +143,10 @@ void GenericRepository::deleteById(long long entity_id) {
 
   std::string stmKey = meta.table_name + std::string(":deleteById");
 
-
-  QSqlQuery query(database_.getThreadDatabase());
-  if(!executor_->execute(sql, query, {entity_id})) {
-    LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
-              query.lastError().text().toStdString());
+  //auto query = database_.prepare(sql);
+  if(!executor_->execute(sql, {entity_id})) {
+    // LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
+    //           query.lastError().text().toStdString());
     return;
   }
 
@@ -173,6 +162,7 @@ std::vector<T> GenericRepository::findByField(const std::string& field,
 
 template <typename T>
 std::vector<T> GenericRepository::findByField(const std::string& field, const QVariant& value) {
+  LOG_INFO("findByField {}", field);
   auto query = QueryFactory::createSelect<T>(executor_, cache_);
   query->where(field, value);
   return query->execute();

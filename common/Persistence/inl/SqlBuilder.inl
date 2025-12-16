@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 #include "Meta.h"
 
 template <typename T>
@@ -50,18 +52,17 @@ std::pair<QStringList, QStringList> buildInsertParts(
 }
 
 template<typename T>
-SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity, bool need_to_return_id) {
+SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity) {
   SqlStatement res;
   auto values =  QList<QVariant>{};
   auto [columns, placeholders] = buildInsertParts(meta, entity, values);
   res.values = values;
 
-  QString row_sql = "INSERT OR REPLACE INTO %1 (%2) VALUES (%3)";
-  //if(need_to_return_id) row_sql += " RETURNING id";
+  QString row_sql = QString("INSERT OR REPLACE INTO %1 (%2) VALUES (%3); ")
+                 .arg(QString::fromStdString(meta.table_name))
+                 .arg(columns.join(", "))
+                 .arg(placeholders.join(", "));
 
-  res.query = row_sql
-              .arg(QString::fromStdString(meta.table_name))
-              .arg(columns.join(", "))
-              .arg(placeholders.join(", "));
+  res.query = row_sql;
   return res;
 }
