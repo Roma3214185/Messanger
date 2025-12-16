@@ -20,4 +20,6 @@ target_link_libraries(BackendMocks
         RedisCache
         Persistence
         Network
+        RabbitMQClient
+        Entities
 )

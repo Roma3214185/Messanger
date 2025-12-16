@@ -37,6 +37,7 @@ static std::string fullField(const char* field) {
 namespace UserTable {
 
 inline static constexpr const char* Table = "users";
+inline static constexpr const char* TableByEmail = "users_by_email";
 inline static constexpr const char* Id = "id";
 inline static constexpr const char* Username = "username";
 inline static constexpr const char* Tag = "tag";

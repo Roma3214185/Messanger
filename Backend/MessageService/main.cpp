@@ -34,7 +34,18 @@ std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config
 int main(int argc, char* argv[]) {
   init_logger("MessageService");
   QCoreApplication  a(argc, argv);
-  SQLiteDatabase    bd;
+  QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
+  sqlite.setDatabaseName("chat_service.sqlite");
+
+  if (!sqlite.open()) {
+    qFatal("Cannot open DB");
+  }
+
+  SQLiteDatabase bd(sqlite);
+  if(!bd.initializeSchema()) {
+    qFatal("Cannot initialise DB");
+  }
+
   SqlExecutor       executor(bd);
   ThreadPool pool;
   constexpr int service_id = 3;

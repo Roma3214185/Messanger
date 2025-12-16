@@ -48,7 +48,7 @@ target_link_libraries(GatewayCore PUBLIC
 )
 
 add_executable(Gateway
-    ${GATEWAY_SRC_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 target_link_libraries(Gateway PRIVATE GatewayCore)

@@ -6,8 +6,9 @@
 #include <nlohmann/json.hpp>
 
 #include "Fields.h"
+#include "interfaces/entity.h"
 
-struct Chat {
+struct Chat : IEntity {
   long long   id       = 0;
   int         is_group = 0;
   std::string name;

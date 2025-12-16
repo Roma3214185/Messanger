@@ -11,10 +11,36 @@ const QString CREATE_USERS_TABLE = R"(
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
-            tag TEXT NOT NULL,
+            tag TEXT UNIQUE NOT NULL,
             username TEXT NOT NULL
         );
     )";
+
+const QString CREATE_USERS_BY_EMAIL_TABLE = R"(
+        CREATE TABLE IF NOT EXISTS users_by_email (
+            id INTEGER PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            tag TEXT UNIQUE NOT NULL,
+            username TEXT NOT NULL
+        );
+    )";
+
+const QString CREATE_USERS_BY_EMAIL_INDEX = R"(
+    CREATE INDEX IF NOT EXISTS idx_user_email ON users_by_email(email);
+)";
+
+const QString CREATE_USERS_BY_TAG_TABLE = R"(
+        CREATE TABLE IF NOT EXISTS users_by_tag (
+            id INTEGER PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            tag TEXT UNIQUE NOT NULL,
+            username TEXT NOT NULL
+        );
+    )";
+
+const QString CREATE_USERS_BY_TAG_INDEX = R"(
+    CREATE INDEX IF NOT EXISTS idx_user_tag ON users_by_tag(tag);
+)";
 
 const QString CREATE_MESSAGES_TABLE = R"(
         CREATE TABLE IF NOT EXISTS messages (
@@ -79,33 +105,38 @@ const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE IF NOT EXISTS private
     );
   )";
 
+const QString CREATE_OUTBOX_TABLE = R"(CREATE TABLE IF NOT EXISTS outbox (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      table_trigered    TEXT NOT NULL,
+      payload           TEXT NOT NULL,           -- json string
+      processed         INTEGER NOT NULL DEFAULT 0  -- 0 = not processed, 1 = processed
+    );
+  )";
+
 } // namespace
 
-SQLiteDatabase::SQLiteDatabase(const QString& db_path)
-    : IDataBase(db_path) {
-  initializeSchema();
+SQLiteDatabase::SQLiteDatabase(QSqlDatabase& db)
+    : db_(db) {
+
 }
 
-void SQLiteDatabase::initializeSchema() {
-  QSqlDatabase db = getThreadDatabase();
+bool SQLiteDatabase::initializeSchema() {
+  const std::vector<QString> tables = {
+    CREATE_USERS_TABLE, CREATE_MESSAGES_TABLE, CREATE_MESSAGES_STATUS_TABLE,
+      CREATE_CHATS_TABLE, CREATE_CHAT_MEMBERS_TABLE, CREATE_CREDENTIALS_TABLE,
+      CREATE_PRIVATE_CHATS_TABLE, CREATE_OUTBOX_TABLE
+      , CREATE_USERS_BY_EMAIL_TABLE
+      , CREATE_USERS_BY_EMAIL_INDEX
+    };
 
-  const std::vector<std::pair<QString, QString>> tables = {
-                                                           {"users", CREATE_USERS_TABLE},
-                                                           {"messages", CREATE_MESSAGES_TABLE},
-                                                           {"messages_status", CREATE_MESSAGES_STATUS_TABLE},
-                                                           {"chats", CREATE_CHATS_TABLE},
-                                                           {"chat_members", CREATE_CHAT_MEMBERS_TABLE},
-                                                           {"credentials", CREATE_CREDENTIALS_TABLE},
-                                                           {"private_chats", CREATE_PRIVATE_CHATS_TABLE},
-                                                           };
-
-  for (const auto& [name, sql] : tables) {
-    if (!executeSql(db, sql)) {
-      LOG_ERROR("Failed to create table '{}'", name.toStdString());
+  for (const auto&sql : tables) {
+    if (!executeSql(db_, sql)) {
+      return false;
     }
   }
 
   LOG_INFO("Database schema initialized successfully");
+  return true;
 }
 
 bool SQLiteDatabase::executeSql(QSqlDatabase& db, const QString& sql) {

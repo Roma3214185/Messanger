@@ -6,7 +6,9 @@
 
 #include "Fields.h"
 
-struct UserCredentials {
+#include "interfaces/entity.h"
+
+struct UserCredentials : public IEntity {
   long long   user_id;
   std::string hash_password;
 };

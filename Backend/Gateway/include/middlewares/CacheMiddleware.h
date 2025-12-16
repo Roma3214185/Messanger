@@ -18,16 +18,20 @@ struct CacheMiddleware {
                        ParentCtx& parent_ctx)
     {
       if(req.method != crow::HTTPMethod::GET) return;
+      if (req.url == "/auth/me") return;
+      LOG_INFO("Url before_handle cache: {}", req.url);
+
       auto key = makeCacheKey(req);
-      if(auto val = cache_->get(key)) {
-        ctx.cached = val;
-        res.code = provider->statusCodes().success;
-        res.write(val.value());
-        auto& metrics_ctx = parent_ctx.template get<MetricsMiddleware>();
-        metrics_ctx.hit_cache = true;
-        LOG_INFO("Hit cache");
-        res.end();
-      }
+      auto val = cache_->get(key);
+      if(!val) return;
+
+      ctx.cached = val;
+      res.code = provider->statusCodes().success;
+      res.write(val.value());
+      auto& metrics_ctx = parent_ctx.template get<MetricsMiddleware>();
+      metrics_ctx.hit_cache = true;
+      LOG_INFO("Hit cache");
+      res.end();
     }
 
     template<typename ParentCtx>
@@ -51,6 +55,7 @@ struct CacheMiddleware {
         key += "|body=" + req.body;
       }
 
+      LOG_INFO("makeCacheKey for req {} : {} ", req.url, key);
       return key;
     }
 };

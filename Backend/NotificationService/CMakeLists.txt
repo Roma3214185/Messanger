@@ -47,7 +47,7 @@ target_link_libraries(NotificationServiceCore PUBLIC
 )
 
 add_executable(NotificationService
-    ${NOTIFICATION_SERVICE_SRC_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     Dockerfile
 )
 

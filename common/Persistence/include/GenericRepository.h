@@ -19,6 +19,9 @@
 #include "SQLiteDataBase.h"
 #include "SqlBuilder.h"
 #include "interfaces/IEntityBuilder.h"
+#include "OutboxWorker.h"
+
+#include "interfaces/entity.h"
 
 template <typename T>
 using ResultList = std::vector<T>;
@@ -36,18 +39,20 @@ class GenericRepository {
   IThreadPool*    pool_;
   IDataBase&     database_;
   IIdGenerator* generator_;
+  std::unique_ptr<OutboxWorker> outbox_worker_;
 
  public:
   GenericRepository(IDataBase&     database,
-                    ISqlExecutor*  executor,
+                    ISqlExecutor* executor,
                     ICacheService& cache,
                     IIdGenerator* generator,
                     IThreadPool*    pool_ = nullptr);
+  ~GenericRepository();
 
-  ISqlExecutor* getExecutor() { return executor_; }
   ICacheService& getCache() { return cache_; }
 
   IDataBase& getDatabase() { return database_; }
+  ISqlExecutor* getExecutor() { return executor_; }
   void       clearCache();
 
   template <typename T>
@@ -95,13 +100,6 @@ class GenericRepository {
 
   template <typename T>
   QVariant toVariant(const Field& f, const T& entity) const;
-
-  template <typename T>
-  bool executeStatement(const SqlStatement& stmt,
-                        const Field*        idField,
-                        T&                  entity,
-                        QSqlQuery&          query,
-                        bool                need_to_return_id);
 };
 
 #include "GenericRepository.inl"

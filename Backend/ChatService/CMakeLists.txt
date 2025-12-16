@@ -43,7 +43,7 @@ target_include_directories(ChatServiceCore PUBLIC
 )
 
 add_executable(ChatService
-    ${CHAT_SERVICE_SRC_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     Dockerfile
     openapi.yaml
 )

@@ -14,7 +14,6 @@ add_executable(GatewayTests
     main.cpp
     test_gatewayserver.cpp
     test_middlewares.cpp
-    mocks/gateway/GatewayMocks.h
 )
 
 target_link_libraries(GatewayTests

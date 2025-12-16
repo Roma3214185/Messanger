@@ -5,8 +5,9 @@
 #include <string>
 
 #include "Fields.h"
+#include "interfaces/entity.h"
 
-struct ChatMember {
+struct ChatMember : public IEntity {
   long long   chat_id;
   long long   user_id;
   std::string status;

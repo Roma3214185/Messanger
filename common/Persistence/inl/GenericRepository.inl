@@ -70,16 +70,40 @@ bool GenericRepository::save(T& entity) {
   need_to_return_id = false; //TODO: refactor to delete this line
 
   SqlBuilder<T> builder;
-  SqlStatement stmt = builder.buildInsert(meta, entity, need_to_return_id);
+  SqlStatement smt_entity = builder.buildInsert(meta, entity);
+  database_.transaction();
 
-  QSqlQuery query;
-  if (!executeStatement(stmt, idField, entity, query, need_to_return_id)) {
-    LOG_ERROR("[repository] Save batch failed: '{}'",
-              query.lastError().text().toStdString());
+  SqlStatement smt_outbox;
+  smt_outbox.query = "INSERT INTO outbox (table_trigered, payload, processed) "
+                     "VALUES (?, ?, 0)";
+
+  std::string entity_json = nlohmann::json(entity).dump();
+
+  smt_outbox.values =  QList<QVariant>{ QVariant(meta.table_name), QVariant(QString::fromStdString(entity_json)) };
+  auto main_query = database_.prepare(smt_entity.query);
+
+  auto outbox_query = database_.prepare( smt_outbox.query);
+
+  if(!main_query || !outbox_query) {
+    database_.rollback();
+    LOG_INFO("Failed to prepare");
     return false;
   }
 
-  cache_.set(makeKey<T>(entity), nlohmann::json(entity).dump());
+  bindToQuery(main_query, smt_entity.values);
+  bindToQuery(outbox_query, smt_outbox.values);
+
+  if (!main_query->exec() || !outbox_query->exec()) {
+    LOG_ERROR("[repository] Save failed for entity: {}", entity_json);
+    database_.rollback();
+    return false;
+  }
+
+  LOG_INFO("Save succeed for json: {}", entity_json);
+
+  database_.commit();
+
+  cache_.set(makeKey<T>(entity), entity_json);
   cache_.incr(std::string("table_generation:") + meta.table_name);
   return true;
 }

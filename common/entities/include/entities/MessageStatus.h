@@ -7,13 +7,14 @@
 #include <tuple>
 
 #include "Fields.h"
+#include "interfaces/entity.h"
 
 inline long long getCurrentTime() {
   using namespace std::chrono;
   return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
 }
 
-struct MessageStatus {
+struct MessageStatus : public IEntity {
   long long message_id;
   long long receiver_id;
   long long read_at = getCurrentTime();

@@ -17,7 +17,18 @@ int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
   init_logger("AuthService");
 
-  SQLiteDatabase db;
+  QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
+  sqlite.setDatabaseName("chat_service.sqlite");
+
+  if (!sqlite.open()) {
+    qFatal("Cannot open DB");
+  }
+
+  SQLiteDatabase db(sqlite);
+  if(!db.initializeSchema()) {
+    qFatal("Cannot initialise DB");
+  }
+
   SqlExecutor executor(db);
   constexpr int service_id = 1;
   GeneratorId id_generator(service_id);
