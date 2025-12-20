@@ -58,20 +58,20 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
   onMessageSaved(*parsed);
 }
 
-void NotificationManager::notifyMessageRead(int chat_id, const MessageStatus& status_message) {}
+void NotificationManager::notifyMessageRead(long long chat_id, const MessageStatus& status_message) {}
 
-void NotificationManager::notifyNewMessages(Message& message, int user_id) {}
+void NotificationManager::notifyNewMessages(Message& message, long long user_id) {}
 
 void NotificationManager::deleteConnections(SocketPtr socket) {
   socket_manager_->deleteConnections(socket);
 }
 
-void NotificationManager::userConnected(int user_id, SocketPtr socket) {
+void NotificationManager::userConnected(long long user_id, SocketPtr socket) {
   socket_manager_->saveConnections(user_id, socket);
   // notify users who communicate with this user
 }
 
-void NotificationManager::onMarkReadMessage(Message& message, int read_by) {
+void NotificationManager::onMarkReadMessage(Message& message, long long read_by) {
   const MessageStatus message_status{.message_id  = message.id,
                                      .receiver_id = read_by,
                                      .is_read     = true};
@@ -121,11 +121,11 @@ void NotificationManager::saveMessageStatus(MessageStatus& status) {
 
 void NotificationManager::onUserSaved() {}
 
-std::vector<UserId> NotificationManager::fetchChatMembers(int chat_id) {
+std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {
   return network_facade_.chat().getMembersOfChat(chat_id);
 }
 
-bool NotificationManager::notifyMember(int user_id, const Message& msg) {
+bool NotificationManager::notifyMember(long long user_id, const Message& msg) {
   auto socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {
@@ -143,7 +143,7 @@ bool NotificationManager::notifyMember(int user_id, const Message& msg) {
   return true;
 }
 
-void NotificationManager::saveDeliveryStatus(const Message& msg, int receiver_id) {
+void NotificationManager::saveDeliveryStatus(const Message& msg, long long receiver_id) {
   MessageStatus status;
   status.message_id  = msg.id;
   status.receiver_id = receiver_id;

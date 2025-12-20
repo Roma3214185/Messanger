@@ -62,7 +62,7 @@ void ChatModel::sortChats() {
   endInsertRows();
 }
 
-void ChatModel::updateChatInfo(const int        chat_id,
+void ChatModel::updateChatInfo(const long long        chat_id,
                            const std::optional<Message>&  message
                            /*, TODO: int unread = 0,*/) {
   if(message == std::nullopt) return;
@@ -89,7 +89,7 @@ void ChatModel::addChatInFront(ChatPtr& chat) {
   endInsertRows();
 }
 
-void ChatModel::realocateChatInFront(const int chat_id) {
+void ChatModel::realocateChatInFront(const long long chat_id) {
   auto index = findIndexByChatId(chat_id);
   if (!index) return;
 
@@ -103,7 +103,7 @@ void ChatModel::realocateChatInFront(const int chat_id) {
   endMoveRows();
 }
 
-OptionalChatIndex ChatModel::findIndexByChatId(int chat_id) const {
+OptionalChatIndex ChatModel::findIndexByChatId(long long chat_id) const {
   for (size_t i = 0; i < chats_.size(); ++i) {
     if (chats_[i]->chat_id == chat_id) {
       return i;

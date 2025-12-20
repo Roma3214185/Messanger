@@ -27,9 +27,10 @@ namespace JwtUtils {
 
 inline constexpr const char* kIssuer         = "auth_service";
 constexpr int                kTenYears       = 24 * 365 * 10;
-const std::string            kKeysDir        = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-const std::string            kPrivateKeyFile = "private_key.pem";
-const std::string            kPublicKeyFile  = kKeysDir + "public_key.pem";
+const std::string            kPublicKeysDir  = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+const std::string            kPtivateKeysDir = "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
+const std::string            kPrivateKeyFile = kPtivateKeysDir + "private_key.pem";
+const std::string            kPublicKeyFile  = kPublicKeysDir + "public_key.pem";
 
 std::string generateToken(UserId user_id) {
   auto private_key = readFile(kPrivateKeyFile);

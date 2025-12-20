@@ -29,7 +29,7 @@ struct TestFixture {
 
     TestFixture()
         : controller(&manager, &authoritizer, &generator, &provider)
-        , server(app, port, &controller) {
+        , server(app, port, &controller, &generator) {
       authoritizer.mock_user_id = user_id;
       provider.mock_codes =  MockUtils::getMockCodes();
       user.id = user_id;

@@ -32,15 +32,20 @@ int main(int argc, char* argv[]) {
   SqlExecutor executor(db);
   constexpr int service_id = 1;
   GeneratorId id_generator(service_id);
-  GenericRepository rep(db, &executor, RedisCache::instance(), &id_generator);
+  GenericRepository rep(db, &executor, RedisCache::instance());
 
-  AuthManager manager(rep);
+  AuthManager manager(rep, &id_generator);
   ProdConfigProvider provider;
   RealAuthoritizer authoritizer;
   JwtGenerator generator;
   AuthController controller(&manager, &authoritizer, &generator);
   crow::SimpleApp app;
-  Server server(app, provider.ports().authService, &controller);
+  Server server(app, provider.ports().authService, &controller, &generator);
+
+  // if(!server.generateKeys()) {
+  //   qFatal("Cannot generate keys");
+  // }
+
   server.run();
 
   return 0;

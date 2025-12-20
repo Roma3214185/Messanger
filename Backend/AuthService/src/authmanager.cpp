@@ -8,11 +8,12 @@
 #include "entities/RegisterRequest.h"
 #include "Debug_profiling.h"
 #include "entities/UserCredentials.h"
+#include "interfaces/IIdGenerator.h"
 
 using std::nullopt;
 using std::string;
 
-OptionalUser AuthManager::getUser(int user_id) {
+OptionalUser AuthManager::getUser(long long user_id) {
   return rep_.findOne<User>(user_id);
 }
 
@@ -28,7 +29,7 @@ OptionalUser AuthManager::findUserByEmail(const std::string& email) {
   return finded_users.empty() ? std::nullopt : std::make_optional(finded_users.front());
 }
 
-std::optional<UserCredentials> AuthManager::findUserCredentials(int user_id) {
+std::optional<UserCredentials> AuthManager::findUserCredentials(long long user_id) {
   auto result = rep_.findByField<UserCredentials>(UserCredentialsTable::UserId, user_id);
   return result.empty() ? std::nullopt :std::make_optional(result.front());
 }
@@ -63,23 +64,23 @@ bool AuthManager::passwordIsValid(const std::string& password_to_check, const st
 }
 
 OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
-  // auto user_with_same_email = findUserByEmail(req.email);
-  // if(user_with_same_email) {
-  //   LOG_WARN("There is user with email {} already, his email {} name is {} and tag is {}", req.email,
-  //            user_with_same_email->email, user_with_same_email->username, user_with_same_email->tag);
-  //   return std::nullopt;
-  // }
+  auto user_with_same_email = findUserByEmail(req.email);
+  if(user_with_same_email) {
+    LOG_WARN("There is user with email {} already, his email {} name is {} and tag is {}", req.email,
+             user_with_same_email->email, user_with_same_email->username, user_with_same_email->tag);
+    return std::nullopt;
+  }
 
-  // auto users_with_same_tag = findUserWithSameTag(req.tag);
-  // if(users_with_same_tag) {
-  //   LOG_WARN("There is user with tag {} already, his email {} name is {} and tag is {}", req.tag,
-  //            users_with_same_tag->email, users_with_same_tag->username, users_with_same_tag->tag);
-  //   return std::nullopt;
-  // }
+  auto users_with_same_tag = findUserWithSameTag(req.tag);
+  if(users_with_same_tag) {
+    LOG_WARN("There is user with tag {} already, his email {} name is {} and tag is {}", req.tag,
+             users_with_same_tag->email, users_with_same_tag->username, users_with_same_tag->tag);
+    return std::nullopt;
+  }
 
-  User user_to_save{.username = req.name, .email = req.email, .tag = req.tag};
+  User user_to_save{.id = generator_->generateId(), .username = req.name, .email = req.email, .tag = req.tag};
 
-  LOG_INFO("User_to_save: ", nlohmann::json(user_to_save).dump());
+  LOG_INFO("User_to_save: {}", nlohmann::json(user_to_save).dump());
   if (!rep_.save(user_to_save)) {
     LOG_ERROR("Error while saving");
     return std::nullopt;
@@ -113,4 +114,4 @@ std::optional<User> AuthManager::findUserWithSameTag(const std::string& tag) {
   return result.empty() ? std::nullopt : std::make_optional(result.front());
 }
 
-AuthManager::AuthManager(GenericRepository& repository) : rep_(repository) {}
+AuthManager::AuthManager(GenericRepository& repository, IIdGenerator* generator) : rep_(repository), generator_(generator) {}

@@ -9,7 +9,7 @@ class IGenerator {
     virtual ~IGenerator() = default;
 
     virtual bool generateKeys() = 0;
-    virtual std::string generateToken(int user_id) = 0;
+    virtual std::string generateToken(long long user_id) = 0;
 };
 
 #endif // IGENERATOR_H

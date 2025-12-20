@@ -1,7 +1,7 @@
 #include "notificationservice/managers/socketmanager.h"
 #include "Debug_profiling.h"
 
-void SocketsManager::saveConnections(int user_id, SocketPtr socket) {
+void SocketsManager::saveConnections(UserId user_id, SocketPtr socket) {
   user_sockets_[user_id] = socket;
 }
 
@@ -19,7 +19,7 @@ bool SocketsManager::userOnline(UserId user_id) {
   return user_sockets_.find(user_id) != user_sockets_.end();
 }
 
-SocketPtr SocketsManager::getUserSocket(int user_id) {
+SocketPtr SocketsManager::getUserSocket(UserId user_id) {
   auto find = user_sockets_.find(user_id);
   if (find == user_sockets_.end()) {
     return nullptr;

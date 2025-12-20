@@ -2,7 +2,7 @@
 
 #include "Debug_profiling.h"
 
-ChatPtr DataManager::getPrivateChatWithUser(int user_id) {
+ChatPtr DataManager::getPrivateChatWithUser(long long user_id) {
   for (auto [_, chat] : chats_by_id_) {
     if (chat->isPrivate()) {
       auto* pchat = static_cast<PrivateChat*>(chat.get());
@@ -21,13 +21,13 @@ int DataManager::getNumberOfExistingModels() const {
   return message_models_by_chat_id_.size();
 }
 
-MessageModelPtr DataManager::getMessageModel(int chat_id) {
+MessageModelPtr DataManager::getMessageModel(long long chat_id) {
   auto iter = message_models_by_chat_id_.find(chat_id);
   if (iter == message_models_by_chat_id_.end()) return nullptr;
   return iter->second;
 }
 
-ChatPtr DataManager::getChat(int chat_id) {
+ChatPtr DataManager::getChat(long long chat_id) {
   auto chat_iter = chats_by_id_.find(chat_id);
   if (chat_iter == chats_by_id_.end()) return nullptr;
   return chat_iter->second;

@@ -29,14 +29,14 @@ link_directories(
 )
 
 add_executable(benchmarks
-    benchmarks_query.cpp
-    benchmark_entity.cpp
-    main.cpp
-    redis_cache_benchmark.cpp
-    build_entity.cpp
-    preparedStatements_benchmark.cpp
-    batcher_benchmark.cpp
-    thread_pool_benchmark.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks_query.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/benchmark_entity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/redis_cache_benchmark.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/build_entity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/preparedStatements_benchmark.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/batcher_benchmark.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool_benchmark.cpp
 )
 
 add_executable(latencies

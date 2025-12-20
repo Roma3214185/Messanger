@@ -35,7 +35,7 @@ void debug(const QString& log, const Message& message) {
            message.local_id.toStdString());
 }
 
-bool checkOpenedChatAndUser(const std::optional<int>& current_opened_chat_id_, const std::optional<User>& current_user_) {
+bool checkOpenedChatAndUser(const std::optional<long long>& current_opened_chat_id_, const std::optional<User>& current_user_) {
   if(!current_opened_chat_id_) {
     LOG_ERROR("There is no opened chat");
     return false;
@@ -51,7 +51,7 @@ bool checkOpenedChatAndUser(const std::optional<int>& current_opened_chat_id_, c
 
 class EntityFactory {
   public:
-    static Message createMessage(int chat_id, int sender_id, const QString& text, const QString& local_id, QDateTime timestamp = QDateTime::currentDateTime()) {
+    static Message createMessage(long long chat_id, long long sender_id, const QString& text, const QString& local_id, QDateTime timestamp = QDateTime::currentDateTime()) {
       Message message{.chatId        = chat_id,
                       .senderId      = sender_id,
                       .text          = text,
@@ -117,7 +117,7 @@ void Presenter::onNewResponce(QJsonObject& json_object) {
   }
 }
 
-void Presenter::onChatUpdated(int chatId) {
+void Presenter::onChatUpdated(long long chatId) {
   // if (!current_chat_id_) return;
   // QModelIndex idx = manager_->indexByChatId(chatId);
   // if (idx.isValid()) {
@@ -172,12 +172,12 @@ void Presenter::setUser(const User& user, const QString& token) {
   manager_->connectSocket();
 }
 
-void Presenter::setCurrentChatId(int chat_id) {
-  assert(chat_id > 0);
+void Presenter::setCurrentChatId(long long chat_id) {
+  assert(chat_id > 0); //todo(roma): implement struct Id to assert every time
   current_opened_chat_id_ = chat_id;
 }
 
-void Presenter::onChatClicked(int chat_id) { openChat(chat_id); }
+void Presenter::onChatClicked(long long chat_id) { openChat(chat_id); }
 
 void Presenter::newMessage(Message& msg) {
   if(!current_user_) {
@@ -217,7 +217,7 @@ void Presenter::findUserRequest(const QString& text) {
   }
 }
 
-void Presenter::openChat(int chat_id) {  // make unread message = 0; (?)
+void Presenter::openChat(long long chat_id) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
   setCurrentChatId(chat_id);
   auto message_model = manager_->getMessageModel(chat_id);
@@ -227,7 +227,7 @@ void Presenter::openChat(int chat_id) {  // make unread message = 0; (?)
   view_->setChatWindow(chat);
 }
 
-void Presenter::onUserClicked(int user_id, bool is_user) {
+void Presenter::onUserClicked(long long user_id, bool is_user) {
   if(!current_user_) {
     LOG_ERROR("User isn't inislized");
     return;

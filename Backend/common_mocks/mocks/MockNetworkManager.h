@@ -9,25 +9,25 @@ class MockNetworkManager
     : public IChatNetworkManager
     , public IUserNetworkManager
     , public IMessageNetworkManager {
-    std::unordered_map<int, std::vector<int>> mp;
+    std::unordered_map<long long, std::vector<long long>> mp;
   public:
     int call_getMembersOfChat = 0;
     int call_getUserById = 0;
-    int last_chat_id;
-    int last_user_id;
+    long long last_chat_id;
+    long long last_user_id;
     std::optional<User> mock_user;
 
-    void setChatMembers(int chat_id, std::vector<int> ids) {
+    void setChatMembers(int chat_id, std::vector<long long> ids) {
       mp[chat_id] = ids;
     }
 
-    std::optional<User> getUserById(int otherUserId) {
+    std::optional<User> getUserById(long long otherUserId) {
       ++call_getUserById;
       last_user_id = otherUserId;
       return mock_user;
     }
 
-    std::vector<UserId> getMembersOfChat(int chat_id) override {
+    std::vector<UserId> getMembersOfChat(long long chat_id) override {
       ++call_getMembersOfChat;
       last_chat_id = chat_id;
       return mp[chat_id];

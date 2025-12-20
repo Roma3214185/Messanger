@@ -20,8 +20,8 @@ class ChatManager : public BaseManager {
   using BaseManager::BaseManager;
 
   QFuture<QList<ChatPtr>> loadChats(const QString& current_token);
-  QFuture<ChatPtr>        loadChat(const QString& current_token, int chat_id);
-  QFuture<ChatPtr>        createPrivateChat(const QString& current_token, int user_id);
+  QFuture<ChatPtr>        loadChat(const QString& current_token, long long chat_id);
+  QFuture<ChatPtr>        createPrivateChat(const QString& current_token, long long user_id);
 
  protected:
   QList<ChatPtr> onLoadChats(const QByteArray& responce_data);

@@ -63,7 +63,7 @@ void ChatController::createPrivateChat(const crow::request& req, crow::response&
   sendResponse(res, provider_->statusCodes().success, result.dump());
 }
 
-std::optional<int> ChatController::autoritize(const crow::request& req) {
+std::optional<long long> ChatController::autoritize(const crow::request& req) {
   string token   = req.get_header_value("Authorization");
   return AutoritizerProvider::get()->autoritize(token);
 }
@@ -118,7 +118,7 @@ crow::json::wvalue ChatController::buildChatJson(
   return json;
 }
 
-void ChatController::getChat(const crow::request& req, crow::response& res, int chat_id) {
+void ChatController::getChat(const crow::request& req, crow::response& res, long long chat_id) {
   auto user_id = authorizeUser(req, res);
   if (!user_id) return;
 
@@ -164,7 +164,7 @@ void ChatController::sendError(crow::response& res, int status, const std::strin
   sendResponse(res, status, message);
 }
 
-std::optional<int> ChatController::authorizeUser(const crow::request& req, crow::response& res) { //TODO: extract from here crow::response& res
+std::optional<long long> ChatController::authorizeUser(const crow::request& req, crow::response& res) { //TODO: extract from here crow::response& res
   auto user_id = autoritize(req);
   if (!user_id) {
     LOG_ERROR("[GetChat] Can't verify token");
@@ -173,13 +173,7 @@ std::optional<int> ChatController::authorizeUser(const crow::request& req, crow:
   return user_id;
 }
 
-void ChatController::getAllChatMembers(const crow::request& req, crow::response& res, int chat_id) {
-  // auto user_id = autoritize(req);
-  // if (!user_id) {
-  //   LOG_ERROR("[getAllChatMembers] can't verify token");
-  //   return sendResponse(res, provider_->statusCodes().userError, provider_->statusCodes().invalidToken);
-  // }
-
+void ChatController::getAllChatMembers(const crow::request& req, crow::response& res, long long chat_id) {
   auto list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");
@@ -200,6 +194,6 @@ void ChatController::getAllChatMembers(const crow::request& req, crow::response&
   sendResponse(res, provider_->statusCodes().success, ans.dump());
 }
 
-std::optional<User> ChatController::getUserById(int id) {
+std::optional<User> ChatController::getUserById(long long id) {
   return network_facade_->user().getUserById(id);
 }

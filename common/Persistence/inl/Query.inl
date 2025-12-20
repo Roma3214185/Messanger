@@ -34,9 +34,11 @@ std::vector<T> SelectQuery<T>::execute() const {
   QString sql = buildSelectQuery();
   std::string cache_key = computeCacheKey(sql);
   if (auto cached = tryLoadFromCache(cache_key)) {
+    LOG_INFO("Hit cache for key {}", cache_key);
     return *cached;
   }
 
+  LOG_INFO("Not hit cache for key {}", cache_key);
   auto query = this->executor_->execute(sql, this->values_);
   if(!query) {
     LOG_ERROR("query {} failed", sql.toStdString());
@@ -144,7 +146,7 @@ void SelectQuery<T>::saveEntityInCache(
 }
 
 template <typename T>
-T SelectQuery<T>::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const {
+T SelectQuery<T>::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const { //TODO(roma): in builder
   if(!query) throw std::runtime_error("Nullptr in buildEntity"); //TODO: make NullptrObject
   T entity;
   for (const auto& f : meta.fields) {

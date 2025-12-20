@@ -2,10 +2,10 @@
 #define GETMESSAGEPACK_H
 
 struct GetMessagePack {
-    int chat_id;
+    long long chat_id;
     int limit;
     int before_id;
-    int user_id;
+    long long user_id;
 };
 
 #endif // GETMESSAGEPACK_H

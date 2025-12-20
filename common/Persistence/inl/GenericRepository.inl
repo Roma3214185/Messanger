@@ -3,7 +3,6 @@
 #include "interfaces/BaseQuery.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
-#include "interfaces/IIdGenerator.h"
 #include "SqlBuilder.h"
 
 namespace {
@@ -52,22 +51,25 @@ inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) co
 
     return QVariant(dt.toSecsSinceEpoch());
   }
+
+  LOG_ERROR("Invalid type in toVariant for entity {}", nlohmann::json(entity).dump());
   return {};
 }
 
 template <typename T>
-bool GenericRepository::save(T& entity) {
+bool GenericRepository::save(const T& entity) {
   PROFILE_SCOPE("[repository] Save");
 
   const auto& meta = Reflection<T>::meta();
   const Field* idField = meta.find("id");
-  bool need_to_return_id = needsIdReturn<T>(idField, entity);
-  if(need_to_return_id) {
-    auto generated_id = generator_->generateId();
-    idField->set(&entity, generated_id);
-    LOG_INFO("Generated id {}", generated_id);
+  if(idField) {
+    long long entity_id = toVariant(*idField, entity).toLongLong();
+    LOG_INFO("In entity id is {}", entity_id);
+    if(entity_id <= 0) {
+      LOG_ERROR("Failed to save {}, id {} is invalid", entity_id, nlohmann::json(entity).dump());
+      return false;
+    }
   }
-  need_to_return_id = false; //TODO: refactor to delete this line
 
   SqlBuilder<T> builder;
   SqlStatement smt_entity = builder.buildInsert(meta, entity);

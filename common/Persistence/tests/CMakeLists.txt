@@ -14,10 +14,10 @@ find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(Catch2 3 REQUIRED)
 
 add_executable(PersistenceTests
-    test_genericrepository.cpp
-    test_query.cpp
-    test_sqlitedatabase.cpp
-    main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_genericrepository.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_query.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_sqlitedatabase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 target_link_libraries(PersistenceTests

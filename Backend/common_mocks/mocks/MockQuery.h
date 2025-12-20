@@ -13,7 +13,8 @@ class MockQuery : public IQuery {
       return !exec_should_fail;
     }
 
-    bool next_should_fail = false;
+    bool next_should_fail = true;
+
     bool next() override {
       return !next_should_fail;
     }

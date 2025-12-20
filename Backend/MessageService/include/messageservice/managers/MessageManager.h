@@ -11,22 +11,24 @@ class GenericRepository;
 class ISqlExecutor;
 class ICacheService;
 class GetMessagePack;
+class IIdGenerator;
 
 class MessageManager {
  public:
-  MessageManager(GenericRepository* rep, ISqlExecutor*  executor, ICacheService& cache = RedisCache::instance());
+  MessageManager(GenericRepository* rep, ISqlExecutor*  executor, IIdGenerator* generator, ICacheService& cache = RedisCache::instance());
   [[nodiscard]] bool           saveMessage(Message& message);
-  std::optional<Message>       getMessage(int message_id);
-  std::optional<MessageStatus> getMessageStatus(int message_id, int receiver_id);
+  std::optional<Message>       getMessage(long long message_id);
+  std::optional<MessageStatus> getMessageStatus(long long message_id, long long receiver_id);
   virtual std::vector<Message> getChatMessages(const GetMessagePack&);
   [[nodiscard]] bool           saveMessageStatus(MessageStatus& status);
-  std::vector<MessageStatus>   getUndeliveredMessages(int user_id);
-  std::vector<MessageStatus>   getMessagesStatus(const std::vector<Message>& messages, int receiver_id);
+  std::vector<MessageStatus>   getUndeliveredMessages(long long user_id);
+  std::vector<MessageStatus>   getMessagesStatus(const std::vector<Message>& messages, long long receiver_id);
 
  private:
   ICacheService&          cache_;
   GenericRepository*      repository_;
   ISqlExecutor*           executor_;
+  IIdGenerator*           generator_;
 };
 
 #endif  // BACKEND_MESSAGE_SERVICE_MESSAGEMANAGER_H

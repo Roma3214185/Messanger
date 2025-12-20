@@ -3,7 +3,7 @@
 
 #include "interfaces/INetworkManagerBase.h"
 
-using UserId = int;
+//using UserId = long long;
 
 class IMessageNetworkManager : public virtual INetworkManagerBase {
   public:

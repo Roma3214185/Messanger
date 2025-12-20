@@ -7,7 +7,7 @@
 #include <QVector>
 
 struct ChatBase {
-  int       chat_id;
+  long long       chat_id;
   QString   title;
   QString   last_message;
   int       unread = 0;
@@ -40,7 +40,7 @@ inline ChatBase::~ChatBase() = default;
 class ChatFactory {
   public:
     static std::shared_ptr<ChatBase> createPrivateChat(
-        int chat_id,
+        long long chat_id,
         const QString& title,
         const QString& user_tag,
         int user_id,
@@ -62,7 +62,7 @@ class ChatFactory {
     }
 
     static std::shared_ptr<ChatBase> createGroupChat(
-        int chat_id,
+        long long chat_id,
         const QString& title,
         int member_count,
         const QStringList& member_tags,

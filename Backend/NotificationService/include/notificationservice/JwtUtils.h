@@ -23,7 +23,7 @@ std::string readFile(const std::string& path) {
 
 namespace JwtUtils {
 
-std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
+std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
     auto        decoded    = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);

@@ -2,11 +2,11 @@
 
 #include "Debug_profiling.h"
 #include "authservice/authmanager.h"
+#include "authservice/interfaces/IGenerator.h"
 
-Server::Server(crow::SimpleApp& app, int port, AuthController* controller)
-    : app_(app), port_(port), controller_(controller) {
-  initRoutes();
-  generateKeys(); //todo: make check version of keys in other services, but geenrate each time here
+Server::Server(crow::SimpleApp& app, int port, AuthController* controller, IGenerator* generator)
+    : app_(app), port_(port), controller_(controller), generator_(generator) {
+  initRoutes(); //todo(roma): remove from here
 }
 
 void Server::run() {
@@ -22,7 +22,7 @@ void Server::initRoutes() {
   handleLogin();
 }
 
-void Server::generateKeys() { controller_->generateKeys(); }
+bool Server::generateKeys() { return generator_->generateKeys(); }
 
 void Server::handleFindById() {
   CROW_ROUTE(app_, "/users/<int>")

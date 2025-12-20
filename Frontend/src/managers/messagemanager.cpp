@@ -21,9 +21,9 @@ auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkReques
 }  // namespace
 
 QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_token,
-                                                        int            chat_id,
-                                                        int            before_id,
-                                                        int            limit) {
+                                                        long long            chat_id,
+                                                        long long            before_id,
+                                                        long long            limit) {
   PROFILE_SCOPE("ChatManager::getChatMessages");
 
   QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(chat_id)));

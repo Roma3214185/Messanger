@@ -20,8 +20,8 @@ struct TestFixture {
     MockIdGenerator generator;
 
     TestFixture()
-        : repository(db, &executor, cache, &generator, &pool)
-        , manager(&repository)
+        : repository(db, &executor, cache, &pool)
+        , manager(&repository, &generator)
     {
 
     }

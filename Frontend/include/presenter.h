@@ -17,7 +17,7 @@ class QJsonObject;
 
 template <typename T>
 using Optional    = std::optional<T>;
-using OptionalInt = Optional<int>;
+using OptionalId = std::optional<long long>;
 
 class Presenter : public QObject {
   Q_OBJECT
@@ -28,28 +28,28 @@ class Presenter : public QObject {
   void initialise();
   void setMessageListView(IMessageListView* message_list_view);
   void signUp(const SignUpRequest& req);
-  void onChatClicked(const int chat_id);
+  void onChatClicked(const long long chat_id);
   void findUserRequest(const QString& text);
-  void onUserClicked(const int user_id, const bool is_user = true);
+  void onUserClicked(const long long user_id, const bool is_user = true);
   void sendButtonClicked(const QString& text_to_send);
   void onLogOutButtonClicked();
   void onScroll(int value);
   //void setId(int id);
 
  protected:
-  void setCurrentChatId(int chat_id);
+  void setCurrentChatId(long long chat_id);
   void newMessage(Message& message);
   void onNewResponce(QJsonObject& json_object);
 
-  OptionalInt          current_opened_chat_id_;
+  OptionalId          current_opened_chat_id_;
   std::optional<User>  current_user_;
 
  private:
   void initialConnections();
   void setUser(const User& user, const QString& token);
-  void openChat(int chat_id);
+  void openChat(long long chat_id);
   void onErrorOccurred(const QString& error);
-  void onChatUpdated(int chat_id);
+  void onChatUpdated(long long chat_id);
 
   IMainWindow*         view_;
   Model*               manager_;

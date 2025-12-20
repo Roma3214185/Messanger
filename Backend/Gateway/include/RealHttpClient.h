@@ -17,7 +17,7 @@ class RealHttpClient : public IClient {
       RetryOptions opts = getOptions(request);
 
       auto result = retryInvoke([&] {
-        return client->Get(request.full_path, request.headers);
+        return client->Get(request.full_path, request.params, request.headers);
       }, opts);
 
       return getResponse(result);
@@ -27,7 +27,7 @@ class RealHttpClient : public IClient {
       auto client = setupClient(request.host_with_port);
       RetryOptions opts = getOptions(request);
 
-      auto result = retryInvoke([&] {
+      auto result = retryInvoke([&] { // todo(roma): url_params??
         return client->Delete(request.full_path, request.headers);
       }, opts);
 
@@ -38,7 +38,7 @@ class RealHttpClient : public IClient {
       auto client = setupClient(request.host_with_port);
       RetryOptions opts = getOptions(request);
 
-      auto result = retryInvoke([&] {
+      auto result = retryInvoke([&] {  // todo(roma): url_params??
         return client->Put(request.full_path, request.headers, request.body, request.content_type);
       }, opts);
 
@@ -49,7 +49,7 @@ class RealHttpClient : public IClient {
       auto client = setupClient(request.host_with_port);
       RetryOptions opts = getOptions(request);
 
-      auto result = retryInvoke([&] {
+      auto result = retryInvoke([&] {  // todo(roma): url_params??
         return client->Post(request.full_path, request.headers, request.body, request.content_type);
       }, opts);
 

@@ -10,8 +10,8 @@ struct MessageDrawData {
   QString text;
   QString avatar_path;
   QString timestamp;
-  int     sender_id;
-  int     receiver_id;
+  long long     sender_id;
+  long long     receiver_id;
   bool    is_mine;
   bool    is_sended;
   bool    is_readed;

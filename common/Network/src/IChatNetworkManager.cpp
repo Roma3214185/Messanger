@@ -5,7 +5,7 @@
 
 using json = nlohmann::json;
 
-std::vector<UserId> IChatNetworkManager::getMembersOfChat(int chat_id) {
+std::vector<UserId> IChatNetworkManager::getMembersOfChat(long long chat_id) {
   std::vector<UserId> members;
   std::string path = "/chats/" + std::to_string(chat_id) + "/members";
 

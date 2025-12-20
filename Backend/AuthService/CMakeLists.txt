@@ -53,6 +53,6 @@ target_link_libraries(AuthServiceCore PUBLIC
     nlohmann_json::nlohmann_json
 )
 
-add_executable(AuthService main.cpp
+add_executable(AuthService ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     openapi.yaml)
 target_link_libraries(AuthService PRIVATE AuthServiceCore)

@@ -9,9 +9,11 @@
 #include "entities/Chat.h"
 #include "chatservice/interfaces/IChatManager.h"
 
+class IIdGenerator;
+
 class ChatManager : public IChatManager {
  public:
-  ChatManager(GenericRepository* repository);
+  ChatManager(GenericRepository* repository, IIdGenerator* generator);
   std::optional<ID> createPrivateChat(ID first_member, ID second_user) override;
   bool                addMembersToChat(ID chat_id, const std::vector<ID>& members_id) override;
   std::vector<ID>    getMembersOfChat(ID chat_id) override;
@@ -22,6 +24,7 @@ class ChatManager : public IChatManager {
 
  private:
   GenericRepository* repository_;
+  IIdGenerator* generator_;
 };
 
 #endif  // CHATMANAGER_H

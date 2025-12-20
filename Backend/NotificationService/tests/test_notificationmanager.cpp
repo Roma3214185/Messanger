@@ -139,7 +139,7 @@ TEST_CASE("Notification manager handles message saved") {
   auto socket4 = std::make_shared<MockSocket>();
   auto socket0 = std::make_shared<MockSocket>();
 
-  std::vector<int> user_ids(5);
+  std::vector<long long> user_ids(5);
   user_ids[0] = 1;
   user_ids[1] = 2;
   user_ids[2] = 3;
@@ -152,8 +152,8 @@ TEST_CASE("Notification manager handles message saved") {
   socket_manager.saveConnections(user_ids[3], socket3);
   socket_manager.saveConnections(user_ids[4], socket4);
 
-  int chat_id = 5;
-  network_manager.setChatMembers(5, user_ids);
+  long long chat_id = 5;
+  network_manager.setChatMembers(chat_id, user_ids);
 
   Message message;
   message.id = 1;

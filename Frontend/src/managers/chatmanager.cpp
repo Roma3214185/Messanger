@@ -67,7 +67,7 @@ auto ChatManager::onLoadChats(const QByteArray& responce_data) -> QList<ChatPtr>
   return chats;
 }
 
-QFuture<ChatPtr> ChatManager::loadChat(const QString& current_token, int chat_id) {
+QFuture<ChatPtr> ChatManager::loadChat(const QString& current_token, long long chat_id) {
   PROFILE_SCOPE("Model::loadChat");
   QUrl            endpoint = url_.resolved(QUrl(QString("/chats/%1").arg(chat_id)));
   auto req = getRequestWithToken(endpoint, current_token);
@@ -96,7 +96,7 @@ ChatPtr ChatManager::onChatLoaded(const QByteArray& responce_data) {
   return chat;
 }
 
-QFuture<ChatPtr> ChatManager::createPrivateChat(const QString& current_token, int user_id) {
+QFuture<ChatPtr> ChatManager::createPrivateChat(const QString& current_token, long long user_id) {
   PROFILE_SCOPE("Model::createPrivateChat");
   auto endpoint = url_.resolved(QUrl("/chats/private"));
   auto req = getRequestWithToken(endpoint, current_token);

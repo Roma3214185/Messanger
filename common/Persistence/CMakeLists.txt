@@ -8,6 +8,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Sql)
 find_package(nlohmann_json REQUIRED)
 
 if (NOT TARGET Persistence)
+
 add_library(Persistence STATIC
     src/GenericRepository.cpp
     src/SQLiteDatabase.cpp

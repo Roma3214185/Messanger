@@ -10,7 +10,8 @@ class JwtGenerator : public IGenerator {
   public:
     bool generateKeys() override {
       const std::string kKeysDir        = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-      const std::string kPrivateKeyFile = "private_key.pem";
+      const std::string            kPtivateKeysDir = "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
+      const std::string            kPrivateKeyFile = kPtivateKeysDir + "private_key.pem";
       const std::string kPublicKeyFile  = kKeysDir + "public_key.pem";
 
       auto [private_key, public_key] = JwtUtils::generate_rsa_keys();
@@ -29,7 +30,7 @@ class JwtGenerator : public IGenerator {
       }
     }
 
-    std::string generateToken(int user_id) override {
+    std::string generateToken(long long user_id) override {
       return JwtUtils::generateToken(user_id);
     }
   private:

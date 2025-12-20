@@ -25,14 +25,14 @@ class NotificationManager {
                       SocketsManager* sock_manager,
                       NetworkFacade& network_facade,
                       IConfigProvider* provider = &ProdConfigProvider::instance());
-  void notifyMessageRead(int chat_id, const MessageStatus& message_status);
-  void notifyNewMessages(Message& message, int user_id);
+  void notifyMessageRead(long long chat_id, const MessageStatus& message_status);
+  void notifyNewMessages(Message& message, long long user_id);
   void deleteConnections(SocketPtr conn);
-  virtual void userConnected(int user_id, SocketPtr conn);
+  virtual void userConnected(long long user_id, SocketPtr conn);
   void saveMessageStatus(MessageStatus& message);
-  void saveDeliveryStatus(const Message& msg, int receiver_id);
-  bool notifyMember(int user_id, const Message& msg);
-  virtual void onMarkReadMessage(Message& message, int read_by);
+  void saveDeliveryStatus(const Message& msg, long long receiver_id);
+  bool notifyMember(long long user_id, const Message& msg);
+  virtual void onMarkReadMessage(Message& message, long long read_by);
   virtual void onSendMessage(Message& message);
   virtual void onMessageStatusSaved();
   virtual void onMessageSaved(Message& message);
@@ -40,7 +40,7 @@ class NotificationManager {
   virtual void handleMessageSaved(const std::string& payload);
 
  protected:
-  std::vector<int> fetchChatMembers(int chat_id);
+  std::vector<long long> fetchChatMembers(long long chat_id);
   void subscribeMessageSaved();
 };
 

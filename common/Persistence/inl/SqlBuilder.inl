@@ -66,3 +66,18 @@ SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity) {
   res.query = row_sql;
   return res;
 }
+
+template <typename T>
+std::vector<T> SqlBuilder<T>::buildResults(std::unique_ptr<IQuery>& query) const {
+  if(!query) return {};
+  std::vector<T> results;
+  auto meta = Reflection<T>::meta();
+
+  while (query->next()) {
+    T entity = buildEntity(query, meta);
+    LOG_INFO("Select {}", nlohmann::json(entity).dump());
+    results.push_back(std::move(entity));
+  }
+
+  return results;
+}

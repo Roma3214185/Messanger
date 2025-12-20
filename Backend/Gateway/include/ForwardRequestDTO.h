@@ -9,6 +9,7 @@ struct ForwardRequestDTO{
     std::string host_with_port;
     std::string full_path;
     httplib::Headers headers;
+    httplib::Params params;
     std::vector<std::pair<std::string, std::string>> extra_headers;
     std::string body;
     std::string content_type{ "application/json" };

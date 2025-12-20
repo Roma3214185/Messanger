@@ -82,7 +82,7 @@ void Model::setupConnections() {
 
 Model::~Model() {}
 
-auto Model::indexByChatId(int chat_id) -> QModelIndex {
+auto Model::indexByChatId(long long chat_id) -> QModelIndex {
   std::optional<int> idx = chat_model_->findIndexByChatId(chat_id);
   if (!idx.has_value()) {
     LOG_ERROR("Model::indexByChatId — chatId '{}' not found", chat_id);
@@ -113,18 +113,18 @@ void Model::deleteToken() const {
   LOG_INFO("[deleteToken] Token deleted");
 }
 
-void Model::setCurrentUserId(int current_id) { MessageModel::setCurrentUserId(current_id); }
+void Model::setCurrentUserId(long long current_id) { MessageModel::setCurrentUserId(current_id); }
 
 void Model::signIn(const LogInRequest& login_request) { session_manager_->signIn(login_request); }
 
 void Model::signUp(const SignUpRequest& request) { session_manager_->signUp(request); }
 
-ChatPtr Model::loadChat(int chat_id) {
+ChatPtr Model::loadChat(long long chat_id) {
   auto future = chat_manager_->loadChat(current_token_, chat_id);
   return waitForFuture(future);
 }
 
-auto Model::getPrivateChatWithUser(int user_id) -> ChatPtr {
+auto Model::getPrivateChatWithUser(long long user_id) -> ChatPtr {
   PROFILE_SCOPE("Model::getPrivateChatWithUser");
   auto chat_ptr = data_manager_->getPrivateChatWithUser(user_id);
   if (chat_ptr) return chat_ptr;
@@ -136,7 +136,7 @@ auto Model::getPrivateChatWithUser(int user_id) -> ChatPtr {
   return chat;
 }
 
-auto Model::createPrivateChat(int user_id) -> ChatPtr {
+auto Model::createPrivateChat(long long user_id) -> ChatPtr {
   auto future = chat_manager_->createPrivateChat(current_token_, user_id);
   return waitForFuture(future);
 }
@@ -146,7 +146,7 @@ auto Model::loadChats() -> QList<ChatPtr> {
   return waitForFuture(future);
 }
 
-auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
+auto Model::getChatMessages(long long chat_id, int limit) -> QList<Message> {
   int before_id = 0;
   //TODO: cache request result for {chat_id before_id}
 
@@ -166,7 +166,7 @@ auto Model::getChatMessages(int chat_id, int limit) -> QList<Message> {
   return waitForFuture(future);
 }
 
-MessageModel* Model::getMessageModel(int chat_id) {
+MessageModel* Model::getMessageModel(long long chat_id) {
   PROFILE_SCOPE("Model::getMessageModel");
   auto message_model = data_manager_->getMessageModel(chat_id);
   if (!message_model) {
@@ -178,7 +178,7 @@ MessageModel* Model::getMessageModel(int chat_id) {
   return message_model.get();
 }
 
-void Model::addMessageToChat(int chat_id, const Message& msg) {
+void Model::addMessageToChat(long long chat_id, const Message& msg) {
   PROFILE_SCOPE("Model::addMessageToChat");
   auto chat = data_manager_->getChat(chat_id);
   if (!chat) {
@@ -209,7 +209,7 @@ void Model::addMessageToChat(int chat_id, const Message& msg) {
   chat_model_->updateChatInfo(chat_id, last_chat_message);
 }
 
-void Model::addOfflineMessageToChat(int chat_id, User user, const Message& msg) {
+void Model::addOfflineMessageToChat(long long chat_id, User user, const Message& msg) {
   auto message_model = data_manager_->getMessageModel(chat_id);
   if(!message_model) {   // TODO: make one function add message(offline + online)
     LOG_ERROR("Invalid message_model");
@@ -250,12 +250,12 @@ void Model::sendMessage(const Message& msg) {
            msg.text.toStdString());
 }
 
-auto Model::getUser(int user_id) -> optional<User> {
+auto Model::getUser(long long user_id) -> optional<User> {
   auto future = user_manager_->getUser(user_id, current_token_);
   return waitForFuture(future);
 }
 
-void Model::getUserAsync(int user_id) {
+void Model::getUserAsync(long long user_id) {
   QFuture<std::optional<User>> future = user_manager_->getUser(user_id, current_token_);
 
   auto *watcher = new QFutureWatcher<std::optional<User>>(this);
@@ -316,9 +316,9 @@ void Model::addChat(const ChatPtr& chat) {
   Q_EMIT chatAdded(chat->chat_id);
 }
 
-ChatPtr Model::getChat(int chat_id) { return data_manager_->getChat(chat_id); }
+ChatPtr Model::getChat(long long chat_id) { return data_manager_->getChat(chat_id); }
 
-void Model::initSocket(int user_id) { socket_manager_->initSocket(user_id); }
+void Model::initSocket(long long user_id) { socket_manager_->initSocket(user_id); }
 
 void Model::onMessageReceived(const QString& msg) {
   PROFILE_SCOPE("Model::onMessageReceived");
@@ -340,7 +340,7 @@ void Model::onMessageReceived(const QString& msg) {
 
 void Model::connectSocket() { socket_manager_->connectSocket(); }
 
-void Model::createChat(int chat_id) {
+void Model::createChat(long long chat_id) {
   PROFILE_SCOPE("Model::createChat");
   auto chat = data_manager_->getChat(chat_id);
   if (chat) {
@@ -352,7 +352,7 @@ void Model::createChat(int chat_id) {
   chat_model_->addChatInFront(new_chat);
 }
 
-void Model::fillChatHistory(int chat_id) {
+void Model::fillChatHistory(long long chat_id) {
   PROFILE_SCOPE("Model::fillChatHistory");
   auto message_history = getChatMessages(chat_id);
   LOG_INFO("[fillChatHistory] For chat '{}' loaded '{}' messages", chat_id, message_history.size());

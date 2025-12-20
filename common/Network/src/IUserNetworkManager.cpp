@@ -7,7 +7,7 @@
 
 using json = nlohmann::json;
 
-std::optional<User> IUserNetworkManager::getUserById(int otherUserId) {
+std::optional<User> IUserNetworkManager::getUserById(long long otherUserId) {
   std::string path = "/users/" + std::to_string(otherUserId);
   auto res = forward(provider_->ports().userService, "", path, "GET");
 
@@ -17,22 +17,42 @@ std::optional<User> IUserNetworkManager::getUserById(int otherUserId) {
   }
 
   try {
-    json obj = json::parse(res.second);
+    const json obj = json::parse(res.second);
 
     if (!obj.is_object()) {
       LOG_ERROR("Invalid JSON format in getUserById");
       return std::nullopt;
     }
 
-    User foundUser{
-        .id       = obj.value("id", -1),
-        .username = obj.value("name", ""),
-        .email    = obj.value("email", ""),
-        .tag      = obj.value("tag", "")
+    if(!obj.contains("id")) {
+      LOG_ERROR("Obj doesn't contain 'id' field");
+      return std::nullopt;
+    }
+
+    if(!obj.contains("name")) {
+      LOG_ERROR("Obj doesn't contain 'name' field");
+      return std::nullopt;
+    }
+
+    if(!obj.contains("email")) {
+      LOG_ERROR("Obj doesn't contain 'email' field");
+      return std::nullopt;
+    }
+
+    if(!obj.contains("tag")) {
+      LOG_ERROR("Obj doesn't contain 'tag' field");
+      return std::nullopt;
+    }
+
+    User found_user{
+        .id       = obj["id"],
+        .username = obj["name"],
+        .email    = obj["email"],
+        .tag      = obj["tag"]
     };
 
-    LOG_INFO("getUserById success: {}", foundUser.username);
-    return foundUser;
+    LOG_INFO("getUserById success: {}", nlohmann::json(found_user).dump());
+    return found_user;
   }
   catch (const std::exception& e) {
     LOG_ERROR("JSON parse error in getUserById: {}", e.what());

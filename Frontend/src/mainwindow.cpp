@@ -7,7 +7,7 @@
 
 #include "../forms/ui_mainwindow.h"
 #include "Debug_profiling.h"
-#include "datainputservice.h"
+#include "DataInputService.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
 #include "delegators/userdelegate.h"

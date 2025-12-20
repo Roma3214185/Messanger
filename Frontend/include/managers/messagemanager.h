@@ -21,9 +21,9 @@ class MessageManager : public BaseManager {
   using BaseManager::BaseManager;
 
   QFuture<QList<Message>> getChatMessages(const QString& current_token,
-                                          int            chat_id,
-                                          int            before_id,
-                                          int            limit);
+                                          long long            chat_id,
+                                          long long            before_id,
+                                          long long            limit);
 
  protected:
   QList<Message> onGetChatMessages(const QByteArray& responce_data);

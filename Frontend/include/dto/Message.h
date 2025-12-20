@@ -6,9 +6,9 @@
 #include <QUuid>
 
 struct Message {
-  int       id = 0;
-  int       senderId;
-  int       chatId;
+  long long       id = 0;
+  long long       senderId;
+  long long       chatId;
   QString   text;
   QDateTime timestamp;
   bool      readed_by_me;
