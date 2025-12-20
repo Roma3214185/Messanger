@@ -12,7 +12,7 @@ class SocketManager : public QObject {
   SocketManager(ISocket* socket, const QUrl& url);
   void close();
   void sendText(const QString& message);
-  void initSocket(int user_id);
+  void initSocket(long long user_id);
   void connectSocket();
 
  private:

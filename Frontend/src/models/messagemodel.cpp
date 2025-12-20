@@ -38,7 +38,7 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
   }
 }
 
-QModelIndex MessageModel::indexFromId(int messageId) const {
+QModelIndex MessageModel::indexFromId(long long messageId) const {
   for (int row = 0; row < messages_.size(); ++row) {
     if (messages_[row].id == messageId)
       return index(row);
@@ -47,7 +47,7 @@ QModelIndex MessageModel::indexFromId(int messageId) const {
   return QModelIndex(); // Not found
 }
 
-void MessageModel::setCurrentUserId(int user_id) { currentUserId = user_id; }
+void MessageModel::setCurrentUserId(long long user_id) { currentUserId = user_id; }
 
 void MessageModel::resetCurrentUseId() { currentUserId = std::nullopt; }
 

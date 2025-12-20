@@ -4,10 +4,10 @@
 #include "dto/ChatBase.h"
 #include "models/messagemodel.h"
 
-using ChatId          = int;
+using ChatId          = long long;
 using ChatPtr         = std::shared_ptr<ChatBase>;
-using MessageId       = int;
-using UserId          = int;
+using MessageId       = long long;
+using UserId          = long long;
 using MessageModelPtr = std::shared_ptr<MessageModel>;
 using ChatMap         = std::unordered_map<ChatId, ChatPtr>;
 using MessageModelMap = std::unordered_map<MessageId, MessageModelPtr>;

@@ -33,12 +33,12 @@ class ChatModel : public QAbstractListModel {
   QVariant               data(const QModelIndex& index, int role) const override;
   QHash<int, QByteArray> roleNames() const override;
   void                   addChat(const ChatPtr& chat);
-  void updateChatInfo(int chat_id, const std::optional<Message>& last_message);
+  void updateChatInfo(long long chat_id, const std::optional<Message>& last_message);
   void addChatInFront(ChatPtr& chat);
-  void realocateChatInFront(int chat_id);
+  void realocateChatInFront(long long chat_id);
   void clear();
   void sortChats();
-  [[nodiscard]] OptionalChatIndex findIndexByChatId(int chat_id) const;
+  [[nodiscard]] OptionalChatIndex findIndexByChatId(long long chat_id) const;
 
  Q_SIGNALS:
   void chatUpdated(int chat_id);

@@ -15,11 +15,16 @@ using ChatPtr = std::shared_ptr<ChatBase>;
 namespace JsonService {
 
 inline auto getUserFromResponse(const QJsonObject& res) -> User {
+  if(!res.contains("email")) LOG_ERROR("No email field");
+  if(!res.contains("tag")) LOG_ERROR("No tag field");
+  if(!res.contains("name")) LOG_ERROR("No name field");
+  if(!res.contains("id")) LOG_ERROR("No id field");
+  if(!res.contains("avatar_path")) LOG_ERROR("No avatar_path field");
   User user;
   user.email      = res["email"].toString();
   user.tag        = res["tag"].toString();
   user.name       = res["name"].toString();
-  user.id         = res["id"].toInt();
+  user.id         = res["id"].toInteger();
   user.avatarPath = res["avatar_path"].toString();
 
   spdlog::info("[USER] id={} | name='{}' | tag='{}' | email='{}'",

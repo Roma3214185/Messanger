@@ -14,7 +14,7 @@ SocketManager::SocketManager(ISocket* socket, const QUrl& url) : socket_(socket)
   connect(socket_, &ISocket::textMessageReceived, this, &SocketManager::newTextFromSocket);
 }
 
-void SocketManager::initSocket(int user_id) {
+void SocketManager::initSocket(long long user_id) {
   QJsonObject   json{{"type", "init"}, {"user_id", user_id}};
   const QString msg = QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact));
   socket_->sendTextMessage(msg);

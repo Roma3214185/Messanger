@@ -35,13 +35,13 @@ JWTVerifier::JWTVerifier(const std::string& publicKeyPath, const std::string& is
   LOG_INFO("JWTVerifier initialized successfully.");
 }
 
-std::optional<int> JWTVerifier::verifyTokenAndGetUserId(const std::string& token)
+std::optional<long long> JWTVerifier::verifyTokenAndGetUserId(const std::string& token)
 {
   try {
     auto decoded = jwt::decode(token);
     verifier_.verify(decoded);
 
-    int user_id = std::stoi(decoded.get_payload_claim("sub").as_string());
+    long long user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
     return user_id;
   }
   catch (const std::exception& e) {

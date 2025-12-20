@@ -3,13 +3,15 @@
 
 #include "authservice/authcontroller.h"
 
+class IGenerator;
+
 class Server {
  public:
-  Server(crow::SimpleApp& app, int port, AuthController* controller);
+  Server(crow::SimpleApp& app, int port, AuthController* controller, IGenerator* generator);
   void run();
+  [[nodiscard]] bool generateKeys();
 
  private:
-  void generateKeys();
   void initRoutes();
   void handleFindById();
   void handleFindByTag();
@@ -20,6 +22,7 @@ class Server {
   crow::SimpleApp&   app_;
   int               port_;
   AuthController*   controller_;
+  IGenerator* generator_;
 };
 
 #endif  // AUTH_SERVICE_SERVER_H

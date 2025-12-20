@@ -24,10 +24,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(libsodium)
 
 add_executable(AuthServiceTests
-    main.cpp
-    test_authserver.cpp
-    test_protected_authmanager.cpp
-    test_authmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_authserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_protected_authmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_authmanager.cpp
 )
 
 target_include_directories(AuthServiceTests PRIVATE

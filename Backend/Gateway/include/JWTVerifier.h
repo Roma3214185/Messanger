@@ -14,7 +14,7 @@ class JWTVerifier : public IVerifier {
   public:
     explicit JWTVerifier(const std::string& publicKeyPath, const std::string& issuer);
 
-    std::optional<int> verifyTokenAndGetUserId(const std::string& token);
+    std::optional<long long> verifyTokenAndGetUserId(const std::string& token) override;
 
   private:
     std::string publicKey_;

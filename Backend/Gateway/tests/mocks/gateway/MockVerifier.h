@@ -7,9 +7,9 @@ class MockVerifier : public IVerifier {
   public:
     std::string last_token;
     int call_verify = 0;
-    std::optional<int> mock_ans;
+    std::optional<long long> mock_ans;
 
-    std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
+    std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
       last_token = token;
       ++call_verify;
       return mock_ans;

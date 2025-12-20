@@ -4,11 +4,11 @@
 #include "INetworkManagerBase.h"
 #include <vector>
 
-using UserId = int;
+using UserId = long long;
 
 class IChatNetworkManager : public virtual INetworkManagerBase {
   public:
-    virtual std::vector<UserId> getMembersOfChat(int chat_id);
+    virtual std::vector<UserId> getMembersOfChat(long long chat_id);
 };
 
 #endif // ICHATNETWORKMANAGER_H

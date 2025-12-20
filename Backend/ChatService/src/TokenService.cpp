@@ -25,7 +25,7 @@ const char* kIssuer = "auth_service";
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
 
-std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
+std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
     auto decoded = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
@@ -35,7 +35,7 @@ std::optional<int> verifyTokenAndGetUserId(const std::string& token) {
                         .with_issuer(kIssuer);
     verifier.verify(decoded);
 
-    int user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
+    long long user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
     LOG_INFO("Token is verified, id is '{}'", user_id);
     return user_id;
 

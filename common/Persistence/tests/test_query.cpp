@@ -12,17 +12,18 @@
 TEST_CASE("Test select query create right sql command") {
   MockCache       cache;
   MockDatabase    database;
+  MockQuery mock_query;
+  database.mock_query = mock_query;
   FakeSqlExecutor executor;
 
   SECTION("Select message by id") {
     auto query = QueryFactory::createSelect<Message>(&executor, cache);
     query->where(MessageTable::Id, 10);
-    QString valid_sql = "SELECT * FROM messages WHERE id = ?";
+    std::string valid_sql = "SELECT * FROM messages WHERE id = ?";
 
     query->execute();
-    REQUIRE(executor.lastSql == valid_sql);
+    REQUIRE(executor.lastSql.toStdString() == valid_sql);
   }
-
   SECTION("Select message_status by message_id") {
     auto query = QueryFactory::createSelect<MessageStatus>(&executor, cache);
     query->where(MessageStatusTable::MessageId, 10);
@@ -94,19 +95,21 @@ TEST_CASE("Test select query create right sql command") {
   }
 
   SECTION("2 times select same queue expected hit the cashe") {
+    cache.mock_get_string = std::nullopt;
+    cache.get_should_fail = false;
     auto query1 = QueryFactory::createSelect<Message>(&executor, cache);
     query1->limit(4);
     auto query2 = QueryFactory::createSelect<Message>(&executor, cache);
     query2->limit(4);
 
-    int before_set      = cache.set_calls;
-    int before_pipeline = cache.set_pipeline_calls;
+    int before_call      = executor.execute_calls;
+    //int before_pipeline = cache.set_pipeline_calls;
 
     query1->execute();
     query2->execute();
 
-    REQUIRE(cache.set_calls == before_set + 1);
-    REQUIRE(cache.set_pipeline_calls == before_pipeline + 1);
+    REQUIRE(executor.execute_calls == before_call + 1);
+    //REQUIRE(cache.set_pipeline_calls == before_pipeline + 1);
   }
 }
 

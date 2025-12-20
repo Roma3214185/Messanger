@@ -6,9 +6,9 @@
 
 #include "interfaces/ISocket.h"
 
-using UserId = int;
+using UserId = long long;
 using SocketPtr = std::shared_ptr<ISocket>;
-using Sockets = std::unordered_map<int, SocketPtr>;
+using Sockets = std::unordered_map<UserId, SocketPtr>;
 
 class SocketsManager {
  public:

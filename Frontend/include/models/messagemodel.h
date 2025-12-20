@@ -8,8 +8,8 @@
 #include "models/UserModel.h"
 
 using ListOfMessages   = QList<Message>;
-using MessageId        = int;
-using ChatId           = int;
+using MessageId        = long long;
+using ChatId           = long long;
 using UsersByMessageId = std::unordered_map<MessageId, User>;
 using MessagesByChatId = std::unordered_map<ChatId, ListOfMessages>;
 
@@ -33,13 +33,13 @@ class MessageModel : public QAbstractListModel {
 
   int                    rowCount(const QModelIndex& parent = QModelIndex()) const override;
   QVariant               data(const QModelIndex& index, int role) const override;
-  QModelIndex indexFromId(int messageId) const;
+  QModelIndex indexFromId(MessageId) const;
   QHash<int, QByteArray> roleNames() const override;
   void addMessage(const Message& msg, const User& user);
   void clear();
   std::optional<Message> getLastMessage() const;
   std::optional<Message> getOldestMessage() const;
-  static void setCurrentUserId(int user_id);
+  static void setCurrentUserId(long long user_id);
   void                                 resetCurrentUseId();
 
  private:

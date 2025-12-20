@@ -7,7 +7,7 @@ struct User {
   QString email;
   QString tag;
   QString name;
-  int     id;
+  long long id;
   QString avatarPath = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
 };
 

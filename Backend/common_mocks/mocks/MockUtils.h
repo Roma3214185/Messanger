@@ -40,6 +40,7 @@ inline Ports getMockPorts() {
   ports.messageService      = 80820;
   ports.rabitMQ             = 56720;
   ports.metrics             = 80890;
+  return ports;
 }
 
 

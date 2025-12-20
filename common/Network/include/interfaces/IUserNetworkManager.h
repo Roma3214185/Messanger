@@ -6,7 +6,7 @@
 
 class IUserNetworkManager : public virtual INetworkManagerBase {
   public:
-    virtual std::optional<User> getUserById(int otherUserId);
+    virtual std::optional<User> getUserById(long long otherUserId);
 };
 
 #endif // IUSERNETWORKMANAGER_H

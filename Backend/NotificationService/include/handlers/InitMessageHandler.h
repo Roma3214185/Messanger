@@ -14,7 +14,7 @@ class InitMessageHandler : public IMessageHandler {
         return;
       }
 
-      int user_id = message["user_id"].i();
+      long long user_id = std::stoll(message["user_id"].s());
       manager.userConnected(user_id, socket);
       LOG_INFO("[init] Socket registered for userId '{}'", user_id);
     }

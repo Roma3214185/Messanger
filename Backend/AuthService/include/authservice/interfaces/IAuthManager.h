@@ -11,7 +11,7 @@ class IAuthManager {
     using OptionalResponce = std::optional<AuthResponce>;
     using OptionalUser     = std::optional<User>;
 
-    virtual OptionalUser      getUser(int user_id) = 0;
+    virtual OptionalUser      getUser(long long user_id) = 0;
     virtual OptionalUser  loginUser(const LoginRequest& login_request) = 0;
     virtual OptionalUser  registerUser(const RegisterRequest& req) = 0;
     virtual std::vector<User> findUsersByTag(const std::string& tag) = 0;

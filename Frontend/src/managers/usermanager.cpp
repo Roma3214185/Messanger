@@ -12,7 +12,7 @@
 
 namespace {
 
-auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkRequest {
+auto getRequestWithToken(QUrl endpoint, const QString& current_token) -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", current_token.toUtf8());
@@ -77,11 +77,18 @@ QList<User> UserManager::onFindUsersByTag(const QByteArray& responce_data) const
   auto doc          = QJsonDocument::fromJson(responce_data);
 
   if (!doc.isObject()) {
+    LOG_ERROR("Invalid JSON: expected object at root");
     Q_EMIT errorOccurred("Invalid JSON: expected object at root");
     return {};
   }
 
   auto        rootObj = doc.object();
+  if (!rootObj.contains("users")) {
+    LOG_ERROR("Invalid JSON: no 'users' field");
+    Q_EMIT errorOccurred("Invalid JSON: no 'users' field");
+    return {};
+  }
+
   auto        arr     = rootObj["users"].toArray();
   QList<User> users;
 

@@ -27,8 +27,8 @@ struct SharedFixture {
     SharedFixture()
         : mock_routes(MockUtils::getMockRoutes()),
           provider(),
-          rep(db, &executor, cache, &generator, &pool),
-          manager(&rep, &executor)
+          rep(db, &executor, cache, &pool),
+          manager(&rep, &executor, &generator)
     {
         provider.mock_routes = mock_routes;
     }

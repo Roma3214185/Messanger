@@ -2,8 +2,10 @@
 #include "entities/PrivateChat.h"
 #include "entities/ChatMember.h"
 #include "Fields.h"
+#include "interfaces/IIdGenerator.h"
 
-ChatManager::ChatManager(GenericRepository* repository) : repository_(repository) {}
+ChatManager::ChatManager(GenericRepository* repository, IIdGenerator* generator)
+    : repository_(repository), generator_(generator) {}
 
 std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_user_id) {
   if(first_user_id == second_user_id) {
@@ -22,7 +24,9 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
   assert(res.size() <= 1);
   if(res.size() == 1) return res[0].chat_id;
 
+  int new_chat_id = generator_->generateId();
   Chat to_save;
+  to_save.id = new_chat_id;
   to_save.created_at = QDateTime::currentSecsSinceEpoch();
   to_save.is_group = false;
 

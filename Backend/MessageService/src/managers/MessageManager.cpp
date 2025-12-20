@@ -6,19 +6,21 @@
 #include "interfaces/ISqlExecutor.h"
 #include "interfaces/ICacheService.h"
 #include "messageservice/dto/GetMessagePack.h"
+#include "interfaces/IIdGenerator.h"
 
-MessageManager::MessageManager(GenericRepository* repository, ISqlExecutor*  executor, ICacheService& cache)
-    : repository_(repository), executor_(executor), cache_(cache) {}
+MessageManager::MessageManager(GenericRepository* repository, ISqlExecutor*  executor, IIdGenerator* generator, ICacheService& cache)
+    : repository_(repository), executor_(executor), generator_(generator), cache_(cache) {}
 
 bool MessageManager::saveMessage(Message& msg) {
+  msg.id = generator_->generateId();
   return repository_->save(msg);
 }
 
-std::optional<Message> MessageManager::getMessage(int message_id) {
+std::optional<Message> MessageManager::getMessage(long long message_id) {
   return repository_->findOne<Message>(message_id);
 }
 
-std::optional<MessageStatus> MessageManager::getMessageStatus(int message_id, int receiver_id) {
+std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_id, long long receiver_id) {
   auto        custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
   custom_query
       ->where(MessageStatusTable::MessageId, message_id)
@@ -44,7 +46,7 @@ std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack)
   return custom_query->execute();
 }
 
-std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<Message>& messages, int receiver_id) {
+std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<Message>& messages, long long receiver_id) {
   std::vector<MessageStatus> ans;
 
   for(const auto& msg: messages) {

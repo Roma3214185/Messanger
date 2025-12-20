@@ -44,7 +44,7 @@ std::optional<std::string> fetchTag(const crow::request& req) {
 }  // namespace
 
 AuthController::AuthController(IAuthManager* manager, IAutoritizer* authoritizer, IGenerator* generator, IConfigProvider* provider)
-    : manager_(manager), authoritizer_(authoritizer), generator_(generator), provider_(provider) {}
+    : manager_(manager), authoritizer_(authoritizer), generator_(generator), provider_(provider) {} //todo(roma) make itokengenrator (ISRP)
 
 void AuthController::loginUser(const crow::request& req, crow::response& responce) {
   auto body = crow::json::load(req.body);
@@ -125,10 +125,6 @@ void AuthController::findById(const crow::request& req, int user_id, crow::respo
 std::pair<AuthController::OptionalId, AuthController::Token> AuthController::verifyToken(const crow::request& req) {
   auto token = req.get_header_value("Authorization");
   return std::make_pair(authoritizer_->autoritize(token), token);
-}
-
-bool AuthController::generateKeys() {
-  return generator_->generateKeys();
 }
 
 void AuthController::registerUser(const crow::request& req, crow::response& responce) {

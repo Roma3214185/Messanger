@@ -36,8 +36,8 @@ struct TestAuthManagerProtectedFixture {
     std::string hash_password = "secret-hash-password-123";
 
     TestAuthManagerProtectedFixture()
-        : rep(db, &executor, cache, &generator, &pool)
-        , manager(rep) {
+        : rep(db, &executor, cache, &pool)
+        , manager(rep, &generator) {
       user.id = user_id;
       user.email = email;
       user.tag = tag;
@@ -54,7 +54,7 @@ TEST_CASE("Test findUserByEmail") {
   TestAuthManagerProtectedFixture fix;
 
   int before_execute_calls = fix.executor.execute_calls;
-  std::string expected_sql = "SELECT * FROM users WHERE email = ?";
+  std::string expected_sql = "SELECT * FROM users_by_email WHERE email = ?";
 
   fix.manager.findUserByEmail(fix.email);
 

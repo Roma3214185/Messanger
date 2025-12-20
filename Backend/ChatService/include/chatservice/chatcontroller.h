@@ -17,16 +17,16 @@ class ChatController {
               NetworkFacade* network_facade, IConfigProvider* provider = &ProdConfigProvider::instance());
   void createPrivateChat(const crow::request& req, crow::response& res);
   void getAllChats(const crow::request& req, crow::response& res);
-  void getChat(const crow::request& req, crow::response& res, int chat_id);
-  void getAllChatMembers(const crow::request& req, crow::response& res, int chat_id);
+  void getChat(const crow::request& req, crow::response& res, long long chat_id);
+  void getAllChatMembers(const crow::request& req, crow::response& res, long long chat_id);
 
  private:
-  std::optional<int> authorizeUser(const crow::request& req, crow::response& res);
+  std::optional<long long> authorizeUser(const crow::request& req, crow::response& res);
   void sendError(crow::response& res, int status, const std::string& message);
   crow::json::wvalue buildChatJson(const Chat& chat, const std::optional<User> other_user,
                                    std::optional<int> member_count);
-  virtual std::optional<User> getUserById(int id);
-  std::optional<int>  autoritize(const crow::request& req);
+  virtual std::optional<User> getUserById(long long id);
+  std::optional<long long>  autoritize(const crow::request& req);
 
   IChatManager*     manager_;
   NetworkFacade* network_facade_;

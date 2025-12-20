@@ -132,8 +132,8 @@ class GatewayMetrics : public IMetrics {
     void userConnected() {
       active_clients_->Increment();
     }
-    void userDisconnected() { active_clients_->Decrement(); }
-    void saveRequestLatency(const double latency) { call_latency_->Observe(latency); }
+    void userDisconnected() override { active_clients_->Decrement(); }
+    void saveRequestLatency(const double latency) override { call_latency_->Observe(latency); }
 
     void saveRequestSize(int size) {
       request_size_hist_->Observe(size);

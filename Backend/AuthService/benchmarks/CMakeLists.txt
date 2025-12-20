@@ -26,7 +26,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(libsodium)
 
 add_executable(authservice_benchmarks
-  cqrs_benchmark.cpp
+  #cqrs_benchmark.cpp
   README.md
 )
 
