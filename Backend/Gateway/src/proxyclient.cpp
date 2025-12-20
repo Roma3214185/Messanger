@@ -37,6 +37,12 @@ std::string get_host_with_port(int port) {
   return "localhost:" + to_string(port);
 }
 
+httplib::Params getParams(const std::multimap<std::string, std::string>& map) {
+  httplib::Params params;
+  for(auto [k, v]: map) params.emplace(k, v);
+  return params;
+}
+
 }  // namespace
 
 NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const std::string& method) {
@@ -51,6 +57,7 @@ NetworkResponse ProxyClient::forward(const RequestDTO& request_info) {
   ForwardRequestDTO forward_request;
   forward_request.host_with_port = get_host_with_port(request_info.port);
   forward_request.headers = getHeaders(request_info);
+  forward_request.params = getParams(request_info.url_params);
   forward_request.body = request_info.body;
   forward_request.full_path = getFullPath(request_info);
   forward_request.content_type = request_info.content_type;

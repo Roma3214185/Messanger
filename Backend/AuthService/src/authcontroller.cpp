@@ -36,9 +36,9 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
   res.end();
 }
 
-std::string fetchTag(const crow::request& req) {
+std::optional<std::string> fetchTag(const crow::request& req) {
   const char* tag = req.url_params.get("tag");
-  return !tag ? "" : std::string(tag);
+  return !tag ? std::nullopt : std::make_optional(std::string(tag));
 }
 
 }  // namespace
@@ -90,14 +90,14 @@ void AuthController::handleMe(const crow::request& req, crow::response& responce
 
 void AuthController::findByTag(const crow::request& req,
                                crow::response&      responce) {
-  std::string tag = fetchTag(req);
-  if (tag.empty()) { //TODO: fully check tag to not go to databse
+  std::optional<std::string> tag = fetchTag(req);
+  if (!tag) { //TODO: fully check tag to not go to databse
     LOG_ERROR("Missing tag parametr");
     return sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr");
   }
 
-  auto listOfUsers = manager_->findUsersByTag(tag);
-  LOG_INFO("With tag '{}' was finded '{}' users", tag, listOfUsers.size());
+  auto listOfUsers = manager_->findUsersByTag(*tag);
+  LOG_INFO("With tag '{}' was finded '{}' users", *tag, listOfUsers.size());
 
   crow::json::wvalue json_users;
   json_users["users"] = crow::json::wvalue::list();
@@ -156,7 +156,8 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
     LOG_ERROR("User not registered");
     return sendResponse(responce, provider_->statusCodes().userError, "User already exist");
   }
-
+  LOG_INFO("User registered successfully, id is {}", register_user->id);
   std::string token = generator_->generateToken(register_user->id);
+  LOG_INFO("User user {}, id {} token is {}", register_user->username, register_user->id, token);
   sendResponse(responce, provider_->statusCodes().success, userToJson(*register_user, token).dump());
 }

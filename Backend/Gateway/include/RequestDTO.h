@@ -15,7 +15,7 @@ struct RequestDTO {
     std::string request_id;
     std::string content_type;
     std::vector<std::pair<std::string, std::string>> headers;
-    std::unordered_map<std::string, std::string> url_params;
+    std::multimap<std::string, std::string> url_params;
 };
 
 namespace nlohmann {
