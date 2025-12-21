@@ -3,6 +3,9 @@
 
 #include "dto/ChatBase.h"
 #include "models/messagemodel.h"
+#include "dto/User.h"
+
+class MessageModel;
 
 using ChatId          = long long;
 using ChatPtr         = std::shared_ptr<ChatBase>;
@@ -24,7 +27,7 @@ class DataManager {
   void            clearAllUsers();
   void            clearAllMessageModels();
   void            addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
-  void            saveUser(User);
+  void            saveUser(const User&);
   void            clearAll();
   OptionalUser    getUser(UserId);
 

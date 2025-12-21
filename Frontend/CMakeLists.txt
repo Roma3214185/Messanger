@@ -37,6 +37,11 @@ add_library(FrontendLib STATIC
     ${FRONTEND_INC_DIR}/models/UserModel.h
     ${FRONTEND_INC_DIR}/presenter.h
 
+    ${FRONTEND_INC_DIR}/usecases/chatusecase.h
+    ${FRONTEND_INC_DIR}/usecases/messageusecase.h
+    ${FRONTEND_INC_DIR}/usecases/sessionusecase.h
+    ${FRONTEND_INC_DIR}/usecases/userusecase.h
+
     ${FRONTEND_INC_DIR}/delegators/messagedelegate.h
     ${FRONTEND_INC_DIR}/delegators/UserDelegate.h
     ${FRONTEND_INC_DIR}/delegators/ChatItemDelegate.h
