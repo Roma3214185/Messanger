@@ -14,6 +14,7 @@ using std::nullopt;
 using std::string;
 
 OptionalUser AuthManager::getUser(long long user_id) {
+  LOG_INFO("AuthManager::getUser with id {}", user_id);
   return rep_.findOne<User>(user_id);
 }
 
@@ -77,6 +78,8 @@ OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
              users_with_same_tag->email, users_with_same_tag->username, users_with_same_tag->tag);
     return std::nullopt;
   }
+
+  LOG_INFO("User can be saved");
 
   User user_to_save{.id = generator_->generateId(), .username = req.name, .email = req.email, .tag = req.tag};
 

@@ -11,8 +11,8 @@ ChatServer::ChatServer(crow::SimpleApp& app, int port, ChatController* controlle
 
 void ChatServer::initRoutes() {
   handleCreatingPrivateChat();
-  handleGetAllChats();
   handleGetChat();
+  handleGetAllChats();
   handleGetAllChatsMembers();
 }
 
@@ -40,20 +40,46 @@ void ChatServer::handleGetAllChats() {
 }
 
 void ChatServer::handleGetChat() {
-  CROW_ROUTE(app_, "/chats/<int>")
+  CROW_ROUTE(app_, "/chats/<string>")
       .methods(crow::HTTPMethod::GET)(
-          [&](const crow::request& req, crow::response& res, int chat_id) {
-            PROFILE_SCOPE("/chats/<int>");
+          [&](const crow::request& req, crow::response& res, const std::string& chat_id_str) {
+            PROFILE_SCOPE("/chats/id");
+            LOG_INFO("chat_id_str = {}", chat_id_str);
+            long long chat_id;
+            try {
+              chat_id = std::stoll(chat_id_str);
+            } catch(...) {
+              LOG_ERROR("Can't get stoll in handleGetChat");
+              res.code = 400;
+              res.body = "Invalid id";
+              res.end();
+              return;
+            }
+            LOG_INFO("Chat id for str {} is {}", chat_id_str, chat_id);
+
             controller_->getChat(req, res, chat_id);
             LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
           });
 }
 
 void ChatServer::handleGetAllChatsMembers() {
-  CROW_ROUTE(app_, "/chats/<int>/members")
+  CROW_ROUTE(app_, "/chats/<string>/members")
       .methods(crow::HTTPMethod::GET)(
-          [&](const crow::request& req, crow::response& res, int chat_id) {
-            PROFILE_SCOPE("/chats/<int>/members");
+          [&](const crow::request& req, crow::response& res, const std::string& chat_id_str) {
+            PROFILE_SCOPE("/chats/id/members");
+            LOG_INFO("chat_id_str = {}", chat_id_str);
+            long long chat_id;
+            try {
+              chat_id = std::stoll(chat_id_str);
+            } catch(...) {
+              LOG_ERROR("Can't get stoll in handleGetChat");
+              res.code = 400;
+              res.body = "Invalid id";
+              res.end();
+              return;
+            }
+            LOG_INFO("Chat id for str {} is {}", chat_id_str, chat_id);
+
             controller_->getAllChatMembers(req, res, chat_id);
             LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
           });

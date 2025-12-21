@@ -24,6 +24,12 @@ int main(int argc, char* argv[]) {
     qFatal("Cannot open DB");
   }
 
+  // if(db.deleteTable(sqlite, "users")) {
+  //   LOG_INFO("[DELETE] users table");
+  // } else {
+  //   LOG_ERROR("[DELETE] users table failed");
+  // }
+
   SQLiteDatabase db(sqlite);
   if(!db.initializeSchema()) {
     qFatal("Cannot initialise DB");

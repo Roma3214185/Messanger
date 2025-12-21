@@ -57,10 +57,19 @@ Server::OptionalId Server::getUserIdFromToken(const std::string& token) {
 void Server::handleRoutes() { handleGetMessagesFromChat(); }
 
 void Server::handleGetMessagesFromChat() {
-  CROW_ROUTE(app_, "/messages/<int>")
+  CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::GET)(
-          [&](const crow::request& req, crow::response& res, int chat_id) {
-            PROFILE_SCOPE("/message/<int>");
+          [&](const crow::request& req, crow::response& res, const std::string& chat_id_str) {
+            PROFILE_SCOPE("/message/<string>");
+            long long chat_id;
+            try {
+              chat_id = std::stoll(chat_id_str);
+            } catch (...) {
+              LOG_ERROR("Error whyle stoll in handleGetMessagesFromChat");
+              res.code = 400;
+              res.body = "Invalid user_id";
+              return;
+            }
             onGetMessagesFromChat(req, chat_id, res);
             LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
           });
@@ -71,14 +80,14 @@ void Server::run() {
   app_.port(port_).multithreaded().run();
 }
 
-void Server::onGetMessagesFromChat(const crow::request& req, int chat_id, crow::response& res) {
+void Server::onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res) {
   std::string token = extractToken(req);
-  std::optional<int> optional_user_id = getUserIdFromToken(token);
+  std::optional<long long> optional_user_id = getUserIdFromToken(token);
   if(!optional_user_id){
     return sendResponse(res, provider_->statusCodes().userError, provider_->issueMessages().invalidToken);
   }
 
-  int user_id = *optional_user_id;
+  long long user_id = *optional_user_id;
 
   GetMessagePack pack {.chat_id = chat_id, .limit = getLimit(req),
                       .before_id = getBeforeId(req), .user_id = user_id };

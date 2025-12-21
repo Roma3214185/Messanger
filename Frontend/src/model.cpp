@@ -72,7 +72,7 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, I
 }
 
 void Model::setupConnections() {
-  connect(chat_model_.get(), &ChatModel::chatUpdated, this, [this](int chatId) -> void {
+  connect(chat_model_.get(), &ChatModel::chatUpdated, this, [this](long long chatId) -> void {
     Q_EMIT chatUpdated(chatId);
   });
 
@@ -189,6 +189,10 @@ void Model::addMessageToChat(long long chat_id, const Message& msg) {
   }
 
   auto message_model = data_manager_->getMessageModel(chat_id);
+  if(!message_model) {
+    qDebug() << "Nullptr message model"; //todo(roma): implement solutions for this case
+    return;
+  }
   auto user = data_manager_->getUser(msg.senderId);
 
   if (!user) {
@@ -204,7 +208,12 @@ void Model::addMessageToChat(long long chat_id, const Message& msg) {
     getUserAsync(msg.senderId);
   }
 
-  message_model->addMessage(msg, *user);
+  addMessageWithUpdatingChatList(msg, *user, chat_id, message_model);
+}
+
+void Model::addMessageWithUpdatingChatList(const Message& msg, const User& user, long long chat_id, MessageModelPtr message_model) {
+  if(!message_model) throw std::runtime_error("Message_model is nulltpr");
+  message_model->addMessage(msg, user);
   auto last_chat_message = message_model->getLastMessage();
   chat_model_->updateChatInfo(chat_id, last_chat_message);
 }
@@ -215,7 +224,8 @@ void Model::addOfflineMessageToChat(long long chat_id, User user, const Message&
     LOG_ERROR("Invalid message_model");
     return;
   }
-  message_model->addMessage(msg, user);
+
+  addMessageWithUpdatingChatList(msg, user, chat_id, message_model);
 }
 
 void Model::addChatInFront(const ChatPtr& chat) {

@@ -30,7 +30,7 @@ class TestServer : public Server {
     int calls_onGetMessagesFromChat = 0;
     int last_chat_id;
 
-    void onGetMessagesFromChat(const crow::request& req, int chat_id, crow::response& res) override{
+    void onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res) override {
       ++calls_onGetMessagesFromChat;
       last_chat_id = chat_id;
     }
@@ -56,10 +56,10 @@ struct TestServer2 : public Server {
     using Server::Server;
     using Server::formMessageListJson;
     std::string last_token;
-    std::optional<int> mock_user_id_ans;
+    std::optional<long long> mock_user_id_ans;
     int calls_getUserIdFromToken = 0;
 
-    std::optional<int> getUserIdFromToken(const std::string &token) {
+    std::optional<long long> getUserIdFromToken(const std::string &token) override {
       ++calls_getUserIdFromToken;
       last_token = token;
       return mock_user_id_ans;

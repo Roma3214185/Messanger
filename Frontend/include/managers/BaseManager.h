@@ -55,13 +55,20 @@ class BaseManager : public QObject {
                        if (reply->error() != QNetworkReply::NoError) {
                          Q_EMIT errorOccurred(kErrorOccured + reply->errorString());
                          promisePtr->addResult(defaultValue);
-                       } else {
-                         promisePtr->addResult(onSuccess(reply->readAll()));
+                         return;
                        }
 
-                       promisePtr->finish();
-                       reply->deleteLater();
-                     });
+                       int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                       if(httpStatus == 202) {
+                         std::string task_id = extractTaskId(reply);
+                         QByteArray new_array = getRequestStatus(task_id);
+                         promisePtr->addResult(onSuccess(new_array));
+                        } else {
+                          promisePtr->addResult(onSuccess(reply->readAll()));
+                        }
+                        promisePtr->finish();
+                        reply->deleteLater();
+                      });
 
     return future;
   }

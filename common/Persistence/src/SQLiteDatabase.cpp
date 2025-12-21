@@ -10,18 +10,18 @@ namespace {
 const QString CREATE_USERS_TABLE = R"(
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
-            tag TEXT UNIQUE NOT NULL,
-            username TEXT NOT NULL
+            tag TEXT NOT NULL
         );
     )";
 
 const QString CREATE_USERS_BY_EMAIL_TABLE = R"(
         CREATE TABLE IF NOT EXISTS users_by_email (
             id INTEGER PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
-            tag TEXT UNIQUE NOT NULL,
-            username TEXT NOT NULL
+            tag TEXT NOT NULL
         );
     )";
 
@@ -32,9 +32,9 @@ const QString CREATE_USERS_BY_EMAIL_INDEX = R"(
 const QString CREATE_USERS_BY_TAG_TABLE = R"(
         CREATE TABLE IF NOT EXISTS users_by_tag (
             id INTEGER PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
-            tag TEXT UNIQUE NOT NULL,
-            username TEXT NOT NULL
+            tag TEXT NOT NULL
         );
     )";
 

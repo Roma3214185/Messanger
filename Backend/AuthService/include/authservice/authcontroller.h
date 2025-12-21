@@ -16,7 +16,7 @@ class AuthController {
 
   AuthController(IAuthManager* service, IAutoritizer* authoritier, IGenerator* generator,
                  IConfigProvider* provider = &ProdConfigProvider::instance());
-  void findById(const crow::request& req, int user_id, crow::response& responce);
+  void findById(const crow::request& req, long long user_id, crow::response& responce);
   void findByTag(const crow::request& req, crow::response& responce);
   void registerUser(const crow::request& req, crow::response& responce);
   void handleMe(const crow::request& req, crow::response& responce);

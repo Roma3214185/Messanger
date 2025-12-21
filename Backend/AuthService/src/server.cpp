@@ -15,8 +15,8 @@ void Server::run() {
 }
 
 void Server::initRoutes() {
-  handleFindById();
   handleFindByTag();
+  handleFindById();
   handleRegister();
   handleMe();
   handleLogin();
@@ -25,10 +25,19 @@ void Server::initRoutes() {
 bool Server::generateKeys() { return generator_->generateKeys(); }
 
 void Server::handleFindById() {
-  CROW_ROUTE(app_, "/users/<int>")
+  CROW_ROUTE(app_, "/users/<string>")
       .methods(crow::HTTPMethod::GET)(
-          [this](const crow::request& req, crow::response& res, int user_id) {
-            PROFILE_SCOPE("/users/id " + std::to_string(user_id));
+          [this](const crow::request& req, crow::response& res, const std::string& user_id_str) {
+            PROFILE_SCOPE("/users/id " + user_id_str);
+            long long user_id;
+            try {
+              user_id = std::stoll(user_id_str);
+            } catch (...) {
+              LOG_ERROR("Error whyle stoll in handleFindById");
+              res.code = 400;
+              res.body = "Invalid user_id";
+              return;
+            }
             controller_->findById(req, user_id, res);
             LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
           });

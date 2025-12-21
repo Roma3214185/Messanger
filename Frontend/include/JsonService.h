@@ -36,11 +36,11 @@ inline auto getUserFromResponse(const QJsonObject& res) -> User {
 }
 
 inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
-  Message msg{.id           = obj["id"].toInt(),
-              .senderId     = obj["sender_id"].toInt(),
-              .chatId       = obj["chat_id"].toInt(),
+  Message msg{.id           = obj["id"].toInteger(),
+              .senderId     = obj["sender_id"].toInteger(),
+              .chatId       = obj["chat_id"].toInteger(),
               .text         = obj["text"].toString(),
-              .timestamp    = QDateTime::fromString(obj["timestamp"].toString(), Qt::ISODate),
+              .timestamp    = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger()),
               .readed_by_me = obj["readed_by_me"].toBool(false),
               .local_id     = obj["local_id"].toString()};
 
@@ -61,20 +61,30 @@ inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
 }
 
 inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
+  if(!obj.contains("id")) {
+    LOG_ERROR("There is no id field");
+    return nullptr;
+  }
+
+  if(!obj.contains("type")) {
+    LOG_ERROR("There is no type field");
+    return nullptr;
+  }
+
   const QString type = obj["type"].toString();
 
   if (type == "private") {
     const auto userObj = obj["user"].toObject();
     auto       chat    = std::make_shared<PrivateChat>();
-    chat->chat_id      = obj["id"].toInt();
+    chat->chat_id      = static_cast<long long>(obj["id"].toDouble());
     chat->title        = userObj["name"].toString();
     chat->avatar_path  = userObj["avatar"].toString();
-    chat->user_id      = userObj["id"].toInt();
+    chat->user_id      = static_cast<long long>(userObj["id"].toDouble());
     LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
     return chat;
   } else if (type == "group") {
     auto chat          = std::make_shared<GroupChat>();
-    chat->chat_id      = obj["id"].toInt();
+    chat->chat_id      = static_cast<long long>(obj["id"].toDouble());
     chat->title        = obj["name"].toString();
     chat->avatar_path  = obj["avatar"].toString();
     chat->member_count = obj["member_count"].toInt();

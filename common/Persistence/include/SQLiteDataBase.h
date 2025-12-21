@@ -16,7 +16,7 @@ class SQLiteDatabase : public IDataBase {
    bool exec(const QString& sql) override {
      QSqlQuery q(db_);
      if(!q.exec(sql)) {
-        LOG_ERROR("For sql {} execute failed:", sql.toStdString(), q.lastError().text().toStdString());
+        LOG_ERROR("For sql {} execute failed: {}", sql.toStdString(), q.lastError().text().toStdString());
        return false;
       }
      return true;
@@ -37,7 +37,7 @@ class SQLiteDatabase : public IDataBase {
    std::unique_ptr<IQuery> prepare(const QString& sql) override {
      auto q = std::make_unique<SQLiteQuery>(db_); //TODO: factory??
      if (!q->prepare(sql)) {
-       LOG_ERROR("For sql {} prepare failed:", sql.toStdString(), q->error());
+       LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(), q->error());
        return nullptr;
      }
      return q;
@@ -49,10 +49,11 @@ class SQLiteDatabase : public IDataBase {
 
   bool initializeSchema();
 
- protected:
   bool tableExists(QSqlDatabase& db, const QString& tableName);
-  bool executeSql(QSqlDatabase& db, const QString& sql);
   bool deleteTable(QSqlDatabase& db, const QString& name);
+
+ protected:
+  bool executeSql(QSqlDatabase& db, const QString& sql);
 };
 
 #endif  // SQLITEDATABASE_H

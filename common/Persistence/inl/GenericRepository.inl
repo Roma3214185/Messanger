@@ -83,7 +83,6 @@ bool GenericRepository::save(const T& entity) {
 
   smt_outbox.values =  QList<QVariant>{ QVariant(meta.table_name), QVariant(QString::fromStdString(entity_json)) };
   auto main_query = database_.prepare(smt_entity.query);
-
   auto outbox_query = database_.prepare( smt_outbox.query);
 
   if(!main_query || !outbox_query) {
@@ -144,6 +143,7 @@ inline std::future<std::optional<T>> GenericRepository::findOneAsync(long long e
 
 template <typename T>
 std::optional<T> GenericRepository::findOne(long long entity_id) {
+  LOG_INFO("Id in dindOne {}", entity_id);
   auto query = QueryFactory::createSelect<T>(executor_, cache_);
   query->where("id", entity_id).limit(1);
   auto res = query->execute();

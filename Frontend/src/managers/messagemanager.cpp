@@ -24,7 +24,7 @@ QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_t
                                                         long long            chat_id,
                                                         long long            before_id,
                                                         long long            limit) {
-  PROFILE_SCOPE("ChatManager::getChatMessages");
+  PROFILE_SCOPE("MessageManager::getChatMessages");
 
   QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(chat_id)));
   LOG_INFO("For chatId '{}' limit is '{}' and beforeId '{}'", chat_id, limit, before_id);

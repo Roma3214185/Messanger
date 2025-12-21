@@ -87,7 +87,7 @@ void Presenter::initialConnections() {
   connect(manager_, &Model::userCreated, this, &Presenter::setUser);
   connect(manager_, &Model::newResponce, this, &Presenter::onNewResponce);
   connect(
-      manager_, &Model::chatAdded, this, [this](int chatId) { manager_->fillChatHistory(chatId); });
+      manager_, &Model::chatAdded, this, [this](long long chatId) { manager_->fillChatHistory(chatId); });
   connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
 
   if (!message_list_view_) {
@@ -135,7 +135,7 @@ void Presenter::onScroll(int value) {
   }
 
   PROFILE_SCOPE("Presenter::onScroll");
-  int chat_id = *current_opened_chat_id_;
+  long long chat_id = *current_opened_chat_id_;
   constexpr int limit_of_loading_messages = 20;
   auto newMessages = manager_->getChatMessages(chat_id, limit_of_loading_messages);
   if (newMessages.empty()) return;

@@ -32,6 +32,7 @@ using ChatId          = long long;
 using ChatPtr         = std::shared_ptr<ChatBase>;
 using MessageModelPtr = std::shared_ptr<MessageModel>;
 
+//todo(roma): make inheritance from I...Managers
 class Model : public QObject {
   Q_OBJECT
 
@@ -92,6 +93,7 @@ class Model : public QObject {
  private:
   void onMessageReceived(const QString& msg);
   void setupConnections();
+  void addMessageWithUpdatingChatList(const Message& msg, const User& user, long long chat_id, MessageModelPtr message_model);
 
   ICache* cache_;
   QString current_token_;

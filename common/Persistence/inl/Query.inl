@@ -39,6 +39,11 @@ std::vector<T> SelectQuery<T>::execute() const {
   }
 
   LOG_INFO("Not hit cache for key {}", cache_key);
+  LOG_INFO("Try to execute {}", sql.toStdString());
+  if(!this->executor_) {
+    LOG_ERROR("Executor is null");
+    return std::vector<T>{};
+  }
   auto query = this->executor_->execute(sql, this->values_);
   if(!query) {
     LOG_ERROR("query {} failed", sql.toStdString());
@@ -63,13 +68,16 @@ std::vector<T> SelectQuery<T>::execute() const {
 
 template <typename T>
 std::vector<T> SelectQuery<T>::buildResults(std::unique_ptr<IQuery>& query) const {
-  if(!query) return {};
+  if(!query) {
+    LOG_ERROR("Query in null");
+    return {};
+  }
   std::vector<T> results;
   auto meta = Reflection<T>::meta();
 
   while (query->next()) {
     T entity = buildEntity(query, meta);
-    LOG_INFO("Select {}", nlohmann::json(entity).dump());
+    LOG_INFO("Selected {}", nlohmann::json(entity).dump());
     results.push_back(std::move(entity));
   }
 
