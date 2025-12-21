@@ -54,18 +54,22 @@ T waitForFuture(QFuture<T>& future) {
 }
 
 }  // namespace
-
+//  SessionUseCase(SessionManager& session_manager, ICache* cache);
 Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, ISocket* socket, DataManager* data_manager)
-    : cache_(cash),
-      chat_model_(std::make_unique<ChatModel>()),
-      user_model_(std::make_unique<UserModel>()),
-      current_token_(""),
-      session_manager_(std::make_unique<SessionManager>(netManager, url)),
-      chat_manager_(std::make_unique<ChatManager>(netManager, url)),
-      message_manager_(std::make_unique<MessageManager>(netManager, url)),
-      user_manager_(std::make_unique<UserManager>(netManager, url)),
-      socket_manager_(std::make_unique<SocketManager>(socket, url)),
-      data_manager_(data_manager) {
+    : cache_(cash)
+    , chat_model_(std::make_unique<ChatModel>())
+    , user_model_(std::make_unique<UserModel>())
+    , current_token_("")
+    , session_manager_(std::make_unique<SessionManager>(netManager, url))
+    , chat_manager_(std::make_unique<ChatManager>(netManager, url))
+    , message_manager_(std::make_unique<MessageManager>(netManager, url))
+    , user_manager_(std::make_unique<UserManager>(netManager, url))
+    , socket_manager_(std::make_unique<SocketManager>(socket, url))
+    , data_manager_(data_manager)
+    , chat_use_case_(std::make_unique<ChatUseCase>(chat_manager_.get(), data_manager_, chat_model_.get(), token_manager_.get()))
+    , user_use_case_(std::make_unique<UserUseCase>(data_manager_, user_manager_.get(), token_manager_.get()))
+    , message_use_case_(std::make_unique<MessageUseCase>(data_manager_, message_manager_.get(), token_manager_.get()))
+    , session_use_case_(std::make_unique<SessionUseCase>(session_manager_.get())) {
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'", url.toString().toStdString());
 
   setupConnections();
@@ -79,8 +83,6 @@ void Model::setupConnections() {
   connect(session_manager_.get(), &SessionManager::userCreated, this, &Model::userCreated);
   connect(socket_manager_.get(), &SocketManager::newTextFromSocket, this, &Model::onMessageReceived);
 }
-
-Model::~Model() {}
 
 auto Model::indexByChatId(long long chat_id) -> QModelIndex {
   std::optional<int> idx = chat_model_->findIndexByChatId(chat_id);
@@ -104,6 +106,7 @@ void Model::checkToken() {
 
 void Model::saveToken(const QString& token) {
   current_token_ = token;
+  token_manager_->setToken(token);
   cache_->saveToken("TOKEN", token.toStdString());
   LOG_INFO("[saveToken] Token saved");
 }
@@ -114,10 +117,6 @@ void Model::deleteToken() const {
 }
 
 void Model::setCurrentUserId(long long current_id) { MessageModel::setCurrentUserId(current_id); }
-
-void Model::signIn(const LogInRequest& login_request) { session_manager_->signIn(login_request); }
-
-void Model::signUp(const SignUpRequest& request) { session_manager_->signUp(request); }
 
 ChatPtr Model::loadChat(long long chat_id) {
   auto future = chat_manager_->loadChat(current_token_, chat_id);
@@ -231,7 +230,7 @@ void Model::addOfflineMessageToChat(long long chat_id, User user, const Message&
 void Model::addChatInFront(const ChatPtr& chat) {
   PROFILE_SCOPE("Model::addChatInFront");
   addChat(chat);
-  chat_model_->realocateChatInFront(chat->chat_id);
+  chat_model_->realocateChatInFront(chat->chat_id); //todo: delete this, sort instead
 }
 
 void Model::sendMessage(const Message& msg) {
@@ -301,6 +300,7 @@ void Model::logout() {
   deleteToken();
   current_token_.clear();
   chat_model_->clear();
+  token_manager_->resetToken();
   LOG_INFO("[logout] Logout complete");
 }
 
@@ -386,7 +386,3 @@ void Model::fillChatHistory(long long chat_id) {
   auto last_message = message_model->getLastMessage();
   chat_model_->updateChatInfo(chat_id, last_message);
 }
-
-auto Model::getChatModel() const -> ChatModel* { return chat_model_.get(); }
-
-auto Model::getUserModel() const -> UserModel* { return user_model_.get(); }

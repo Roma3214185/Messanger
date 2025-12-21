@@ -79,9 +79,9 @@ void Presenter::setMessageListView(IMessageListView* message_list_view) {
   view_->setMessageListView(static_cast<QListView*>(message_list_view));
 }
 
-void Presenter::signIn(const LogInRequest& login_request) { manager_->signIn(login_request); }
+void Presenter::signIn(const LogInRequest& login_request) { manager_->session().signIn(login_request); }
 
-void Presenter::signUp(const SignUpRequest& req) { manager_->signUp(req); }
+void Presenter::signUp(const SignUpRequest& req) { manager_->session().signUp(req); }
 
 void Presenter::initialConnections() {
   connect(manager_, &Model::userCreated, this, &Presenter::setUser);
@@ -166,7 +166,7 @@ void Presenter::setUser(const User& user, const QString& token) {
   LOG_INFO("In presenter loaded '{}' chats for user id '{}'", chats.size(), user.id);
 
   for (const auto& chat : chats) {
-    manager_->addChat(chat);
+    manager_->chat().addChat(chat);
   }
 
   manager_->connectSocket();

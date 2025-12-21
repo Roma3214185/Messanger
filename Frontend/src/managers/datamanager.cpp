@@ -58,7 +58,7 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   message_models_by_chat_id_[chat->chat_id] = message_model;
 }
 
-void DataManager::saveUser(User user) {
+void DataManager::saveUser(const User& user) {
   if(user.id <= 0) throw std::runtime_error("User id is invalid");
   users_by_id_[user.id] = user;
 }
