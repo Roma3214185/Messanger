@@ -155,12 +155,12 @@ void MainWindow::clearUpInput() {
 
 void MainWindow::seupConnections() {
   connect(ui_->chatListView, &QListView::clicked, this, [=](const QModelIndex& index) -> void {
-    auto chat_id = index.data(ChatModel::ChatIdRole).toInt();
+    long long chat_id = index.data(ChatModel::ChatIdRole).toLongLong();
     presenter_->onChatClicked(chat_id);
   });
 
   connect(ui_->userListView, &QListView::clicked, this, [=](const QModelIndex& index) -> void {
-    auto user_id = index.data(UserModel::UserIdRole).toInt();
+    long long user_id = index.data(UserModel::UserIdRole).toLongLong();
     presenter_->onUserClicked(user_id);
   });
 

@@ -8,6 +8,13 @@
 #include <optional>
 #include <unordered_map>
 
+#include "managers/Managers.h"
+#include "usecases/chatusecase.h"
+#include "usecases/messageusecase.h"
+#include "usecases/sessionusecase.h"
+#include "usecases/userusecase.h"
+#include "managers/TokenManager.h"
+
 class ChatBase;
 class MessageModel;
 class ChatModel;
@@ -20,13 +27,11 @@ class SignUpRequest;
 class LogInRequest;
 class User;
 class MessageInfo;
-class SessionManager;
-class ChatManager;
-class MessageManager;
-class UserManager;
-class SocketManager;
 class DataManager;
 class ISocket;
+class ChatUseCase;
+class MessageUseCase;
+class UserUseCase;
 
 using ChatId          = long long;
 using ChatPtr         = std::shared_ptr<ChatBase>;
@@ -41,15 +46,13 @@ class Model : public QObject {
                  ICache*                cache,
                  ISocket*               socket,
                  DataManager* data_manager);
-  ~Model();
 
-  ChatModel*                    getChatModel() const;
-  UserModel*                    getUserModel() const;
+  inline ChatModel* getChatModel() const { return chat_model_.get(); }
+  inline UserModel* getUserModel() const { return user_model_.get(); }
+
   MessageModel*                 getMessageModel(long long chat_id);
 
   void checkToken();
-  void signIn(const LogInRequest& login_request);
-  void signUp(const SignUpRequest& request);
   void initSocket(long long user_id);
   void connectSocket();
 
@@ -82,6 +85,11 @@ class Model : public QObject {
   QModelIndex indexByChatId(long long chat_id);
   static void setCurrentUserId(long long current_id);
 
+  inline SessionUseCase& session() { return *session_use_case_; }
+  inline MessageUseCase& message() { return *message_use_case_; }
+  inline UserUseCase& user() { return *user_use_case_; }
+  inline ChatUseCase& chat() { return *chat_use_case_; }
+
  Q_SIGNALS:
   void chatAdded(long long id);
   void errorOccurred(const QString& error);
@@ -92,6 +100,7 @@ class Model : public QObject {
  private:
   void onMessageReceived(const QString& msg);
   void setupConnections();
+  void addMessageWithUpdatingChatList(const Message& msg, const User& user, long long chat_id, MessageModelPtr message_model);
 
   ICache* cache_;
   QString current_token_;
@@ -105,6 +114,13 @@ class Model : public QObject {
   std::unique_ptr<UserManager>    user_manager_;
   std::unique_ptr<SocketManager>  socket_manager_;
   DataManager*    data_manager_;
+
+  std::unique_ptr<TokenManager> token_manager_;
+  std::unique_ptr<ChatUseCase> chat_use_case_;
+  std::unique_ptr<UserUseCase> user_use_case_;
+  std::unique_ptr<MessageUseCase> message_use_case_;
+  std::unique_ptr<SessionUseCase> session_use_case_;
+
 };
 
 #endif  // MODEL_H

@@ -10,6 +10,8 @@ QVariant toVariant(const Field& f, const T& entity) {
 
   if (f.type == typeid(long long))
     return QVariant::fromValue(std::any_cast<long long>(val));
+  if (f.type == typeid(int))
+    return  QVariant::fromValue(std::any_cast<int>(val));
   if (f.type == typeid(std::string))
     return QString::fromStdString(std::any_cast<std::string>(val));
   if (f.type == typeid(bool))
@@ -20,8 +22,10 @@ QVariant toVariant(const Field& f, const T& entity) {
 
 template <typename T>
 std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
-  if (!v.isValid())
+  if (!v.isValid()) {
+    LOG_ERROR("v.isValid == false");
     return {};
+  }
 
   //TODO: free function???
 
@@ -34,6 +38,7 @@ std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
   if (f.type == typeid(bool))
     return std::any(static_cast<bool>(v.toInt()));
 
+  LOG_ERROR("Unexpected typeid in getFieldValue");
   return {};
 }
 

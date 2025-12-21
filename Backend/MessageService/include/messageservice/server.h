@@ -11,7 +11,7 @@ class IController;
 
 class Server {
  public:
-  using OptionalId = std::optional<int>;
+  using OptionalId = std::optional<long long>;
   Server(crow::SimpleApp& app, int port, IController* controller, IConfigProvider* provider = &ProdConfigProvider::instance());
   void run();
 
@@ -20,7 +20,7 @@ class Server {
                                                   const std::vector<MessageStatus>& messages_status);
 
  private:
-  virtual void onGetMessagesFromChat(const crow::request& req, int chat_id, crow::response& res);
+  virtual void onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res);
   void handleGetMessagesFromChat();
   void handleRoutes();
   virtual OptionalId getUserIdFromToken(const std::string& token);

@@ -11,6 +11,8 @@
 
 class IIdGenerator;
 
+using ID = long long;
+
 class ChatManager : public IChatManager {
  public:
   ChatManager(GenericRepository* repository, IIdGenerator* generator);

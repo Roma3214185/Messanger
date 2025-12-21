@@ -113,6 +113,6 @@ std::vector<Message> Controller::getMessages(const GetMessagePack& pack) {
   return manager_->getChatMessages(pack);
 }
 
-std::vector<MessageStatus> Controller::getMessagesStatus(const std::vector<Message>& messages, int receiver_id) {
+std::vector<MessageStatus> Controller::getMessagesStatus(const std::vector<Message>& messages, long long receiver_id) {
   return manager_->getMessagesStatus(messages, receiver_id);
 }

@@ -4,26 +4,36 @@
 #include "Fields.h"
 #include "interfaces/IIdGenerator.h"
 
+namespace {
+
+bool checkIdValid(long long id) {
+  return id > 0;
+}
+
+}  // namespace
+
 ChatManager::ChatManager(GenericRepository* repository, IIdGenerator* generator)
     : repository_(repository), generator_(generator) {}
 
 std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_user_id) {
-  // 1) check in db "private_chats" exists of pair min(first_user_id, second_user) and max(first_user_id, second_user)
-  // 2) if chat exist -> return id
-  // 3) else (returned empty list)
-  // 4) create in db "chat" chat with is_group = false
-  // 5) if success -> get id and save in db
-            //"private_chats" (chat_id, min(first_user_id, second_user) max(first_user_id, second_user)
-  //6) save in chat_members pair chat_id, first_user_id
-  //7) save in chat_members pair chat_id, second_user_id
-
+  LOG_INFO("F id {} and S id {}", first_user_id, second_user_id);
   if(first_user_id == second_user_id) {
     LOG_ERROR("User id is same");
     return std::nullopt;
   }
 
-  int min_user_id = first_user_id < second_user_id ? first_user_id : second_user_id;
-  int max_user_id = first_user_id > second_user_id ? first_user_id : second_user_id;
+  if(!checkIdValid(first_user_id)) {
+    LOG_ERROR("User first_user_id is invalid");
+    return std::nullopt;
+  }
+
+  if(!checkIdValid(second_user_id)) {
+    LOG_ERROR("User second_user_id is invalid");
+    return std::nullopt;
+  }
+
+  long long min_user_id = first_user_id < second_user_id ? first_user_id : second_user_id;
+  long long max_user_id = first_user_id > second_user_id ? first_user_id : second_user_id;
 
   auto custom_query = QueryFactory::createSelect<PrivateChat>(repository_->getExecutor(), repository_->getCache());
   custom_query->where(PrivateChatTable::FirstUserId, min_user_id)
@@ -31,9 +41,18 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
 
   auto res = custom_query->execute();
   assert(res.size() <= 1);
-  if(res.size() == 1) return res[0].chat_id;
+  if(res.size() == 1) {
+    LOG_INFO("Private chat is existed, id is {}", res[0].chat_id);
+    return res[0].chat_id;
+  }
 
-  int new_chat_id = generator_->generateId();
+  long long new_chat_id = generator_->generateId();
+  if(!checkIdValid(new_chat_id)) {
+    LOG_ERROR("INvalid generated id");
+    return std::nullopt;
+  }
+
+  LOG_INFO("Create chat with id {}", new_chat_id);
   Chat to_save;
   to_save.id = new_chat_id;
   to_save.created_at = QDateTime::currentSecsSinceEpoch();
@@ -66,8 +85,15 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
 }
 
 bool ChatManager::addMembersToChat(ID chat_id, const std::vector<ID>& members_id) {
+  if(!checkIdValid(chat_id)) {
+    LOG_ERROR("Invalid chat_id in addMembersToChat {}", chat_id);
+  }
   std::vector<ChatMember> chat_members;
   for (auto id : members_id) {
+    if(!checkIdValid(id)) {
+      LOG_ERROR("Invalid member id");
+      continue;
+    }
     LOG_INFO("Add member with id {} to chat {}", id, chat_id);
     ChatMember new_member{
         .chat_id = chat_id, .user_id = id, .added_at = QDateTime::currentSecsSinceEpoch()};
@@ -86,17 +112,27 @@ bool ChatManager::addMembersToChat(ID chat_id, const std::vector<ID>& members_id
 }
 
 std::vector<ID> ChatManager::getMembersOfChat(ID chat_id) {
-  std::vector<ChatMember> chat_members = repository_->findByField<ChatMember>(ChatMemberTable::ChatId, chat_id);
+  if(!checkIdValid(chat_id)) {
+    LOG_ERROR("In getMembersOfChat {} is invalid", chat_id);
+    return std::vector<ID>{};
+  }
+  auto chat_members = repository_->findByField<ChatMember>(ChatMemberTable::ChatId, chat_id);
+  //TODO: make select only id of chat_members
   LOG_INFO("[getMembersOfChat] for chat_id {} finded {} members", chat_id, chat_members.size());
   std::vector<ID> chat_members_id;
   for (auto member : chat_members) {
-    LOG_INFO("[getMembersOfChat] for chat_id {} finded {} ", chat_id, member.user_id);
-    chat_members_id.push_back(member.user_id);
+    if(!checkIdValid(member.user_id)) {
+      LOG_ERROR("Chat member with invalid id: {}", nlohmann::json(member).dump());
+    } else {
+      LOG_INFO("[getMembersOfChat] for chat_id {} finded {} ", chat_id, nlohmann::json(member).dump());
+      chat_members_id.push_back(member.user_id);
+    }
   }
   return chat_members_id;
 }
 
 std::vector<ID> ChatManager::getChatsIdOfUser(ID user_id) {
+  LOG_INFO("getChatsIdOfUser {}", user_id);
   auto chats_where_user_member = repository_->findByField<ChatMember>(ChatMemberTable::UserId, user_id);
   LOG_INFO("chats_where_user {} is member is {} size", user_id, (int)chats_where_user_member.size());
 
@@ -112,6 +148,16 @@ int ChatManager::getMembersCount(ID chat_id) {
 }
 
 std::optional<ID> ChatManager::getOtherMemberId(ID chat_id, ID user_id) {
+  if(!checkIdValid(chat_id)) {
+    LOG_ERROR("Invalid chat_id in getOtherMemberId {}", chat_id);
+    return std::nullopt;
+  }
+
+  if(!checkIdValid(user_id)) {  //todo: struct ID that can't be <= 0
+    LOG_ERROR("Invalid user_id in getOtherMemberId {}", chat_id);
+    return std::nullopt;
+  }
+
   auto members_id = getMembersOfChat(chat_id);
   for (auto mem_id : members_id) {
     if (mem_id != user_id) return mem_id;

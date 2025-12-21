@@ -16,7 +16,7 @@ struct MockController : public IController {
     return mock_messages;
    }
 
-   std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, int receiver_id) override {
+   std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, long long receiver_id) override {
      return mock_messages_status;
    }
 };

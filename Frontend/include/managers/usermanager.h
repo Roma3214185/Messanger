@@ -19,7 +19,7 @@ class UserManager : public BaseManager {
   using BaseManager::BaseManager;
 
   QFuture<QList<User>>         findUsersByTag(const QString& tag, const QString& current_token);
-  QFuture<std::optional<User>> getUser(int user_id, const QString& current_token);
+  QFuture<std::optional<User>> getUser(long long user_id, const QString& current_token);
 
  protected:
   QList<User>         onFindUsersByTag(const QByteArray& responce_data) const;

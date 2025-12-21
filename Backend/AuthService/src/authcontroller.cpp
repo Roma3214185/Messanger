@@ -111,7 +111,7 @@ void AuthController::findByTag(const crow::request& req,
   sendResponse(responce, provider_->statusCodes().success, json_users.dump());
 }
 
-void AuthController::findById(const crow::request& req, int user_id, crow::response& responce) {
+void AuthController::findById(const crow::request& req, long long user_id, crow::response& responce) {
   auto found_user = manager_->getUser(user_id);
   if (!found_user) {
     LOG_ERROR("User with id {} not found", user_id);

@@ -21,7 +21,7 @@ auto getRequestWithToken(QUrl endpoint, const QString& current_token) -> QNetwor
 
 }  // namespace
 
-QFuture<std::optional<User>> UserManager::getUser(int user_id, const QString& current_token) {
+QFuture<std::optional<User>> UserManager::getUser(long long user_id, const QString& current_token) {
   LOG_INFO("[getUser] Loading user id={}", user_id);
   PROFILE_SCOPE("UserManager::getUser");
 

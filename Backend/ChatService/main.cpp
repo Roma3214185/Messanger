@@ -22,8 +22,27 @@ int main(int argc, char* argv[]) {
   if (!sqlite.open()) {
     qFatal("Cannot open DB");
   }
-
   SQLiteDatabase database(sqlite);
+
+  // if (!database.deleteTable(sqlite, "private_chats")) {
+  //   LOG_ERROR("Not deleted private_chats table");
+  // } {
+  //   LOG_WARN("private_chats table is deleted");
+  // }
+
+  // if (!database.deleteTable(sqlite, "chats")) {
+  //   LOG_ERROR("Not deleted chats table");
+  // } {
+  //   LOG_WARN("Chats table is deleted");
+  // }
+
+  // if (!database.deleteTable(sqlite, "chat_members")) {
+  //   LOG_ERROR("Not deleted chat_members table");
+  // } {
+  //   LOG_WARN("chat_members table is deleted");
+  // }
+
+
   if(!database.initializeSchema()) {
     qFatal("Cannot initialise DB");
   }

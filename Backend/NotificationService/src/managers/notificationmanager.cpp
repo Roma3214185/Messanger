@@ -81,8 +81,8 @@ void NotificationManager::onMarkReadMessage(Message& message, long long read_by)
 }
 
 void NotificationManager::onSendMessage(Message& message) {
-  LOG_INFO("Send message from '{}' to chatId '{}' (text: '{}')",
-           message.sender_id, message.chat_id, message.text);
+  LOG_INFO("Send message from '{}': {}",
+           message.sender_id, nlohmann::json(message).dump());
 
   auto to_save     = nlohmann::json(message);
   to_save["event"] = "save_message";
@@ -101,9 +101,10 @@ void NotificationManager::onMessageStatusSaved() {}
 void NotificationManager::onMessageSaved(Message& saved_message) {
   auto members_of_chat = fetchChatMembers(saved_message.chat_id);
   LOG_INFO("For chat id '{}' finded '{}' members", saved_message.chat_id, members_of_chat.size());
-  LOG_INFO("Received saved message id {} text '{}'", saved_message.id, saved_message.text);
+  LOG_INFO("Received saved message {}", nlohmann::json(saved_message).dump());
 
   for (auto user_id : members_of_chat) {
+    LOG_INFO("{} is member of chat {}", user_id, saved_message.chat_id);
     saveDeliveryStatus(saved_message, user_id);
     notifyMember(user_id, saved_message);
   }
@@ -144,10 +145,12 @@ bool NotificationManager::notifyMember(long long user_id, const Message& msg) {
 }
 
 void NotificationManager::saveDeliveryStatus(const Message& msg, long long receiver_id) {
+  LOG_INFO("saveDeliveryStatus message {} for receiver id {}", nlohmann::json(msg).dump(), receiver_id);
   MessageStatus status;
   status.message_id  = msg.id;
   status.receiver_id = receiver_id;
   status.is_read     = false;
 
+  LOG_INFO("saveDeliveryStatus message_status {} for receiver id {}", nlohmann::json(status).dump(), receiver_id);
   saveMessageStatus(status);
 }

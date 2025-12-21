@@ -9,15 +9,30 @@ class MarkReadMessageHandler : public IMessageHandler {
                 std::shared_ptr<ISocket>,
                 NotificationManager& manager) override {
 
-      if (!message.has("readed_by")) {
-        LOG_ERROR("[mark_read] No readed_by");
-        return;
-      }
+      LOG_INFO("Try get user_id");
+      auto read_by = [message]() -> std::optional<long long> {
+        if (!message.has("readed_by")) {
+          LOG_ERROR(" No readed_by");
+          return std::nullopt;
+        }
+
+        if (message["readed_by"].t() == crow::json::type::String) {
+          return std::stoll(message["readed_by"].s());
+        }
+
+        if (message["readed_by"].t() == crow::json::type::Number) {
+          return static_cast<long long>(message["readed_by"].d());
+        }
+
+        LOG_ERROR("Unexpected type of field 'readed_by'");
+        return std::nullopt;
+      }();
+
+      if(!read_by) return;
 
       auto msg = from_crow_json(message);
-      int read_by = message["readed_by"].i();
-      manager.onMarkReadMessage(msg, read_by);
-      LOG_INFO("[mark_read] Message marked read by {}", read_by);
+      manager.onMarkReadMessage(msg, *read_by);
+      LOG_INFO("[mark_read] Message marked read by {}", *read_by);
     }
 };
 

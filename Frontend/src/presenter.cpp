@@ -79,15 +79,15 @@ void Presenter::setMessageListView(IMessageListView* message_list_view) {
   view_->setMessageListView(static_cast<QListView*>(message_list_view));
 }
 
-void Presenter::signIn(const LogInRequest& login_request) { manager_->signIn(login_request); }
+void Presenter::signIn(const LogInRequest& login_request) { manager_->session().signIn(login_request); }
 
-void Presenter::signUp(const SignUpRequest& req) { manager_->signUp(req); }
+void Presenter::signUp(const SignUpRequest& req) { manager_->session().signUp(req); }
 
 void Presenter::initialConnections() {
   connect(manager_, &Model::userCreated, this, &Presenter::setUser);
   connect(manager_, &Model::newResponce, this, &Presenter::onNewResponce);
   connect(
-      manager_, &Model::chatAdded, this, [this](int chatId) { manager_->fillChatHistory(chatId); });
+      manager_, &Model::chatAdded, this, [this](long long chatId) { manager_->fillChatHistory(chatId); });
   connect(manager_, &Model::errorOccurred, this, &Presenter::onErrorOccurred);
 
   if (!message_list_view_) {
@@ -135,7 +135,7 @@ void Presenter::onScroll(int value) {
   }
 
   PROFILE_SCOPE("Presenter::onScroll");
-  int chat_id = *current_opened_chat_id_;
+  long long chat_id = *current_opened_chat_id_;
   constexpr int limit_of_loading_messages = 20;
   auto newMessages = manager_->getChatMessages(chat_id, limit_of_loading_messages);
   if (newMessages.empty()) return;
@@ -166,7 +166,7 @@ void Presenter::setUser(const User& user, const QString& token) {
   LOG_INFO("In presenter loaded '{}' chats for user id '{}'", chats.size(), user.id);
 
   for (const auto& chat : chats) {
-    manager_->addChat(chat);
+    manager_->chat().addChat(chat);
   }
 
   manager_->connectSocket();
