@@ -23,7 +23,7 @@ class UserDelegate : public QStyledItemDelegate {
   void         drawAll(QPainter*                   painter,
                        const QStyleOptionViewItem& option,
                        const UserDrawData&         user) const;
-  UserDrawData extractMessageData(const QModelIndex& index) const;
+  UserDrawData extractDrawData(const QModelIndex& index) const;
   void         drawAvatar(QPainter* painter, const QRect& rect, const QPixmap& avatar) const;
   void         drawName(QPainter* painter, const QRect& rect, const QString& name) const;
   void         drawTag(QPainter* painter, const QRect& rect, const QString& tag) const;
