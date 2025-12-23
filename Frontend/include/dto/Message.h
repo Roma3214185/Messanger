@@ -38,17 +38,17 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
 
   std::string to_string() {
     std::string res;
-    res += "|id = " + std::to_string(id);
-    res += "|senderId = " + std::to_string(senderId);
-    res += "|chatId = " + std::to_string(chatId);
-    res += "|text = " + text.toStdString();
-    res += "|timestamp = " + timestamp.toString().toStdString();
-    //res += "|readed_by_me = " +  std::to_string(readed_by_me + 0);
-    //res += "|liked_by_me = " +  std::to_string(liked_by_me + 0);
-    //res += "|read_counter = " +  std::to_string(read_counter + 0);
-    //res += "|liked_counter = " +  std::to_string(liked_counter + 0);
-    res += "|status_sended = " + std::to_string(status_sended + 0);
-    res += "|local_id = " + local_id.toStdString();
+    res += "| id = " + std::to_string(id);
+    res += " | senderId = " + std::to_string(senderId);
+    res += " | chatId = " + std::to_string(chatId);
+    res += " | text = " + text.toStdString();
+    res += " | timestamp = " + timestamp.toString().toStdString();
+    //res += " | readed_by_me = " +  std::to_string(readed_by_me + 0);
+    //res += " | liked_by_me = " +  std::to_string(liked_by_me + 0);
+    //res += " | read_counter = " +  std::to_string(read_counter + 0);
+    //res += " | liked_counter = " +  std::to_string(liked_counter + 0);
+    res += " | status_sended = " + std::to_string(status_sended + 0);
+    res += " | local_id = " + local_id.toStdString();
     return res;
   }
 };
