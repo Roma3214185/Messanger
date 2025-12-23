@@ -73,6 +73,7 @@ bool GenericRepository::save(const T& entity) {
 
   SqlBuilder<T> builder;
   SqlStatement smt_entity = builder.buildInsert(meta, entity);
+  LOG_INFO("Builded sql {}", smt_entity.query.toStdString());
   database_.transaction();
 
   SqlStatement smt_outbox;
@@ -90,6 +91,8 @@ bool GenericRepository::save(const T& entity) {
     LOG_INFO("Failed to prepare");
     return false;
   }
+
+  LOG_INFO("Prepare succed");
 
   bindToQuery(main_query, smt_entity.values);
   bindToQuery(outbox_query, smt_outbox.values);

@@ -16,7 +16,10 @@ QVariant toVariant(const Field& f, const T& entity) {
     return QString::fromStdString(std::any_cast<std::string>(val));
   if (f.type == typeid(bool))
     return static_cast<int>(std::any_cast<bool>(val));
+  if (f.type == typeid(int))
+    return QVariant::fromValue(std::any_cast<int>(val));
 
+  LOG_ERROR("iNvalid toVariant {}", f.type.name());
   return {};
 }
 
@@ -38,7 +41,10 @@ std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
   if (f.type == typeid(bool))
     return std::any(static_cast<bool>(v.toInt()));
 
-  LOG_ERROR("Unexpected typeid in getFieldValue");
+  if (f.type == typeid(int))
+    return std::any(v.toInt());
+
+  LOG_ERROR("Unexpected typeid in getFieldValue {}", f.type.name());
   return {};
 }
 
@@ -47,8 +53,6 @@ std::pair<QStringList, QStringList> buildInsertParts(
     const Meta& meta, const T& entity, QList<QVariant>& values) {
   QStringList cols, ph;
   for (const auto& f : meta.fields) {
-    //if (std::string(f.name) == "id" && toVariant<T>(f, entity) == 0) continue;
-
     cols << f.name;
     ph << "?";
     values << toVariant<T>(f, entity);
