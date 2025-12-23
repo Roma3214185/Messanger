@@ -19,7 +19,7 @@ class ChatUseCase : public QObject {
     using ChatPtr = std::shared_ptr<ChatBase>;
 
     ChatUseCase(ChatManager*, DataManager*, ChatModel*, TokenManager*);
-    [[nodiscrard]] ChatPtr loadChat(ChatId);
+    [[nodiscard]] ChatPtr loadChat(ChatId);
     QList<ChatPtr> loadChats();
     void loadChatsAsync();
     ChatPtr createPrivateChat(UserId);
@@ -29,14 +29,11 @@ class ChatUseCase : public QObject {
     void createChat(ChatId);
     int getNumberOfExistingChats() const;
 
-    [[nodiscrard]] ChatPtr getChat(ChatId);
+    [[nodiscard]] ChatPtr getChat(ChatId);
     void clearAllChats();
     QModelIndex indexByChatId(ChatId);
 
     void logout();
-
-  //Q_SIGNALS:
-    //void chatAdded(const ChatPtr&);
 
   private:
     ChatManager* chat_manager_;

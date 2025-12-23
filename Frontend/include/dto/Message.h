@@ -26,17 +26,6 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
       return;
     }
 
-    if(senderId != other.senderId) {
-      LOG_ERROR("Can't updateFrom {} because it's senderId differs");
-
-      return;
-    }
-
-    if(chatId != other.chatId) {
-      LOG_ERROR("Can't updateFrom {} because it's chatId differs");
-      return;
-    }
-
     id = other.id;
     text = other.text;
     timestamp = other.timestamp;
@@ -49,16 +38,16 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
 
   std::string to_string() {
     std::string res;
-    res += "|id = " + id;
-    res += "|senderId = " + senderId;
-    res += "|chatId = " + chatId;
+    res += "|id = " + std::to_string(id);
+    res += "|senderId = " + std::to_string(senderId);
+    res += "|chatId = " + std::to_string(chatId);
     res += "|text = " + text.toStdString();
     res += "|timestamp = " + timestamp.toString().toStdString();
-    //res += "|readed_by_me = " + readed_by_me;
-    //res += "|liked_by_me = " + liked_by_me;
-    //res += "|read_counter = " + read_counter;
-    //res += "|liked_counter = " + liked_counter;
-    res += "|status_sended = " + status_sended;
+    //res += "|readed_by_me = " +  std::to_string(readed_by_me + 0);
+    //res += "|liked_by_me = " +  std::to_string(liked_by_me + 0);
+    //res += "|read_counter = " +  std::to_string(read_counter + 0);
+    //res += "|liked_counter = " +  std::to_string(liked_counter + 0);
+    res += "|status_sended = " + std::to_string(status_sended + 0);
     res += "|local_id = " + local_id.toStdString();
     return res;
   }
