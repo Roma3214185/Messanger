@@ -13,11 +13,11 @@ class ICacheService {
   virtual bool                          exists(const std::string& key) = 0;
   virtual std::optional<std::string> get(const std::string& key)    = 0;
   virtual void                          set(const std::string&        key,
-                                            const std::string&     value,
-                                            std::chrono::milliseconds ttl = std::chrono::hours(24)) = 0;
+                                          const std::string&     value,
+                                          std::chrono::seconds ttl = std::chrono::seconds(5)) = 0;
   virtual void                          setPipelines(const std::vector<std::string>&    keys,
                                                      const std::vector<std::string>& results,
-                                                     std::chrono::minutes               ttl = std::chrono::minutes(30)) = 0;
+                                                     std::chrono::seconds ttl = std::chrono::seconds(5)) = 0;
 };
 
 #endif  // ICACHESERVICE_H

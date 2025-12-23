@@ -19,6 +19,8 @@ struct CacheMiddleware {
     {
       if(req.method != crow::HTTPMethod::GET) return;
       if (req.url == "/auth/me") return;
+      std::string req_url = "/request";
+      if (req.url.substr(0, req_url.length()) == req_url) return;
       LOG_INFO("Url before_handle cache: {}", req.url);
 
       auto key = makeCacheKey(req);
@@ -43,6 +45,7 @@ struct CacheMiddleware {
 
   private:
     std::string makeCacheKey(const crow::request& req) {
+      //todo: implement for some url not set cache
       std::string key = "cache:" + crow::method_name(req.method) + ":" + req.url + (req.body.empty() ? "" : "|" + req.body);
       auto keys = req.url_params.keys();
       std::sort(keys.begin(), keys.end());
