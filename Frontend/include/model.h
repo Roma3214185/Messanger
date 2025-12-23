@@ -14,6 +14,7 @@
 #include "usecases/sessionusecase.h"
 #include "usecases/userusecase.h"
 #include "managers/TokenManager.h"
+#include "usecases/socketusecase.h"
 
 class ChatBase;
 class MessageModel;
@@ -50,60 +51,24 @@ class Model : public QObject {
   inline ChatModel* getChatModel() const { return chat_model_.get(); }
   inline UserModel* getUserModel() const { return user_model_.get(); }
 
-  MessageModel*                 getMessageModel(long long chat_id);
+  MessageModel* getMessageModel(long long chat_id);
+  [[nodiscard]] std::optional<QString> checkToken();
+  void deleteToken() const;
+  void saveData(const QString& token, long long current_id);
+  void logout();
 
-  void checkToken();
-  void initSocket(long long user_id);
-  void connectSocket();
+  inline SessionUseCase* session() { return session_use_case_.get(); }
+  inline MessageUseCase* message() { return message_use_case_.get(); }
+  inline UserUseCase* user() { return user_use_case_.get(); }
+  inline ChatUseCase* chat() { return chat_use_case_.get(); }
+  inline DataManager* getDataManager() { return data_manager_; }
+  inline TokenManager* getTokenManager() { return token_manager_.get(); }
+  inline SocketUseCase* socket() { return socket_use_case_.get(); }
 
-  [[nodiscard]] ChatPtr     loadChat(long long chat_id);
-  [[nodiscard]] QList<User> findUsers(const QString& text);
-  std::optional<User>       getUser(long long user_id);
-  ChatPtr                   createPrivateChat(long long user_id);
-
-  QList<Message> getChatMessages(long long chat_id, int limit = 20);
-
-  void                         sendMessage(const Message& msg);
-  [[nodiscard]] QList<ChatPtr> loadChats();
-  void                         authenticateWithToken(const QString& token);
-  void                         getUserAsync(long long user_id);
-  void                         fillChatHistory(long long chat_id);
-  void                         addChat(const ChatPtr& chat);
-  void                         addChatInFront(const ChatPtr& chat);
-  void                         createChat(long long chat_id);
-  void    addMessageToChat(long long chat_id, const Message& msg);
-  void    addOfflineMessageToChat(long long chat_id, User, const Message&);
-  void    deleteToken() const;
-  ChatPtr getPrivateChatWithUser(long long user_id);
-  void    saveToken(const QString& token);
-  void    clearAllChats();
-  void    clearAllMessages();
-  void    logout();
-  ChatPtr getChat(long long chat_id);
-
-  int         getNumberOfExistingChats() const;
-  QModelIndex indexByChatId(long long chat_id);
-  static void setCurrentUserId(long long current_id);
-
-  inline SessionUseCase& session() { return *session_use_case_; }
-  inline MessageUseCase& message() { return *message_use_case_; }
-  inline UserUseCase& user() { return *user_use_case_; }
-  inline ChatUseCase& chat() { return *chat_use_case_; }
-
- Q_SIGNALS:
-  void chatAdded(long long id);
-  void errorOccurred(const QString& error);
-  void userCreated(const User& user, const QString& token);
-  void newResponce(QJsonObject& message);
-  void chatUpdated(long long chat_id);
+  void setupConnections();
 
  private:
-  void onMessageReceived(const QString& msg);
-  void setupConnections();
-  void addMessageWithUpdatingChatList(const Message& msg, const User& user, long long chat_id, MessageModelPtr message_model);
-
   ICache* cache_;
-  QString current_token_;
 
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
@@ -113,6 +78,7 @@ class Model : public QObject {
   std::unique_ptr<MessageManager> message_manager_;
   std::unique_ptr<UserManager>    user_manager_;
   std::unique_ptr<SocketManager>  socket_manager_;
+  std::unique_ptr<SocketUseCase> socket_use_case_;
   DataManager*    data_manager_;
 
   std::unique_ptr<TokenManager> token_manager_;
