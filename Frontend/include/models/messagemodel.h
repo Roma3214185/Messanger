@@ -18,15 +18,13 @@ class MessageModel : public QAbstractListModel {
 
  public:
   enum Roles {
-    UsernameRole = Qt::UserRole + 1,
-    MessageIdRole,
+    MessageIdRole = Qt::UserRole + 1,
     TextRole,
-    AvatarRole,
     TimestampRole,
-    ReceiverIdTole,
     SenderIdRole,
     SendedStatusRole,
-    ReadedStatusRole
+    ReadedStatusRole,
+    FullMessage
   };
 
   explicit MessageModel(QObject* parent = nullptr);
@@ -35,19 +33,16 @@ class MessageModel : public QAbstractListModel {
   QVariant               data(const QModelIndex& index, int role) const override;
   QModelIndex indexFromId(MessageId) const;
   QHash<int, QByteArray> roleNames() const override;
-  void addMessage(const Message& msg, const User& user);
+  void saveMessage(const Message& msg);
   void clear();
   std::optional<Message> getLastMessage() const;
   std::optional<Message> getOldestMessage() const;
-  static void setCurrentUserId(long long user_id);
-  void                                 resetCurrentUseId();
 
  private:
   void  sortMessagesByTimestamp();
-  ListOfMessages            messages_;
-  MessagesByChatId          messages_by_chat_id;
-  UsersByMessageId          users_by_message_id_;
-  static std::optional<int> currentUserId;
+
+  std::mutex messages_mutex_;
+  ListOfMessages messages_;
 };
 
 #endif  // MESSAGEMODEL_H
