@@ -7,6 +7,7 @@
 
 #include "Debug_profiling.h"
 #include "dto/User.h"
+#include "dto/Message.h"
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
 
@@ -36,13 +37,19 @@ inline auto getUserFromResponse(const QJsonObject& res) -> User {
 }
 
 inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
-  Message msg{.id           = obj["id"].toInteger(),
-              .senderId     = obj["sender_id"].toInteger(),
-              .chatId       = obj["chat_id"].toInteger(),
-              .text         = obj["text"].toString(),
-              .timestamp    = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger()),
-              .readed_by_me = obj["readed_by_me"].toBool(false),
-              .local_id     = obj["local_id"].toString()};
+  auto msg = Message{
+    .id = obj["id"].toInteger(),
+    .senderId = obj["sender_id"].toInteger(),
+    .chatId = obj["chat_id"].toInteger(),
+    .text =   obj["text"].toString(),
+    .timestamp =   QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger()),
+    .readed_by_me =  obj["readed_by_me"].toBool(false),
+    .liked_by_me =  false,
+    .read_counter =  0,
+    .liked_counter =  0,
+    .status_sended =   true,
+    .local_id =   obj["local_id"].toString()
+  };
 
   spdlog::info(
       "[MESSAGE] id={} | "

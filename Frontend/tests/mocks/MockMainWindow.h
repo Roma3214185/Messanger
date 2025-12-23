@@ -5,11 +5,6 @@
 
 class MockMainWindow : public IMainWindow {
  public:
-  void setUser(const User& user) override {
-    ++call_setUser;
-  }
-
-
   void setChatWindow(std::shared_ptr<ChatBase> chat) override {
     ++call_setChatWindow;
   }

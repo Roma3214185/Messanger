@@ -10,7 +10,6 @@
 
 class IMainWindow {
  public:
-  virtual void setUser(const User& user)                     = 0;
   virtual void setChatWindow(std::shared_ptr<ChatBase> chat) = 0;
   virtual void setChatModel(ChatModel* model)                = 0;
   virtual void setUserModel(UserModel* userModel)            = 0;
