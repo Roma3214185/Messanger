@@ -23,13 +23,16 @@ int DataManager::getNumberOfExistingModels() const {
 
 MessageModelPtr DataManager::getMessageModel(long long chat_id) {
   auto iter = message_models_by_chat_id_.find(chat_id);
-  if (iter == message_models_by_chat_id_.end()) return nullptr;
-  return iter->second;
+  if (iter != message_models_by_chat_id_.end()) return iter->second;
+
+  auto message_model = std::make_shared<MessageModel>();
+  message_models_by_chat_id_[chat_id] = message_model;
+  return message_model;
 }
 
 ChatPtr DataManager::getChat(long long chat_id) {
   auto chat_iter = chats_by_id_.find(chat_id);
-  if (chat_iter == chats_by_id_.end()) return nullptr;
+  if (chat_iter == chats_by_id_.end()) return nullptr; //todo: maybe return empty chat but then load all messages??
   return chat_iter->second;
 }
 
@@ -49,22 +52,56 @@ void DataManager::clearAll() {
   clearAllChats();
 }
 
+// void DataManager::deleteChat(long long id) {
+//   if(id <= 0) return LOG_WARN("Invalid id to delete chat");
+//   auto it = chats_by_id_.find(id);
+//   if(it != chats_by_id_.end()) {
+//      Q_EMIT chatDeleted(it->second);
+//      chats_by_id_.erase(chat->chat_id);
+//      message_models_by_chat_id_.erase(chat->chat_id);
+//    } else {
+//      LOG_WARN();
+//    }
+// }
+
 void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   if(chat->chat_id <= 0) throw std::runtime_error("Invalid id to add chat");
   if (!message_model)
     message_model = std::make_shared<MessageModel>();
 
+  const std::lock_guard<std::mutex> lock(chat_mutex_);
+  if(!chats_by_id_.contains(chat->chat_id)) Q_EMIT chatAdded(chat);
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
 }
 
 void DataManager::saveUser(const User& user) {
   if(user.id <= 0) throw std::runtime_error("User id is invalid");
+  const std::lock_guard<std::mutex> lock(user_mutex_);
   users_by_id_[user.id] = user;
 }
 
 std::optional<User> DataManager::getUser(UserId user_id) {
+  const std::lock_guard<std::mutex> lock(user_mutex_);
   auto it = users_by_id_.find(user_id);
   return it == users_by_id_.end() ? std::nullopt : std::make_optional(it->second);
+}
+
+void DataManager::saveMessage(const Message& message) {
+  const std::lock_guard<std::mutex> lock(messages_mutex_);
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto& existing_message){
+    return existing_message.local_id == message.local_id; // id from server here can be null
+  });
+  LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.text.toStdString(), message.id, message.local_id.toStdString(), message.status_sended);
+  if(it != messages_.end()) {
+    LOG_INFO("Message {} already exist", message.text.toStdString());
+    assert(it->second.id == 0 || it->second.id == message.id);
+    it->updateFrom(message);
+  } else {
+    LOG_INFO("Message {} added", message.text.toStdString());
+    messages_.push_back(message);
+  }
+
+  Q_EMIT messageAdded(message); // todo: messageAdded :->: messageSaved() -> updateChatIconInList
 }
 
