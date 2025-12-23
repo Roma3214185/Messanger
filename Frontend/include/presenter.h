@@ -5,6 +5,10 @@
 #include <optional>
 
 #include "MessageListView.h"
+#include "delegators/chatitemdelegate.h"
+#include "delegators/messagedelegate.h"
+#include "delegators/userdelegate.h"  //todo(roma): make forward declarations
+#include "interfaces/ISocketResponceHandler.h"
 
 class ChatModel;
 class IMainWindow;
@@ -22,6 +26,8 @@ using OptionalId = std::optional<long long>;
 class Presenter : public QObject {
   Q_OBJECT
  public:
+  using SocketHandlersMap = std::unordered_map<std::string, std::unique_ptr<ISocketResponceHandler>>;
+
   Presenter(IMainWindow* window, Model* manager);
 
   void signIn(const LogInRequest& login_request);
@@ -34,7 +40,13 @@ class Presenter : public QObject {
   void sendButtonClicked(const QString& text_to_send);
   void onLogOutButtonClicked();
   void onScroll(int value);
-  //void setId(int id);
+
+  MessageDelegate* getMessageDelegate();
+  UserDelegate* getUserDelegate();
+  ChatItemDelegate* getChatDelegate();
+
+ Q_SIGNALS:
+  void userSetted();
 
  protected:
   void setCurrentChatId(long long chat_id);
@@ -49,11 +61,16 @@ class Presenter : public QObject {
   void setUser(const User& user, const QString& token);
   void openChat(long long chat_id);
   void onErrorOccurred(const QString& error);
-  void onChatUpdated(long long chat_id);
+  void initialHandlers();
 
+  SocketHandlersMap    socket_responce_handlers_;
   IMainWindow*         view_;
   Model*               manager_;
   IMessageListView*    message_list_view_;
+
+  std::unique_ptr<MessageDelegate> message_delegate_;
+  std::unique_ptr<UserDelegate> user_delegate_;
+  std::unique_ptr<ChatItemDelegate> chat_delegate_;
 };
 
 #endif  // PRESENTER_H
