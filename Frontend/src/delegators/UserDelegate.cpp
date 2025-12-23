@@ -4,7 +4,7 @@ void UserDelegate::paint(QPainter*                   painter,
                          const QStyleOptionViewItem& option,
                          const QModelIndex&          index) const {
   painter->save();
-  auto user = extractMessageData(index);
+  auto user = extractDrawData(index);
   drawAll(painter, option, user);
   painter->restore();
 }
@@ -49,7 +49,7 @@ void UserDelegate::drawBackgroundState(QPainter*                   painter,
   }
 }
 
-UserDrawData UserDelegate::extractMessageData(const QModelIndex& index) const {
+UserDrawData UserDelegate::extractDrawData(const QModelIndex& index) const {
   UserDrawData data;
   data.name   = index.data(UserModel::NameRole).toString();
   data.avatar = QPixmap(index.data(UserModel::AvatarRole).toString());

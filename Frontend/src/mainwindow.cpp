@@ -34,8 +34,8 @@ MainWindow::MainWindow(Model* model, QWidget* parent)
 }
 
 void MainWindow::setDelegators() {
-  auto* chatDelegate = new ChatItemDelegate(this);
-  auto* userDelegate = new UserDelegate(this);
+  auto* chatDelegate = presenter_->getChatDelegate();
+  auto* userDelegate = presenter_->getUserDelegate();
 
   ui_->chatListView->setItemDelegate(chatDelegate);
   ui_->userListView->setItemDelegate(userDelegate);
@@ -61,7 +61,7 @@ void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
 void MainWindow::setMessageListView(QListView* list_view) {
   ui_->messageListViewLayout->addWidget(list_view);
 
-  auto* message_delegate = new MessageDelegate(this);
+  auto* message_delegate = presenter_->getMessageDelegate();
   list_view->setItemDelegate(message_delegate);
 }
 
@@ -96,8 +96,6 @@ void MainWindow::setMainWindow() {
   ui_->mainStackedWidget->setCurrentIndex(1);
   ui_->messageWidget->setVisible(false);
 }
-
-void MainWindow::setUser(const User& user) { setMainWindow(); }
 
 void MainWindow::showError(const QString& error) { QMessageBox::warning(this, "ERROR", error); }
 
@@ -166,6 +164,8 @@ void MainWindow::seupConnections() {
 
   connect(ui_->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
   connect(ui_->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
+
+  connect(presenter_.get(), &Presenter::userSetted, this, &MainWindow::setMainWindow);
 }
 
 void MainWindow::setupUI() {

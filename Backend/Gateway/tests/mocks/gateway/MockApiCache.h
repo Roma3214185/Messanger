@@ -19,7 +19,7 @@ class MockApiCache : public ICacheService {
 
     void set(const std::string&        key,
              const std::string&     value,
-             std::chrono::milliseconds ttl = std::chrono::hours(24)) override {
+             std::chrono::seconds ttl = std::chrono::hours(24)) override {
       ++call_set;
       last_set_key = key;
       last_set_value = value;
@@ -48,7 +48,7 @@ class MockApiCache : public ICacheService {
 
     void setPipelines(const std::vector<std::string>&    keys,
                       const std::vector<std::string>& results,
-                      std::chrono::minutes               ttl = std::chrono::minutes(30)) override {
+                      std::chrono::seconds               ttl = std::chrono::minutes(30)) override {
 
     }
 };

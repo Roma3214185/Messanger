@@ -33,6 +33,8 @@ auto UserUseCase::getUser(long long user_id) -> std::optional<User> {
 }
 
 void UserUseCase::getUserAsync(long long user_id) {
+  if(data_manager_->getUser(user_id)) return;
+
   QFuture<std::optional<User>> future = user_manager_->getUser(user_id, token_manager_->getToken());
 
   auto *watcher = new QFutureWatcher<std::optional<User>>(this);

@@ -3,7 +3,9 @@
 #include "managers/sessionmanager.h"
 
 SessionUseCase::SessionUseCase(SessionManager* session_manager)
-    : session_manager_(session_manager) {}
+    : session_manager_(session_manager) {
+  connect(session_manager_, &SessionManager::userCreated, this, &SessionUseCase::userCreated);
+}
 
 void SessionUseCase::authentificatesWithToken(const QString& token ) {
   session_manager_->authenticateWithToken(token);

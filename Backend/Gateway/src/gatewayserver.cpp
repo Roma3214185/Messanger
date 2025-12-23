@@ -193,8 +193,12 @@ void GatewayServer::subscribeOnNewRequest() {
                           return std::nullopt;
                         }
                       }();
+
     if(!request_info) return;
     auto result = proxy_.forward(*request_info);
+    LOG_INFO("Finished result in queue_->subscribe, request_info->request_id = {}, status_code = {}, body = {}",
+      request_info->request_id, std::to_string(result.first), result.second.substr(0, result.second.length()));
+
     cache_->set("request:" + request_info->request_id, "{\"status\":\"finished\"}");
     cache_->set("request_id:" + request_info->request_id, std::to_string(result.first));
     cache_->set("request_body:" + request_info->request_id,

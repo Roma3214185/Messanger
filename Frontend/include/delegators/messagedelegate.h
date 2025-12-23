@@ -10,11 +10,15 @@
 
 #include "dto/DrawData.h"
 #include "models/messagemodel.h"
+#include "managers/TokenManager.h"
 
 class MessageDelegate : public QStyledItemDelegate {
   Q_OBJECT
+  DataManager* data_manager_;
+  TokenManager* token_manager_;
  public:
-  using QStyledItemDelegate::QStyledItemDelegate;
+  MessageDelegate(DataManager* data_manager, TokenManager* token_manager)
+      : data_manager_(data_manager), token_manager_(token_manager) {}
 
   void  paint(QPainter*                   painter,
               const QStyleOptionViewItem& option,

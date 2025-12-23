@@ -49,6 +49,7 @@ void ChatModel::addChat(const ChatPtr& chat) {
 
   beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
   chats_.push_back(chat);
+  sortChats();
   endInsertRows();
 }
 
@@ -80,27 +81,6 @@ void ChatModel::updateChatInfo(const long long        chat_id,
   QModelIndex idx = index(i);
   Q_EMIT dataChanged(idx, idx);
   Q_EMIT chatUpdated(chat_id);
-}
-
-void ChatModel::addChatInFront(ChatPtr& chat) {
-  beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
-  chats_.push_front(chat);
-  qDebug() << "[INFO] Add chat infront id = " << chat->chat_id;
-  endInsertRows();
-}
-
-void ChatModel::realocateChatInFront(const long long chat_id) {
-  auto index = findIndexByChatId(chat_id);
-  if (!index) return;
-
-  bool chat_is_infront = *index == 0;
-  if (chat_is_infront) return;
-
-  beginMoveRows(QModelIndex(), *index, *index, QModelIndex(), 0);
-  auto chat = chats_.takeAt(*index);
-  chats_.prepend(chat);
-  qDebug() << "[INFO] Realocate chat infront id = " << chat->chat_id;
-  endMoveRows();
 }
 
 OptionalChatIndex ChatModel::findIndexByChatId(long long chat_id) const {

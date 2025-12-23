@@ -42,6 +42,8 @@ add_library(FrontendLib STATIC
     ${FRONTEND_INC_DIR}/usecases/sessionusecase.h
     ${FRONTEND_INC_DIR}/usecases/userusecase.h
 
+    ${FRONTEND_INC_DIR}/managers/datamanager.h
+
     ${FRONTEND_INC_DIR}/delegators/messagedelegate.h
     ${FRONTEND_INC_DIR}/delegators/UserDelegate.h
     ${FRONTEND_INC_DIR}/delegators/ChatItemDelegate.h
@@ -75,6 +77,11 @@ add_executable(Frontend
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
     Dockerfile
+    include/usecases/socketusecase.h
+    src/usecases/socketusecase.cpp
+    include/interfaces/ISocketResponceHandler.h
+    include/OpenResponceHandler.h
+    include/NewMessageResponceHandler.h
 )
 
 add_custom_command(TARGET Frontend POST_BUILD

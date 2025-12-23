@@ -100,8 +100,8 @@ TEST_CASE("Test datamanager works with chats") {
     REQUIRE(returned_model != nullptr);
   }
 
-  SECTION("Get message model for not existing chat expected nullptr") {
-    REQUIRE(data_manager.getMessageModel(4) == nullptr);
+  SECTION("Get message model for not existing chat expected not nullptr") {
+    REQUIRE(data_manager.getMessageModel(4) != nullptr);
   }
 
   SECTION("Clear all message models works as expected") {

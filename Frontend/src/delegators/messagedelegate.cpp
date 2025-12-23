@@ -13,9 +13,9 @@ void MessageDelegate::paint(QPainter*                   painter,
   }
 
   painter->save();
-  auto msg     = extractMessageData(index);
-  bool is_mine = msg.sender_id == msg.receiver_id;
-  drawAll(painter, option, msg, is_mine);
+  auto draw_message_data     = extractMessageData(index);
+  bool is_mine = draw_message_data.sender_id == draw_message_data.receiver_id;
+  drawAll(painter, option, draw_message_data, is_mine);
   painter->restore();
 }
 
@@ -128,15 +128,33 @@ void MessageDelegate::drawTimestamp(QPainter*      painter,
 }
 
 MessageDrawData MessageDelegate::extractMessageData(const QModelIndex& index) const {
+  auto message = [&]() -> Message {
+    auto value_message = index.data(MessageModel::FullMessage);
+    if (value_message.canConvert<Message>()) {
+      return value_message.value<Message>();
+    }
+
+    throw std::runtime_error("Message in invalid in extractMessageData");
+  }();
+
+  auto user = [&]() -> User {
+    std::optional<User> getted_user = data_manager_->getUser(message.id);
+    if(getted_user) return *getted_user;
+
+    User default_user;
+    default_user.name = "Unknown user";
+    return default_user;
+  }();
+
   MessageDrawData data;
-  data.username    = index.data(MessageModel::UsernameRole).toString();
-  data.text        = index.data(MessageModel::TextRole).toString();
+  data.username    = user.name;
+  data.text        = message.text;
   data.avatar_path = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
-  data.timestamp   = index.data(MessageModel::TimestampRole).toDateTime().toString("hh:mm dd.MM");
-  data.sender_id   = index.data(MessageModel::SenderIdRole).toInt();
-  data.receiver_id = index.data(MessageModel::ReceiverIdTole).toInt();
-  data.is_sended   = index.data(MessageModel::SendedStatusRole).toInt();
-  data.is_readed   = index.data(MessageModel::ReadedStatusRole).toInt();
+  data.timestamp   = message.timestamp.toString("hh:mm dd.MM");
+  data.sender_id   = message.senderId;
+  data.receiver_id = token_manager_->getCurrentUserId();
+  data.is_sended   = index.data(MessageModel::SendedStatusRole).toBool();
+  data.is_readed   = false;
   return data;
 }
 
@@ -158,16 +176,18 @@ void MessageDelegate::drawStatus(QPainter*              painter,
                                  const MessageDrawData& message_data,
                                  bool                   is_mine) const {
   if (!is_mine) return;
-  QString       status_symbol;
   constexpr int status_size = 16;
 
-  if (!message_data.is_sended) {
-    status_symbol = "!";
-  } else if (message_data.is_readed) {
-    status_symbol = "..";
-  } else {
-    status_symbol = ".";
-  }
+  QString       status_symbol = [message_data]() {
+    if (!message_data.is_sended) {
+      return "!";
+    }
+    if (message_data.is_readed) {
+      return "..";
+    }
+
+    return ".";
+  }();
 
   constexpr int kTopOffset  = 30;
   constexpr int kLeftOffset = 4;

@@ -1,21 +1,22 @@
 #include "RedisCache.h"
 
 #include <random>
+#include "Debug_profiling.h"
 
 namespace {
 
 template <typename Duration>
-std::chrono::milliseconds getRangedTtl(Duration ttl) {
+std::chrono::seconds getRangedTtl(Duration ttl) {
   using namespace std::chrono;
 
-  auto baseMs = duration_cast<milliseconds>(ttl).count();
+  auto baseMs = duration_cast<seconds>(ttl).count();
 
   static std::random_device          rd;
   static std::mt19937                gen(rd());
   std::uniform_int_distribution<int> dist(-30 * 60 * 1000, 30 * 60 * 1000);  // +-30 min in ms
   int                                jitterMs = dist(gen);
 
-  return milliseconds(std::max(static_cast<int>(baseMs + jitterMs), 300));
+  return seconds(std::max(static_cast<int>(baseMs + jitterMs), 300));
 }
 
 }  // namespace
@@ -66,12 +67,15 @@ sw::redis::Redis& RedisCache::getRedis() {
 
 void RedisCache::set(const std::string&        key,
                      const std::string&     value,
-                     std::chrono::milliseconds ttl) {
+                     std::chrono::seconds ttl) {
   try {
     auto ranged_ttl = getRangedTtl(ttl);
     getRedis().set(key, value, ranged_ttl);
+    LOG_INFO("Set {} - {} for {} seconds", key, value, ranged_ttl.count());
   } catch (const std::exception& e) {
-
+    LOG_ERROR("Error whyle set {} and value {} - error", key, value, e.what());
+  } catch(...) {
+    LOG_ERROR("Invalid Error whyle set {} and value {}", key, value);
   }
 }
 
@@ -79,14 +83,19 @@ std::optional<std::string> RedisCache::get(const std::string& key) {
   try {
     if (auto value = getRedis().get(key)) return *value;
   } catch (const std::exception& e) {
+    LOG_ERROR("Error whyle get {} and value {} - error", key, e.what());
+    return std::nullopt;
+  } catch(...) {
+    LOG_ERROR("Invalid Error whyle get {} and value", key);
     return std::nullopt;
   }
+
   return std::nullopt;
 }
 
 void RedisCache::setPipelines(const std::vector<std::string>&    keys,
                               const std::vector<std::string>& results,
-                              std::chrono::minutes               ttl) {
+                              std::chrono::seconds ttl) {
   try {
     assert(keys.size() == results.size() || keys.size() == 1);
 
@@ -100,7 +109,9 @@ void RedisCache::setPipelines(const std::vector<std::string>&    keys,
 
     pipe.exec();
   } catch (const sw::redis::Error& e) {
-
+    LOG_ERROR("Error set pipline {}", e.what());
+  } catch(...) {
+    LOG_ERROR("Invalid Error set pipline {}");
   }
 }
 

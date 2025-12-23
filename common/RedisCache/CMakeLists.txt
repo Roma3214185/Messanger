@@ -33,4 +33,5 @@ target_include_directories(RedisCache
 )
 target_link_libraries(RedisCache PUBLIC
     redis++_static
+    Metrics
 )
