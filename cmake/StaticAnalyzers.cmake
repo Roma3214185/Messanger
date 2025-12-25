@@ -11,8 +11,8 @@ if (ENABLE_CPPCHECK)
                 --enable=all
                 --inline-suppr
                 --inconclusive
-                -i
-                ${CMAKE_SOURCE_DIR}/imgui/lib)
+                -i ${CMAKE_SOURCE_DIR}/external
+            )
     else ()
         message(SEND_ERROR "cppcheck requested but executable not found")
     endif ()
@@ -21,7 +21,11 @@ endif ()
 if (ENABLE_CLANG_TIDY)
     find_program(CLANGTIDY clang-tidy)
     if (CLANGTIDY)
-        set(CMAKE_CXX_CLANG_TIDY ${CLANGTIDY} -extra-arg=-Wno-unknown-warning-option)
+        set(CMAKE_CXX_CLANG_TIDY
+            ${CLANGTIDY}
+            -extra-arg=-Wno-unknown-warning-option
+            -header-filter="^(?!.*external/).*"  # Exclude /external/
+        )
     else ()
         message(SEND_ERROR "clang-tidy requested but executable not found")
     endif ()
@@ -30,7 +34,10 @@ endif ()
 if (ENABLE_INCLUDE_WHAT_YOU_USE)
     find_program(INCLUDE_WHAT_YOU_USE include-what-you-use)
     if (INCLUDE_WHAT_YOU_USE)
-        set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${INCLUDE_WHAT_YOU_USE})
+        set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE
+            ${INCLUDE_WHAT_YOU_USE}
+            -Xiwyu --exclude="external/.*"
+        )
     else ()
         message(SEND_ERROR "include-what-you-use requested but executable not found")
     endif ()
