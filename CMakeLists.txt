@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.22)
 #     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
 #         CACHE FILEPATH "vcpkg toolchain file")
 # endif()
-
 project(Chat LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -36,8 +35,17 @@ set(WITH_ZIPKIN OFF)
 set(BUILD_TESTING OFF)
 set(WITH_EXAMPLES OFF)
 
-set(CMAKE_PREFIX_PATH "/opt/homebrew" ${CMAKE_PREFIX_PATH})
 add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
+
+if(NOT DEFINED Qt6_DIR)
+    set(Qt6_DIR "/opt/homebrew/opt/qt/lib/cmake/Qt6")
+endif()
+
+if(NOT DEFINED Qt6WebSockets_DIR)
+    set(Qt6WebSockets_DIR "/Users/roma/Qt/6.9.0/macos/lib/cmake/Qt6WebSockets")
+endif()
+
+list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/qt" "/Users/roma/Qt/6.9.0/macos")
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
     CACHE STRING "Vcpkg toolchain file")
@@ -52,8 +60,8 @@ add_library(ProjectOptions INTERFACE)
 # set_project_warnings(ProjectOptions)
 
 # Include sanitizers if supported
-include(cmake/Sanitizers.cmake)
-enable_sanitizers(ProjectOptions)
+# include(cmake/Sanitizers.cmake)
+# enable_sanitizers(ProjectOptions)
 
 # Precompiled headers (optional)
 # option(ENABLE_PCH "Enable Precompiled Headers" OFF)
@@ -66,7 +74,7 @@ enable_sanitizers(ProjectOptions)
 # endif()
 
 # Static analyzers
-include(cmake/StaticAnalyzers.cmake)
+# include(cmake/StaticAnalyzers.cmake)
 
 # -------------------------
 # Submodules
