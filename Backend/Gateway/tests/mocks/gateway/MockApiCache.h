@@ -43,7 +43,7 @@ class MockApiCache : public ICacheService {
     }
 
     bool exists(const std::string& key) override {
-
+      return true;
     }
 
     void setPipelines(const std::vector<std::string>&    keys,

@@ -99,7 +99,7 @@ class GatewayMetrics : public IMetrics {
     void cacheMiss(const std::string& path) { cache_misses_.Add({{"path", path}}).Increment(); }
     void cacheStats(bool wasHitted, const std::string& path) { wasHitted ? cacheHit(path) : cacheMiss(path); }
     void cacheStore(const std::string& path) { cache_store_.Add({{"path", path}}).Increment(); }
-    void newRequest(const std::string& path) {
+    void newRequest(const std::string& path) override {
       request_counter_.Add({{"path", path}}).Increment();
       active_requests_->Increment();
     }
@@ -129,7 +129,7 @@ class GatewayMetrics : public IMetrics {
 
     void authOk(const std::string& path) { auth_ok_.Add({{"path", path}}).Increment(); }
     void authFail(const std::string& path) { auth_fail_.Add({{"path", path}}).Increment(); }
-    void userConnected() {
+    void userConnected() override {
       active_clients_->Increment();
     }
     void userDisconnected() override { active_clients_->Decrement(); }

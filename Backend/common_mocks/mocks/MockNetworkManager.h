@@ -21,7 +21,7 @@ class MockNetworkManager
       mp[chat_id] = ids;
     }
 
-    std::optional<User> getUserById(long long otherUserId) {
+    std::optional<User> getUserById(long long otherUserId) override {
       ++call_getUserById;
       last_user_id = otherUserId;
       return mock_user;

@@ -32,9 +32,11 @@ class MockChatManager : public IChatManager {
       return mock_chat_id;
     }
 
+    bool should_fail_addMembersToChat = false;
     bool addMembersToChat(ID chat_id, const std::vector<ID>& members_id) override {
       last_chat_id = chat_id;
       ++call_addMembersToChat;
+      return !should_fail_addMembersToChat;
     }
 
     std::vector<ID> getMembersOfChat(ID chat_id) override {

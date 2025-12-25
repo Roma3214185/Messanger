@@ -16,7 +16,7 @@ class MessageListView : public IMessageListView {
     Q_OBJECT
   public:
     explicit MessageListView(QWidget* parent = nullptr) {
-      connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this, [=](int value){
+      connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int value){
         if(value == 0) Q_EMIT scrollChanged(value);
       });
 
