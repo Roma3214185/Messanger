@@ -3,7 +3,6 @@
 #include "Debug_profiling.h"
 #include "interfaces/IRabitMQClient.h"
 #include "NetworkFacade.h"
-#include "interfaces/ISocket.h"
 #include "interfaces/IConfigProvider.h"
 #include "notificationservice/managers/socketmanager.h"
 
@@ -37,8 +36,8 @@ void NotificationManager::subscribeMessageSaved() {
   SubscribeRequest request;
   request.queue = rout_config.messageSavedQueue;
   request.exchange = rout_config.exchange;
-  request.routingKey = rout_config.messageSaved;
-  request.exchangeType = rout_config.exchangeType;
+  request.routing_key = rout_config.messageSaved;
+  request.exchange_type = rout_config.exchangeType;
 
   mq_client_->subscribe(request,
                         [this, rout_config](const std::string& event, const std::string& payload){
@@ -63,7 +62,7 @@ void NotificationManager::notifyMessageRead(long long chat_id, const MessageStat
 void NotificationManager::notifyNewMessages(Message& message, long long user_id) {}
 
 void NotificationManager::deleteConnections(SocketPtr socket) {
-  socket_manager_->deleteConnections(socket);
+  socket_manager_->deleteConnections(std::move(socket));
 }
 
 void NotificationManager::userConnected(long long user_id, SocketPtr socket) {
@@ -87,13 +86,12 @@ void NotificationManager::onSendMessage(Message& message) {
   auto to_save     = nlohmann::json(message);
   to_save["event"] = "save_message";
 
-  PublishRequest request;  // TODO: Factory(?)
-  request.exchange = provider_->routes().exchange;
-  request.routingKey = provider_->routes().saveMessage;
-  request.message = to_save.dump();
-  request.exchangeType = provider_->routes().exchangeType;
-
-  mq_client_->publish(request);
+  mq_client_->publish(PublishRequest{  // TODO: Factory(?)
+    .exchange = provider_->routes().exchange,
+    .routing_key = provider_->routes().saveMessage,
+    .message = to_save.dump(),
+    .exchange_type = provider_->routes().exchangeType
+  });
 }
 
 void NotificationManager::onMessageStatusSaved() {}
@@ -111,13 +109,12 @@ void NotificationManager::onMessageSaved(Message& saved_message) {
 }
 
 void NotificationManager::saveMessageStatus(MessageStatus& status) {
-  PublishRequest request;
-  request.exchange = provider_->routes().exchange;
-  request.routingKey = provider_->routes().saveMessageStatus;
-  request.message = nlohmann::json(status).dump();
-  request.exchangeType = provider_->routes().exchangeType;
-
-  mq_client_->publish(request);
+  mq_client_->publish(PublishRequest{
+    .exchange = provider_->routes().exchange,
+    .routing_key = provider_->routes().saveMessageStatus,
+    .message = nlohmann::json(status).dump(),
+    .exchange_type = provider_->routes().exchangeType
+  });
 }
 
 void NotificationManager::onUserSaved() {}

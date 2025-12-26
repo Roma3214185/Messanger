@@ -39,7 +39,7 @@ void Server::handleSocketRoutes() {
         auto socket = std::make_shared<CrowSocket>(&conn);
         notification_manager_->deleteConnections(socket);
       })
-      .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary) {
+      .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool /*is_binary*/) {
         auto socket = std::make_shared<CrowSocket>(&conn);
         handleSocketOnMessage(socket, data);
       });
@@ -58,10 +58,9 @@ void Server::handleSocketOnMessage(std::shared_ptr<ISocket> socket, const std::s
   }
 
   const std::string& type = message_ptr["type"].s();
-  auto it = handlers_.find(type);
   if (auto it = handlers_.find(type); it != handlers_.end()) {
     LOG_INFO("Type is valid {}", type);
-    it->second->handle(message_ptr, socket, *notification_manager_);
+    it->second->handle(message_ptr, std::move(socket), *notification_manager_);
   } else {
     LOG_ERROR("Type isn't valid {}", type);
   }

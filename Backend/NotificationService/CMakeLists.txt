@@ -25,6 +25,10 @@ FetchContent_MakeAvailable(Crow)
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(NotificationServiceCore STATIC ${MY_SOURCES})
 
+enable_clang_tidy(NotificationServiceCore)
+enable_cppcheck(NotificationServiceCore)
+enable_iwyu(NotificationServiceCore)
+
 target_include_directories(NotificationServiceCore PUBLIC
     ${NOTIFICATION_SERVICE_INCLUDE_DIR}
     ${httplib_SOURCE_DIR}

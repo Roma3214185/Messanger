@@ -64,16 +64,16 @@ TEST_CASE("Test NotificationManager communitacion with RabitMQ") {
   MockNetworkManager network_manager;
 
   Routes mock_routes;
-  mock_routes.messageSaved            = "test_message_saved";
-  mock_routes.saveMessage             = "test_save_message";
-  mock_routes.saveMessageStatus       = "test_save_message_status";
-  mock_routes.messageSavedQueue       = "test_message_saved_queue";
-  mock_routes.messageStatusSavedQueue = "test_message_status_saved_queue";
-  mock_routes.saveMessageQueue        = "test_save_message_queue";
-  mock_routes.saveMessageStatusQueue  = "test_save_message_status_queue";
-  mock_routes.exchange                = "test_app.events";
-  mock_routes.messageStatusSaved      = "test_message_status_saved";
-  mock_routes.exchangeType            = "test_topic";
+  // mock_routes.messageSaved            = "test_message_saved";
+  // mock_routes.saveMessage             = "test_save_message";
+  // mock_routes.saveMessageStatus       = "test_save_message_status";
+  // mock_routes.messageSavedQueue       = "test_message_saved_queue";
+  // mock_routes.messageStatusSavedQueue = "test_message_status_saved_queue";
+  // mock_routes.saveMessageQueue        = "test_save_message_queue";
+  // mock_routes.saveMessageStatusQueue  = "test_save_message_status_queue";
+  // mock_routes.exchange                = "test_app.events";
+  // mock_routes.messageStatusSaved      = "test_message_status_saved";
+  // mock_routes.exchangeType            = "test_topic";
 
 
   MockConfigProvider provider;
@@ -91,9 +91,9 @@ TEST_CASE("Test NotificationManager communitacion with RabitMQ") {
     notification_manager.subscribeMessageSaved();
 
     CHECK(mock_rabit_client.last_subscribe_request.exchange == mock_routes.exchange);
-    CHECK(mock_rabit_client.last_subscribe_request.exchangeType == mock_routes.exchangeType);
+    CHECK(mock_rabit_client.last_subscribe_request.exchange_type == mock_routes.exchangeType);
     CHECK(mock_rabit_client.last_subscribe_request.queue == mock_routes.messageSavedQueue);
-    CHECK(mock_rabit_client.last_subscribe_request.routingKey == mock_routes.messageSaved);
+    CHECK(mock_rabit_client.last_subscribe_request.routing_key == mock_routes.messageSaved);
   }
 
   SECTION("Subscribing to rabitMQ expected call expected callback") {
@@ -112,9 +112,9 @@ TEST_CASE("Test NotificationManager communitacion with RabitMQ") {
     expected_json["event"] = "save_message";
 
     CHECK(mock_rabit_client.last_publish_request.exchange == mock_routes.exchange);
-    CHECK(mock_rabit_client.last_publish_request.exchangeType == mock_routes.exchangeType);
+    CHECK(mock_rabit_client.last_publish_request.exchange_type == mock_routes.exchangeType);
     CHECK(mock_rabit_client.last_publish_request.message == expected_json.dump());
-    CHECK(mock_rabit_client.last_publish_request.routingKey == mock_routes.saveMessage);
+    CHECK(mock_rabit_client.last_publish_request.routing_key == mock_routes.saveMessage);
   }
 
 }

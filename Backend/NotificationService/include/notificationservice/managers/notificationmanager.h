@@ -29,7 +29,7 @@ class NotificationManager {
   void notifyNewMessages(Message& message, long long user_id);
   void deleteConnections(SocketPtr conn);
   virtual void userConnected(long long user_id, SocketPtr conn);
-  void saveMessageStatus(MessageStatus& message);
+  void saveMessageStatus(MessageStatus& status);
   void saveDeliveryStatus(const Message& msg, long long receiver_id);
   bool notifyMember(long long user_id, const Message& msg);
   virtual void onMarkReadMessage(Message& message, long long read_by);
