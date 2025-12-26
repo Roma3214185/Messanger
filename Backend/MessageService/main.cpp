@@ -9,7 +9,7 @@
 #include "messageservice/server.h"
 #include "ProdConfigProvider.h"
 #include "interfaces/IThreadPool.h"
-#include "ThreadPool.h"
+#include "threadpool.h"
 #include "messageservice/controller.h"
 #include "GeneratorId.h"
 
@@ -32,7 +32,7 @@ std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config
 }
 
 int main(int argc, char* argv[]) {
-  init_logger("MessageService");
+  initLogger("MessageService");
   QCoreApplication  a(argc, argv);
   QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
   sqlite.setDatabaseName("chat_service.sqlite");

@@ -46,8 +46,8 @@ TEST_CASE("Test cotroller works with rabitMQ") {
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
     CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
     CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageQueue);
-    CHECK(last_subscribe_data.exchangeType == fix.mock_routes.exchangeType);
-    CHECK(last_subscribe_data.routingKey == fix.mock_routes.saveMessage);
+    CHECK(last_subscribe_data.exchange_type == fix.mock_routes.exchangeType);
+    CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessage);
   }
 
   SECTION("Subscrive on message to save expected call valid callback function") {
@@ -71,8 +71,8 @@ TEST_CASE("Test cotroller works with rabitMQ") {
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
     CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
     CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageStatusQueue);
-    CHECK(last_subscribe_data.exchangeType == fix.mock_routes.exchangeType);
-    CHECK(last_subscribe_data.routingKey == fix.mock_routes.saveMessageStatus);
+    CHECK(last_subscribe_data.exchange_type == fix.mock_routes.exchangeType);
+    CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessageStatus);
   }
 
   SECTION("Subscrive on message_status to save expected call valid callback function") {

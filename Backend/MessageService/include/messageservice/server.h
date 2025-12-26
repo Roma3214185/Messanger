@@ -16,7 +16,7 @@ class Server {
   void run();
 
  protected:
-  crow::json::wvalue formMessageListJson(const std::vector<Message>& messages,
+  static crow::json::wvalue formMessageListJson(const std::vector<Message>& messages,
                                                   const std::vector<MessageStatus>& messages_status);
 
  private:

@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "ThreadPool.h"
+#include "threadpool.h"
 #include "ProdConfigProvider.h"
 #include "messageservice/interfaces/IController.h"
 
@@ -24,7 +24,7 @@ class Controller : public IController {
   Controller(IRabitMQClient* mq_client,
               MessageManager* manager, IThreadPool* pool, IConfigProvider* provider = &ProdConfigProvider::instance());
   std::vector<Message> getMessages(const GetMessagePack&) override;
-  std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, long long receiver_id) override;
+  std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>& messages, long long receiver_id) override;
 
  protected:
   void subscribeToSaveMessage();

@@ -14,13 +14,13 @@ struct TestFixture{
   crow::response res;
   int chat_id = 44;
   TestFixture(){
-    StatusCodes mock_codes;
-    mock_codes.serverError = 1;
-    mock_codes.success = 2;
-    mock_codes.userError = 3;
-    provider.mock_codes = mock_codes;
+    //StatusCodes mock_codes;
+    // mock_codes.serverError = 1;
+    // mock_codes.success = 2;
+    // mock_codes.userError = 3;
+    // provider.mock_codes = mock_codes;
 
-    provider.mock_issue_message.invalidToken = "test_token is invalid";
+    //provider.mock_issue_message.invalidToken = "test_token is invalid";
   }
 };
 

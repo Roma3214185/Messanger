@@ -14,7 +14,7 @@ namespace {
 std::string readFile(const std::string& path) {
   std::ifstream file(path);
   if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
-  return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+  return {std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
 }
 
 }  // namespace
@@ -24,7 +24,7 @@ namespace JwtUtils {
 std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
     auto        decoded    = jwt::decode(token);
-    std::string public_key = readFile(kPublicKeyFile);
+    const std::string public_key = readFile(kPublicKeyFile);
 
     auto verifier = jwt::verify()
                         .allow_algorithm(jwt::algorithm::rs256(public_key, "", "", ""))

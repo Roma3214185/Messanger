@@ -1,13 +1,10 @@
 #include "messageservice/controller.h"
 
-#include <jwt-cpp/jwt.h>
-
 #include <nlohmann/json.hpp>
 #include <utility>
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
-#include "messageservice/managers/JwtUtils.h"
 #include "messageservice/managers/MessageManager.h"
 #include "interfaces/IConfigProvider.h"
 #include "interfaces/IRabitMQClient.h"
@@ -44,17 +41,16 @@ void Controller::handleSaveMessage(const std::string& payload) {
   LOG_INFO("Get message to save with id {} and text {}", message.id, message.text);
 
   pool_->enqueue([this, message]() mutable {
-    bool ok = manager_->saveMessage(message);
-    if (!ok) {
+    if (!manager_->saveMessage(message)) {
       LOG_ERROR("Error saving message id {}", message.id);
       return;
     }
 
     PublishRequest request;
     request.exchange = provider_->routes().exchange;
-    request.routingKey = provider_->routes().messageSaved;
+    request.routing_key = provider_->routes().messageSaved;
     request.message = nlohmann::json(message).dump(); // can be error excahnge type
-    request.exchangeType = provider_->routes().exchangeType;
+    request.exchange_type = provider_->routes().exchangeType;
 
     mq_client_->publish(request);
     // TODO: kMessageSaved
@@ -65,8 +61,8 @@ void Controller::subscribeToSaveMessage() {
   SubscribeRequest request;
   request.queue = provider_->routes().saveMessageQueue;
   request.exchange = provider_->routes().exchange;
-  request.routingKey = provider_->routes().saveMessage;
-  request.exchangeType = provider_->routes().exchangeType;
+  request.routing_key = provider_->routes().saveMessage;
+  request.exchange_type = provider_->routes().exchangeType;
   mq_client_->subscribe(request,
                         [this](const std::string& event, const std::string& payload) {
                           LOG_INFO("Getted event in subscribeToSaveMessage: {} and payload {}", event, payload);
@@ -78,8 +74,8 @@ void Controller::subscribeToSaveMessageStatus() {
   SubscribeRequest request;
   request.queue = provider_->routes().saveMessageStatusQueue;
   request.exchange = provider_->routes().exchange;
-  request.routingKey = provider_->routes().saveMessageStatus;
-  request.exchangeType = provider_->routes().exchangeType;
+  request.routing_key = provider_->routes().saveMessageStatus;
+  request.exchange_type = provider_->routes().exchangeType;
   mq_client_->subscribe(request,
       [this](const std::string& event, const std::string& payload) {
         LOG_INFO("Getted event in subscribeToSaveMessageStatus: {} and payload {}", event, payload);
@@ -99,11 +95,12 @@ void Controller::handleSaveMessageStatus(const std::string& payload) {
       return;
     }
 
-    PublishRequest request;
-    request.exchange = provider_->routes().exchange;
-    request.routingKey = provider_->routes().messageStatusSaved;
-    request.message = nlohmann::json(status).dump();
-    request.exchangeType = provider_->routes().exchangeType;
+    PublishRequest request{
+      .exchange = provider_->routes().exchange,
+      .routing_key = provider_->routes().messageStatusSaved,
+      .message = nlohmann::json(status).dump(),
+      .exchange_type = provider_->routes().exchangeType
+    };
 
     mq_client_->publish(request);
   });
