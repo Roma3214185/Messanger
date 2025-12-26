@@ -3,14 +3,12 @@
 #include <optional>
 #include <string>
 
-#include "authservice/JwtUtils.h"
 #include "authservice/PasswordService.h"
 #include "entities/RegisterRequest.h"
 #include "Debug_profiling.h"
 #include "entities/UserCredentials.h"
 #include "interfaces/IIdGenerator.h"
 
-using std::nullopt;
 using std::string;
 
 OptionalUser AuthManager::getUser(long long user_id) {
@@ -94,8 +92,8 @@ OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
   user_credentials.hash_password = getHashPassword(req.password);
 
   LOG_INFO("User saved, try to save credentials {}", nlohmann::json(user_credentials).dump());
-  bool saved_credentials = rep_.save(user_credentials); //TODO: make transaction -> save(vector<IEntity>){user_to_save, user_credentials}
-  if (!saved_credentials) {
+   //TODO: make transaction -> save(vector<IEntity>){user_to_save, user_credentials}
+  if (!rep_.save(user_credentials)) {
     LOG_ERROR("Server error while saving credentials");
     return std::nullopt;
   }

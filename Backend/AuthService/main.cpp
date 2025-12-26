@@ -15,7 +15,7 @@
 
 int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
-  init_logger("AuthService");
+  initLogger("AuthService");
 
   QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
   sqlite.setDatabaseName("chat_service.sqlite");

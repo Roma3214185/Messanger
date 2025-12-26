@@ -2,13 +2,10 @@
 
 #include <jwt-cpp/jwt.h>
 #include <openssl/bio.h>
-#include <openssl/err.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 
 #include <fstream>
-#include <memory>
-#include <nlohmann/json.hpp>
 
 namespace {
 
@@ -53,7 +50,7 @@ std::string generateToken(UserId user_id) {
 std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
     auto        decoded    = jwt::decode(token);
-    std::string public_key = readFile(kPublicKeyFile);
+    const std::string public_key = readFile(kPublicKeyFile);
 
     auto verifier = jwt::verify()
                         .allow_algorithm(jwt::algorithm::rs256(public_key, "", "", ""))
@@ -71,7 +68,7 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   }
 }
 
-std::pair<std::string, std::string> generate_rsa_keys(int bits) {
+std::pair<std::string, std::string> generateRsaKeys(int bits) {
   RSA*    rsa = RSA_new();
   BIGNUM* e   = BN_new();
   BN_set_word(e, RSA_F4);
