@@ -1,44 +1,77 @@
-option(ENABLE_CPPCHECK "Enable static analysis with cppcheck" OFF)
-option(ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" OFF)
-option(ENABLE_INCLUDE_WHAT_YOU_USE "Enable static analysis with include-what-you-use" OFF)
+# -----------------------------------------------------------------------------
+# Enable Cppcheck for a target
+# -----------------------------------------------------------------------------
+function(enable_cppcheck TARGET)
+    if (NOT ENABLE_CPPCHECK)
+        return()
+    endif()
 
-if (ENABLE_CPPCHECK)
-    find_program(CPPCHECK cppcheck)
-    if (CPPCHECK)
-        set(CMAKE_CXX_CPPCHECK
-                ${CPPCHECK}
-                --suppress=missingInclude
-                --enable=all
-                --inline-suppr
-                --inconclusive
-                -i ${CMAKE_SOURCE_DIR}/external
-            )
-    else ()
-        message(SEND_ERROR "cppcheck requested but executable not found")
-    endif ()
-endif ()
+    find_program(CPPCHECK_EXE cppcheck)
+    if (NOT CPPCHECK_EXE)
+        message(FATAL_ERROR "cppcheck not found")
+    endif()
 
-if (ENABLE_CLANG_TIDY)
-    find_program(CLANGTIDY clang-tidy)
-    if (CLANGTIDY)
-        set(CMAKE_CXX_CLANG_TIDY
-            ${CLANGTIDY}
-            -extra-arg=-Wno-unknown-warning-option
-            -header-filter="^(?!.*external/).*"  # Exclude /external/
-        )
-    else ()
-        message(SEND_ERROR "clang-tidy requested but executable not found")
-    endif ()
-endif ()
+    set(CPPCHECK_OPTIONS
+        --enable=warning,performance,portability
+        --inline-suppr
+        --suppress=missingIncludeSystem
+        -i${CMAKE_SOURCE_DIR}/external
+        -i${CMAKE_BINARY_DIR}/_deps
+        -i${CMAKE_SOURCE_DIR}/build/_deps
+    )
 
-if (ENABLE_INCLUDE_WHAT_YOU_USE)
-    find_program(INCLUDE_WHAT_YOU_USE include-what-you-use)
-    if (INCLUDE_WHAT_YOU_USE)
-        set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE
-            ${INCLUDE_WHAT_YOU_USE}
-            -Xiwyu --exclude="external/.*"
-        )
-    else ()
-        message(SEND_ERROR "include-what-you-use requested but executable not found")
-    endif ()
-endif ()
+    set_target_properties(${TARGET} PROPERTIES
+        CXX_CPPCHECK "${CPPCHECK_EXE};${CPPCHECK_OPTIONS}"
+    )
+endfunction()
+
+# -----------------------------------------------------------------------------
+# Enable Clang-Tidy for a target
+# -----------------------------------------------------------------------------
+function(enable_clang_tidy TARGET)
+    if (NOT ENABLE_CLANG_TIDY)
+        return()
+    endif()
+
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+    if (NOT CLANG_TIDY_EXE)
+        message(FATAL_ERROR "clang-tidy requested but not found")
+    endif()
+
+    # Only analyze project directories (common, Backend, Frontend), exclude external deps
+    set(HEADER_FILTER_REGEX "^${CMAKE_SOURCE_DIR}/(common|Backend|Frontend)/.*")
+
+    set(CLANG_TIDY_OPTIONS
+        -extra-arg=-Wno-unknown-warning-option
+        -header-filter=${HEADER_FILTER_REGEX}
+    )
+
+    set_target_properties(${TARGET} PROPERTIES
+        CXX_CLANG_TIDY "${CLANG_TIDY_EXE};${CLANG_TIDY_OPTIONS}"
+    )
+endfunction()
+
+# -----------------------------------------------------------------------------
+# Enable Include-What-You-Use (IWYU) for a target
+# -----------------------------------------------------------------------------
+function(enable_iwyu TARGET)
+    if (NOT ENABLE_IWYU)
+        return()
+    endif()
+
+    find_program(IWYU_EXE include-what-you-use)
+    if (NOT IWYU_EXE)
+        message(FATAL_ERROR "include-what-you-use not found")
+    endif()
+
+    set(IWYU_OPTIONS
+        #-Xiwyu --mapping_file=${CMAKE_SOURCE_DIR}/.iwyu.imp
+        -Xiwyu --exclude=${CMAKE_SOURCE_DIR}/external
+        #-Xiwyu --exclude=${CMAKE_SOURCE_DIR}/_deps
+        -Xiwyu --exclude=${CMAKE_BINARY_DIR}/_deps
+    )
+
+    set_target_properties(${TARGET} PROPERTIES
+        CXX_INCLUDE_WHAT_YOU_USE "${IWYU_EXE};${IWYU_OPTIONS}"
+    )
+endfunction()
