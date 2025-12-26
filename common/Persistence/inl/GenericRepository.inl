@@ -7,22 +7,22 @@
 
 namespace {
 
-template <typename T>
-bool needsIdReturn(const Field* idField, const T& entity) {
-  if (!idField) return false;
+// template <typename T>
+// bool needsIdReturn(const Field* id_field, const T& entity) {
+//   if (!id_field) return false;
 
-  std::any idAny = idField->get(&entity);
-  if (!idAny.has_value()) return false;
+//   std::any id_any = id_field->get(&entity);
+//   if (!id_any.has_value()) return false;
 
-  if (idAny.type() == typeid(int))
-    return std::any_cast<int>(idAny) == 0;
-  if (idAny.type() == typeid(long long))
-    return std::any_cast<long long>(idAny) == 0;
-  if (idAny.type() == typeid(qulonglong))
-    return std::any_cast<qulonglong>(idAny) == 0;
+//   if (id_any.type() == typeid(int))
+//     return std::any_cast<int>(id_any) == 0;
+//   if (id_any.type() == typeid(long long))
+//     return std::any_cast<long long>(idAny) == 0;
+//   if (id_any.type() == typeid(qulonglong))
+//     return std::any_cast<qulonglong>(id_any) == 0;
 
-  return false;
-}
+//   return false;
+// }
 
 void bindToQuery(std::unique_ptr<IQuery>& query, const QList<QVariant>& values) {
   if(!query) return;
@@ -42,7 +42,7 @@ inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) co
   if (f.type == typeid(bool))
     return QVariant::fromValue(static_cast<int>(std::any_cast<bool>(val)));
   if (f.type == typeid(QDateTime)) {
-    QDateTime dt = std::any_cast<QDateTime>(val);
+    auto dt = std::any_cast<QDateTime>(val);
 
     if (!dt.isValid()) {
       LOG_WARN("in to variant was invalid datetimp");
@@ -205,9 +205,9 @@ T GenericRepository::buildEntity(QSqlQuery& query, BuilderType type) const {
 
 template <typename T>
 std::string GenericRepository::makeKey(const T& entity) const {
-  EntityKey<T> keyBuilder;
+  EntityKey<T> key_builder;
   return "entity_cache:" + std::string(Reflection<T>::meta().table_name) +
-         ":" + keyBuilder.get(entity);
+         ":" + key_builder.get(entity);
 }
 
 template <typename T>

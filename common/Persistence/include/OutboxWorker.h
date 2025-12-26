@@ -11,14 +11,8 @@
 #include "entities/User.h"
 #include "Debug_profiling.h"
 
-#include <QThread>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QDebug>
 #include <QMutex>
 #include <QWaitCondition>
-#include <nlohmann/json.hpp>
 
 #include "interfaces/IDataBase.h"
 
@@ -34,6 +28,11 @@ public:
         wait(); // wait for thread to finish
     }
 
+    OutboxWorker(const OutboxWorker&) = delete;
+    OutboxWorker(OutboxWorker&&) = delete;
+    OutboxWorker& operator=(const OutboxWorker&) = delete;
+    OutboxWorker& operator=(OutboxWorker&&) = delete;
+
     // Start the worker thread
     void startWorker() {
         if (!isRunning()) {
@@ -43,9 +42,9 @@ public:
 
     // Signal the worker to stop
     void stop() {
-        QMutexLocker locker(&m_mutex);
-        m_stop = true;
-        m_waitCondition.wakeAll();
+        QMutexLocker locker(&mutex_);
+        stop_ = true;
+        wait_condition_.wakeAll();
     }
 
 protected:
@@ -61,14 +60,14 @@ protected:
 
         while (true) {
             {
-                QMutexLocker locker(&m_mutex);
-                if (m_stop) break;
+                QMutexLocker locker(&mutex_);
+                if (stop_) break;
             }
 
             processBatch(db_);
 
-            QMutexLocker locker(&m_mutex);
-            m_waitCondition.wait(&m_mutex, 10);
+            QMutexLocker locker(&mutex_);
+            wait_condition_.wait(&mutex_, 10);
         }
 
         //db.close();
@@ -77,12 +76,12 @@ protected:
 
 private:
     IDataBase& db_;
-    volatile bool m_stop;
-    QMutex m_mutex;
-    QWaitCondition m_waitCondition;
+    volatile bool stop_{ false };
+    QMutex mutex_;
+    QWaitCondition wait_condition_;
 
   void processBatch(IDataBase& db) {
-    QString sql_command = "SELECT id, table_trigered, payload FROM outbox WHERE processed = 0 LIMIT 100;";
+    const QString sql_command = "SELECT id, table_trigered, payload FROM outbox WHERE processed = 0 LIMIT 100;";
     auto query = db.prepare(sql_command);
     if(!query) return;
     //QSqlQuery query(db);
@@ -101,18 +100,19 @@ private:
       return;
     }
 
-    QList<int> processedIds;
+    QList<int> processed_ids;
 
     while (query->next()) {
       //LOG_INFO("First candodate");
-      QString tableTriggered = query->value("table_trigered").toString();
-      QString payloadStr = query->value("payload").toString();
-      int id = query->value("id").toInt();
-
-      if (tableTriggered == "user_table") {
+      const QString table_triggered = query->value("table_trigered").toString();
+      const QString payload_str = query->value("payload").toString();
+      const int id = query->value("id").toInt();
+      //todo: make handler for each ecent trigered
+      if (table_triggered == "user_table") {
         LOG_INFO("Triggered user_table");
         //QSqlQuery query1(db);
-        User user = nlohmann::json::parse(payloadStr.toStdString());
+
+        const User user = nlohmann::json::parse(payload_str.toStdString()); //todo: try catch
         LOG_INFO("User: {}", nlohmann::json(user).dump());
 
         const std::string first_command = "INSERT OR REPLACE INTO users_by_email VALUES(?, ?, ?, ?";
@@ -134,16 +134,16 @@ private:
         if (!query1->exec() || !query2->exec()) continue;
       }
 
-      processedIds.append(id);
+      processed_ids.append(id);
     }
 
-    if(!processedIds.empty()) LOG_INFO("Processed ids size: {}", processedIds.size());
-    for (int id : processedIds) {
+    if(!processed_ids.empty()) LOG_INFO("Processed ids size: {}", processed_ids.size());
+    for (const int id : processed_ids) {
       const std::string command = "UPDATE outbox SET processed = 1 WHERE id = ?";
-      auto markQuery = db.prepare(command);
-      if(markQuery) {
-        markQuery->bind(id);
-        markQuery->exec();
+      auto mark_query = db.prepare(command);
+      if(mark_query) {
+        mark_query->bind(id);
+        mark_query->exec();
       }
     }
 

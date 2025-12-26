@@ -4,6 +4,7 @@
 #include <QtSql/qsqlquery.h>
 
 #include <memory>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 
@@ -26,13 +27,18 @@ class MetaEntityBuilder : public IEntityBuilder<T> {
       QVariant v = query.value(f.name);
       if (!v.isValid()) continue;
 
-      std::any val;
-      if (f.type == typeid(long long))
-        val = v.toLongLong();
-      else if (f.type == typeid(std::string))
-        val = v.toString().toStdString();
-      else if (f.type == typeid(QDateTime))
-        val = v.toDateTime();
+      auto val = [f, v]() -> std::any {
+        if (f.type == typeid(long long))
+          return v.toLongLong();
+        if (f.type == typeid(std::string))
+          return v.toString().toStdString();
+        if (f.type == typeid(QDateTime))
+          return v.toDateTime();
+
+        LOG_ERROR("In build MetaEntityBuilder invalid type: {}", f.type.name());
+        return {};
+      }();
+
       f.set(&entity, val);
     }
     return entity;
@@ -53,13 +59,13 @@ class GenericFastEntityBuilder : public IEntityBuilder<T> {
   }
 };
 
-enum class BuilderType { Meta, Fast, Generic };
+enum class BuilderType : std::uint8_t { Meta, Fast, Generic };
 
 template <typename T>
 using BuilderFactoryFn = std::function<std::unique_ptr<IEntityBuilder<T>>()>;
 
 template <typename T>
-std::unordered_map<BuilderType, BuilderFactoryFn<T>> builderMap = {
+static const std::unordered_map<BuilderType, BuilderFactoryFn<T>> builder_map = {
     {BuilderType::Meta, [] { return std::make_unique<MetaEntityBuilder<T>>(); }},
     {BuilderType::Fast, [] { return std::make_unique<FastEntityBuilder<T>>(); }},
     {BuilderType::Generic,
@@ -68,7 +74,7 @@ std::unordered_map<BuilderType, BuilderFactoryFn<T>> builderMap = {
 
 template <typename T>
 std::unique_ptr<IEntityBuilder<T>> makeBuilder(BuilderType type) {
-  return builderMap<T>.at(type)();
+  return builder_map<T>.at(type)();
 }
 
 #endif  // BACKEND_GENERICREPOSITORY_IENTITYBUILDER_H_"

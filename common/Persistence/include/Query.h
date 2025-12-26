@@ -31,30 +31,30 @@ class SelectQuery : public BaseQuery<T> {
   QString        order_;
 
  public:
-  SelectQuery(ISqlExecutor* executor, ICacheService& cashe);
+  SelectQuery(ISqlExecutor* executor, ICacheService& cache);
 
   SelectQuery&   orderBy(const std::string& field, const OrderDirection& direction = OrderDirection::ASC);
   std::vector<T> execute() const override;
 
   std::future<std::vector<T>> executeAsync() const;
   std::future<std::vector<T>> executeWithoutCacheAsync() const;
-  std::vector<T>              executeWithoutCache() const;
+  //std::vector<T>              executeWithoutCache() const;
 
  protected:
-  std::string createCacheKey(QString sql, int generation_hash, int params_hash) const;
+  [[nodiscard]] std::string createCacheKey(const QString& sql, int generation_hash, int params_hash) const;
 
  private:
   std::vector<T> buildResults(std::unique_ptr<IQuery>& query) const;
   void    saveEntityInCache(const T& entity, std::chrono::hours ttl = std::chrono::hours(24)) const;
-  T       buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const;
+  [[nodiscard]] T       buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const;
   int     getEntityId(const T& entity) const;
-  QString buildSelectQuery() const;
+  [[nodiscard]] QString buildSelectQuery() const; //todo: std::string_view return ??
   auto    getGenerations() const;
-  std::size_t hashGenerations(const std::unordered_map<std::string, std::string>& generations) const;
-  std::size_t hashParams(const QVector<QVariant>&) const;
-  std::string buildEntityKey(const T& entity) const;
-  std::string computeCacheKey(const QString& sql) const;
-  std::optional<std::vector<T>> tryLoadFromCache(const std::string& key) const;
+  [[nodiscard]] std::size_t hashGenerations(const std::unordered_map<std::string, std::string>& generations) const;
+  [[nodiscard]] std::size_t hashParams(const QVector<QVariant>& values) const;
+  [[nodiscard]] std::string buildEntityKey(const T& entity) const;
+  [[nodiscard]] std::string computeCacheKey(const QString& sql) const;
+  [[nodiscard]] std::optional<std::vector<T>> tryLoadFromCache(const std::string& key) const;
   //QSqlQuery                     runDatabaseQuery(const QString& sql) const;
   void updateCache(const std::string& key, const std::vector<T>& results) const;
 };

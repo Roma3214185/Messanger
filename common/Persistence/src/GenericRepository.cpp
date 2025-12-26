@@ -1,6 +1,5 @@
 #include "GenericRepository.h"
 #include "interfaces/IThreadPool.h"
-#include "interfaces/IIdGenerator.h"
 #include "interfaces/ISqlExecutor.h"
 
 GenericRepository::GenericRepository(IDataBase&     database,

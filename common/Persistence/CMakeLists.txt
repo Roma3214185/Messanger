@@ -1,19 +1,21 @@
 cmake_minimum_required(VERSION 3.22)
-project(Persistence LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-find_package(Qt6 REQUIRED COMPONENTS Core Sql)
-find_package(nlohmann_json REQUIRED)
 
 if (NOT TARGET Persistence)
+
+    find_package(Qt6 REQUIRED COMPONENTS Core Sql)
+    find_package(nlohmann_json REQUIRED)
 
 add_library(Persistence STATIC
     src/GenericRepository.cpp
     src/SQLiteDatabase.cpp
     src/SqlExecutor.cpp
 )
+
+target_compile_features(Persistence PUBLIC cxx_std_20)
+
+enable_clang_tidy(Persistence)
+enable_cppcheck(Persistence)
+enable_iwyu(Persistence)
 
 target_include_directories(Persistence
     PUBLIC
