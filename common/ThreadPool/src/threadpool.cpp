@@ -1,7 +1,7 @@
 #include "threadpool.h"
 
-ThreadPool::ThreadPool(size_t numThreads) : stop_(false) {
-  for (size_t i = 0; i < numThreads; ++i) {
+ThreadPool::ThreadPool(size_t num_threads) {
+  for (size_t i = 0; i < num_threads; ++i) {
     workers_.emplace_back([this]() {
       while (true) {
         std::function<void()> task;
@@ -15,7 +15,7 @@ ThreadPool::ThreadPool(size_t numThreads) : stop_(false) {
         }
         task();
         {
-          std::unique_lock<std::mutex> lock(queue_mutex_);
+          const std::unique_lock<std::mutex> lock(queue_mutex_);
           --active_tasks_;
           done_condition_.notify_all();
         }
@@ -30,8 +30,9 @@ ThreadPool::~ThreadPool() {
     stop_ = true;
   }
   condition_.notify_all();
-  for (auto& worker : workers_)
+  for (auto& worker : workers_) {
     if (worker.joinable()) worker.join();
+  }
 }
 
 void  ThreadPool::waitAll() {
@@ -41,7 +42,7 @@ void  ThreadPool::waitAll() {
 
 void ThreadPool::enqueueTask(std::function<void()> task) {
   {
-    std::unique_lock<std::mutex> lock(queue_mutex_);
+    const std::unique_lock<std::mutex> lock(queue_mutex_);
     tasks_.push(std::move(task));
   }
   condition_.notify_one();

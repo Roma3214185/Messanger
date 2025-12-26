@@ -1,7 +1,18 @@
 #include "RedisCache.h"
-
+#include <algorithm>
+#include <cassert>
+#include <exception>
+#include <iterator>
+#include <optional>
 #include <random>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 #include "Debug_profiling.h"
+#include "sw/redis++/errors.h"
+#include "sw/redis++/queued_redis.h"
+#include "sw/redis++/queued_redis.hpp"
+#include "sw/redis++/redis.hpp"
 
 namespace {
 
@@ -9,14 +20,15 @@ template <typename Duration>
 std::chrono::seconds getRangedTtl(Duration ttl) {
   using namespace std::chrono;
 
-  auto baseMs = duration_cast<seconds>(ttl).count();
+  const auto base_ms = duration_cast<seconds>(ttl).count();
+  constexpr int min_time_of_ttl = 300;
 
   static std::random_device          rd;
   static std::mt19937                gen(rd());
   std::uniform_int_distribution<int> dist(-30 * 60 * 1000, 30 * 60 * 1000);  // +-30 min in ms
-  int                                jitterMs = dist(gen);
+  const int jitter_ms = dist(gen);
 
-  return seconds(std::max(static_cast<int>(baseMs + jitterMs), 300));
+  return seconds(std::max(static_cast<int>(base_ms + jitter_ms), min_time_of_ttl));
 }
 
 }  // namespace
@@ -29,16 +41,11 @@ void RedisCache::clearPrefix(const std::string& prefix) {
   }
 }
 
-bool RedisCache::exists(const std::string& key) {
-  bool exist = getRedis().exists(key);
-  return exist;
-}
-
 void RedisCache::remove(const std::string& key) {
   try {
     getRedis().del(key);
   } catch (const std::exception& e) {
-
+    LOG_ERROR("Error to delete key: {}", key);
   }
 }
 
@@ -53,7 +60,7 @@ RedisCache& RedisCache::instance() {
 
 sw::redis::Redis& RedisCache::getRedis() {
   if (!redis_) {
-    std::scoped_lock lock(init_mutex_);
+    const std::scoped_lock lock(init_mutex_);
     if (!redis_) {
       try {
         redis_ = std::make_unique<sw::redis::Redis>("tcp://127.0.0.1:6379");
@@ -101,7 +108,7 @@ void RedisCache::setPipelines(const std::vector<std::string>&    keys,
 
     auto pipe = redis_->pipeline();
 
-    for (int i = 0; i < keys.size(); i++) {
+    for (size_t i = 0; i < keys.size(); ++i) {
       const std::string&    key   = keys.size() == 1 ? keys[0] : keys[i];
       const std::string& value = results[i];
       pipe.set(key, value, ttl);
