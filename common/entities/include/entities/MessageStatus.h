@@ -15,10 +15,10 @@ inline long long getCurrentTime() {
 }
 
 struct MessageStatus : public IEntity {
-  long long message_id;
-  long long receiver_id;
-  long long read_at = getCurrentTime();
-  bool      is_read = false;
+  long long message_id{ 0 };
+  long long receiver_id{ 0 };
+  long long read_at{ 0 };
+  bool      is_read{ false };
 };
 
 namespace nlohmann {

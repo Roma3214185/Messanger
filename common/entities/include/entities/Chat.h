@@ -8,12 +8,12 @@
 #include "Fields.h"
 #include "interfaces/entity.h"
 
-struct Chat : IEntity {
-  long long   id       = 0;
-  int         is_group = 0;
+struct Chat : public IEntity {
+  long long   id{ 0 };
+  int         is_group{ 0 };
   std::string name;
   std::string avatar;
-  long long   created_at;
+  long long   created_at{ 0 };
 };
 
 namespace nlohmann {

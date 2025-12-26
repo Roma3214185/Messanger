@@ -10,19 +10,19 @@ class ProdConfigProvider : public IConfigProvider {
       return inst;
     }
 
-    const Ports& ports() const override {
+    [[nodiscard]]  const Ports& ports() const override {
       return ports_;
     }
 
-    const Routes& routes() const override {
+    [[nodiscard]] const Routes& routes() const override {
       return routes_;
     }
 
-    const StatusCodes& statusCodes() const override {
+    [[nodiscard]] const StatusCodes& statusCodes() const override {
       return codes_;
     }
 
-    const IssueMessages& issueMessages() const override {
+    [[nodiscard]] const IssueMessages& issueMessages() const override {
       return messages_;
     }
 

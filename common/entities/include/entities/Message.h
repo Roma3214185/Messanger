@@ -12,10 +12,10 @@
 #include "interfaces/entity.h"
 
 struct Message : public IEntity {
-  long long   id = 0;
-  long long   chat_id;
-  long long   sender_id;
-  long long   timestamp;
+  long long   id{ 0 };
+  long long   chat_id{ 0 };
+  long long   sender_id{ 0 };
+  long long   timestamp{ 0 };
   std::string text;
   std::string local_id;
 };
