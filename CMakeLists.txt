@@ -50,10 +50,11 @@ list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/qt" "/Users/roma/Qt/6.9.0/macos
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
     CACHE STRING "Vcpkg toolchain file")
 
+
+add_library(ProjectOptions INTERFACE)
 # -------------------------
 # Global INTERFACE target for warnings, sanitizers, PCH
 # -------------------------
-add_library(ProjectOptions INTERFACE)
 
 # Include compiler warnings
 # include(cmake/CompilerWarnings.cmake)
@@ -73,8 +74,26 @@ add_library(ProjectOptions INTERFACE)
 #         <utility>)
 # endif()
 
+
+option(ENABLE_WARNINGS "Enable compiler warnings" OFF)
+if (ENABLE_WARNINGS)
+    include(cmake/CompilerWarnings.cmake)
+    set_project_warnings(ProjectOptions)
+endif()
+
+target_include_directories(ProjectOptions
+    INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/common/include
+    SYSTEM
+        ${CMAKE_SOURCE_DIR}/external
+        ${CMAKE_SOURCE_DIR}/build
+        ${CMAKE_BINARY_DIR}/_deps
+)
+
+# -------------------------
 # Static analyzers
-# include(cmake/StaticAnalyzers.cmake)
+# -------------------------
+include(cmake/StaticAnalyzers.cmake)
 
 # -------------------------
 # Submodules
@@ -88,14 +107,18 @@ add_subdirectory(external/prometheus-cpp)
 # -------------------------
 # Common Libraries
 # -------------------------
-add_subdirectory(common/Entities build_entities)
-add_subdirectory(common/Metrics build_metrics)
-add_subdirectory(common/RedisCache build_redis)
-add_subdirectory(common/RabbitMQClient build_rabbit)
-#add_subdirectory(common/Persistence build_persistence)
-add_subdirectory(common/Network build_network)
-add_subdirectory(common/Constants build_constants)
-add_subdirectory(common/ThreadPool build_thread_pool)
+macro(add_project_common name)
+    add_subdirectory(common/${name} build_${name})
+    target_link_libraries(${name} INTERFACE ProjectOptions)
+endmacro()
+
+add_project_common(Entities)
+add_project_common(Metrics)
+add_project_common(RedisCache)
+add_project_common(RabbitMQClient)
+add_project_common(Network)
+add_project_common(Constants)
+add_project_common(ThreadPool)
 
 # -------------------------
 # Microservices
@@ -124,7 +147,7 @@ else()
 
     foreach(service ${ALL_SERVICES})
         add_subdirectory(Backend/${service})
-        #target_link_libraries(${service} INTERFACE ProjectOptions)
+        target_link_libraries(${service} INTERFACE ProjectOptions)
     endforeach()
 
     # Frontend
