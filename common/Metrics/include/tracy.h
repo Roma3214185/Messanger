@@ -8,26 +8,26 @@
 #include <chrono>
 #include <memory>
 #include <string>
-
-#include "Debug_profiling.h"
+#include <spdlog/spdlog.h>
 
 namespace trace = opentelemetry::trace;
 namespace sdktrace = opentelemetry::sdk::trace;
 namespace nostd = opentelemetry::nostd;
 
-inline nostd::shared_ptr<trace::Tracer> InitTracer()
+inline nostd::shared_ptr<trace::Tracer> InitTracer(const int port = 4317)
 {
   opentelemetry::exporter::otlp::OtlpGrpcExporterOptions options;
-  options.endpoint = "localhost:4317";
+  options.endpoint = "localhost:" + std::to_string(port);
 
   static auto tracer = [&options]() {
     auto exporter = std::unique_ptr<sdktrace::SpanExporter>(
-        new opentelemetry::exporter::otlp::OtlpGrpcExporter(options));
+        std::make_unique<opentelemetry::exporter::otlp::OtlpGrpcExporter>(options));
     auto processor = std::unique_ptr<sdktrace::SpanProcessor>(
-        new sdktrace::SimpleSpanProcessor(std::move(exporter)));
+         std::make_unique<sdktrace::SimpleSpanProcessor>(std::move(exporter)));
     auto provider = std::shared_ptr<trace::TracerProvider>(
-        new sdktrace::TracerProvider(std::move(processor)));
+         std::make_unique<sdktrace::TracerProvider>(std::move(processor)));
     trace::Provider::SetTracerProvider(provider);
+
     return provider->GetTracer("MyTracer");
   }();
 
@@ -53,8 +53,8 @@ class ScopedTimer {
 
     ~ScopedTimer() noexcept
     {
-      auto end = std::chrono::high_resolution_clock::now();
-      double duration_seconds = std::chrono::duration<double>(end - start_).count();
+      const auto end = std::chrono::high_resolution_clock::now();
+      const double duration_seconds = std::chrono::duration<double>(end - start_).count();
 
       span_->End();
       spdlog::info("{} took {:.3f} s", name_, duration_seconds);

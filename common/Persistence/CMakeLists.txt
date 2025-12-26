@@ -32,4 +32,10 @@ target_link_libraries(Persistence
         nlohmann_json::nlohmann_json
 )
 
+set_target_properties(Persistence PROPERTIES
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "/usr/local/lib;/opt/homebrew/lib"
+    INSTALL_RPATH_USE_LINK_PATH ON
+)
+
 endif()

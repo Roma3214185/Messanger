@@ -33,7 +33,7 @@ struct TestFixture {
 
     TestFixture()
       : controller(&manager, &facade, &provider)
-      , server(app, port, &controller) {
+      , server(app, 100, &controller) {
       mock_autoritized = std::make_shared<MockAutoritizer>();
       AutoritizerProvider::set(mock_autoritized);
       mock_autoritized->mock_user_id = user_id;

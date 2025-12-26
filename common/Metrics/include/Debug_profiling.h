@@ -11,32 +11,52 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <sstream>
 #include "tracy.h"
+
+//todo: remove ScopedTimer from here, make file Logger and file Tracer, and extract_class_and_function in separate namespace
 
 class ScopedTimer;
 
-#define PROFILE_SCOPE(name) ScopedTimer timer##__LINE__(name)
+#define PROFILE_SCOPE(name) ScopedTimer timer##__LINE__(extract_class_and_function(__func__, __PRETTY_FUNCTION__).c_str())
 
-// inline std::string extract_class_and_function(const char* pretty_func) {
-//   std::string s(pretty_func);
+inline std::string extract_class_and_function(const char* func_name, const char* full_func) {
+  std::string full(full_func);
+  std::string name(func_name);
+  std::stringstream ss(full);
+  std::string token;
 
-//   auto first_space = s.find(' ');
-//   if(first_space != std::string::npos) {
-//     s = s.substr(first_space + 1);
-//   }
+  while (ss >> token) {
+    if (token.find(name) != std::string::npos) {
+      std::string ans = token.substr(0, token.find('('));
+      return ans;
+    }
+  }
+  return name;
+}
 
-//   auto paren = s.find('(');
-//   if(paren != std::string::npos) {
-//     s = s.substr(0, paren);
-//   }
+#ifdef NDEBUG
+#define LOG_INFO(...) ((void)0)
+//#define LOG_INFO(...) \
+//spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__func__, __PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
+#else
+#define LOG_INFO(...) \
+spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__func__, __PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
+#endif
 
-//   return s;
-// }
+#define LOG_WARN(...) \
+spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__func__, __PRETTY_FUNCTION__).c_str()}, spdlog::level::warn, __VA_ARGS__)
 
-#define LOG_INFO(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::info, __VA_ARGS__)
-#define LOG_WARN(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::warn, __VA_ARGS__)
-#define LOG_ERROR(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::err, __VA_ARGS__)
-#define LOG_DEBUG(...) spdlog::log(spdlog::source_loc{__FILE__, __LINE__, __func__}, spdlog::level::debug, __VA_ARGS__)
+#define LOG_ERROR(...) \
+spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__func__, __PRETTY_FUNCTION__).c_str()}, spdlog::level::err, __VA_ARGS__)
+
+#ifdef NDEBUG
+ #define LOG_DEBUG(...) ((void)0)
+#else
+ #define LOG_DEBUG(...) \
+ spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__func__, __PRETTY_FUNCTION__).c_str()}, spdlog::level::debug, __VA_ARGS__)
+#endif
+
 
 inline void measure_network_call(const std::string& name, const std::function<void()>& func) {
   auto start = std::chrono::high_resolution_clock::now();

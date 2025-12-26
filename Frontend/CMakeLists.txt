@@ -17,6 +17,8 @@ set(DEBUG_PROFILING_DIR ${CMAKE_SOURCE_DIR}/DebugProfiling)
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
+#include(${CMAKE_SOURCE_DIR}/cmake/staticanalyzers.cmake)
+
 add_library(FrontendLib STATIC
     ${MY_SOURCES}
 
@@ -92,8 +94,8 @@ add_custom_command(TARGET Frontend POST_BUILD
 
 target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
 
-set_target_properties(Frontend PROPERTIES
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_RPATH "/usr/local/lib;/opt/homebrew/lib"
-    INSTALL_RPATH_USE_LINK_PATH ON
-)
+# set_target_properties(Frontend PROPERTIES
+#     BUILD_WITH_INSTALL_RPATH ON
+#     INSTALL_RPATH "/usr/local/lib;/opt/homebrew/lib"
+#     INSTALL_RPATH_USE_LINK_PATH ON
+# )

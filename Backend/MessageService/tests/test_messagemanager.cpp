@@ -78,7 +78,7 @@ TEST_CASE("Test") {
     to_save.read_at = 123;
     int before_execute = executor.execute_calls;
 
-    manager.saveMessageStatus(to_save);
+    auto res = manager.saveMessageStatus(to_save);
 
     std::string expected_sql = "INSERT OR REPLACE INTO messages_status (message_id, receiver_id, is_read, read_at) "
                                "VALUES (?, ?, ?, ?)";
