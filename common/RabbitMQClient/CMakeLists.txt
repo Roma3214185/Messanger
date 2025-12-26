@@ -11,6 +11,12 @@ find_package(rabbitmq-c REQUIRED CONFIG)
 add_library(RabbitMQClient STATIC
     src/rabbitmqclient.cpp)
 
+target_compile_features(RabbitMQClient PUBLIC cxx_std_20)
+
+enable_clang_tidy(RabbitMQClient)
+enable_cppcheck(RabbitMQClient)
+enable_iwyu(RabbitMQClient)
+
 target_include_directories(RabbitMQClient
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
