@@ -13,6 +13,7 @@ class MockDatabase : public IDataBase {
   bool transaction_should_fail = false;
   int cnt_rollback = 0;
   MockQuery mock_query;
+  std::string last_prepared_sql;
 
    bool exec(const QString& sql) override {
      last_execute_sql = sql.toStdString();
@@ -20,12 +21,13 @@ class MockDatabase : public IDataBase {
    }
 
    std::unique_ptr<IQuery> prepare(const QString& sql) override {
-     if(should_fail_preare) return nullptr;
-     return std::make_unique<MockQuery>(mock_query);
+     return prepare(sql.toStdString());
    }
 
    std::unique_ptr<IQuery> prepare(const std::string& sql) override {
-     return prepare(QString::fromStdString(sql));
+     last_prepared_sql = sql;
+     if(should_fail_preare) return nullptr;
+     return std::make_unique<MockQuery>(mock_query);
    }
 
    bool commit() override {
