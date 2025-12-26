@@ -9,7 +9,7 @@ class NetworkManager;
 
 class ChatServer {
  public:
-  ChatServer(crow::SimpleApp&, int port, ChatController*);
+  ChatServer(crow::SimpleApp& app, int port, ChatController* controller);
   void run();
 
  private:

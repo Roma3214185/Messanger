@@ -14,7 +14,7 @@ class RealAutoritizer : public IAutoritizer {
     }
 };
 
-class AutoritizerProvider {
+class AutoritizerProvider { //todo: delete AutoritizerProvider class
   public:
     static void set(std::shared_ptr<IAutoritizer> a) {
       instance() = std::move(a);

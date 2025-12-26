@@ -37,6 +37,10 @@ target_link_libraries(ChatServiceCore PUBLIC
     Network
 )
 
+enable_clang_tidy(ChatServiceCore)
+enable_cppcheck(ChatServiceCore)
+enable_iwyu(ChatServiceCore)
+
 target_include_directories(ChatServiceCore PUBLIC
   ${httplib_SOURCE_DIR}
   ${CHAT_SERVICE_INCLUDE_DIR}/

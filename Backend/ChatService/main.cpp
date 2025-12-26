@@ -14,7 +14,7 @@
 #include "GeneratorId.h"
 
 int main(int argc, char* argv[]) {
-  init_logger("ChatService");
+  initLogger("ChatService");
   QCoreApplication  a(argc, argv);
   QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
   sqlite.setDatabaseName("chat_service.sqlite");

@@ -45,11 +45,11 @@ struct TestFixture {
 
     void auth() {
       mock_autoritized->mock_user_id = user_id;
-      provider.mock_codes =  MockUtils::getMockCodes();
+      //provider.mock_codes =  MockUtils::getMockCodes();
       req.add_header("Authorization", secret_token);
 
-      provider.mock_issue_message.invalidToken = "test_invalid_messages";
-      provider.mock_issue_message.userNotFound = "test_user_not_found";
+      //provider.mock_issue_message.invalidToken = "test_invalid_messages";
+      //provider.mock_issue_message.userNotFound = "test_user_not_found";
     }
 };
 

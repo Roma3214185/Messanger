@@ -37,9 +37,9 @@ struct TestFixture {
       mock_autoritized = std::make_shared<MockAutoritizer>();
       AutoritizerProvider::set(mock_autoritized);
       mock_autoritized->mock_user_id = user_id;
-      provider.mock_codes =  MockUtils::getMockCodes();
+      //provider.mock_codes =  MockUtils::getMockCodes();
 
-      provider.mock_issue_message.invalidToken = "test_invalid_token";
+      //provider.mock_issue_message.invalidToken = "test_invalid_token";
     }
 };
 
