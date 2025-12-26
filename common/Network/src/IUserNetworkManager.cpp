@@ -1,14 +1,11 @@
 #include "interfaces/IUserNetworkManager.h"
-#include <nlohmann/json.hpp>
 
 #include "entities/User.h"
 #include "Debug_profiling.h"
 #include "ports.h"
 
-using json = nlohmann::json;
-
-std::optional<User> IUserNetworkManager::getUserById(long long otherUserId) {
-  std::string path = "/users/" + std::to_string(otherUserId);
+std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
+  const std::string path = "/users/" + std::to_string(other_user_id);
   auto res = forward(provider_->ports().userService, "", path, "GET");
 
   if (res.first != provider_->statusCodes().success) {
@@ -17,7 +14,7 @@ std::optional<User> IUserNetworkManager::getUserById(long long otherUserId) {
   }
 
   try {
-    const json obj = json::parse(res.second);
+    const nlohmann::json obj = nlohmann::json::parse(res.second);
 
     if (!obj.is_object()) {
       LOG_ERROR("Invalid JSON format in getUserById");
