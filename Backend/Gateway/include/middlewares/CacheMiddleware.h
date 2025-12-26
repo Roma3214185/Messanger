@@ -2,6 +2,7 @@
 #define CACHEMIDDLEWARE_H
 
 #include <crow.h>
+#include <algorithm>
 #include "interfaces/ICacheService.h"
 #include "ProdConfigProvider.h"
 #include "MetricsMiddleware.h"
@@ -37,18 +38,18 @@ struct CacheMiddleware {
     }
 
     template<typename ParentCtx>
-    void after_handle(const crow::request& req, crow::response& res, context& ctx, ParentCtx&) {
+    void after_handle(const crow::request& req, crow::response& res, context& ctx, ParentCtx&  /*unused*/) {
       if(req.method != crow::HTTPMethod::GET) return;
       auto key = makeCacheKey(req);
       cache_->set(key, res.body);
     }
 
   private:
-    std::string makeCacheKey(const crow::request& req) {
+    static std::string makeCacheKey(const crow::request& req) {
       //todo: implement for some url not set cache
       std::string key = "cache:" + crow::method_name(req.method) + ":" + req.url + (req.body.empty() ? "" : "|" + req.body);
       auto keys = req.url_params.keys();
-      std::sort(keys.begin(), keys.end());
+      std::ranges::sort(keys);
 
       for (auto& k : keys) {
         key += "|" + k + "=" + req.url_params.get(k);

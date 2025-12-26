@@ -43,8 +43,8 @@ class GatewayServer {
   IThreadPool* pool_;
   IRabitMQClient* queue_;
 
-  void handleProxyRequest(const crow::request&, crow::response&, int service_port, const std::string& path);
-  void handlePostRequest(const crow::request& req, crow::response& res, int port, const std::string& path);
+  void handleProxyRequest(const crow::request&, crow::response&, const int service_port, const std::string& path);
+  void handlePostRequest(const crow::request& req, crow::response& res, const int port, const std::string& path);
   void registerRequestRoute();
   void registerRoute(const std::string& basePath, int proxy);
   void registerHealthCheck();

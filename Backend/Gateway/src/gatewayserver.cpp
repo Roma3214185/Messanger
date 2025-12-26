@@ -2,7 +2,6 @@
 
 #include <chrono>
 #include <cstdlib>
-#include <iostream>
 #include <fmt/format.h>
 #include <uuid/uuid.h>
 #include <nlohmann/json.hpp>
@@ -10,16 +9,11 @@
 #include "Debug_profiling.h"
 #include "websocketbridge.h"
 #include "interfaces/ICacheService.h"
-#include "middlewares/AuthMiddleware.h"
-#include "middlewares/CacheMiddleware.h"
-#include "middlewares/LoggingMiddleware.h"
-#include "middlewares/RateLimitMiddleware.h"
+#include "middlewares/Middlewares.h"
 #include "interfaces/IThreadPool.h"
 #include "interfaces/IMetrics.h"
-#include "MetricsTracker.h"
 #include "interfaces/IRabitMQClient.h"
 
-using json = nlohmann::json;
 using std::string;
 
 namespace {
@@ -34,7 +28,7 @@ inline std::string generateRequestID() {
   uuid_generate_random(uuid);
   char str[37];
   uuid_unparse(uuid, str);
-  return std::string(str);
+  return{ str };
 }
 
 std::string getContentType(const crow::request& req) {
@@ -58,8 +52,8 @@ RequestDTO getRequestInfo(const crow::request& req, const std::string& path, int
     request_info.url_params.emplace(key, req.url_params.get(key));
   }
 
-  for (auto const& h : req.headers) {
-    request_info.headers.emplace_back(h.first, h.second);
+  for (auto const& header : req.headers) {
+    request_info.headers.emplace_back(header.first, header.second);
   }
 
   return request_info;
@@ -101,46 +95,46 @@ void GatewayServer::registerRoutes() {
   subscribeOnNewRequest();
 }
 
-void GatewayServer::registerRoute(const std::string& basePath,
+void GatewayServer::registerRoute(const std::string& base_path,
                                   int port) {
-  app_.route_dynamic(basePath + "/<path>")
-      .methods("GET"_method)([this, port, basePath](
+  app_.route_dynamic(base_path + "/<path>")
+      .methods("GET"_method)([this, port, base_path](
                                   const crow::request& req, crow::response& res, std::string path) {
-        //pool_->enqueue([this, req = std::move(req), &res, port, basePath, path]() mutable {
-          handleProxyRequest(req, res, port, basePath + "/" + path);
+        //pool_->enqueue([this, req = std::move(req), &res, port, base_path, path]() mutable {
+          handleProxyRequest(req, res, port, base_path + "/" + path);
           //TODO: res.end() here or in handleProxyRequest
           //TODO: make async
        // });
       });
 
-  app_.route_dynamic(basePath + "/<path>")
-      .methods("POST"_method)([this, port, basePath](
+  app_.route_dynamic(base_path + "/<path>")
+      .methods("POST"_method)([this, port, base_path](
                                   const crow::request& req, crow::response& res, std::string path) {
-        //pool_->enqueue([this, req = std::move(req), &res, port, basePath, path]() mutable {
-        handlePostRequest(req, res, port, basePath + "/" + path);
+        //pool_->enqueue([this, req = std::move(req), &res, port, base_path, path]() mutable {
+        handlePostRequest(req, res, port, base_path + "/" + path);
         //TODO: res.end() here or in handleProxyRequest
         //TODO: make async
         // });
       });
 
-  app_.route_dynamic(basePath).methods("GET"_method)(
-      [this, port, basePath](const crow::request& req, crow::response& res) {
-        //pool_->enqueue([this, req = std::move(req), &res, port, basePath]() mutable {
-         handleProxyRequest(req, res, port, basePath);
+  app_.route_dynamic(base_path).methods("GET"_method)(
+      [this, port, base_path](const crow::request& req, crow::response& res) {
+        //pool_->enqueue([this, req = std::move(req), &res, port, base_path]() mutable {
+         handleProxyRequest(req, res, port, base_path);
         //});
       });
 
-  app_.route_dynamic(basePath).methods("POST"_method)(
-      [this, port, basePath](const crow::request& req, crow::response& res) {
-        //pool_->enqueue([this, req = std::move(req), &res, port, basePath]() mutable {
-        handlePostRequest(req, res, port, basePath);
+  app_.route_dynamic(base_path).methods("POST"_method)(
+      [this, port, base_path](const crow::request& req, crow::response& res) {
+        //pool_->enqueue([this, req = std::move(req), &res, port, base_path]() mutable {
+        handlePostRequest(req, res, port, base_path);
         //});
       });
 }
 
 void GatewayServer::handleProxyRequest(const crow::request& req,
                                        crow::response&      res,
-                                       int port,
+                                       const int port,
                                        const std::string&   path) {
   RequestDTO request_info = getRequestInfo(req, path, port);
 
@@ -148,33 +142,33 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
   sendResponse(res, result.first, result.second);
 }
 
-void GatewayServer::handlePostRequest(const crow::request& req,
+void GatewayServer::handlePostRequest(const crow::request& req, //todo: make handlers and unordered_map<request, handler>
                                        crow::response&      res,
-                                       int port,
+                                       const int port,
                                        const std::string&   path) {
   RequestDTO request_info = getRequestInfo(req, path, port);
-  cache_->set("request:" + request_info.request_id, "{ \"status\": \"queued\" }");
+  cache_->set("request:" + request_info.request_id,  R"({ "status": "queued" })");
 
-  PublishRequest publish_request{
+  const PublishRequest publish_request{ //todo: make PublishRequest and RequestDTO immutable
     .exchange = provider_->routes().exchange,
-    .routingKey = provider_->routes().sendRequest,
+    .routing_key = provider_->routes().sendRequest,
     .message =  nlohmann::json(request_info).dump(),
-    .exchangeType = "direct"
+    .exchange_type = "direct"
   };
 
   queue_->publish(publish_request);
   nlohmann::json responce;
   responce["status"] = "queued";
   responce["request_id"] = request_info.request_id;
-  sendResponse(res, 202, responce.dump());
+  sendResponse(res, provider_->statusCodes().accepted, responce.dump());
 }
 
 void GatewayServer::subscribeOnNewRequest() {
   SubscribeRequest subscribe_request{
     .queue = provider_->routes().sendRequest,
     .exchange = provider_->routes().exchange,
-    .routingKey = provider_->routes().sendRequest,
-    .exchangeType = "direct"
+    .routing_key = provider_->routes().sendRequest,
+    .exchange_type = "direct"
   };
 
   queue_->subscribe(subscribe_request,
@@ -200,15 +194,15 @@ void GatewayServer::subscribeOnNewRequest() {
     cache_->set("request:" + request_info->request_id, "{\"status\":\"finished\"}");
     cache_->set("request_id:" + request_info->request_id, std::to_string(result.first));
     cache_->set("request_body:" + request_info->request_id,
-                result.second.substr(0, result.second.length() - 1) + ",\"status\":\"finished\"}");
+                result.second.substr(0, result.second.length() - 1) +  R"({"status":"finished"})"); //todo: fully refactor server responce JsonObject,
+                                                                                                  // return ["error"], ["body"], maybe ["code"]
   });
-
 }
 
 void GatewayServer::registerRequestRoute() {
   CROW_ROUTE(app_, "/request/<string>/status")
   .methods("GET"_method)
-      ([this](const crow::request& req, crow::response& res, std::string task_id) {
+      ([this](const crow::request& /*req*/, crow::response& res, std::string task_id) {
         LOG_INFO("Request id = {}", task_id);
         std::optional<std::string> status = cache_->get("request:" + task_id);
         nlohmann::json responce;
@@ -231,28 +225,28 @@ void GatewayServer::registerRequestRoute() {
 void GatewayServer::registerWebSocketRoutes() {
   std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws",
       provider_->ports().notificationService);
-  auto wsBridge = std::make_shared<WebSocketBridge>(backend_url);
+  auto ws_bridge = std::make_shared<WebSocketBridge>(backend_url);
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
-      .onopen([wsBridge, this](crow::websocket::connection& client) {
-        wsBridge->onClientConnect(client);
+      .onopen([ws_bridge, this](crow::websocket::connection& client) {
+        ws_bridge->onClientConnect(client);
         //metrics_->userConnected();
       })
-      .onmessage([wsBridge, this](crow::websocket::connection& client, const std::string& data, bool) {
-        wsBridge->onClientMessage(client, data);
+      .onmessage([ws_bridge, this](crow::websocket::connection& client, const std::string& data, bool) {
+        ws_bridge->onClientMessage(client, data);
         //metrics_->newMessage(client.get_remote_ip());
       })
-      .onclose([wsBridge, this](crow::websocket::connection& client,
+      .onclose([ws_bridge, this](crow::websocket::connection& client,
                           const std::string&           reason,
                           uint16_t code) {
-        wsBridge->onClientClose(client, reason, code);
+        ws_bridge->onClientClose(client, reason, code);
         //metrics_->userDisconnected();
       });
 }
 
 void GatewayServer::registerHealthCheck() {
   CROW_ROUTE(app_, "/healthz")([this](const crow::request&, crow::response& res) {
-    json info = {{"status", "ok"},
+    nlohmann::json info = {{"status", "ok"},
                  {"timestamp", getCurrentTime()}};
     res.set_header("Content-Type", "application/json");
     sendResponse(res, provider_->statusCodes().success, info.dump());

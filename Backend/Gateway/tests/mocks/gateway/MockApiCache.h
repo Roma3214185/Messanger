@@ -42,10 +42,6 @@ class MockApiCache : public ICacheService {
 
     }
 
-    bool exists(const std::string& key) override {
-      return true;
-    }
-
     void setPipelines(const std::vector<std::string>&    keys,
                       const std::vector<std::string>& results,
                       std::chrono::seconds               ttl = std::chrono::minutes(30)) override {

@@ -7,15 +7,15 @@
 #include "ProdConfigProvider.h"
 
 struct RateLimitMiddleware {
+    struct context {};
     IRateLimiter* rate_limiter_;
     IConfigProvider* provider_ = &ProdConfigProvider::instance();
-    struct context {};
 
     template<typename ParentCtx>
     void before_handle(const crow::request& req,
                        crow::response& res,
-                       context& ctx,
-                       ParentCtx& parent_ctx) {
+                       context&  /*ctx*/,
+                       ParentCtx&  /*parent_ctx*/) {
       if(!rate_limiter_->allow(getIP(req))) {
         res.code = provider_->statusCodes().rateLimit;
         res.write(provider_->issueMessages().rateLimitExceed);
@@ -24,12 +24,12 @@ struct RateLimitMiddleware {
     }
 
     template<typename ParentCtx>
-    void after_handle(const crow::request& req, crow::response& res, context& ctx, ParentCtx&) {
+    void after_handle(const crow::request& /*req*/, crow::response& /*res*/, context& /*ctx*/, ParentCtx& /*unused*/) {
 
     }
 
   private:
-    std::string getIP(const crow::request& req) const {
+    static std::string getIP(const crow::request& req) {
       auto ip = req.get_header_value("X-Forwarded-For");
       return ip.empty() ? req.remote_ip_address : ip;
     }

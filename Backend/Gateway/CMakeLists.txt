@@ -30,6 +30,10 @@ target_include_directories(GatewayCore PUBLIC
     /opt/homebrew/include
 )
 
+enable_clang_tidy(GatewayCore)
+enable_cppcheck(GatewayCore)
+enable_iwyu(GatewayCore)
+
 target_link_libraries(GatewayCore PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}
     Crow::Crow
