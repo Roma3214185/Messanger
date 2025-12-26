@@ -52,6 +52,10 @@ add_library(FrontendLib STATIC
     ${FRONTEND_INC_DIR}/interfaces/IMessageListView.h
 )
 
+enable_clang_tidy(FrontendLib)
+enable_cppcheck(FrontendLib)
+enable_iwyu(FrontendLib)
+
 target_include_directories(FrontendLib
     PUBLIC
         ${FRONTEND_INC_DIR}

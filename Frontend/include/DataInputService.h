@@ -10,7 +10,7 @@
 #include "dto/SignUpRequest.h"
 
 struct ValidationResult {
-  bool    valid;
+  bool    valid{ false };
   QString message;
 };
 

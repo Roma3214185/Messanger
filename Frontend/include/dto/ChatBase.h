@@ -7,10 +7,10 @@
 #include <QVector>
 
 struct ChatBase {
-  long long       chat_id;
+  long long       chat_id{ 0 };
   QString   title;
   QString   last_message;
-  int       unread = 0;
+  int       unread{ 0 };
   QDateTime last_message_time;
   QString   avatar_path;
 
@@ -20,14 +20,14 @@ struct ChatBase {
 
 struct PrivateChat : public ChatBase {
   QString user_tag;
-  int     user_id;
+  long long  user_id{ 0 };
   QString status;
 
   [[nodiscard]] auto isPrivate() const -> bool override { return true; }
 };
 
 struct GroupChat : public ChatBase {
-  int          member_count = 0;
+  int          member_count{ 0 };
   QStringList  member_tags;
   QVector<int> members_id;
   QStringList  avatar_paths;
@@ -40,10 +40,10 @@ inline ChatBase::~ChatBase() = default;
 class ChatFactory {
   public:
     static std::shared_ptr<ChatBase> createPrivateChat(
-        long long chat_id,
+        const long long chat_id,
         const QString& title,
         const QString& user_tag,
-        int user_id,
+        const long long user_id,
         const QString& status,
         const QString& last_message = {},
         const QDateTime& last_message_time = QDateTime(),
@@ -62,9 +62,9 @@ class ChatFactory {
     }
 
     static std::shared_ptr<ChatBase> createGroupChat(
-        long long chat_id,
+        const long long chat_id,
         const QString& title,
-        int member_count,
+        const int member_count,
         const QStringList& member_tags,
         const QVector<int>& members_id,
         const QStringList& avatar_paths,

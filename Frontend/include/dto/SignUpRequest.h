@@ -4,15 +4,15 @@
 #include <QString>
 
 struct SignUpRequest {
-  QString email{};
-  QString password{};
-  QString tag{};
-  QString name{};
+  QString email;
+  QString password;
+  QString tag;
+  QString name;
 };
 
-struct LogInRequest {
-  QString email{};
-  QString password{};
+struct LogInRequest { //todo: make immutable
+  QString email;
+  QString password;
 };
 
 #endif  // SIGNUPREQUEST_H

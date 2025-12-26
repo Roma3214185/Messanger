@@ -36,7 +36,7 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
     status_sended = other.status_sended;
   }
 
-  std::string to_string() {
+  std::string toString() {
     std::string res;
     res += "| id = " + std::to_string(id);
     res += " | senderId = " + std::to_string(senderId);

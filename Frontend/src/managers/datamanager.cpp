@@ -18,7 +18,7 @@ ChatPtr DataManager::getPrivateChatWithUser(long long user_id) {
 }
 
 int DataManager::getNumberOfExistingModels() const {
-  return message_models_by_chat_id_.size();
+  return (int)message_models_by_chat_id_.size();
 }
 
 MessageModelPtr DataManager::getMessageModel(long long chat_id) {
@@ -95,7 +95,7 @@ void DataManager::saveMessage(const Message& message) {
   LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.text.toStdString(), message.id, message.local_id.toStdString(), message.status_sended);
   if(it != messages_.end()) {
     LOG_INFO("Message {} already exist", message.text.toStdString());
-    assert(it->second.id == 0 || it->second.id == message.id);
+    assert(it->id == 0 || it->id == message.id);
     it->updateFrom(message);
   } else {
     LOG_INFO("Message {} added", message.text.toStdString());

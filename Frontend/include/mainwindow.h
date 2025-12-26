@@ -3,6 +3,7 @@
 
 #include <QListView>
 #include <QMainWindow>
+#include <memory>
 
 #include "interfaces/IMainWindow.h"
 
@@ -55,7 +56,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void seupConnections();
   void setupUI();
 
-  std::unique_ptr<ITheme>    currentTheme;
+  std::unique_ptr<ITheme>    current_theme_;
   Ui::MainWindow*            ui_;
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;

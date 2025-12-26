@@ -5,7 +5,7 @@ ChatModel::ChatModel(QObject* parent) : QAbstractListModel(parent) {}
 
 int ChatModel::rowCount(const QModelIndex& parent) const {
   Q_UNUSED(parent);
-  return chats_.size();
+  return (int)chats_.size();
 }
 
 QVariant ChatModel::data(const QModelIndex& index, int role) const {

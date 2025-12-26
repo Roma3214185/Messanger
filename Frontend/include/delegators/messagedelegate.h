@@ -23,14 +23,14 @@ class MessageDelegate : public QStyledItemDelegate {
   void  paint(QPainter*                   painter,
               const QStyleOptionViewItem& option,
               const QModelIndex&          index) const override;
-  QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+  [[nodiscard]] QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
  private:
   void            drawAll(QPainter*                   painter,
                           const QStyleOptionViewItem& option,
                           const MessageDrawData&      msg,
                           bool                        is_mine) const;
-  MessageDrawData extractMessageData(const QModelIndex& index) const;
+  [[nodiscard]] MessageDrawData extractMessageData(const QModelIndex& index) const;
   void            drawBackgroundState(QPainter*                   painter,
                                       const QRect&                rect,
                                       const QStyleOptionViewItem& option,

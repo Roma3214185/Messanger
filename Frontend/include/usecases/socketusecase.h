@@ -5,7 +5,7 @@
 
 #include "managers/socketmanager.h"
 
-class Message;
+struct Message;
 
 class SocketUseCase : public QObject {
     Q_OBJECT

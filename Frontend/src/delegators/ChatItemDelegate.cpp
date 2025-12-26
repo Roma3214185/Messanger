@@ -10,10 +10,10 @@ void ChatItemDelegate::paint(QPainter*                   painter,
 }
 
 void ChatItemDelegate::drawBackgroundState(QPainter*                   painter,
-                                           const QRect&                rect,
+                                           const QRect&                 /*rect*/,
                                            const QStyleOptionViewItem& option) const {
-  if (option.state & QStyle::State_Selected) {
-    QColor bg = option.palette.color(QPalette::Base);
+  if (option.state != 0u && QStyle::State_Selected) {
+    const QColor bg = option.palette.color(QPalette::Base);
     int    r  = qMin(bg.red() + 38, 255);
     int    g  = qMin(bg.green() + 38, 255);
     int    b  = qMin(bg.blue() + 38, 255);
