@@ -1,21 +1,23 @@
 #ifndef BACKEND_REDISCACHE_REDISCACHE_H_
 #define BACKEND_REDISCACHE_REDISCACHE_H_
 
-#include <sw/redis++/redis++.h>
-
-#include <algorithm>
+#include <chrono>
 #include <memory>
+#include <mutex>
 #include <string>
-#include <vector>
-
+#include <sw/redis++/redis.h>
 #include "interfaces/ICacheService.h"
 
 class RedisCache : public ICacheService {
  public:
   static RedisCache& instance();
+  RedisCache(const RedisCache&)            = delete;
+  RedisCache& operator=(const RedisCache&) = delete;
+  RedisCache(RedisCache&&) = delete;
+  RedisCache& operator=(RedisCache&&) = delete;
+
   void               incr(const std::string& key) override;
   void               remove(const std::string& key) override;
-  bool               exists(const std::string& key) override;
   void               clearCache() override;
   void               clearPrefix(const std::string& prefix) override;
 
@@ -44,8 +46,7 @@ class RedisCache : public ICacheService {
   int getTtlWithJitter(std::chrono::seconds ttl);
 
   RedisCache()                             = default;
-  RedisCache(const RedisCache&)            = delete;
-  RedisCache& operator=(const RedisCache&) = delete;
+  ~RedisCache() = default;
 };
 
 #endif  // BACKEND_REDISCACHE_REDISCACHE_H_

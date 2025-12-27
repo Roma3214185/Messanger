@@ -1,20 +1,31 @@
 #ifndef TRACY_H
 #define TRACY_H
 
-#include <opentelemetry/trace/provider.h>
+#include <fmt/base.h>
+#include <fmt/format.h>
 #include <opentelemetry/exporters/otlp/otlp_grpc_exporter.h>
+#include <opentelemetry/exporters/otlp/otlp_grpc_exporter_options.h>
+#include <opentelemetry/nostd/shared_ptr.h>
+#include <opentelemetry/sdk/trace/exporter.h>
+#include <opentelemetry/sdk/trace/processor.h>
 #include <opentelemetry/sdk/trace/simple_processor.h>
 #include <opentelemetry/sdk/trace/tracer_provider.h>
+#include <opentelemetry/trace/provider.h>
+#include <opentelemetry/trace/scope.h>
+#include <opentelemetry/trace/span.h>
+#include <opentelemetry/trace/tracer.h>
+#include <opentelemetry/trace/tracer_provider.h>
+#include <spdlog/spdlog.h>
 #include <chrono>
 #include <memory>
 #include <string>
-#include <spdlog/spdlog.h>
+#include <utility>
 
 namespace trace = opentelemetry::trace;
 namespace sdktrace = opentelemetry::sdk::trace;
 namespace nostd = opentelemetry::nostd;
 
-inline nostd::shared_ptr<trace::Tracer> InitTracer(const int port = 4317)
+inline nostd::shared_ptr<trace::Tracer> initTracer(const int port = 4317)
 {
   opentelemetry::exporter::otlp::OtlpGrpcExporterOptions options;
   options.endpoint = "localhost:" + std::to_string(port);
@@ -34,7 +45,7 @@ inline nostd::shared_ptr<trace::Tracer> InitTracer(const int port = 4317)
   return tracer;
 }
 
-class ScopedTimer {
+class ScopedTimer final {
     std::string name_;
     std::chrono::high_resolution_clock::time_point start_;
     nostd::shared_ptr<trace::Tracer> tracer_;
@@ -45,14 +56,19 @@ class ScopedTimer {
     explicit ScopedTimer(std::string name)
         : name_(std::move(name))
         , start_(std::chrono::high_resolution_clock::now())
-        , tracer_(InitTracer())
+        , tracer_(initTracer())
         , span_(tracer_->StartSpan(name_))
-        , scope_(tracer_->WithActiveSpan(span_)) {
+        , scope_(tracer_->WithActiveSpan(span_))
+    {}
 
-    }
+    ScopedTimer(const ScopedTimer&)            = delete;
+    ScopedTimer& operator=(const ScopedTimer&) = delete;
 
-    ~ScopedTimer() noexcept
-    {
+    ScopedTimer(ScopedTimer&&)            = delete;
+    ScopedTimer& operator=(ScopedTimer&&) = delete;
+
+
+    ~ScopedTimer() noexcept {
       const auto end = std::chrono::high_resolution_clock::now();
       const double duration_seconds = std::chrono::duration<double>(end - start_).count();
 

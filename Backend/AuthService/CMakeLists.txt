@@ -36,6 +36,10 @@ target_include_directories(AuthServiceCore PUBLIC
     ${SODIUM_INCLUDE_DIRS}
 )
 
+enable_clang_tidy(AuthServiceCore)
+enable_cppcheck(AuthServiceCore)
+enable_iwyu(AuthServiceCore)
+
 target_compile_options(AuthServiceCore PRIVATE -Wno-deprecated-declarations)
 
 target_link_libraries(AuthServiceCore PUBLIC

@@ -2,7 +2,6 @@
 
 #include "chatservice/chatcontroller.h"
 #include "Debug_profiling.h"
-#include "interfaces/IApp.h"
 
 ChatServer::ChatServer(crow::SimpleApp& app, int port, ChatController* controller)
     : app_(app), port_(port), controller_(controller) {

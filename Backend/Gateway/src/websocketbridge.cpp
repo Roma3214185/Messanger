@@ -9,7 +9,7 @@ std::string makeClientId(crow::websocket::connection& client) {
 
 } // namespace
 
-WebSocketBridge::WebSocketBridge(const std::string& backend_url) : backend_url_(backend_url) {}
+WebSocketBridge::WebSocketBridge(std::string backend_url) : backend_url_(std::move(backend_url)) {}
 
 std::shared_ptr<ix::WebSocket> WebSocketBridge::createBackendConnection(
     const std::string& client_id) {
@@ -48,7 +48,7 @@ void WebSocketBridge::onClientConnect(crow::websocket::connection& client) {
 
 void WebSocketBridge::onClientMessage(crow::websocket::connection& client,
                                       const std::string&           data) {
-  std::string client_id = makeClientId(client);
+  const std::string client_id = makeClientId(client);
   auto it = connections_.find(client_id);
   if (it != connections_.end() && it->second) {
     it->second->send(data);
@@ -56,14 +56,15 @@ void WebSocketBridge::onClientMessage(crow::websocket::connection& client,
 }
 
 void WebSocketBridge::onClientClose(crow::websocket::connection& client,
-                                    const std::string& reason,
-                                    uint16_t code) {
-  std::string id = makeClientId(client);
+                                    const std::string& /*reason*/,
+                                    uint16_t  /*code*/) {
+  const std::string id = makeClientId(client);
 
   auto it = connections_.find(id);
   if (it != connections_.end()) {
-    if (it->second && it->second->getReadyState() == ix::ReadyState::Open)
+    if (it->second && it->second->getReadyState() == ix::ReadyState::Open) {
       it->second->close();
+    }
     connections_.erase(it);
   }
 

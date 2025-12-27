@@ -10,7 +10,7 @@
 namespace TimestampService {
 
 inline static std::time_t parseTimestampISO8601(const std::string& iso_str) {
-  std::tm tm = {};
+  std::tm tm{};
   std::istringstream ss(iso_str);
   ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
   if (ss.fail()) {
@@ -20,7 +20,7 @@ inline static std::time_t parseTimestampISO8601(const std::string& iso_str) {
 }
 
 inline std::string timestampToISO8601(std::time_t timestamp) {
-  std::tm tm;
+  std::tm tm{ };
 #ifdef _WIN32
   gmtime_s(&tm, &timestamp);
 #else

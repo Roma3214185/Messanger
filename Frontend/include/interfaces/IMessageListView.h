@@ -18,7 +18,7 @@ class IMessageListView : public QListView {
     virtual int getMaximumMessageScrollBar() const = 0;
     virtual int getMessageScrollBarValue() const = 0;
     virtual void setMessageScrollBarValue(int value) = 0;
-    virtual void preserveFocusWhile(MessageModel* message_model, std::function<void()> updateModel) = 0;
+    virtual void preserveFocusWhile(MessageModel* message_model, std::function<void()> update_model) = 0;
 
   Q_SIGNALS:
     void scrollChanged(int value);

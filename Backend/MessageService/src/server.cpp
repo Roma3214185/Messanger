@@ -1,7 +1,6 @@
 #include "messageservice/server.h"
 
 #include "messageservice/controller.h"
-#include "RabbitMQClient.h"
 #include "interfaces/IRabitMQClient.h"
 #include "messageservice/managers/JwtUtils.h"
 #include "messageservice/interfaces/IController.h"
@@ -18,16 +17,16 @@ void sendResponse(crow::response& res, int code, const std::string& text) {
 std::string extractToken(const crow::request& req) { return req.get_header_value("Authorization"); }
 
 int getLimit(const crow::request& req) {
-  return req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : INT_MAX;
+  return req.url_params.get("limit") != nullptr ? std::stoi(req.url_params.get("limit")) : INT_MAX;
 }
 
 int getBeforeId(const crow::request& req) {
-  return req.url_params.get("before_id") ? std::stoi(req.url_params.get("before_id")) : 0;
+  return req.url_params.get("before_id") != nullptr ? std::stoi(req.url_params.get("before_id")) : 0;
 }
 
 }  // namespace
 
-crow::json::wvalue Server::formMessageListJson(const std::vector<Message>& messages,
+crow::json::wvalue Server::formMessageListJson(const std::vector<Message>& messages, //todo: in jsonservice
                                        const std::vector<MessageStatus>& messages_status) {
   crow::json::wvalue res = crow::json::wvalue::list();
   if(messages.size() != messages_status.size()) {
@@ -37,9 +36,9 @@ crow::json::wvalue Server::formMessageListJson(const std::vector<Message>& messa
   }
   int i   = 0;
   for (const auto& msg : messages) {
-    auto jsonObject            = to_crow_json(msg);
-    jsonObject["readed_by_me"] = messages_status[i].is_read;
-    res[i++] = std::move(jsonObject);
+    auto json_object            = to_crow_json(msg);
+    json_object["readed_by_me"] = messages_status[i].is_read;
+    res[i++] = std::move(json_object);
   }
 
   return res;
@@ -87,9 +86,9 @@ void Server::onGetMessagesFromChat(const crow::request& req, long long chat_id, 
     return sendResponse(res, provider_->statusCodes().userError, provider_->issueMessages().invalidToken);
   }
 
-  long long user_id = *optional_user_id;
+  const long long user_id = *optional_user_id;
 
-  GetMessagePack pack {.chat_id = chat_id, .limit = getLimit(req),
+  const GetMessagePack pack {.chat_id = chat_id, .limit = getLimit(req),
                       .before_id = getBeforeId(req), .user_id = user_id };
 
   auto messages = controller_->getMessages(pack);

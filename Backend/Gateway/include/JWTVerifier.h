@@ -12,12 +12,12 @@
 
 class JWTVerifier : public IVerifier {
   public:
-    explicit JWTVerifier(const std::string& publicKeyPath, const std::string& issuer);
+    explicit JWTVerifier(const std::string& public_key_path, const std::string& issuer);
 
     std::optional<long long> verifyTokenAndGetUserId(const std::string& token) override;
 
   private:
-    std::string publicKey_;
+    std::string public_key_;
     jwt::verifier<jwt::default_clock, jwt::traits::kazuho_picojson> verifier_;
 };
 

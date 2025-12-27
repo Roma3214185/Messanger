@@ -2,6 +2,7 @@
 #define AUTHMIDDLEWARE_H
 
 #include <crow.h>
+#include <algorithm>
 
 #include "interfaces/IVerifier.h"
 #include "Debug_profiling.h"
@@ -38,18 +39,22 @@ struct AuthMiddleware {
     }
 
   private:
-    inline static const std::vector<std::string> no_need_auth_urls {"/auth/login", "/auth/register", "/ws", "/request"};
+    inline static const std::vector<std::string> kNoNeedAuthUrls {"/auth/login", "/auth/register", "/ws", "/request"};
 
-    std::string fetchToken(const crow::request& req) {
+    inline static std::string fetchToken(const crow::request& req) {
       return req.get_header_value("Authorization");
     }
 
-    bool needToAuth(const std::string& url) {
+    inline static bool needToAuth(const std::string& url) {
       LOG_INFO("Check to auth url {}", url);
-      for(const auto &need_auth_url : no_need_auth_urls) {
-        if(url.substr(0, need_auth_url.length()) == need_auth_url) return false;
-      }
-      return true;
+      return std::none_of(kNoNeedAuthUrls.begin(), kNoNeedAuthUrls.end(), [&](const auto& prefix){
+         return url.starts_with(prefix);
+      });
+
+      // for(const auto &need_auth_url : kNoNeedAuthUrls) {
+      //   if(url.substr(0, need_auth_url.length()) == need_auth_url) return false;
+      // }
+      // return true;
     }
 };
 

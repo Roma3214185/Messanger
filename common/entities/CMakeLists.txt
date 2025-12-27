@@ -1,25 +1,23 @@
 cmake_minimum_required(VERSION 3.22)
-project(Entities LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (NOT TARGET Entities)
 
-add_library(Entities INTERFACE)
+    add_library(Entities INTERFACE)
+    #target_compile_features(Entities PUBLIC cxx_std_20)
 
-target_include_directories(Entities INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+    target_include_directories(Entities INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
 
-target_link_libraries(Entities INTERFACE ProjectOptions)
+    target_link_libraries(Entities INTERFACE
+        nlohmann_json::nlohmann_json
+        Crow::Crow
+        Metrics
+    )
 
-target_link_libraries(Entities INTERFACE
-    nlohmann_json::nlohmann_json
-    Crow::Crow
-    Metrics
-)
+    enable_clang_tidy(Entities)
+    enable_cppcheck(Entities)
+    enable_iwyu(Entities)
 
 endif()
 

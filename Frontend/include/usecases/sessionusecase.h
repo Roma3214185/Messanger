@@ -5,9 +5,9 @@
 #include <QObject>
 
 class SessionManager;
-class LogInRequest;
-class SignUpRequest;
-class User;
+struct LogInRequest;
+struct SignUpRequest;
+struct User;
 
 class SessionUseCase : public QObject {
     Q_OBJECT

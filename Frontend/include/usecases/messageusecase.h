@@ -8,8 +8,8 @@ class MessageModel;
 class DataManager;
 class MessageManager;
 class TokenManager;
-class Message;
-class User;
+struct Message;
+struct User;
 
 class MessageUseCase : public QObject {
     Q_OBJECT

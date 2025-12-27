@@ -39,7 +39,7 @@ struct TestFixture {
       user.avatar = "test/avatar/path";
       generator.mock_token = token;
 
-      provider.mock_issue_message.invalidToken = "test_invalid_token2";
+      //provider.mock_issue_message.invalidToken = "test_invalid_token2";
     }
 };
 

@@ -42,17 +42,17 @@ class MessageListView : public IMessageListView {
 
   void setMessageScrollBarValue(int value) override { this->verticalScrollBar()->setValue(value); }
 
-  void preserveFocusWhile(MessageModel* message_model, std::function<void()> updateModel) override {
-    QModelIndex anchorIndex = indexAt(QPoint(0, 0));
-    int anchorId = message_model->data(anchorIndex, MessageModel::MessageIdRole).toInt();
-    int anchorY = visualRect(anchorIndex).top();
+  void preserveFocusWhile(MessageModel* message_model, std::function<void()> update_model) override {
+    const QModelIndex anchor_index = indexAt(QPoint(0, 0));
+    const int anchor_id = message_model->data(anchor_index, MessageModel::MessageIdRole).toInt();
+    const int anchor_y = visualRect(anchor_index).top();
 
-    updateModel();
+    update_model();
 
-    QModelIndex newAnchorIndex = message_model->indexFromId(anchorId);
-    int newAnchorY = visualRect(newAnchorIndex).top();
+    const QModelIndex new_anchor_index = message_model->indexFromId(anchor_id);
+    const int new_anchor_y = visualRect(new_anchor_index).top();
 
-    int delta = newAnchorY - anchorY;
+    const int delta = new_anchor_y - anchor_y;
     verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
   }
 };

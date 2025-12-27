@@ -23,9 +23,10 @@ struct Meta {
   const char*        table_name;
   std::vector<Field> fields;
 
-  const Field* find(const std::string& n) const {
-    for (const auto& f : fields)
-      if (n == f.name) return &f;
+  [[nodiscard]] const Field* find(const std::string& field_name_to_find) const {
+    for (const auto& field : fields) {
+      if (field_name_to_find == field.name) return &field;
+    }
     return nullptr;
   }
 };
@@ -35,12 +36,12 @@ Field make_field(const char* name, M T::* member) {
   return Field{.name = name,
                .type = typeid(M),
                .get  = [member](const void* obj) -> std::any {
-                 const T* element = static_cast<const T*>(obj);
+                 const auto* element = static_cast<const T*>(obj);
                  return element->*member;
                },
                .set =
                    [member](void* obj, const std::any& val) {
-                     T* element = static_cast<T*>(obj);
+                     auto* element = static_cast<T*>(obj);
 
                        // if constexpr (std::is_same_v<M, std::string>) {
                        //    if (val.type() == typeid(const char*)) {

@@ -1,8 +1,12 @@
 #include "chatservice/TokenService.h"
 #include <jwt-cpp/jwt.h>
+#include <exception>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include <iterator>
+#include <stdexcept>
 #include "Debug_profiling.h"
+#include "jwt-cpp/traits/kazuho-picojson/defaults.h"
+#include "jwt-cpp/traits/kazuho-picojson/traits.h"
 
 namespace {
 

@@ -34,18 +34,18 @@ MainWindow::MainWindow(Model* model, QWidget* parent)
 }
 
 void MainWindow::setDelegators() {
-  auto* chatDelegate = presenter_->getChatDelegate();
-  auto* userDelegate = presenter_->getUserDelegate();
+  auto* chat_delegate = presenter_->getChatDelegate();
+  auto* user_delegate = presenter_->getUserDelegate();
 
-  ui_->chatListView->setItemDelegate(chatDelegate);
-  ui_->userListView->setItemDelegate(userDelegate);
+  ui_->chatListView->setItemDelegate(chat_delegate);
+  ui_->userListView->setItemDelegate(user_delegate);
 }
 
 void MainWindow::setChatModel(ChatModel* model) { ui_->chatListView->setModel(model); }
 
 void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
   ui_->messageWidget->setVisible(true);
-  QString       name = chat->title;
+  const QString       name = chat->title;
   QPixmap       avatar(chat->avatar_path);
   constexpr int kAvatarSize    = 40;
   const QString kDefaultAvatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
@@ -86,10 +86,11 @@ void MainWindow::on_inSubmitButton_clicked() {
   login_request.email    = ui_->inEmail->text().trimmed();
   login_request.password = ui_->inPassword->text().trimmed();
   auto res               = DataInputService::validateLoginUserInput(login_request);
-  if (!res.valid)
+  if (!res.valid) {
     showError(res.message);
-  else
+  } else {
     presenter_->signIn(login_request);
+  }
 }
 
 void MainWindow::setMainWindow() {
@@ -108,9 +109,9 @@ void MainWindow::on_userTextEdit_textChanged(const QString& text) {
 void MainWindow::on_textEdit_textChanged() {
   constexpr int kMinTextEditHeight = 200;
   constexpr int kAdditionalSpace   = 10;
-  int           docHeight          = static_cast<int>(ui_->textEdit->document()->size().height());
-  int           newHeight          = qMin(kMinTextEditHeight, docHeight + kAdditionalSpace);
-  ui_->textEdit->setFixedHeight(newHeight);
+  const int           docHeight          = static_cast<int>(ui_->textEdit->document()->size().height());
+  const int           new_height          = qMin(kMinTextEditHeight, docHeight + kAdditionalSpace);
+  ui_->textEdit->setFixedHeight(new_height);
 }
 
 void MainWindow::on_sendButton_clicked() {
@@ -197,14 +198,11 @@ void MainWindow::setCurrentChatIndex(QModelIndex chat_idx) {
 }
 
 void MainWindow::setTheme(std::unique_ptr<ITheme> theme) {
-  currentTheme = std::move(theme);
-  ui_->centralwidget->setStyleSheet(currentTheme->getStyleSheet());
+  current_theme_ = std::move(theme);
+  ui_->centralwidget->setStyleSheet(current_theme_->getStyleSheet());
 }
 
 void MainWindow::on_pushButton_clicked(bool checked) {
-  if (checked) {
-    setTheme(std::make_unique<DarkTheme>());
-  } else {
-    setTheme(std::make_unique<LightTheme>());
-  }
+  checked ? setTheme(std::make_unique<DarkTheme>())
+          : setTheme(std::make_unique<LightTheme>());
 }

@@ -31,6 +31,10 @@ link_directories(/opt/homebrew/lib)
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(MessageServiceCore STATIC ${MY_SOURCES})
 
+enable_clang_tidy(MessageServiceCore)
+enable_cppcheck(MessageServiceCore)
+enable_iwyu(MessageServiceCore)
+
 target_link_libraries(MessageServiceCore PUBLIC
   Crow::Crow
   Entities

@@ -1,15 +1,21 @@
 cmake_minimum_required(VERSION 3.22)
-project(ThreadPool LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+if (NOT TARGET ThreadPool)
 
-add_library(ThreadPool STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/threadpool.cpp
-    include/ThreadPool.h
-)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-target_include_directories(ThreadPool PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+    add_library(ThreadPool STATIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/threadpool.cpp
+    )
+
+    target_compile_features(ThreadPool PUBLIC cxx_std_20)
+
+    enable_clang_tidy(ThreadPool)
+    enable_cppcheck(ThreadPool)
+    enable_iwyu(ThreadPool)
+
+    target_include_directories(ThreadPool PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+endif()

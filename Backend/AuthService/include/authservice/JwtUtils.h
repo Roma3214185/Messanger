@@ -14,7 +14,7 @@ using OptionalUserId = std::optional<UserId>;
 
 namespace JwtUtils {
 
-std::pair<std::string, std::string> generate_rsa_keys(int bits = 2048);
+std::pair<std::string, std::string> generateRsaKeys(int bits = 2048);
 std::string                         generateToken(UserId);
 OptionalUserId                      verifyTokenAndGetUserId(const std::string& token);
 

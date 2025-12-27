@@ -25,48 +25,48 @@ class BaseManager : public QObject {
  protected:
   template <typename T, typename Callback>
   QFuture<T> handleReplyWithTimeout(QNetworkReply*            reply,
-                                    Callback                  onSuccess,
+                                    Callback                  on_success,
                                     std::chrono::milliseconds timeout_ms,
-                                    const T&       defaultValue = T()) {
-    auto promisePtr  = std::make_shared<QPromise<T>>();
-    auto future      = promisePtr->future();
-    auto isCompleted = std::make_shared<std::atomic_bool>(false);
+                                    const T&       default_value = T()) {
+    auto promise_ptr  = std::make_shared<QPromise<T>>();
+    auto future      = promise_ptr->future();
+    auto is_completed = std::make_shared<std::atomic_bool>(false);
 
-    QTimer::singleShot(timeout_ms, reply, [reply, promisePtr, isCompleted, this, defaultValue]() mutable {
-      if (isCompleted->exchange(true)) return;
+    QTimer::singleShot(timeout_ms, reply, [reply, promise_ptr, is_completed, this, default_value]() mutable {
+      if (is_completed->exchange(true)) return;
 
       if (reply->isRunning()) {
         reply->abort();
         Q_EMIT errorOccurred(kServerNotRespondError);
-        promisePtr->addResult(defaultValue);
-        promisePtr->finish();
+        promise_ptr->addResult(default_value);
+        promise_ptr->finish();
       }
     });
 
     QObject::connect(reply,
                      &QNetworkReply::finished,
                      reply,
-                     [reply, promisePtr, isCompleted, onSuccess, defaultValue, this]() mutable {
-                       if (isCompleted->exchange(true)) {
+                     [reply, promise_ptr, is_completed, on_success, default_value, this]() mutable {
+                       if (is_completed->exchange(true)) {
                          reply->deleteLater();
                          return;
                        }
 
                        if (reply->error() != QNetworkReply::NoError) {
                          Q_EMIT errorOccurred(kErrorOccured + reply->errorString());
-                         promisePtr->addResult(defaultValue);
+                         promise_ptr->addResult(default_value);
                          return;
                        }
 
-                       int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-                       if(httpStatus == 202) {
+                       const int http_status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                       if(http_status == 202) {
                          std::string task_id = extractTaskId(reply);
                          QByteArray new_array = getRequestStatus(task_id);
-                         promisePtr->addResult(onSuccess(new_array));
+                         promise_ptr->addResult(on_success(new_array));
                         } else {
-                          promisePtr->addResult(onSuccess(reply->readAll()));
+                          promise_ptr->addResult(on_success(reply->readAll()));
                         }
-                        promisePtr->finish();
+                        promise_ptr->finish();
                         reply->deleteLater();
                       });
 
@@ -74,25 +74,25 @@ class BaseManager : public QObject {
   }
 
   QFuture<void> handleReplyWithTimeoutVoid(QNetworkReply*                      reply,
-                                           std::function<void(const QByteArray&)> onFinished,
+                                           std::function<void(const QByteArray&)> on_finished,
                                            std::chrono::milliseconds           timeout_ms) {
-    auto promisePtr  = std::make_shared<QPromise<void>>();
-    auto future      = promisePtr->future();
-    auto isCompleted = std::make_shared<std::atomic_bool>(false);
+    auto promise_ptr  = std::make_shared<QPromise<void>>();
+    auto future      = promise_ptr->future();
+    auto is_completed = std::make_shared<std::atomic_bool>(false);
 
-    QTimer::singleShot(timeout_ms, reply, [reply, promisePtr, isCompleted, this]() {
-      if (isCompleted->exchange(true)) return;
+    QTimer::singleShot(timeout_ms, reply, [reply, promise_ptr, is_completed, this]() {
+      if (is_completed->exchange(true)) return;
 
       if (reply->isRunning()) {
         Q_EMIT errorOccurred(kServerNotRespondError);
         reply->abort();
-        promisePtr->finish();
+        promise_ptr->finish();
       }
     });
 
     QObject::connect(
-        reply, &QNetworkReply::finished, reply, [this, reply, promisePtr, isCompleted, onFinished]() mutable {
-          if (isCompleted->exchange(true)) {
+        reply, &QNetworkReply::finished, reply, [this, reply, promise_ptr, is_completed, on_finished]() mutable {
+          if (is_completed->exchange(true)) {
             reply->deleteLater();
             return;
           }
@@ -101,14 +101,13 @@ class BaseManager : public QObject {
 
           int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
           if(httpStatus == 202) {
-            std::string task_id = extractTaskId(reply);
-            QByteArray new_array = getRequestStatus(task_id);
-            onFinished(new_array);
+            const std::string task_id = extractTaskId(reply);
+            on_finished(getRequestStatus(task_id));
           } else {
-            onFinished(reply->readAll());
+            on_finished(reply->readAll());
           }
 
-          promisePtr->finish();
+          promise_ptr->finish();
           reply->deleteLater();
         });
 
@@ -118,8 +117,8 @@ class BaseManager : public QObject {
   QByteArray getRequestStatus(const std::string& task_id, int attempts = 5) {
     LOG_INFO("Get request status for task with id {}", task_id);
 
-    QString path = QString("/request/%1/status").arg(QString::fromStdString(task_id));
-    QUrl endpoint = url_.resolved(QUrl(path));
+    const QString path = QString("/request/%1/status").arg(QString::fromStdString(task_id));
+    const QUrl endpoint = url_.resolved(QUrl(path));
 
     LOG_INFO("Url for sending: {}", endpoint.toString().toStdString());
 
@@ -157,12 +156,12 @@ class BaseManager : public QObject {
     }
 
     LOG_INFO("All attempts failed");
-    return QByteArray();
+    return {};
   }
 
   bool checkReply(QNetworkReply*);
 
-  std::string extractTaskId(QNetworkReply* reply) {
+  static std::string extractTaskId(QNetworkReply* reply) {
     QByteArray raw = reply->readAll();
     auto doc = QJsonDocument::fromJson(raw);
     if (!doc.isObject() || !doc.object().contains("request_id")) {
@@ -173,7 +172,6 @@ class BaseManager : public QObject {
     return doc["request_id"].toString().toStdString();
   }
 
- protected:
   INetworkAccessManager*    network_manager_;
   QUrl                      url_;
   std::chrono::milliseconds timeout_ms_;

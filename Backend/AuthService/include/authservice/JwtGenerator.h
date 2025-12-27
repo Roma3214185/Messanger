@@ -14,7 +14,7 @@ class JwtGenerator : public IGenerator {
       const std::string            kPrivateKeyFile = kPtivateKeysDir + "private_key.pem";
       const std::string kPublicKeyFile  = kKeysDir + "public_key.pem";
 
-      auto [private_key, public_key] = JwtUtils::generate_rsa_keys();
+      auto [private_key, public_key] = JwtUtils::generateRsaKeys();
       std::filesystem::create_directories(kKeysDir);
 
       try {

@@ -1,11 +1,8 @@
 #include "chatservice/chatcontroller.h"
 
-#include "NetworkManager.h"
 #include "entities/User.h"
-#include "NetworkManager.h"
 #include "codes.h"
 #include "interfaces/IConfigProvider.h"
-#include "interfaces/IThreadPool.h"
 #include "chatservice/interfaces/IChatManager.h"
 #include "NetworkFacade.h"
 #include "chatservice/AutoritizerProvider.h"
@@ -78,13 +75,13 @@ void ChatController::createPrivateChat(const crow::request& req, crow::response&
 
   LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
 
-  Chat chat{.id = *chat_id, .is_group = false };
+  Chat chat{.id = *chat_id, .is_group = 0 };
   auto result = buildChatJson(chat, user, 0);
   sendResponse(res, provider_->statusCodes().success, result.dump());
 }
 
 std::optional<long long> ChatController::autoritize(const crow::request& req) {
-  string token   = req.get_header_value("Authorization");
+  const string token   = req.get_header_value("Authorization");
   return AutoritizerProvider::get()->autoritize(token);
 }
 
@@ -122,7 +119,7 @@ void ChatController::getAllChats(const crow::request& req, crow::response& res) 
 
 crow::json::wvalue ChatController::buildChatJson(
     const Chat& chat,
-    const std::optional<User> other_user,
+    const std::optional<User> other_user, //todo: make not optional
     std::optional<int> member_count
     ) {
   crow::json::wvalue json;
@@ -148,7 +145,8 @@ void ChatController::getChat(const crow::request& req, crow::response& res, long
 
   auto chat_opt = manager_->getChatById(chat_id);
   if (!chat_opt) {
-    return sendError(res, provider_->statusCodes().userError, "Chat not found");
+    sendError(res, provider_->statusCodes().userError, "Chat not found");
+    return;
   }
 
   const auto& chat = *chat_opt;
@@ -197,7 +195,7 @@ std::optional<long long> ChatController::authorizeUser(const crow::request& req,
   return user_id;
 }
 
-void ChatController::getAllChatMembers(const crow::request& req, crow::response& res, long long chat_id) {
+void ChatController::getAllChatMembers(const crow::request& /*req*/, crow::response& res, long long chat_id) {
   auto list_of_members = manager_->getMembersOfChat(chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");

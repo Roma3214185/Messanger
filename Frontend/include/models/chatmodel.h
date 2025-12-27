@@ -39,7 +39,7 @@ class ChatModel : public QAbstractListModel {
   [[nodiscard]] OptionalChatIndex findIndexByChatId(long long chat_id) const;
 
  Q_SIGNALS:
-  void chatUpdated(int chat_id);
+  void chatUpdated(const long long chat_id);
 
  private:
   ListOfChats chats_;

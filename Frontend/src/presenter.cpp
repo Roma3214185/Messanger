@@ -81,11 +81,11 @@ void Presenter::initialise() {
 }
 
 void Presenter::initialHandlers() {
-  const std::string openedType     = "opened";
-  const std::string newMessageType = "new_message";
+  const std::string opened_type     = "opened";
+  const std::string new_message_type = "new_message";
 
-  socket_responce_handlers_[openedType] = std::make_unique<OpenResponceHandler>(manager_->getTokenManager(), manager_->socket());
-  socket_responce_handlers_[openedType] = std::make_unique<NewMessageResponceHandler>(manager_->getTokenManager(), manager_->message());
+  socket_responce_handlers_[opened_type] = std::make_unique<OpenResponceHandler>(manager_->getTokenManager(), manager_->socket());
+  socket_responce_handlers_[new_message_type] = std::make_unique<NewMessageResponceHandler>(manager_->getTokenManager(), manager_->message());
 }
 
 void Presenter::setMessageListView(IMessageListView* message_list_view) {
@@ -110,8 +110,8 @@ void Presenter::onNewResponce(QJsonObject& json_object) {
     return;
   }
 
-  const std::string type           = json_object["type"].toString().toStdString();
-  if(socket_responce_handlers_.find(type) != socket_responce_handlers_.end()) {
+  const std::string type = json_object["type"].toString().toStdString();
+  if(socket_responce_handlers_.contains(type)) {
     socket_responce_handlers_[type]->handle(json_object);
   } else {
     LOG_ERROR("Invalid type {}", type);
@@ -139,20 +139,19 @@ void Presenter::onScroll(int value) {
     return;
   }
 
-  bool chat_list_is_on_top = (value == 0);
-  if (!chat_list_is_on_top) return;
+  if (bool chat_list_is_on_top = (value == 0); !chat_list_is_on_top) return;
 
   PROFILE_SCOPE("Presenter::onScroll");
-  long long chat_id = *current_opened_chat_id_;
-  constexpr int limit_of_loading_messages = 20;
-  auto newMessages = manager_->message()->getChatMessages(chat_id, limit_of_loading_messages);
-  if (newMessages.empty()) return;
+  const long long chat_id = *current_opened_chat_id_;
+  constexpr int kLimitOfLoadingMessages = 20;
+  auto new_messages = manager_->message()->getChatMessages(chat_id, kLimitOfLoadingMessages);
+  if (new_messages.empty()) return;
 
-  auto message_model = manager_->getMessageModel(chat_id);
+  auto* message_model = manager_->getMessageModel(chat_id);
   assert(message_model);
 
   message_list_view_->preserveFocusWhile(message_model, [&]{
-    for (const auto& msg : newMessages) {
+    for (const auto& msg : new_messages) {
       manager_->message()->addMessageToChat(msg); //TODO: make pipeline
     }
   });
@@ -193,8 +192,8 @@ void Presenter::newMessage(Message& msg) {
   if (msg.senderId == current_user_->id) msg.readed_by_me = true;
   debug("New message received from socket", msg);
 
-  int max   = message_list_view_->getMaximumMessageScrollBar();
-  int value = message_list_view_->getMessageScrollBarValue();
+  const int max   = message_list_view_->getMaximumMessageScrollBar();
+  const int value = message_list_view_->getMessageScrollBarValue();
 
   manager_->message()->addMessageToChat(msg);
 
@@ -204,7 +203,7 @@ void Presenter::newMessage(Message& msg) {
 }
 
 void Presenter::findUserRequest(const QString& text) {
-  auto user_model = manager_->getUserModel();
+  auto* user_model = manager_->getUserModel();
   assert(user_model);
   user_model->clear();
 

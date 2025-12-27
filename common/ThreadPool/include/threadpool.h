@@ -15,8 +15,14 @@
 
 class ThreadPool : public IThreadPool {
   public:
-    explicit ThreadPool(size_t numThreads = std::thread::hardware_concurrency());
-    ~ThreadPool();
+    explicit ThreadPool(size_t num_threads = std::thread::hardware_concurrency());
+    ~ThreadPool() override;
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool(ThreadPool&&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
+    ThreadPool& operator=(ThreadPool&&) = delete;
+
+
     void waitAll();
 
   private:
@@ -27,7 +33,7 @@ class ThreadPool : public IThreadPool {
     std::mutex queue_mutex_;
     std::condition_variable condition_;
     std::condition_variable done_condition_;
-    bool stop_;
+    bool stop_{ false };
     size_t active_tasks_ = 0;
 };
 

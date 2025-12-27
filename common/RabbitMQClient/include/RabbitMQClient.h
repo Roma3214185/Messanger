@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "Debug_profiling.h"
-#include "ThreadPool.h"
+#include "threadpool.h"
 #include "interfaces/IRabitMQClient.h"
 
 struct RabbitMQConfig {
@@ -22,21 +22,26 @@ struct RabbitMQConfig {
     std::string password;
 };
 
-class IThreadPool;
+struct IThreadPool;
 
 class RabbitMQClient : public IRabitMQClient {
  public:
-  RabbitMQClient(const RabbitMQConfig&, IThreadPool* pool);
+  RabbitMQClient(const RabbitMQConfig& rabbitmq_config, IThreadPool* thread_pool);
   ~RabbitMQClient();
 
-  void publish(const PublishRequest&) override;
-  void subscribe(const SubscribeRequest&, const EventCallback&) override;
+  RabbitMQClient(const RabbitMQClient&) = delete;
+  RabbitMQClient& operator=(const RabbitMQClient&) = delete;
+
+  RabbitMQClient(RabbitMQClient&&) = delete;
+  RabbitMQClient& operator=(RabbitMQClient&&) = delete;
+
+  void publish(const PublishRequest& publish_request) override;
+  void subscribe(const SubscribeRequest& subscribe_request, const EventCallback& callback) override;
   void stop() override;
 
  private:
   void declareExchange(const std::string& exchange, const std::string& type, bool durable);
 
- private:
   std::atomic<bool>               running_{ false };
    IThreadPool*                   pool_;
   std::vector<std::thread>        consumer_threads_;

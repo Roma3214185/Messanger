@@ -10,7 +10,7 @@
 #include "managers/datamanager.h"
 
 int main(int argc, char* argv[]) {
-  init_logger("Frontend");
+  initLogger("Frontend");
   RedisClient          redis("tcp://127.0.0.1:6379");
   QWebSocket           socket;
   RealSocket           real_socket(&socket);

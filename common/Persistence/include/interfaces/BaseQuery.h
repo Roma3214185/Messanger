@@ -2,14 +2,15 @@
 #define BASEQUERY_H
 
 #include <vector>
+#include <cstdint>
 
 #include "Meta.h"
 #include "Query.h"
-#include "ThreadPool.h"
+#include "threadpool.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
 
-enum class Operator { Equal, Less, More, MoreEqual, NotEqual, LessEqual };
+enum class Operator : std::uint8_t { Equal, Less, More, MoreEqual, NotEqual, LessEqual };
 
 template <typename T>
 class BaseQuery {
@@ -25,7 +26,7 @@ class BaseQuery {
 
  public:
   explicit BaseQuery(ISqlExecutor* executor) : executor_(executor) {
-    table_name_ = QString::fromStdString(Reflection<T>::meta().table_name);
+    table_name_ = QString::fromStdString(Reflection<T>::meta().table_name); //todo: remove from here table_name_ = (...)
     involved_tables_.push_back(table_name_);
   }
 
@@ -33,7 +34,7 @@ class BaseQuery {
 
   BaseQuery& from(const std::string& table_name) {
     table_name_ = QString::fromStdString(table_name);
-    involved_tables_.push_back(table_name_); //TODO: remove from constructor table_name_ = (...)
+    involved_tables_.push_back(table_name_);
     return *this;
   }
 
@@ -53,7 +54,7 @@ class BaseQuery {
 
   BaseQuery& where(const std::string& field, const Operator& op, const QVariant& value) {
     filters_.push_back(QString("%1 %2 ?").arg(QString::fromStdString(field))
-                           .arg(QString::fromStdString(operator_to_sql.at(op))));
+                           .arg(QString::fromStdString(operator_to_sql_.at(op))));
     values_.push_back(value);
     return *this;
   }
@@ -75,7 +76,7 @@ class BaseQuery {
     return *this;
   }
   private:
-    const std::unordered_map<Operator, std::string> operator_to_sql {
+    const std::unordered_map<Operator, std::string> operator_to_sql_ {
       {Operator::Equal,      "="},
       {Operator::Less,       "<"},
       {Operator::More,       ">"},

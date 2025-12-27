@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
+if(NOT TARGET RedisCache)
 include(FetchContent)
 
 FetchContent_Declare(
@@ -27,6 +28,12 @@ FetchContent_MakeAvailable(redis-plus-plus)
 
 add_library(RedisCache STATIC src/RedisCache.cpp)
 
+target_compile_features(RedisCache PUBLIC cxx_std_20)
+
+enable_clang_tidy(RedisCache)
+enable_cppcheck(RedisCache)
+enable_iwyu(RedisCache)
+
 target_include_directories(RedisCache
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -35,3 +42,5 @@ target_link_libraries(RedisCache PUBLIC
     redis++_static
     Metrics
 )
+
+endif()

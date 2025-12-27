@@ -40,11 +40,11 @@ class ChatItemDelegate : public QStyledItemDelegate {
   QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 
  protected:
-  ChatDrawData extractChatData(const QModelIndex& index) const;
+  [[nodiscard]] ChatDrawData extractChatData(const QModelIndex& index) const;
   void         drawAll(QPainter*                   painter,
                        const QStyleOptionViewItem& option,
                        const ChatDrawData&         chat) const;
-  QString      refactorLastMessage(const QString& msg) const;
+  [[nodiscard]] QString      refactorLastMessage(const QString& msg) const;
   void         drawBackgroundState(QPainter*                   painter,
                                    const QRect&                rect,
                                    const QStyleOptionViewItem& option) const;

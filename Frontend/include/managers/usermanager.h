@@ -11,7 +11,7 @@
 class INetworkAccessManager;
 class QUrl;
 class QNetworkReply;
-class User;
+struct User;
 
 class UserManager : public BaseManager {
   Q_OBJECT
@@ -22,8 +22,8 @@ class UserManager : public BaseManager {
   QFuture<std::optional<User>> getUser(long long user_id, const QString& current_token);
 
  protected:
-  QList<User>         onFindUsersByTag(const QByteArray& responce_data) const;
-  std::optional<User> onGetUser(const QByteArray& responce_data) const;
+  [[nodiscard]]  QList<User>         onFindUsersByTag(const QByteArray& responce_data) const;
+  [[nodiscard]]  std::optional<User> onGetUser(const QByteArray& responce_data) const;
 };
 
 #endif  // USERMANAGER_H

@@ -19,10 +19,9 @@ class MockCache : public ICacheService {
     cache.erase(key);
   }
 
-  bool exists(const std::string& key) override {
+  bool exists(const std::string& key) {
     auto it = cache.find(key);
-    if (it == cache.end()) return false;
-    return true;
+    return it != cache.end();
   }
 
   void clearCache() override {

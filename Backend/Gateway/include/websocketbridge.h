@@ -14,7 +14,7 @@ using Url = std::string;
 
 class WebSocketBridge {
  public:
-  explicit WebSocketBridge(const Url&);
+  explicit WebSocketBridge(Url backend_url);
 
   void onClientConnect(ClientSocket& client);
   void onClientMessage(ClientSocket& client, const std::string& data);
@@ -25,5 +25,5 @@ class WebSocketBridge {
   BackendSocketConnectionsMap connections_;
   Url backend_url_;
 
-  BackendSocket createBackendConnection(const ClientId&);
+  BackendSocket createBackendConnection(const ClientId& client_id);
 };

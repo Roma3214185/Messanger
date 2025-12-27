@@ -6,16 +6,16 @@
 
 struct PublishRequest{
   std::string exchange;
-  std::string routingKey;
+  std::string routing_key;
   std::string message;
-  std::string exchangeType = "direct";
+  std::string exchange_type = "direct";
 };
 
 struct SubscribeRequest{
     std::string queue;
     std::string exchange;
-    std::string routingKey;
-    std::string exchangeType = "direct";
+    std::string routing_key;
+    std::string exchange_type = "direct";
 };
 
 class IRabitMQClient {

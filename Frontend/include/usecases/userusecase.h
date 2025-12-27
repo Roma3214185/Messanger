@@ -6,7 +6,7 @@
 class UserManager;
 class DataManager;
 class TokenManager;
-class User;
+struct User;
 
 class UserUseCase : public QObject {
     Q_OBJECT

@@ -6,7 +6,7 @@
 #include "middlewares/Middlewares.h"
 #include "JWTVerifier.h"
 #include "ratelimiter.h"
-#include "ThreadPool.h"
+#include "threadpool.h"
 #include "GatewayMetrics.h"
 #include "RabbitMQClient.h"
 #include "mocks/MockRabitMQClient.h" //TODO: remove mocks from cmake and here
@@ -16,7 +16,7 @@ const std::string   kPublicKeyFile = kKeysDir + "public_key.pem";
 const std::string   kIssuer        = "auth_service";
 
 int main() {
-  init_logger("Gateway");
+  initLogger("Gateway");
   ProdConfigProvider provider;
 
   JWTVerifier verifier(kPublicKeyFile, kIssuer);

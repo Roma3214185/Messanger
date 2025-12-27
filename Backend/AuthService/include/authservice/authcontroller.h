@@ -14,7 +14,7 @@ class AuthController {
   using OptionalId = std::optional<long long>;
   using Token = std::string;
 
-  AuthController(IAuthManager* service, IAutoritizer* authoritier, IGenerator* generator,
+  AuthController(IAuthManager* manager, IAutoritizer* authoritizer, IGenerator* generator,
                  IConfigProvider* provider = &ProdConfigProvider::instance());
   void findById(const crow::request& req, long long user_id, crow::response& responce);
   void findByTag(const crow::request& req, crow::response& responce);

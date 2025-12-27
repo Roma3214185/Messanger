@@ -37,7 +37,7 @@ void Server::handleFindById() {
               res.code = 400;
               res.body = "Invalid user_id";
               return;
-            }
+            }  //todo: pass in findById user_id_str, but make controller_ fully independent from crow
             controller_->findById(req, user_id, res);
             LOG_INFO("Response code: {} | Body: {}", res.code, res.body);
           });

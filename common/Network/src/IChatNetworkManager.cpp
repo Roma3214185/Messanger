@@ -3,10 +3,8 @@
 
 #include "Debug_profiling.h"
 
-using json = nlohmann::json;
-
 std::vector<UserId> IChatNetworkManager::getMembersOfChat(long long chat_id) {
-  std::string path = "/chats/" + std::to_string(chat_id) + "/members";
+  const std::string path = "/chats/" + std::to_string(chat_id) + "/members";
 
   auto res = forward(provider_->ports().chatService, "", path, "GET");
 
@@ -17,16 +15,16 @@ std::vector<UserId> IChatNetworkManager::getMembersOfChat(long long chat_id) {
 
   std::vector<UserId> members;
   try {
-    json json_response = json::parse(res.second);
+    nlohmann::json json_response = nlohmann::json::parse(res.second);
 
     if (!json_response.contains("members") || !json_response["members"].is_array()) {
       LOG_ERROR("getMembersOfChat: missing 'members' array");
       return std::vector<UserId>{};
     }
 
-    for (const auto& v : json_response["members"]) {
-      if (v.is_number_integer()) {
-        members.push_back(v.get<UserId>());
+    for (const auto& variable : json_response["members"]) {
+      if (variable.is_number_integer()) {
+        members.push_back(variable.get<UserId>());
       }
     }
 

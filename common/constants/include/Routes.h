@@ -3,18 +3,18 @@
 
 #include <string>
 
-struct Routes{
-  std::string messageSaved            = "message_saved";
-  std::string saveMessage             = "save_message";
-  std::string saveMessageStatus       = "save_message_status";
-  std::string saveMessageQueue        = "QueueSaveMessage";
-  std::string saveMessageStatusQueue  = "QueueSaveMessageStatus";
-  std::string messageSavedQueue       = "QueueMessageSaved";
-  std::string messageStatusSavedQueue = "QueueMessageStatusSaved";
-  std::string exchange                = "app.events";
-  std::string messageStatusSaved      = "message_status_saved";
-  std::string sendRequest             = "send_request";
-  std::string exchangeType            = "direct";
-};
+struct Routes { // make namespace with inline
+  static constexpr const char* messageSaved           = "message_saved";
+  static constexpr const char* saveMessage             = "save_message";
+  static constexpr const char* saveMessageStatus       = "save_message_status";
+  static constexpr const char* saveMessageQueue        = "QueueSaveMessage";
+  static constexpr const char* saveMessageStatusQueue  = "QueueSaveMessageStatus";
+  static constexpr const char* messageSavedQueue       = "QueueMessageSaved";
+  static constexpr const char* messageStatusSavedQueue = "QueueMessageStatusSaved";
+  static constexpr const char* exchange                = "app.events";
+  static constexpr const char* messageStatusSaved      = "message_status_saved";
+  static constexpr const char* sendRequest             = "send_request";
+  static constexpr const char* exchangeType            = "direct";
+}; // routes
 
 #endif // ROUTES_H

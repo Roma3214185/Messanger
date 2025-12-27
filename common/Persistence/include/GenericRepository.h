@@ -68,13 +68,13 @@ class GenericRepository {
   std::optional<T> findOne(long long entity_id);
 
   template <typename T>
-  void deleteById(long long id);
+  void deleteById(long long entity_id);
 
   template <typename T>
-  void deleteEntity(T& id);
+  void deleteEntity(T& entity);
 
   template <typename T>
-  void deleteBatch(std::vector<T>& id);
+  void deleteBatch(std::vector<T>& batch); //todo: make std::vector<T> to delete
 
   template <typename T>
   std::vector<T> findByField(const std::string& field, const std::string& value);
@@ -90,13 +90,13 @@ class GenericRepository {
   std::string makeKey(const T& entity) const;
 
   template <typename T>
-  std::string makeKey(long long id) const;
+  [[nodiscard]] std::string makeKey(long long entity_id) const;
 
   template <typename T>
   long long getId(const T& obj) const;
 
   template <typename T>
-  QVariant toVariant(const Field& f, const T& entity) const;
+  QVariant toVariant(const Field& field, const T& entity) const;
 };
 
 #include "GenericRepository.inl"

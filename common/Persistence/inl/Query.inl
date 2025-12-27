@@ -95,9 +95,8 @@ void SelectQuery<T>::updateCache(const std::string& key, const std::vector<T>& r
   }
 
   nlohmann::json j = results;
-  std::string serialized = j.dump();
   cache_.setPipelines(entities_keys, entities_strings);
-  cache_.set(key, serialized, std::chrono::hours(24));
+  cache_.set(key, j.dump(), std::chrono::hours(24));
 }
 
 template <typename T>
@@ -114,15 +113,15 @@ std::future<std::vector<T>> SelectQuery<T>::executeAsync() const {
   return this->pool.enqueue([this]() { return execute(); });
 }
 
-template <typename T>
-std::future<std::vector<T>> SelectQuery<T>::executeWithoutCacheAsync() const {
-  return this->pool.enqueue([this]() {
-    return executeWithoutCache();  // DB initialized in this thread
-  });
-}
+// template <typename T>
+// std::future<std::vector<T>> SelectQuery<T>::executeWithoutCacheAsync() const {
+//   return this->pool.enqueue([this]() {
+//     return executeWithoutCache();  // DB initialized in this thread
+//   });
+// }
 
-template <typename T>
-std::vector<T> SelectQuery<T>::executeWithoutCache() const {
+//template <typename T>
+//std::vector<T> SelectQuery<T>::executeWithoutCache() const {
   // QString sql = buildSelectQuery();
   // QSqlDatabase threadDb =
   //     this->db_.getThreadDatabase();
@@ -144,13 +143,13 @@ std::vector<T> SelectQuery<T>::executeWithoutCache() const {
 
   // LOG_INFO("Result size is '{}'", results.size());
   // return results;
-}
+//}
 
 template <typename T>
 void SelectQuery<T>::saveEntityInCache(
     const T& entity, std::chrono::hours ttl) const {
-  std::string entityKey = buildEntityKey(entity);
-  cache_.set(entityKey, entity, ttl);
+  std::string entity_key = buildEntityKey(entity);
+  cache_.set(entity_key, entity, ttl);
 }
 
 template <typename T>
@@ -203,7 +202,7 @@ std::size_t SelectQuery<T>::hashGenerations(
 template <typename T>
 SelectQuery<T>& SelectQuery<T>::orderBy(const std::string& field,
                             const OrderDirection& direction) {
-  QString direct = direction == OrderDirection::ASC ? "ASC" : "DESC";
+  const QString direct = direction == OrderDirection::ASC ? "ASC" : "DESC";
   order_ = QString("ORDER BY %1 %2")
     .arg(QString::fromStdString(field))
     .arg(direct);
@@ -224,10 +223,9 @@ std::string SelectQuery<T>::buildEntityKey(const T& entity) const {
 }
 
 template <typename T>
-std::string SelectQuery<T>::createCacheKey(QString sql, int generation_hash,
+std::string SelectQuery<T>::createCacheKey(const QString& sql, int generation_hash,
                            int params_hash) const {
-  std::string cache_key = "query_cache:" + sql.toStdString() +
-                          ":gen=" + std::to_string(generation_hash) +
-                          ":params=" + std::to_string(params_hash);
-  return cache_key;
+  return "query_cache:" + sql.toStdString() +
+          ":gen=" + std::to_string(generation_hash) +
+          ":params=" + std::to_string(params_hash);
 }

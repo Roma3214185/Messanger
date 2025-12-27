@@ -13,7 +13,7 @@ class OpenResponceHandler : public ISocketResponceHandler {
         : token_manager_(token_manager), socket_use_case_(socket_use_case) {}
 
     void handle([[maybe_unused]] const QJsonObject& json_object) override {
-      long long id = token_manager_->getCurrentUserId();
+      const long long id = token_manager_->getCurrentUserId();
       socket_use_case_->initSocket(id);
     }
 };

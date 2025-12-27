@@ -1,7 +1,6 @@
 #include "messageservice/managers/MessageManager.h"
 
 #include "GenericRepository.h"
-#include "SqlExecutor.h"
 #include "interfaces/BaseQuery.h"
 #include "interfaces/ISqlExecutor.h"
 #include "interfaces/ICacheService.h"

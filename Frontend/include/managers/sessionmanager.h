@@ -7,10 +7,10 @@
 #include "managers/BaseManager.h"
 
 class INetworkAccessManager;
-class LogInRequest;
+struct LogInRequest;
 class QNetworkReply;
-class User;
-class SignUpRequest;
+struct User;
+struct SignUpRequest;
 
 class SessionManager : public BaseManager {
   Q_OBJECT
