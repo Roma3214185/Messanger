@@ -33,10 +33,10 @@ class ICacheService;
 class IThreadPool;
 
 class GenericRepository {
+  IDataBase&     database_;
   ISqlExecutor*  executor_;
   ICacheService& cache_;
   IThreadPool*    pool_;
-  IDataBase&     database_;
   std::unique_ptr<OutboxWorker> outbox_worker_;
 
  public:
