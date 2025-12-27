@@ -44,6 +44,9 @@ void MainWindow::setDelegators() {
 void MainWindow::setChatModel(ChatModel* model) { ui_->chatListView->setModel(model); }
 
 void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
+  DBC_REQUIRE(chat->chat_id > 0);
+  DBC_REQUIRE(!chat->title.isEmpty());
+  DBC_REQUIRE(!chat->avatar_path.isEmpty());
   ui_->messageWidget->setVisible(true);
   const QString       name = chat->title;
   QPixmap       avatar(chat->avatar_path);
@@ -59,6 +62,7 @@ void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
 }
 
 void MainWindow::setMessageListView(QListView* list_view) {
+  DBC_REQUIRE(list_view != nullptr);
   ui_->messageListViewLayout->addWidget(list_view);
 
   auto* message_delegate = presenter_->getMessageDelegate();
@@ -98,9 +102,15 @@ void MainWindow::setMainWindow() {
   ui_->messageWidget->setVisible(false);
 }
 
-void MainWindow::showError(const QString& error) { QMessageBox::warning(this, "ERROR", error); }
+void MainWindow::showError(const QString& error) {
+  DBC_REQUIRE(!error.isEmpty());
+  QMessageBox::warning(this, "ERROR", error);
+}
 
-void MainWindow::setUserModel(UserModel* user_model) { ui_->userListView->setModel(user_model); }
+void MainWindow::setUserModel(UserModel* user_model) {
+  DBC_REQUIRE(user_model != nullptr);
+  ui_->userListView->setModel(user_model);
+}
 
 void MainWindow::on_userTextEdit_textChanged(const QString& text) {
   if(!text.isEmpty()) presenter_->findUserRequest(text);

@@ -39,8 +39,8 @@ inline auto getUserFromResponse(const QJsonObject& res) -> User {
 inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
   auto msg = Message{
     .id = obj["id"].toInteger(),
-    .senderId = obj["sender_id"].toInteger(),
-    .chatId = obj["chat_id"].toInteger(),
+    .sender_id = obj["sender_id"].toInteger(),
+    .chat_id = obj["chat_id"].toInteger(),
     .text =   obj["text"].toString(),
     .timestamp =   QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger()),
     .readed_by_me =  obj["readed_by_me"].toBool(false),
@@ -51,19 +51,7 @@ inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
     .local_id =   obj["local_id"].toString()
   };
 
-  spdlog::info(
-      "[MESSAGE] id={} | "
-      "senderId='{}' | "
-      "chatId='{}' | "
-      "text='{}' | "
-      "timestamp='{}' | readed_by_me = '{}' | local_id = {}",
-      msg.id,
-      msg.senderId,
-      msg.chatId,
-      msg.text.toStdString(),
-      msg.timestamp.toString().toStdString(),
-      msg.readed_by_me,
-      msg.local_id.toStdString());
+  spdlog::info(msg.toString());
   return msg;
 }
 
@@ -88,6 +76,7 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
     chat->avatar_path  = userObj["avatar"].toString();
     chat->user_id      = static_cast<long long>(userObj["id"].toDouble());
     LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
+    //todo: check invariants
     return chat;
   } else if (type == "group") {
     auto chat          = std::make_shared<GroupChat>();

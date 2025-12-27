@@ -46,8 +46,8 @@ class EntityFactory {
       DBC_REQUIRE(sender_id > 0);
       DBC_REQUIRE(chat_id > 0);
       //todo: what about message_id??
-      Message message{.chatId        = chat_id,
-                      .senderId      = sender_id,
+      Message message{.chat_id        = chat_id,
+                      .sender_id      = sender_id,
                       .text          = text,
                       .status_sended = false,
                       .timestamp     = timestamp,
@@ -146,18 +146,23 @@ void Presenter::onScroll(int value) {
   // TODO: think about future / then
 }
 
-void Presenter::onErrorOccurred(const QString& error) { view_->showError(error); }
+void Presenter::onErrorOccurred(const QString& error) {
+  DBC_REQUIRE(!error.isEmpty());
+  view_->showError(error);
+}
 
 void Presenter::setUser(const User& user, const QString& token) {
   PROFILE_SCOPE("Presenter::setUser");
   debug("In set user:", user);
   DBC_REQUIRE(user.id > 0); //todo: User itself call fucntion i_am_valid() and checks all fields
+  DBC_REQUIRE(!token.isEmpty());
 
   current_user_ = user;
   manager_->saveData(token, user.id);
   manager_->socket()->connectSocket();
   manager_->chat()->loadChatsAsync();
   manager_->getDataManager()->saveUser(user);
+  DBC_ENSURE(current_user_ != std::nullopt);
   Q_EMIT userSetted();
 }
 
@@ -171,7 +176,7 @@ void Presenter::onChatClicked(long long chat_id) { openChat(chat_id); }
 void Presenter::newMessage(Message& msg) {
   DBC_REQUIRE(current_user_ != std::nullopt);
 
-  if (msg.senderId == current_user_->id) msg.readed_by_me = true;
+  if (msg.sender_id == current_user_->id) msg.readed_by_me = true;
   debug("New message received from socket", msg);
 
   const int max   = message_list_view_->getMaximumMessageScrollBar();
@@ -179,7 +184,7 @@ void Presenter::newMessage(Message& msg) {
 
   manager_->message()->addMessageToChat(msg);
 
-  if (current_opened_chat_id_.has_value() && current_opened_chat_id_ == msg.chatId && max == value) {
+  if (current_opened_chat_id_.has_value() && current_opened_chat_id_ == msg.chat_id && max == value) {
     message_list_view_->scrollToBottom();
   }
 }

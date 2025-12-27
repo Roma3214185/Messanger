@@ -29,10 +29,11 @@ MessageUseCase::MessageUseCase(DataManager* data_manager, MessageManager* messag
     : data_manager_(data_manager), message_manager_(message_manager), token_manager_(token_manager) {
   connect(data_manager_, &DataManager::messageAdded, this, [&](const Message& added_messaage) {
     LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.text.toStdString());
-    auto message_model = data_manager_->getMessageModel(added_messaage.chatId);
-    assert(message_model);
+    DBC_REQUIRE(added_messaage.chat_id > 0);
+    auto message_model = data_manager_->getMessageModel(added_messaage.chat_id);
+    DBC_REQUIRE(message_model);
     message_model->saveMessage(added_messaage);
-    if(added_messaage.id != 0) Q_EMIT messageAdded(added_messaage); // this message not from server, just offline
+    if(added_messaage.id != 0) Q_EMIT messageAdded(added_messaage); // this message from server, not offline
   });
 }
 
@@ -74,7 +75,7 @@ void MessageUseCase::addMessageToChat(const Message& msg) {
 
   PROFILE_SCOPE("MessageUseCase::addMessageToChat");
   DBC_REQUIRE(!msg.local_id.isEmpty());
-  DBC_REQUIRE(!msg.senderId > 0);
+  DBC_REQUIRE(!msg.sender_id > 0);
   data_manager_->saveMessage(msg);
 }
 

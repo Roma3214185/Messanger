@@ -9,7 +9,7 @@ int ChatModel::rowCount(const QModelIndex& parent) const {
 }
 
 QVariant ChatModel::data(const QModelIndex& index, int role) const {
-  DBC_REQUIRE(index.isValid() || index.row() < chats_.size());
+  DBC_REQUIRE(index.isValid() && index.row() < chats_.size());
   //if (!index.isValid() || index.row() >= chats_.size()) return QVariant();
 
   const auto& chat = chats_[index.row()];

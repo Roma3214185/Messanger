@@ -108,7 +108,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     REQUIRE(spyError.count() == 0);
     REQUIRE(messages.size() == 2);
     REQUIRE(messages[0].id == 1);
-    REQUIRE(messages[0].senderId == 10);
+    REQUIRE(messages[0].sender_id == 10);
     REQUIRE(messages[0].text == "Hello");
     REQUIRE(messages[1].id == 2);
     REQUIRE(messages[1].text == "Hi");

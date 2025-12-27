@@ -59,9 +59,9 @@ void Model::setupConnections() {
   });
 
   connect(getDataManager(), &DataManager::messageAdded, this, [this](const Message& message){
-    user_use_case_->getUserAsync(message.senderId);
-    auto last_message = getMessageModel(message.chatId)->getLastMessage();
-    chat_model_->updateChatInfo(message.chatId, last_message);
+    user_use_case_->getUserAsync(message.sender_id);
+    auto last_message = getMessageModel(message.chat_id)->getLastMessage();
+    chat_model_->updateChatInfo(message.chat_id, last_message);
     //  todo: getChatAsync() and there check: if exists, skip
     //manager_->message()->getChatMessagesAsync(message.chatId);
   });
