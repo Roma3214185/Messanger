@@ -19,8 +19,9 @@ using std::string;
 namespace {
 
 inline long long getCurrentTime() {
-  using namespace std::chrono;
-  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
 }
 
 inline std::string generateRequestID() {

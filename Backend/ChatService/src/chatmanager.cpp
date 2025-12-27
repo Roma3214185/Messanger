@@ -107,7 +107,7 @@ bool ChatManager::addMembersToChat(ID chat_id, const std::vector<ID>& members_id
       return false;
     }
   }
-  // TODO: repository_->save(chat_members) (pipeline);
+  // TODO: repository_->save(chat_members);
   return true;
 }
 
