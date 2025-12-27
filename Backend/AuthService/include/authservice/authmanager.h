@@ -8,10 +8,10 @@
 #include "entities/AuthResponce.h"
 #include "authservice/interfaces/IAuthManager.h"
 
-class RegisterRequest;
-class LoginRequest;
-class AuthResponce;
-class UserCredentials;
+struct RegisterRequest;
+struct LoginRequest;
+struct AuthResponce;
+struct UserCredentials;
 class IIdGenerator;
 
 using OptionalUser     = std::optional<User>;
