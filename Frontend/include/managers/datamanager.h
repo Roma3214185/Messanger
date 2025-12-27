@@ -27,14 +27,16 @@ class DataManager : public QObject {
   MessageModelPtr getMessageModel(ChatId);
   ChatPtr         getChat(ChatId);
   int             getNumberOfExistingChats() const;
-  void            clearAllChats();
+  void            clearAllChats(); //todo: think about clear chats authoatically clear message-models
   void            clearAllUsers();
   void            clearAllMessageModels();
   void            addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
   void            saveUser(const User&);
   void            clearAll();
   OptionalUser    getUser(UserId);
+  std::optional<Message> getMessageById(const long long id);
   void            saveMessage(const Message& message);
+  int             getNumberOfMessageModels() const { return message_models_by_chat_id_.size(); }
 
 Q_SIGNALS:
   void chatAdded(const ChatPtr& chat);

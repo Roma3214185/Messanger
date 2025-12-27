@@ -73,8 +73,9 @@ void MessageUseCase::addMessageToChat(const Message& msg) {
   //5) Model try to load user of message, and try to load chat history if chat not finded
 
   PROFILE_SCOPE("MessageUseCase::addMessageToChat");
+  DBC_REQUIRE(!msg.local_id.isEmpty());
+  DBC_REQUIRE(!msg.senderId > 0);
   data_manager_->saveMessage(msg);
-
 }
 
 void MessageUseCase::logout() {
@@ -85,10 +86,12 @@ void MessageUseCase::logout() {
 
 void MessageUseCase::clearAllMessages() {
   data_manager_->clearAllMessageModels();
+  DBC_ENSURE(data_manager_->getNumberOfMessageModels() == 0);
 }
 
 void MessageUseCase::getChatMessagesAsync(long long chat_id) {
   PROFILE_SCOPE("MessageUseCase::getChatMessagesAsync");
+  DBC_REQUIRE(chat_id > 0);
 
   auto watcher = new QFutureWatcher<QList<Message>>(this);
 

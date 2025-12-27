@@ -9,7 +9,8 @@ int ChatModel::rowCount(const QModelIndex& parent) const {
 }
 
 QVariant ChatModel::data(const QModelIndex& index, int role) const {
-  if (!index.isValid() || index.row() >= chats_.size()) return QVariant();
+  DBC_REQUIRE(index.isValid() || index.row() < chats_.size());
+  //if (!index.isValid() || index.row() >= chats_.size()) return QVariant();
 
   const auto& chat = chats_[index.row()];
 
@@ -27,6 +28,7 @@ QVariant ChatModel::data(const QModelIndex& index, int role) const {
     case AvatarRole:
       return chat->avatar_path;
     default:
+      DBC_UNREACHABLE();
       return QVariant();
   }
 }
@@ -41,9 +43,9 @@ QHash<int, QByteArray> ChatModel::roleNames() const {
 }
 
 void ChatModel::addChat(const ChatPtr& chat) {
-  for(auto existing_chat: chats_) {
+  for(auto& existing_chat: chats_) {
     if(existing_chat->chat_id == chat->chat_id) {
-      return LOG_ERROR("Chat with id {} already exist");
+      return LOG_WARN("Chat with id {} already exist");
     }
   }
 
@@ -67,23 +69,25 @@ void ChatModel::updateChatInfo(const long long        chat_id,
                            const std::optional<Message>&  message
                            /*, TODO: int unread = 0,*/) {
   if(message == std::nullopt) return;
-  int i = 0;
-  for (; i < chats_.size(); i++) {
-    if (chats_[i]->chat_id == chat_id) {
-      chats_[i]->last_message      = message->text;
-      chats_[i]->unread            = 0;  // unread++;
-      chats_[i]->last_message_time = message->timestamp;
-      break;
-    }
-  }
-  if (i == chats_.size()) return;
+  DBC_REQUIRE(chat_id > 0);
+
+  auto it = std::find_if(chats_.begin(), chats_.end(), [&](const auto& chat){
+    return chat->chat_id == chat_id;
+  });
+  if (it == chats_.end()) return;
+  //todo: make copy-asigned constructor
+  (*it)->last_message      = message->text;
+  (*it)->unread            = 0;  // unread++;
+  (*it)->last_message_time = message->timestamp;
+
   sortChats();  // if delete was??? // what about focus???
-  QModelIndex idx = index(i);
-  Q_EMIT dataChanged(idx, idx);
+  // QModelIndex idx = index(i);
+  // Q_EMIT dataChanged(idx, idx);
   Q_EMIT chatUpdated(chat_id);
 }
 
 OptionalChatIndex ChatModel::findIndexByChatId(long long chat_id) const {
+  DBC_REQUIRE(chat_id > 0);
   for (size_t i = 0; i < chats_.size(); ++i) {
     if (chats_[i]->chat_id == chat_id) {
       return i;
@@ -94,9 +98,11 @@ OptionalChatIndex ChatModel::findIndexByChatId(long long chat_id) const {
 }
 
 void ChatModel::clear() {
-  if (chats_.isEmpty()) return;
+  if (!chats_.isEmpty()) {
+    beginRemoveRows(QModelIndex(), 0, chats_.size() - 1);
+    chats_.clear();
+    endRemoveRows();
+  }
 
-  beginRemoveRows(QModelIndex(), 0, chats_.size() - 1);
-  chats_.clear();
-  endRemoveRows();
+  DBC_ENSURE(chats_.isEmpty());
 }

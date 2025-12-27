@@ -103,7 +103,7 @@ void MainWindow::showError(const QString& error) { QMessageBox::warning(this, "E
 void MainWindow::setUserModel(UserModel* user_model) { ui_->userListView->setModel(user_model); }
 
 void MainWindow::on_userTextEdit_textChanged(const QString& text) {
-  presenter_->findUserRequest(text);
+  if(!text.isEmpty()) presenter_->findUserRequest(text);
 }
 
 void MainWindow::on_textEdit_textChanged() {
@@ -198,7 +198,9 @@ void MainWindow::setCurrentChatIndex(QModelIndex chat_idx) {
 }
 
 void MainWindow::setTheme(std::unique_ptr<ITheme> theme) {
+  DBC_REQUIRE(theme != nullptr);
   current_theme_ = std::move(theme);
+  DBC_ENSURE(current_theme_ != nullptr);
   ui_->centralwidget->setStyleSheet(current_theme_->getStyleSheet());
 }
 
