@@ -151,7 +151,7 @@ MessageDrawData MessageDelegate::extractMessageData(const QModelIndex& index) co
   data.text        = message.text;
   data.avatar_path = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
   data.timestamp   = message.timestamp.toString("hh:mm dd.MM");
-  data.sender_id   = message.senderId;
+  data.sender_id   = message.sender_id;
   data.receiver_id = token_manager_->getCurrentUserId();
   data.is_sended   = index.data(MessageModel::SendedStatusRole).toBool();
   data.is_readed   = false;

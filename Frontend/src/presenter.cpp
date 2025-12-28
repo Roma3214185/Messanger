@@ -19,7 +19,7 @@
 
 namespace {
 
-void debug(const QString& log, const User& user) {
+void debug(const QString& log, const User& user) noexcept {
   LOG_INFO("{}: User '{}' | email '{}' | tag '{}' id '{}'",
            log.toStdString(),
            user.name.toStdString(),
@@ -28,7 +28,7 @@ void debug(const QString& log, const User& user) {
            user.id);
 }
 
-void debug(const QString& log, const Message& message) {
+void debug(const QString& log, const Message& message) noexcept {
   LOG_INFO("{}: Message chat_id '{}' | sender_id '{}' | text '{}' timestamp '{}', local_id {}",
            log.toStdString(),
            message.chatId,
@@ -38,25 +38,16 @@ void debug(const QString& log, const Message& message) {
            message.local_id.toStdString());
 }
 
-bool checkOpenedChatAndUser(const std::optional<long long>& current_opened_chat_id_, const std::optional<User>& current_user_) {
-  if(!current_opened_chat_id_) {
-    LOG_ERROR("There is no opened chat");
-    return false;
-  }
-
-  if(!current_user_) {
-    LOG_ERROR("User is no initailized");
-    return false;
-  }
-
-  return true;
-}
-
 class EntityFactory {
   public:
     static Message createMessage(long long chat_id, long long sender_id, const QString& text, const QString& local_id, QDateTime timestamp = QDateTime::currentDateTime()) {
-      Message message{.chatId        = chat_id,
-                      .senderId      = sender_id,
+      DBC_REQUIRE(!text.isEmpty());
+      DBC_REQUIRE(!local_id.isEmpty());
+      DBC_REQUIRE(sender_id > 0);
+      DBC_REQUIRE(chat_id > 0);
+      //todo: what about message_id??
+      Message message{.chat_id        = chat_id,
+                      .sender_id      = sender_id,
                       .text          = text,
                       .status_sended = false,
                       .timestamp     = timestamp,
@@ -84,11 +75,12 @@ void Presenter::initialHandlers() {
   const std::string opened_type     = "opened";
   const std::string new_message_type = "new_message";
 
-  socket_responce_handlers_[opened_type] = std::make_unique<OpenResponceHandler>(manager_->getTokenManager(), manager_->socket());
-  socket_responce_handlers_[new_message_type] = std::make_unique<NewMessageResponceHandler>(manager_->getTokenManager(), manager_->message());
+  socket_responce_handlers_[opened_type] = std::make_unique<OpenResponceHandler>(manager_->tokenManager(), manager_->socket());
+  socket_responce_handlers_[new_message_type] = std::make_unique<NewMessageResponceHandler>(manager_->tokenManager(), manager_->message());
 }
 
 void Presenter::setMessageListView(IMessageListView* message_list_view) {
+  DBC_REQUIRE(message_list_view != nullptr);
   message_list_view_ = message_list_view;
   view_->setMessageListView(static_cast<QListView*>(message_list_view));
 }
@@ -119,7 +111,7 @@ void Presenter::onNewResponce(QJsonObject& json_object) {
 }
 
 MessageDelegate* Presenter::getMessageDelegate() {
-  if(!message_delegate_) message_delegate_ = std::make_unique<MessageDelegate>(manager_->getDataManager(), manager_->getTokenManager());
+  if(!message_delegate_) message_delegate_ = std::make_unique<MessageDelegate>(manager_->dataManager(), manager_->tokenManager());
   return message_delegate_.get();
 }
 
@@ -134,11 +126,7 @@ ChatItemDelegate* Presenter::getChatDelegate() {
 }
 
 void Presenter::onScroll(int value) {
-  if(!current_opened_chat_id_) {
-    LOG_ERROR("Chat not opened");
-    return;
-  }
-
+  DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   if (bool chat_list_is_on_top = (value == 0); !chat_list_is_on_top) return;
 
   PROFILE_SCOPE("Presenter::onScroll");
@@ -148,7 +136,7 @@ void Presenter::onScroll(int value) {
   if (new_messages.empty()) return;
 
   auto* message_model = manager_->getMessageModel(chat_id);
-  assert(message_model);
+  DBC_REQUIRE(message_model);
 
   message_list_view_->preserveFocusWhile(message_model, [&]{
     for (const auto& msg : new_messages) {
@@ -158,38 +146,37 @@ void Presenter::onScroll(int value) {
   // TODO: think about future / then
 }
 
-void Presenter::onErrorOccurred(const QString& error) { view_->showError(error); }
+void Presenter::onErrorOccurred(const QString& error) {
+  DBC_REQUIRE(!error.isEmpty());
+  view_->showError(error);
+}
 
 void Presenter::setUser(const User& user, const QString& token) {
   PROFILE_SCOPE("Presenter::setUser");
   debug("In set user:", user);
-  if(user.id <= 0) {
-    LOG_ERROR("Invalid id in set User"); //todo(roma): make id field with struct that can't be <= 0
-    return;
-  }
+  DBC_REQUIRE(user.id > 0); //todo: User itself call fucntion i_am_valid() and checks all fields
+  DBC_REQUIRE(!token.isEmpty());
 
   current_user_ = user;
   manager_->saveData(token, user.id);
   manager_->socket()->connectSocket();
   manager_->chat()->loadChatsAsync();
-  manager_->getDataManager()->saveUser(user);
+  manager_->dataManager()->saveUser(user);
+  DBC_ENSURE(current_user_ != std::nullopt);
   Q_EMIT userSetted();
 }
 
 void Presenter::setCurrentChatId(long long chat_id) {
-  assert(chat_id > 0); //todo(roma): implement struct Id to assert every time
+  DBC_REQUIRE(chat_id > 0);
   current_opened_chat_id_ = chat_id;
 }
 
 void Presenter::onChatClicked(long long chat_id) { openChat(chat_id); }
 
 void Presenter::newMessage(Message& msg) {
-  if(!current_user_) {
-    LOG_ERROR("User isn't initialized");
-    return;
-  }
+  DBC_REQUIRE(current_user_ != std::nullopt);
 
-  if (msg.senderId == current_user_->id) msg.readed_by_me = true;
+  if (msg.sender_id == current_user_->id) msg.readed_by_me = true;
   debug("New message received from socket", msg);
 
   const int max   = message_list_view_->getMaximumMessageScrollBar();
@@ -197,25 +184,18 @@ void Presenter::newMessage(Message& msg) {
 
   manager_->message()->addMessageToChat(msg);
 
-  if (current_opened_chat_id_.has_value() && current_opened_chat_id_ == msg.chatId && max == value) {
+  if (current_opened_chat_id_.has_value() && current_opened_chat_id_ == msg.chat_id && max == value) {
     message_list_view_->scrollToBottom();
   }
 }
 
 void Presenter::findUserRequest(const QString& text) {
+  DBC_REQUIRE(!text.isEmpty());
   auto* user_model = manager_->getUserModel();
-  assert(user_model);
+  DBC_REQUIRE(user_model);
   user_model->clear();
 
-  if (text.isEmpty()) {
-    return;
-  }
-
-  if(!current_user_) {
-    LOG_ERROR("User isn't inislized");
-    return;
-  }
-
+  DBC_REQUIRE(current_user_ != std::nullopt);
   auto users = manager_->user()->findUsers(text);
 
   for (const auto& user : users) {
@@ -225,6 +205,7 @@ void Presenter::findUserRequest(const QString& text) {
 
 void Presenter::openChat(long long chat_id) {  // make unread message = 0; (?)
   PROFILE_SCOPE("Presenter::openChat");
+  DBC_REQUIRE(chat_id > 0);
   setCurrentChatId(chat_id);
   message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
   message_list_view_->scrollToBottom();
@@ -233,16 +214,12 @@ void Presenter::openChat(long long chat_id) {  // make unread message = 0; (?)
 }
 
 void Presenter::onUserClicked(long long user_id, bool is_user) {
+  DBC_REQUIRE(user_id > 0);
+  DBC_REQUIRE(current_user_ != std::nullopt);
   auto user_model = manager_->getUserModel();
-  assert(user_model);
+  DBC_REQUIRE(user_model);
   user_model->clear();
   view_->clearFindUserEdit();
-
-  if(!current_user_) {
-    LOG_ERROR("User isn't inislized");
-    return;
-  }
-
 
   if (is_user && current_user_->id == user_id) {
     onErrorOccurred("[ERROR] Impossible to open chat with yourself");
@@ -257,12 +234,14 @@ void Presenter::onUserClicked(long long user_id, bool is_user) {
       openChat(chat->chat_id);
     }
   } else {
+    DBC_UNREACHABLE();
     qDebug() << "[ERROR] Implement finding group request";
   }
 }
 
 void Presenter::sendButtonClicked(const QString& text_to_send) {
-  if(!checkOpenedChatAndUser(current_opened_chat_id_, current_user_)) return;
+  DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
+  DBC_REQUIRE(current_user_ != std::nullopt);
 
   if (text_to_send.isEmpty()) {
     LOG_WARN("Presenter receive to send empty text");

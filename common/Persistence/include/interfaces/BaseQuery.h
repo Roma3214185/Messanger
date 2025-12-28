@@ -32,41 +32,41 @@ class BaseQuery {
 
   virtual std::vector<T> execute() const = 0;
 
-  BaseQuery& from(const std::string& table_name) {
+  BaseQuery& from(const std::string& table_name) & {
     table_name_ = QString::fromStdString(table_name);
     involved_tables_.push_back(table_name_);
     return *this;
   }
 
-  BaseQuery& where(const std::string& field, const std::string& value) {
+  BaseQuery& where(const std::string& field, const std::string& value) & {
     return where(field, QString::fromStdString(value));
   }
 
-  BaseQuery& where(const std::string& field, const QVariant& value) {
+  BaseQuery& where(const std::string& field, const QVariant& value) & {
     filters_.push_back(QString("%1 = ?").arg(QString::fromStdString(field)));
     values_.push_back(value);
     return *this;
   }
 
-  BaseQuery& where(const std::string& field, const Operator& op, const std::string& value) {
+  BaseQuery& where(const std::string& field, const Operator& op, const std::string& value) & {
     return where(field, op, QString::fromStdString(value));
   }
 
-  BaseQuery& where(const std::string& field, const Operator& op, const QVariant& value) {
+  BaseQuery& where(const std::string& field, const Operator& op, const QVariant& value) & {
     filters_.push_back(QString("%1 %2 ?").arg(QString::fromStdString(field))
                            .arg(QString::fromStdString(operator_to_sql_.at(op))));
     values_.push_back(value);
     return *this;
   }
 
-  BaseQuery& limit(int n) {
+  BaseQuery& limit(int n) & {
     limit_clause_ = QString("LIMIT %1").arg(n);
     return *this;
   }
 
   BaseQuery& join(const std::string& table,
                   const std::string& first,
-                  const std::string& second) {
+                  const std::string& second) & {
     join_clause_ += QString(" JOIN %1 ON %2 = %3")
       .arg(QString::fromStdString(table))
         .arg(QString::fromStdString(first))
@@ -87,7 +87,7 @@ class BaseQuery {
 };
 
 template <typename T>
-class SelectQuery;
+struct SelectQuery;
 
 class QueryFactory {
  public:

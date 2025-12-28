@@ -33,7 +33,7 @@ class SelectQuery : public BaseQuery<T> {
  public:
   SelectQuery(ISqlExecutor* executor, ICacheService& cache);
 
-  SelectQuery&   orderBy(const std::string& field, const OrderDirection& direction = OrderDirection::ASC);
+  SelectQuery&   orderBy(const std::string& field, const OrderDirection& direction = OrderDirection::ASC) &;
   std::vector<T> execute() const override;
 
   std::future<std::vector<T>> executeAsync() const;

@@ -36,18 +36,18 @@ void SocketUseCase::sendMessage(const Message& msg) {
   PROFILE_SCOPE("Model::sendMessage");
 
   if (msg.text.trimmed().isEmpty()) {
-    LOG_WARN("Empty message skipped. chatId={}, senderId={}", msg.chatId, msg.senderId);
+    LOG_WARN("Empty message skipped. chatId={}, senderId={}", msg.chat_id, msg.sender_id);
     return;
   }
 
   auto json = QJsonObject{{"type", "send_message"},
-                          {"sender_id", msg.senderId},
-                          {"chat_id", msg.chatId},
+                          {"sender_id", msg.sender_id},
+                          {"chat_id", msg.chat_id},
                           {"text", msg.text},
                           {"timestamp", msg.timestamp.toString()},
                           {"local_id", msg.local_id}};
 
   socket_manager_->sendText(QString(QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact))));
   LOG_INFO("[sendMessage] To send message to chatId={} from user {}: '{}'",
-           msg.chatId, msg.senderId, msg.text.toStdString());
+           msg.chat_id, msg.sender_id, msg.text.toStdString());
 }

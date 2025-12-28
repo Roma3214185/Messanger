@@ -17,10 +17,6 @@ ChatPtr DataManager::getPrivateChatWithUser(long long user_id) {
   return nullptr;
 }
 
-int DataManager::getNumberOfExistingModels() const {
-  return (int)message_models_by_chat_id_.size();
-}
-
 MessageModelPtr DataManager::getMessageModel(long long chat_id) {
   auto iter = message_models_by_chat_id_.find(chat_id);
   if (iter != message_models_by_chat_id_.end()) return iter->second;
@@ -36,9 +32,9 @@ ChatPtr DataManager::getChat(long long chat_id) {
   return chat_iter->second;
 }
 
-int DataManager::getNumberOfExistingChats() const { return chats_by_id_.size(); }
+int DataManager::getNumberOfExistingChats() const noexcept { return chats_by_id_.size(); }
 
-int DataManager::getNumberOfExistingUsers() const { return users_by_id_.size(); }
+int DataManager::getNumberOfExistingUsers() const noexcept { return users_by_id_.size(); }
 
 void DataManager::clearAllChats() { chats_by_id_.clear(); }
 
@@ -76,15 +72,24 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
 }
 
 void DataManager::saveUser(const User& user) {
-  if(user.id <= 0) throw std::runtime_error("User id is invalid");
+  DBC_REQUIRE(user.id > 0);
   const std::lock_guard<std::mutex> lock(user_mutex_);
   users_by_id_[user.id] = user;
 }
 
 std::optional<User> DataManager::getUser(UserId user_id) {
+  DBC_REQUIRE(user_id > 0);
   const std::lock_guard<std::mutex> lock(user_mutex_);
   auto it = users_by_id_.find(user_id);
   return it == users_by_id_.end() ? std::nullopt : std::make_optional(it->second);
+}
+
+std::optional<Message> DataManager::getMessageById(const long long message_id) {
+  DBC_REQUIRE(message_id > 0);
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto& message) {
+    return message.id == message_id;
+  });
+  return it == messages_.end() ? std::nullopt : std::make_optional(*it);
 }
 
 void DataManager::saveMessage(const Message& message) {
@@ -95,7 +100,7 @@ void DataManager::saveMessage(const Message& message) {
   LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.text.toStdString(), message.id, message.local_id.toStdString(), message.status_sended);
   if(it != messages_.end()) {
     LOG_INFO("Message {} already exist", message.text.toStdString());
-    assert(it->id == 0 || it->id == message.id);
+    DBC_REQUIRE(it->id == 0 || it->id == message.id);
     it->updateFrom(message);
   } else {
     LOG_INFO("Message {} added", message.text.toStdString());

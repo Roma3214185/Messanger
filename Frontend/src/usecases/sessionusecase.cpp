@@ -8,6 +8,7 @@ SessionUseCase::SessionUseCase(SessionManager* session_manager)
 }
 
 void SessionUseCase::authentificatesWithToken(const QString& token ) {
+  DBC_REQUIRE(!token.isEmpty());
   session_manager_->authenticateWithToken(token);
 }
 

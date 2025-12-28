@@ -4,7 +4,7 @@
 #include "Debug_profiling.h"
 
 struct TestDataManager : public DataManager {
-    using DataManager::getNumberOfExistingModels;
+    using DataManager::getNumberOfMessageModels;
     using DataManager::getNumberOfExistingUsers;
 };
 
@@ -21,7 +21,7 @@ TEST_CASE("Test datamanager works with chats") {
     data_manager.addChat(same_private_chat);
 
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
-    REQUIRE(data_manager.getNumberOfExistingModels() == 1);
+    REQUIRE(data_manager.getNumberOfMessageModels() == 1);
   }
 
   SECTION("Clear all chats works as expected") {
@@ -107,11 +107,11 @@ TEST_CASE("Test datamanager works with chats") {
   SECTION("Clear all message models works as expected") {
     data_manager.addChat(private_chat1);
     data_manager.addChat(private_chat2);
-    REQUIRE(data_manager.getNumberOfExistingModels() == 2);
+    REQUIRE(data_manager.getNumberOfMessageModels() == 2);
 
     data_manager.clearAllMessageModels();
 
-    REQUIRE(data_manager.getNumberOfExistingModels() == 0);
+    REQUIRE(data_manager.getNumberOfMessageModels() == 0);
   }
 
   SECTION("Add valid user expected works") {
@@ -161,13 +161,13 @@ TEST_CASE("Test datamanager works with chats") {
     data_manager.addChat(private_chat1);
     data_manager.saveUser(valid_user);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
-    REQUIRE(data_manager.getNumberOfExistingModels() == 1);
+    REQUIRE(data_manager.getNumberOfMessageModels() == 1);
     REQUIRE(data_manager.getNumberOfExistingUsers() == 1);
 
     data_manager.clearAll();
 
     REQUIRE(data_manager.getNumberOfExistingChats() == 0);
-    REQUIRE(data_manager.getNumberOfExistingModels() == 0);
+    REQUIRE(data_manager.getNumberOfMessageModels() == 0);
     REQUIRE(data_manager.getNumberOfExistingUsers() == 0);
   }
 }

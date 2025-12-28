@@ -7,15 +7,21 @@
 #include <QVector>
 
 struct ChatBase {
-  long long       chat_id{ 0 };
+  long long       chat_id{ 0 }; //todo: make member only id
   QString   title;
   QString   last_message;
   int       unread{ 0 };
   QDateTime last_message_time;
-  QString   avatar_path;
+  QString   avatar_path = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
 
   virtual ~ChatBase()                                  = 0;
   [[nodiscard]] virtual auto isPrivate() const -> bool = 0;
+
+  virtual bool checkInvariants() {
+    return chat_id > 0
+            && !title.isEmpty()
+           && !avatar_path.isEmpty();
+  }
 };
 
 struct PrivateChat : public ChatBase {

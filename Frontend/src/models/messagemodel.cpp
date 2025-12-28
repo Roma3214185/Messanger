@@ -10,7 +10,8 @@
 MessageModel::MessageModel(QObject* parent) : QAbstractListModel(parent) {}
 
 QVariant MessageModel::data(const QModelIndex& index, int role) const {
-  if (!index.isValid() || index.row() >= messages_.size()) return QVariant();
+  DBC_REQUIRE(index.isValid() && index.row() < messages_.size());
+  //if (!index.isValid() || index.row() >= messages_.size()) return QVariant();
 
   const auto& msg = messages_[index.row()];
 
@@ -22,7 +23,7 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
     case TimestampRole:
       return msg.timestamp;
     case SenderIdRole:
-      return msg.senderId;
+      return msg.sender_id;
     case SendedStatusRole:
       return msg.status_sended;
     case ReadedStatusRole:
@@ -30,6 +31,7 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
     case FullMessage:
       return QVariant::fromValue(msg);
     default:
+      DBC_UNREACHABLE();
       return QVariant();
   }
 }
@@ -81,7 +83,7 @@ void MessageModel::saveMessage(const Message& msg /*, const User& user*/) {
 
 void MessageModel::sortMessagesByTimestamp() {
   std::sort(messages_.begin(), messages_.end(),
-            [](const Message& a, const Message& b) {
+            [](const auto& a, const auto& b) {
               return a.timestamp < b.timestamp;
             });
 
@@ -100,6 +102,8 @@ void MessageModel::clear() {
   messages_.clear();
   //users_by_message_id_.clear();
   endRemoveRows();
+
+  DBC_ENSURE(messages_.isEmpty());
 }
 
 QHash<int, QByteArray> MessageModel::roleNames() const {
@@ -112,5 +116,5 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
 
 int MessageModel::rowCount(const QModelIndex& parent) const {
   Q_UNUSED(parent);
-  return messages_.size();
+  return (int)messages_.size();
 }

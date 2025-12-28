@@ -163,3 +163,105 @@ inline void initLogger(const std::string& service_name) {
     std::cerr << "Log init failed: " << ex.what() << '\n';
   }
 }
+
+enum class ContractLevel {
+  Precondition,
+  Postcondition,
+  Invariant,
+  Assert,
+  Unreachable
+};
+
+struct ContractViolation {
+    ContractLevel level;
+    const char* expr;
+    const char* file;
+    int line;
+    const char* func;
+};
+
+using ContractHandler = void(*)(const ContractViolation&);
+
+static const char* to_string(ContractLevel level) {
+  switch (level) {
+  case ContractLevel::Precondition: return "Precondition";
+  case ContractLevel::Postcondition: return "Postcondition";
+  case ContractLevel::Invariant: return "Invariant";
+  case ContractLevel::Assert: return "Assert";
+  case ContractLevel::Unreachable: return "Unreachable";
+  }
+  return "Unknown";
+}
+
+class ContractViolationError : public std::logic_error {
+  public:
+    ContractViolation v;
+
+    explicit ContractViolationError(const ContractViolation& violation)
+        : std::logic_error(build_message(violation)),
+        v(violation)
+    {}
+
+  private:
+    static std::string build_message(const ContractViolation& v) {
+      std::ostringstream oss;
+      oss << "Contract violation: "
+          << to_string(v.level)
+          << " failed: " << v.expr
+          << " at " << v.file << ":" << v.line
+          << " (" << v.func << ")";
+      return oss.str();
+    }
+};
+
+inline void throw_on_violation(const ContractViolation& v) {
+  throw ContractViolationError(v);
+}
+
+inline void log_contract(const ContractViolation& v) {
+  spdlog::error(
+      "[CONTRACT] {} failed: {} at {}:{} ({})",
+      to_string(v.level),
+      v.expr,
+      v.file,
+      v.line,
+      v.func
+      );
+}
+
+inline ContractHandler& contract_handler() {
+  static ContractHandler handler = log_contract;
+  return handler;
+}
+
+#define CONTRACT_CHECK(level, expr) \
+  do {                              \
+      if (!(expr)) {                \
+        contract_handler()({        \
+        level,                      \
+        #expr,                      \
+        __FILE__,                   \
+        __LINE__,                   \
+        __func__                    \
+        });                         \
+  }                                 \
+} while (0)
+
+#ifndef ENABLE_CONTRACTS
+#define ENABLE_CONTRACTS
+#endif
+
+#ifdef ENABLE_CONTRACTS
+#define DBC_REQUIRE(expr)      CONTRACT_CHECK(ContractLevel::Precondition, expr)
+#define DBC_ENSURE(expr)     CONTRACT_CHECK(ContractLevel::Postcondition, expr)
+#define DBC_INVARIANT(expr)    CONTRACT_CHECK(ContractLevel::Invariant, expr)
+#define DBC_ASSERT_INTERNAL(expr) \
+  CONTRACT_CHECK(ContractLevel::Assert, expr)
+#define DBC_UNREACHABLE()      CONTRACT_CHECK(ContractLevel::Unreachable, false)
+#else
+#define DBC_REQUIRE(expr)      ((void)0)
+#define DBC_ENSURE(expr)     ((void)0)
+#define DBC_INVARIANT(expr)    ((void)0)
+#define DBC_ASSERT_INTERNAL(expr) ((void)0)
+#define DBC_UNREACHABLE()      ((void)0)
+#endif

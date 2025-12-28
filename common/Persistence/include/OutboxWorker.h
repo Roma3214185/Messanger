@@ -80,6 +80,7 @@ private:
     QMutex mutex_;
     QWaitCondition wait_condition_;
 
+  [[noreturn]]
   void processBatch(IDataBase& db) {
     const QString sql_command = "SELECT id, table_trigered, payload FROM outbox WHERE processed = 0 LIMIT 100;";
     auto query = db.prepare(sql_command);

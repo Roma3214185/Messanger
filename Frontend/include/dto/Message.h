@@ -9,8 +9,8 @@
 
 struct Message { //todo: make immutable messagedomein and mutable messageview
   long long       id = 0;
-  long long       senderId;
-  long long       chatId;
+  long long       sender_id;
+  long long       chat_id;
   QString   text;
   QDateTime timestamp;
   bool      readed_by_me;
@@ -21,11 +21,7 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
   QString   local_id;
 
   void updateFrom(const Message& other) {
-    if(local_id != other.local_id) {
-      LOG_ERROR("Can't updateFrom {} because it's local_ids differs");
-      return;
-    }
-
+    DBC_REQUIRE(local_id == other.local_id);
     id = other.id;
     text = other.text;
     timestamp = other.timestamp;
@@ -34,13 +30,14 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
     read_counter = other.read_counter;
     liked_counter = other.liked_counter;
     status_sended = other.status_sended;
+    DBC_INVARIANT(checkInvariants());
   }
 
   std::string toString() {
     std::string res;
     res += "| id = " + std::to_string(id);
-    res += " | senderId = " + std::to_string(senderId);
-    res += " | chatId = " + std::to_string(chatId);
+    res += " | sender_id = " + std::to_string(sender_id);
+    res += " | chat_id = " + std::to_string(chat_id);
     res += " | text = " + text.toStdString();
     res += " | timestamp = " + timestamp.toString().toStdString();
     //res += " | readed_by_me = " +  std::to_string(readed_by_me + 0);
@@ -50,6 +47,16 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
     res += " | status_sended = " + std::to_string(status_sended + 0);
     res += " | local_id = " + local_id.toStdString();
     return res;
+  }
+
+  bool checkInvariants() {
+    return id > 0 //todo: what if message saved as offline, them id will == 0, state pattern??
+           && sender_id > 0
+           && chat_id > 0
+           && !local_id.isEmpty()
+           && read_counter >= 0
+           && liked_counter >= 0
+           && !text.isEmpty();
   }
 };
 

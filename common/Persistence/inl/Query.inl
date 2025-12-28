@@ -201,7 +201,7 @@ std::size_t SelectQuery<T>::hashGenerations(
 
 template <typename T>
 SelectQuery<T>& SelectQuery<T>::orderBy(const std::string& field,
-                            const OrderDirection& direction) {
+                            const OrderDirection& direction) & {
   const QString direct = direction == OrderDirection::ASC ? "ASC" : "DESC";
   order_ = QString("ORDER BY %1 %2")
     .arg(QString::fromStdString(field))

@@ -10,29 +10,20 @@ class TokenManager {
     std::optional<QString> token_;
     std::optional<long long> current_id_;
   public:
-    // TokenManager() = default;
-    // TokenManager(const QString& token, long long current_id) : token_(token), current_id_(current_id) {}
-
     void setData(const QString& token, long long current_id) {
+      DBC_REQUIRE(!token.isEmpty());
+      DBC_REQUIRE(current_id_ > 0);
       token_ = token;
       current_id_ = current_id;
     }
 
     QString getToken() {
-      if(!token_.has_value()) {
-        LOG_ERROR("Token not setted");
-        throw std::runtime_error("Token not setted");
-      }
-
+      DBC_REQUIRE(token_ != std::nullopt);
       return *token_;
     }
 
     long long getCurrentUserId() {
-      if(!current_id_.has_value()) {
-        LOG_ERROR("Id not setted");
-        throw std::runtime_error("Id not setted");
-      }
-
+      DBC_REQUIRE(current_id_ != std::nullopt);
       return *current_id_;
     }
 
