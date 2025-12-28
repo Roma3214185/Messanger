@@ -96,6 +96,13 @@ target_include_directories(ProjectOptions
 include(cmake/StaticAnalyzers.cmake)
 
 # -------------------------
+# Sanitizers
+# -------------------------
+set(ENABLE_SANITIZER_ADDRESS ON CACHE BOOL "" FORCE)
+set(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR ON CACHE BOOL "" FORCE)
+include(cmake/Sanitizers.cmake)
+
+# -------------------------
 # Submodules
 # -------------------------
 add_subdirectory(external/IXWebSocket)

@@ -13,6 +13,7 @@ if (NOT TARGET ThreadPool)
     enable_clang_tidy(ThreadPool)
     enable_cppcheck(ThreadPool)
     enable_iwyu(ThreadPool)
+    enable_sanitizers(ThreadPool)
 
     target_include_directories(ThreadPool PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include

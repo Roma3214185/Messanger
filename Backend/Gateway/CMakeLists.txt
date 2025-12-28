@@ -33,6 +33,7 @@ target_include_directories(GatewayCore PUBLIC
 enable_clang_tidy(GatewayCore)
 enable_cppcheck(GatewayCore)
 enable_iwyu(GatewayCore)
+enable_sanitizers(GatewayCore)
 
 target_link_libraries(GatewayCore PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}

@@ -39,6 +39,7 @@ target_include_directories(AuthServiceCore PUBLIC
 enable_clang_tidy(AuthServiceCore)
 enable_cppcheck(AuthServiceCore)
 enable_iwyu(AuthServiceCore)
+enable_sanitizers(AuthServiceCore)
 
 target_compile_options(AuthServiceCore PRIVATE -Wno-deprecated-declarations)
 

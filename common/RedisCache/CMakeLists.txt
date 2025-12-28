@@ -33,6 +33,7 @@ target_compile_features(RedisCache PUBLIC cxx_std_20)
 enable_clang_tidy(RedisCache)
 enable_cppcheck(RedisCache)
 enable_iwyu(RedisCache)
+enable_sanitizers(RedisCache)
 
 target_include_directories(RedisCache
   PUBLIC

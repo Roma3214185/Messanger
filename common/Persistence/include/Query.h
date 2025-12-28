@@ -38,7 +38,6 @@ class SelectQuery : public BaseQuery<T> {
 
   std::future<std::vector<T>> executeAsync() const;
   std::future<std::vector<T>> executeWithoutCacheAsync() const;
-  //std::vector<T>              executeWithoutCache() const;
 
  protected:
   [[nodiscard]] std::string createCacheKey(const QString& sql, int generation_hash, int params_hash) const;

@@ -1,0 +1,65 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "CMAKE_AUTOUIC": "ON",
+        "CMAKE_AUTOMOC": "ON",
+        "CMAKE_AUTORCC": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "BUILD_SHARED_LIBS": "OFF",
+        "RABBITMQ_USE_STATIC_LIBS": "ON",
+        "BENCHMARK_ENABLE_GTEST_TESTS": "OFF",
+        "BENCHMARK_ENABLE_TESTING": "OFF",
+        "WITH_BENCHMARK": "OFF",
+        "WITH_EXAMPLES": "OFF",
+        "WITH_TEST": "OFF",
+        "WITH_OTLP_GRPC": "ON",
+        "WITH_OTLP_HTTP": "OFF",
+        "gRPC_SSL_PROVIDER": "package",
+        "BUILD_TESTING": "OFF",
+        "TRACY_ENABLE": "ON"
+      }
+    },
+    {
+      "name": "macos-debug-coverage",
+      "inherits": "base",
+      "displayName": "macOS Debug with Coverage",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "--coverage -O0",
+        "CMAKE_EXE_LINKER_FLAGS": "--coverage",
+        "CMAKE_SHARED_LINKER_FLAGS": "--coverage",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_PREFIX_PATH": "$HOME/local:${CMAKE_PREFIX_PATH}",
+        "REDISPP_INCLUDE_DIR": "$HOME/local/include",
+        "REDISPP_LIBRARY": "$HOME/local/lib/libredis++.a"
+      }
+    },
+    {
+      "name": "macos-release",
+      "inherits": "base",
+      "displayName": "macOS Release",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "macos-debug-coverage", "configurePreset": "macos-debug-coverage" },
+    { "name": "macos-release", "configurePreset": "macos-release" }
+  ],
+  "testPresets": [
+    { "name": "macos-debug-coverage", "configurePreset": "macos-debug-coverage" },
+    { "name": "macos-release", "configurePreset": "macos-release" }
+  ]
+}

@@ -19,13 +19,11 @@
 class OutboxWorker : public QThread {
     //Q_OBJECT
 public:
-    // OutboxWorker(IDataBase& db, QObject* parent = nullptr)
-    //     : QThread(parent), db_(db), m_stop(false) {}
     explicit OutboxWorker(IDataBase& db) : db_(db) {}
 
     ~OutboxWorker() {
         stop();
-        wait(); // wait for thread to finish
+        wait();
     }
 
     OutboxWorker(const OutboxWorker&) = delete;
@@ -33,14 +31,12 @@ public:
     OutboxWorker& operator=(const OutboxWorker&) = delete;
     OutboxWorker& operator=(OutboxWorker&&) = delete;
 
-    // Start the worker thread
     void startWorker() {
         if (!isRunning()) {
             start();
         }
     }
 
-    // Signal the worker to stop
     void stop() {
         QMutexLocker locker(&mutex_);
         stop_ = true;
@@ -48,16 +44,8 @@ public:
     }
 
 protected:
+    [[noreturn]]
     void run() override {
-        // Each thread needs its own DB connection in SQLite
-        // QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "OutboxWorkerConnection");
-        // db.setDatabaseName(m_dbPath);
-        // auto sql_bd = db_.getThreadDatabase();
-        // if (!sql_bd.open()) {
-        //     qDebug() << "Failed to open DB in OutboxWorker:" << db_.lastError().text();
-        //     return;
-        // }
-
         while (true) {
             {
                 QMutexLocker locker(&mutex_);
@@ -80,7 +68,6 @@ private:
     QMutex mutex_;
     QWaitCondition wait_condition_;
 
-  [[noreturn]]
   void processBatch(IDataBase& db) {
     const QString sql_command = "SELECT id, table_trigered, payload FROM outbox WHERE processed = 0 LIMIT 100;";
     auto query = db.prepare(sql_command);
@@ -104,14 +91,12 @@ private:
     QList<int> processed_ids;
 
     while (query->next()) {
-      //LOG_INFO("First candodate");
       const QString table_triggered = query->value("table_trigered").toString();
       const QString payload_str = query->value("payload").toString();
       const int id = query->value("id").toInt();
       //todo: make handler for each ecent trigered
       if (table_triggered == "user_table") {
         LOG_INFO("Triggered user_table");
-        //QSqlQuery query1(db);
 
         const User user = nlohmann::json::parse(payload_str.toStdString()); //todo: try catch
         LOG_INFO("User: {}", nlohmann::json(user).dump());

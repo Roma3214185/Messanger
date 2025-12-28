@@ -16,6 +16,7 @@ target_compile_features(RabbitMQClient PUBLIC cxx_std_20)
 enable_clang_tidy(RabbitMQClient)
 enable_cppcheck(RabbitMQClient)
 enable_iwyu(RabbitMQClient)
+enable_sanitizers(RabbitMQClient)
 
 target_include_directories(RabbitMQClient
     PUBLIC

@@ -18,6 +18,7 @@ if (NOT TARGET Entities)
     enable_clang_tidy(Entities)
     enable_cppcheck(Entities)
     enable_iwyu(Entities)
+    enable_sanitizers(Entities)
 
 endif()
 
