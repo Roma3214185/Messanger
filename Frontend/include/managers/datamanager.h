@@ -23,28 +23,27 @@ using ListMessage     = std::vector<Message>;
 class DataManager : public QObject {
     Q_OBJECT
  public:
-  ChatPtr         getPrivateChatWithUser(UserId);
-  MessageModelPtr getMessageModel(ChatId);
-  ChatPtr         getChat(ChatId);
-  int             getNumberOfExistingChats() const;
-  void            clearAllChats(); //todo: think about clear chats authoatically clear message-models
-  void            clearAllUsers();
-  void            clearAllMessageModels();
-  void            addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
-  void            saveUser(const User&);
-  void            clearAll();
-  OptionalUser    getUser(UserId);
-  std::optional<Message> getMessageById(const long long id);
-  void            saveMessage(const Message& message);
-  int             getNumberOfMessageModels() const { return message_models_by_chat_id_.size(); }
+  [[nodiscard]] ChatPtr         getPrivateChatWithUser(UserId);
+  [[nodiscard]] MessageModelPtr getMessageModel(ChatId);
+  [[nodiscard]] ChatPtr         getChat(ChatId);
+  [[nodiscard]] int             getNumberOfExistingChats() const noexcept;
+  void          clearAllChats(); //todo: think about clear chats authoatically clear message-models
+  void          clearAllUsers();
+  void          clearAllMessageModels();
+  void          addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
+  void          saveUser(const User&);
+  void          clearAll();
+  [[nodiscard]] OptionalUser    getUser(UserId);
+  [[nodiscard]] std::optional<Message> getMessageById(const long long id);
+  void          saveMessage(const Message& message);
+  [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
 
 Q_SIGNALS:
   void chatAdded(const ChatPtr& chat);
   void messageAdded(const Message& message);
 
  protected:
-  int             getNumberOfExistingModels() const;
-  int             getNumberOfExistingUsers() const;
+  [[nodiscard]] int             getNumberOfExistingUsers() const noexcept;
 
   ChatMap         chats_by_id_;
   UserMap         users_by_id_;

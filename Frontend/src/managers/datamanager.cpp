@@ -17,10 +17,6 @@ ChatPtr DataManager::getPrivateChatWithUser(long long user_id) {
   return nullptr;
 }
 
-int DataManager::getNumberOfExistingModels() const {
-  return (int)message_models_by_chat_id_.size();
-}
-
 MessageModelPtr DataManager::getMessageModel(long long chat_id) {
   auto iter = message_models_by_chat_id_.find(chat_id);
   if (iter != message_models_by_chat_id_.end()) return iter->second;
@@ -36,9 +32,9 @@ ChatPtr DataManager::getChat(long long chat_id) {
   return chat_iter->second;
 }
 
-int DataManager::getNumberOfExistingChats() const { return chats_by_id_.size(); }
+int DataManager::getNumberOfExistingChats() const noexcept { return chats_by_id_.size(); }
 
-int DataManager::getNumberOfExistingUsers() const { return users_by_id_.size(); }
+int DataManager::getNumberOfExistingUsers() const noexcept { return users_by_id_.size(); }
 
 void DataManager::clearAllChats() { chats_by_id_.clear(); }
 

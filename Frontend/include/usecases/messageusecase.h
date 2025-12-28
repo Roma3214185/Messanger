@@ -16,9 +16,10 @@ class MessageUseCase : public QObject {
   public:
     using MessageModelPtr = std::shared_ptr<MessageModel>;
     using Token = QString;
+
     MessageUseCase(DataManager*, MessageManager* message_manager, TokenManager* token_manager);
-    MessageModel* getMessageModel(long long chat_id);
-    QList<Message> getChatMessages(long long chat_id, int limit = 20);
+    [[nodiscard]]  MessageModel* getMessageModel(long long chat_id);
+    [[nodiscard]] QList<Message> getChatMessages(long long chat_id, int limit = 20);
     void    getChatMessagesAsync(long long chat_id);
     void    addMessageToChat(const Message& msg);
     void    logout();

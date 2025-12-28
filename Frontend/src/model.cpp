@@ -52,13 +52,13 @@ Model::Model(const QUrl& url, INetworkAccessManager* netManager, ICache* cash, I
 }
 
 void Model::setupConnections() {
-  connect(getDataManager(), &DataManager::chatAdded, this,  [this] (const ChatPtr& added_chat) {
+  connect(data_manager_, &DataManager::chatAdded, this,  [this] (const ChatPtr& added_chat) {
     DBC_REQUIRE(added_chat != nullptr);
     message()->getChatMessagesAsync(added_chat->chat_id);
     getChatModel()->addChat(added_chat);
   });
 
-  connect(getDataManager(), &DataManager::messageAdded, this, [this](const Message& message){
+  connect(data_manager_, &DataManager::messageAdded, this, [this](const Message& message){
     user_use_case_->getUserAsync(message.sender_id);
     auto last_message = getMessageModel(message.chat_id)->getLastMessage();
     chat_model_->updateChatInfo(message.chat_id, last_message);
@@ -66,7 +66,7 @@ void Model::setupConnections() {
     //manager_->message()->getChatMessagesAsync(message.chatId);
   });
 
-  connect(getDataManager(), &DataManager::chatAdded, this, [this](const ChatPtr& chat){
+  connect(data_manager_, &DataManager::chatAdded, this, [this](const ChatPtr& chat){
     DBC_REQUIRE(chat != nullptr); //todo: in chat class make isValid fucntion that check all self field
     message_use_case_->getChatMessagesAsync(chat->chat_id);
   });

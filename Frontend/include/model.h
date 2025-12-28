@@ -48,8 +48,8 @@ class Model : public QObject {
                  ISocket*               socket,
                  DataManager* data_manager);
 
-  ChatModel* getChatModel() const { return chat_model_.get(); }
-  UserModel* getUserModel() const { return user_model_.get(); }
+  ChatModel* getChatModel() const noexcept { return chat_model_.get(); }
+  UserModel* getUserModel() const noexcept { return user_model_.get(); }
 
   MessageModel* getMessageModel(long long chat_id);
   [[nodiscard]] std::optional<QString> checkToken();
@@ -57,13 +57,13 @@ class Model : public QObject {
   void saveData(const QString& token, long long current_id);
   void logout();
 
-  SessionUseCase* session() { return session_use_case_.get(); }
-  MessageUseCase* message() { return message_use_case_.get(); }
-  UserUseCase* user() { return user_use_case_.get(); }
-  ChatUseCase* chat() { return chat_use_case_.get(); }
-  DataManager* getDataManager() { return data_manager_; }
-  TokenManager* getTokenManager() { return token_manager_.get(); }
-  SocketUseCase* socket() { return socket_use_case_.get(); }
+  SessionUseCase* session() const noexcept { return session_use_case_.get(); }
+  MessageUseCase* message() const noexcept { return message_use_case_.get(); }
+  UserUseCase* user() const noexcept { return user_use_case_.get(); }
+  ChatUseCase* chat() const noexcept { return chat_use_case_.get(); }
+  DataManager* dataManager() const noexcept { return data_manager_; }
+  TokenManager* tokenManager() const noexcept { return token_manager_.get(); }
+  SocketUseCase* socket() const noexcept { return socket_use_case_.get(); }
 
   void setupConnections();
 
@@ -87,7 +87,6 @@ class Model : public QObject {
   std::unique_ptr<UserUseCase> user_use_case_;
   std::unique_ptr<MessageUseCase> message_use_case_;
   std::unique_ptr<SessionUseCase> session_use_case_;
-
 };
 
 #endif  // MODEL_H

@@ -75,8 +75,8 @@ void Presenter::initialHandlers() {
   const std::string opened_type     = "opened";
   const std::string new_message_type = "new_message";
 
-  socket_responce_handlers_[opened_type] = std::make_unique<OpenResponceHandler>(manager_->getTokenManager(), manager_->socket());
-  socket_responce_handlers_[new_message_type] = std::make_unique<NewMessageResponceHandler>(manager_->getTokenManager(), manager_->message());
+  socket_responce_handlers_[opened_type] = std::make_unique<OpenResponceHandler>(manager_->tokenManager(), manager_->socket());
+  socket_responce_handlers_[new_message_type] = std::make_unique<NewMessageResponceHandler>(manager_->tokenManager(), manager_->message());
 }
 
 void Presenter::setMessageListView(IMessageListView* message_list_view) {
@@ -111,7 +111,7 @@ void Presenter::onNewResponce(QJsonObject& json_object) {
 }
 
 MessageDelegate* Presenter::getMessageDelegate() {
-  if(!message_delegate_) message_delegate_ = std::make_unique<MessageDelegate>(manager_->getDataManager(), manager_->getTokenManager());
+  if(!message_delegate_) message_delegate_ = std::make_unique<MessageDelegate>(manager_->dataManager(), manager_->tokenManager());
   return message_delegate_.get();
 }
 
@@ -161,7 +161,7 @@ void Presenter::setUser(const User& user, const QString& token) {
   manager_->saveData(token, user.id);
   manager_->socket()->connectSocket();
   manager_->chat()->loadChatsAsync();
-  manager_->getDataManager()->saveUser(user);
+  manager_->dataManager()->saveUser(user);
   DBC_ENSURE(current_user_ != std::nullopt);
   Q_EMIT userSetted();
 }
