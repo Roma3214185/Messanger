@@ -24,6 +24,7 @@ class Server {
   void handleGetMessagesFromChat();
   void handleRoutes();
   virtual OptionalId getUserIdFromToken(const std::string& token);
+  void handleUpdateMessage();
 
   crow::SimpleApp& app_;
   int             port_;

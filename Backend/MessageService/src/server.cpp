@@ -5,6 +5,7 @@
 #include "messageservice/managers/JwtUtils.h"
 #include "messageservice/interfaces/IController.h"
 #include "messageservice/dto/GetMessagePack.h"
+#include "entities/RequestDTO.h"
 
 namespace {
 
@@ -53,9 +54,12 @@ Server::OptionalId Server::getUserIdFromToken(const std::string& token) {
   return JwtUtils::verifyTokenAndGetUserId(token);
 }
 
-void Server::handleRoutes() { handleGetMessagesFromChat(); }
+void Server::handleRoutes() {
+  handleGetMessagesFromChat();
+  handleUpdateMessage();
+}
 
-void Server::handleGetMessagesFromChat() {
+void Server::handleGetMessagesFromChat() { //todo: chat/<string>/messages
   CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::GET)(
           [&](const crow::request& req, crow::response& res, const std::string& chat_id_str) {
@@ -95,4 +99,16 @@ void Server::onGetMessagesFromChat(const crow::request& req, long long chat_id, 
   auto messages_status = controller_->getMessagesStatus(messages, user_id);
   auto json_messages = formMessageListJson(messages, messages_status);
   sendResponse(res, provider_->statusCodes().success, json_messages.dump());
+}
+
+void Server::handleUpdateMessage(){
+  CROW_ROUTE(app_, "/message/<string>")
+      .methods(crow::HTTPMethod::PATCH)(
+          [&](const crow::request& req, const std::string& chat_id_str) {
+            LOG_INFO("Get reqeust to update message with id {}", chat_id_str);
+            auto request_pack = utils::getDTO(req, "message/string");
+            auto [code, body] = controller_->updateMessage(request_pack, chat_id_str);
+            LOG_INFO("Update message with id {}, code {} and body {}", chat_id_str, code, body);
+            return crow::response(code, body);
+          });
 }
