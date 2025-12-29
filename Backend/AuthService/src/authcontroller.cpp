@@ -79,7 +79,7 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
   }
 
   auto token = generator_->generateToken(logged_user->id);
-  sendResponse(responce, provider_->statusCodes().success, userToJson(*logged_user, token).dump(), true);
+  sendResponse(responce, provider_->statusCodes().success, userToJson(*logged_user, token).dump(), false);
 }
 
 void AuthController::handleMe(const crow::request& req, crow::response& responce) {
