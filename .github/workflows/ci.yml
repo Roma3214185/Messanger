@@ -42,7 +42,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja boost catch2 sqlite3 opentelemetry-cpp spdlog fmt rabbitmq-c asio libsodium openssl@3 ccache lcov clang-format
+          brew install cmake ninja autoconf autoconf-archive automake libtool boost catch2 sqlite3 spdlog fmt rabbitmq-c asio libsodium openssl@3 ccache lcov clang-format
 
        # Bootstrap vcpkg
       - name: Bootstrap vcpkg
