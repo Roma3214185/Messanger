@@ -37,17 +37,20 @@ set(WITH_EXAMPLES OFF)
 
 add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
 
-if(NOT DEFINED Qt6_DIR)
-    set(Qt6_DIR "/opt/homebrew/opt/qt/lib/cmake/Qt6")
-endif()
+# if(NOT DEFINED Qt6_DIR)
+#     set(Qt6_DIR "/opt/homebrew/opt/qt/lib/cmake/Qt6")
+# endif()
 
-if(NOT DEFINED Qt6WebSockets_DIR)
-    set(Qt6WebSockets_DIR "/Users/roma/Qt/6.9.0/macos/lib/cmake/Qt6WebSockets")
-endif()
+set(CMAKE_PREFIX_PATH "/opt/homebrew/Cellar/qt" CACHE PATH "Qt install prefix")
+set(CMAKE_PREFIX_PATH "/opt/homebrew/Cellar/qt")
 
-list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/qt" "/Users/roma/Qt/6.9.0/macos")
+# if(NOT DEFINED Qt6WebSockets_DIR)
+#     set(Qt6WebSockets_DIR "/Users/roma/Qt/6.9.0/macos/lib/cmake/Qt6WebSockets")
+# endif()
 
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+# list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/qt" "/Users/roma/Qt/6.9.0/macos")
+
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
     CACHE STRING "Vcpkg toolchain file")
 
 

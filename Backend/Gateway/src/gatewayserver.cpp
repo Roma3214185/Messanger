@@ -147,7 +147,7 @@ void GatewayServer::handlePostRequest(const crow::request& req, //todo: make han
                                        const int port,
                                        const std::string&   path) {
   RequestDTO request_info = getRequestInfo(req, path, port);
-  cache_->set("request:" + request_info.request_id,  R"({ "status": "queued" })");
+  cache_->set("request:" + request_info.request_id, "{ \"status\": \"queued\" }");
 
   const PublishRequest publish_request{ //todo: make PublishRequest and RequestDTO immutable
     .exchange = provider_->routes().exchange,
@@ -194,7 +194,7 @@ void GatewayServer::subscribeOnNewRequest() {
     cache_->set("request:" + request_info->request_id, "{\"status\":\"finished\"}");
     cache_->set("request_id:" + request_info->request_id, std::to_string(result.first));
     cache_->set("request_body:" + request_info->request_id,
-                result.second.substr(0, result.second.length() - 1) +  R"({"status":"finished"})"); //todo: fully refactor server responce JsonObject,
+                result.second.substr(0, result.second.length() - 1) + ",\"status\":\"finished\"}"); //todo: fully refactor server responce JsonObject,
                                                                                                   // return ["error"], ["body"], maybe ["code"]
   });
 }

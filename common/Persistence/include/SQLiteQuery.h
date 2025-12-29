@@ -13,7 +13,7 @@ class SQLiteQuery : public IQuery {
     explicit SQLiteQuery(QSqlDatabase& db) : q_(db) {}
 
     bool prepare(const QString& sql) {
-      auto res = q_.prepare(sql);
+      bool res = q_.prepare(sql);
       if(!res) LOG_ERROR("[SQLiteQuery] Prepare failed for sql {}: {}", sql.toStdString(), q_.lastError().text().toStdString());
       return res;
     }
@@ -23,7 +23,10 @@ class SQLiteQuery : public IQuery {
     }
 
     bool exec() override {
-      return q_.exec();
+      bool res = q_.exec();
+      //LOG_INFO("Exec : {}", res);
+      if(!res) LOG_INFO("Error {}", q_.lastError().text().toStdString());
+      return res;
     }
 
     bool next() override {

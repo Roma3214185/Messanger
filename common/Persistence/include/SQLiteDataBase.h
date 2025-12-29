@@ -15,10 +15,12 @@ class SQLiteDatabase : public IDataBase {
 
    bool exec(const QString& sql) override {
      QSqlQuery q(db_);
+     LOG_INFO("To execute {}", sql.toStdString());
      if(!q.exec(sql)) {
         LOG_ERROR("For sql {} execute failed: {}", sql.toStdString(), q.lastError().text().toStdString());
        return false;
       }
+     LOG_INFO("Execute succced, affected : {} rows", q.numRowsAffected());
      return true;
    }
 

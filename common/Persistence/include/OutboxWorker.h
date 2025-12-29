@@ -44,7 +44,6 @@ public:
     }
 
 protected:
-    [[noreturn]]
     void run() override {
         while (true) {
             {
@@ -72,7 +71,6 @@ private:
     const QString sql_command = "SELECT id, table_trigered, payload FROM outbox WHERE processed = 0 LIMIT 100;";
     auto query = db.prepare(sql_command);
     if(!query) return;
-    //QSqlQuery query(db);
 
     // Begin transaction
     // if (!query.exec("BEGIN TRANSACTION;")) {
@@ -138,7 +136,7 @@ private:
     //   query.exec("ROLLBACK;");
     // }
 
-    //QThread::msleep(10);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   }
 };
 

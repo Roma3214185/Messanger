@@ -31,8 +31,8 @@ void debug(const QString& log, const User& user) noexcept {
 void debug(const QString& log, const Message& message) noexcept {
   LOG_INFO("{}: Message chat_id '{}' | sender_id '{}' | text '{}' timestamp '{}', local_id {}",
            log.toStdString(),
-           message.chatId,
-           message.senderId,
+           message.chat_id,
+           message.sender_id,
            message.text.toStdString(),
            message.timestamp.toString().toStdString(),
            message.local_id.toStdString());
