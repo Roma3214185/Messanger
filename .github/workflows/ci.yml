@@ -85,6 +85,10 @@ jobs:
            set -eux
            ./external/vcpkg/vcpkg install \
              boost-asio \
+             boost-chrono \
+             boost-system \
+             boost-thread \
+             boost-regex \
              spdlog \
              nlohmann-json \
              openssl \
@@ -92,7 +96,8 @@ jobs:
              sqlite3 \
              asio \
              libsodium \
-             fmt
+             fmt \
+              --triplet arm64-osx
 
       # 7️⃣ Auto-format code
       - name: Run clang-format (auto-fix)
