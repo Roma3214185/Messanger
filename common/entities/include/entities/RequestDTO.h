@@ -4,11 +4,10 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-
+#include <crow/crow.h>
 #include <nlohmann/json.hpp>
 
 struct RequestDTO {
-    int port;
     std::string path;
     std::string method;
     std::string body;
@@ -18,13 +17,41 @@ struct RequestDTO {
     std::multimap<std::string, std::string> url_params;
 };
 
+namespace utils {
+
+inline std::string getContentType(const crow::request& req) {
+  std::string content_type = req.get_header_value("content-type");
+  return content_type.empty() ? "application/json" : content_type;
+}
+
+inline RequestDTO getDTO(const crow::request& req, const std::string& path, const int request_id = -1) {
+    RequestDTO request_info;
+    request_info.method = crow::method_name(req.method);
+    request_info.path = path;
+    request_info.body = req.body;
+    request_info.content_type = getContentType(req);
+    request_info.request_id = request_id;
+
+    auto keys = req.url_params.keys();
+    for (const std::string& key : keys) {
+      request_info.url_params.emplace(key, req.url_params.get(key));
+    }
+
+    for (auto const& header : req.headers) {
+      request_info.headers.emplace_back(header.first, header.second);
+    }
+
+    return request_info;
+  }
+
+}  // utils
+
 namespace nlohmann {
 
 template <>
 struct adl_serializer<RequestDTO> {
   static void to_json(json& j, const RequestDTO& r) {
     j = json{
-        {"port", r.port},
         {"path", r.path},
         {"method", r.method},
         {"body", r.body},
@@ -36,7 +63,6 @@ struct adl_serializer<RequestDTO> {
   }
 
   static void from_json(const json& j, RequestDTO& r) {
-    j.at("port").get_to(r.port);
     j.at("path").get_to(r.path);
     j.at("method").get_to(r.method);
     j.at("body").get_to(r.body);

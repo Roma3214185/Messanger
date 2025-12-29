@@ -8,14 +8,14 @@
 #include <nlohmann/json.hpp>
 
 #include "interfaces/IClient.h"
-#include "RequestDTO.h"
+#include "entities/RequestDTO.h"
 #include "ForwardRequestDTO.h"
 
 class ProxyClient {
     IClient* client_;
   public:
     ProxyClient(IClient* client) : client_(client) { }
-    NetworkResponse forward(const RequestDTO&);
+    NetworkResponse forward(const RequestDTO&, const int port);
 
   private:
     NetworkResponse makeRequest(const ForwardRequestDTO&, const std::string& method);

@@ -38,9 +38,8 @@ std::string getContentType(const crow::request& req) {
 }
 
 
-RequestDTO getRequestInfo(const crow::request& req, const std::string& path, int port) {
+RequestDTO getRequestInfo(const crow::request& req, const std::string& path) {
   RequestDTO request_info;
-  request_info.port = port;
   request_info.method = crow::method_name(req.method);
   request_info.path = path;
   request_info.body = req.body;
@@ -136,9 +135,9 @@ void GatewayServer::handleProxyRequest(const crow::request& req,
                                        crow::response&      res,
                                        const int port,
                                        const std::string&   path) {
-  RequestDTO request_info = getRequestInfo(req, path, port);
+  RequestDTO request_info = getRequestInfo(req, path);
 
-  auto result = proxy_.forward(request_info);
+  auto result = proxy_.forward(request_info, port);
   sendResponse(res, result.first, result.second);
 }
 
@@ -146,13 +145,15 @@ void GatewayServer::handlePostRequest(const crow::request& req, //todo: make han
                                        crow::response&      res,
                                        const int port,
                                        const std::string&   path) {
-  RequestDTO request_info = getRequestInfo(req, path, port);
+  RequestDTO request_info = getRequestInfo(req, path);
   cache_->set("request:" + request_info.request_id, "{ \"status\": \"queued\" }");
+  auto json = nlohmann::json(request_info);
+  json["port"] = port;
 
   const PublishRequest publish_request{ //todo: make PublishRequest and RequestDTO immutable
     .exchange = provider_->routes().exchange,
     .routing_key = provider_->routes().sendRequest,
-    .message =  nlohmann::json(request_info).dump(),
+    .message =  json.dump(),
     .exchange_type = "direct"
   };
 
@@ -174,9 +175,13 @@ void GatewayServer::subscribeOnNewRequest() {
   queue_->subscribe(subscribe_request,
                     [this](const std::string& event, const std::string& payload) {
                       LOG_INFO("I in subscribe with event {} and payload {}", event, payload);
-    auto request_info = [payload]() -> std::optional<RequestDTO> {
+    auto request_info_port = [payload]() -> std::optional<std::pair<RequestDTO, int>> {
                         try {
-                          return std::make_optional(nlohmann::json::parse(payload));
+                          auto json = nlohmann::json(payload);
+                          RequestDTO dto = nlohmann::json::parse(payload);
+                          const int port = json["port"];
+
+                          return std::make_pair(dto, port);
                         } catch (const std::exception& e) {
                           LOG_ERROR("Can't parse RequestDTO from payload {}: {}", payload, e.what());
                           return std::nullopt;
@@ -186,14 +191,15 @@ void GatewayServer::subscribeOnNewRequest() {
                         }
                       }();
 
-    if(!request_info) return;
-    auto result = proxy_.forward(*request_info);
+    if(!request_info_port) return;
+    auto [request_info, port] = *request_info_port;
+    auto result = proxy_.forward(request_info, port);
     LOG_INFO("Finished result in queue_->subscribe, request_info->request_id = {}, status_code = {}, body = {}",
-      request_info->request_id, std::to_string(result.first), result.second.substr(0, result.second.length()));
+      request_info.request_id, std::to_string(result.first), result.second.substr(0, result.second.length()));
 
-    cache_->set("request:" + request_info->request_id, "{\"status\":\"finished\"}");
-    cache_->set("request_id:" + request_info->request_id, std::to_string(result.first));
-    cache_->set("request_body:" + request_info->request_id,
+    cache_->set("request:" + request_info.request_id, "{\"status\":\"finished\"}");
+    cache_->set("request_id:" + request_info.request_id, std::to_string(result.first));
+    cache_->set("request_body:" + request_info.request_id,
                 result.second.substr(0, result.second.length() - 1) + ",\"status\":\"finished\"}"); //todo: fully refactor server responce JsonObject,
                                                                                                   // return ["error"], ["body"], maybe ["code"]
   });
