@@ -53,6 +53,7 @@ jobs:
               lcov \
               clang-format \
               openssl@3 \
+              rabbitmq-c \
               qt
 
        # Bootstrap vcpkg
@@ -90,7 +91,6 @@ jobs:
              openssl \
              catch2 \
              sqlite3 \
-             rabbitmq-c \
              asio \
              libsodium \
              fmt
