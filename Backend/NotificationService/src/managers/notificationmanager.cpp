@@ -61,8 +61,8 @@ void NotificationManager::notifyMessageRead(long long chat_id, const MessageStat
 
 void NotificationManager::notifyNewMessages(Message& message, long long user_id) {}
 
-void NotificationManager::deleteConnections(SocketPtr socket) {
-  socket_manager_->deleteConnections(std::move(socket));
+void NotificationManager::deleteConnections(const SocketPtr& socket) {
+  socket_manager_->deleteConnections(socket);
 }
 
 void NotificationManager::userConnected(long long user_id, SocketPtr socket) {

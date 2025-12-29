@@ -40,6 +40,7 @@ target_link_libraries(ChatServiceCore PUBLIC
 enable_clang_tidy(ChatServiceCore)
 enable_cppcheck(ChatServiceCore)
 enable_iwyu(ChatServiceCore)
+enable_sanitizers(ChatServiceCore)
 
 target_include_directories(ChatServiceCore PUBLIC
   ${httplib_SOURCE_DIR}

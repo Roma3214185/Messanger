@@ -27,7 +27,8 @@ class NotificationManager {
                       IConfigProvider* provider = &ProdConfigProvider::instance());
   void notifyMessageRead(long long chat_id, const MessageStatus& message_status);
   void notifyNewMessages(Message& message, long long user_id);
-  void deleteConnections(SocketPtr conn);
+  void saveConnections(const SocketPtr& conn); //think about move these connections
+  void deleteConnections(const SocketPtr& conn);
   virtual void userConnected(long long user_id, SocketPtr conn);
   void saveMessageStatus(MessageStatus& status);
   void saveDeliveryStatus(const Message& msg, long long receiver_id);

@@ -12,7 +12,7 @@ class TokenManager {
   public:
     void setData(const QString& token, long long current_id) {
       DBC_REQUIRE(!token.isEmpty());
-      DBC_REQUIRE(current_id_ > 0);
+      DBC_REQUIRE(current_id > 0);
       token_ = token;
       current_id_ = current_id;
     }

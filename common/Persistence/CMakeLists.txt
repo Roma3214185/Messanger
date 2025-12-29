@@ -16,6 +16,7 @@ target_compile_features(Persistence PUBLIC cxx_std_20)
 enable_clang_tidy(Persistence)
 enable_cppcheck(Persistence)
 enable_iwyu(Persistence)
+enable_sanitizers(Persistence)
 
 target_include_directories(Persistence
     PUBLIC

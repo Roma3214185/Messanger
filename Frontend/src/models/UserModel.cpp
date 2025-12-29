@@ -33,7 +33,7 @@ void UserModel::clear() {
 }
 
 QVariant UserModel::data(const QModelIndex& index, int role) const {
-  if (!index.isValid() || index.row() >= users_.size()) return QVariant();
+  if (!index.isValid() || index.row() >= users_.size() || index.row() < 0) return QVariant();
 
   const User& user = users_[index.row()];
   switch (role) {

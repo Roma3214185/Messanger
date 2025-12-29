@@ -63,13 +63,13 @@ inline std::string extract_class_and_function(const char* full_func) {
 // }
 // #endif
 
-#ifdef NDEBUG
+#ifdef DEBUG
 #define LOG_INFO(...) ((void)0)
 //#define LOG_INFO(...) \
 //spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
 #else
 #define LOG_INFO(...) \
-spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
+ spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
 #endif
 
 #define LOG_WARN(...) \

@@ -138,8 +138,10 @@ MessageDrawData MessageDelegate::extractMessageData(const QModelIndex& index) co
   }();
 
   auto user = [&]() -> User {
-    std::optional<User> getted_user = data_manager_->getUser(message.id);
-    if(getted_user) return *getted_user;
+    std::optional<User> getted_user = data_manager_->getUser(message.sender_id);
+    if(getted_user) {
+      return *getted_user;
+    }
 
     User default_user;
     default_user.name = "Unknown user";

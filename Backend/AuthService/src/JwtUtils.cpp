@@ -39,7 +39,7 @@ std::string generateToken(UserId user_id) {
             .set_issuer(kIssuer)
             .set_expires_at(std::chrono::system_clock::now() + std::chrono::hours(kTenYears))
             .sign(jwt::algorithm::rs256("", private_key, ""));
-    LOG_ERROR("JWT signing succeessed: {}", token);
+    LOG_INFO("JWT signing succeessed: {}", token);
     return token;
   } catch (const std::exception& e) {
     LOG_ERROR("JWT signing failed: {}", e.what());

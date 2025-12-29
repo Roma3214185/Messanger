@@ -10,10 +10,10 @@
 MessageModel::MessageModel(QObject* parent) : QAbstractListModel(parent) {}
 
 QVariant MessageModel::data(const QModelIndex& index, int role) const {
-  DBC_REQUIRE(index.isValid() && index.row() < messages_.size());
-  //if (!index.isValid() || index.row() >= messages_.size()) return QVariant();
+  //DBC_REQUIRE(index.isValid() && index.row() < messages_.size());
+  if (!index.isValid() || index.row() < 0 || index.row() >= messages_.size()) return QVariant();
 
-  const auto& msg = messages_[index.row()];
+  const Message msg = messages_.at(index.row());
 
   switch (role) {
     case MessageIdRole:

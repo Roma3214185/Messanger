@@ -28,9 +28,19 @@ crow::json::wvalue userToJson(const User& user, const std::string& token = "") {
   return res;
 }
 
-void sendResponse(crow::response& res, int code, const std::string& text) {
+void sendResponse(crow::response& res, int code, const std::string& text, bool is_error) {
+  auto text_json = [&]() -> std::string {
+    nlohmann::json res_text;
+    if(is_error) {
+      res_text["error"] = text;
+      return res_text.dump();
+    } else {
+      return text;
+    }
+  };
+
   res.code = code;
-  res.write(text);
+  res.write(text_json());
   res.end();
 }
 
@@ -48,7 +58,7 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password")) {  //todo: make function bool contains(json, field)
     LOG_ERROR("Invalid json");
-    sendResponse(responce, provider_->statusCodes().badRequest, "Invalid Json");
+    sendResponse(responce, provider_->statusCodes().badRequest, "Invalid Json", true);
     return;
   }
   LoginRequest login_request {
@@ -64,29 +74,29 @@ void AuthController::loginUser(const crow::request& req, crow::response& responc
 
   if (!logged_user) {
     LOG_ERROR("Invalid credentials");
-    sendResponse(responce, provider_->statusCodes().unauthorized, "Invalid credentials");
+    sendResponse(responce, provider_->statusCodes().unauthorized, "Invalid credentials", true);
     return;
   }
 
   auto token = generator_->generateToken(logged_user->id);
-  sendResponse(responce, provider_->statusCodes().success, userToJson(*logged_user, token).dump());
+  sendResponse(responce, provider_->statusCodes().success, userToJson(*logged_user, token).dump(), false);
 }
 
 void AuthController::handleMe(const crow::request& req, crow::response& responce) {
   auto [user_id, token] = verifyToken(req);
   if (!user_id) {
     LOG_ERROR("Invalid token");
-    sendResponse(responce, provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken);
+    sendResponse(responce, provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken, true);
     return;
   }
 
   std::optional<User> user = manager_->getUser(*user_id);
   if(!user) {
     LOG_ERROR("User with id {} not found", *user_id);
-    return sendResponse(responce, provider_->statusCodes().notFound, provider_->issueMessages().userNotFound);
+    return sendResponse(responce, provider_->statusCodes().notFound, provider_->issueMessages().userNotFound, true);
   }
 
-  sendResponse(responce, provider_->statusCodes().success, userToJson(*user, token).dump());
+  sendResponse(responce, provider_->statusCodes().success, userToJson(*user, token).dump(), false);
 }
 
 void AuthController::findByTag(const crow::request& req,
@@ -94,7 +104,7 @@ void AuthController::findByTag(const crow::request& req,
   std::optional<std::string> tag = fetchTag(req);
   if (!tag) { //TODO: fully check tag to not go to databse
     LOG_ERROR("Missing tag parametr");
-    return sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr");
+    return sendResponse(responce, provider_->statusCodes().badRequest, "Missing tag parametr", true);
   }
 
   auto list_of_users = manager_->findUsersByTag(*tag);
@@ -109,18 +119,18 @@ void AuthController::findByTag(const crow::request& req,
     json_users["users"][idx++] = std::move(user_json["user"]);
   }
 
-  sendResponse(responce, provider_->statusCodes().success, json_users.dump());
+  sendResponse(responce, provider_->statusCodes().success, json_users.dump(), false); //todo: check in function code
 }
 
 void AuthController::findById(const crow::request& /*req*/, long long user_id, crow::response& responce) {
   auto found_user = manager_->getUser(user_id);
   if (!found_user) {
     LOG_ERROR("User with id {} not found", user_id);
-    return sendResponse(responce, provider_->statusCodes().notFound, "User not found");
+    return sendResponse(responce, provider_->statusCodes().notFound, "User not found", true);
   }
 
   auto user_json = userToJson(*found_user);
-  sendResponse(responce, provider_->statusCodes().success, user_json["user"].dump());
+  sendResponse(responce, provider_->statusCodes().success, user_json["user"].dump(), false);
 }
 
 std::pair<AuthController::OptionalId, AuthController::Token> AuthController::verifyToken(const crow::request& req) {
@@ -132,7 +142,7 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password") || !body.count("name") || !body.count("tag")) {
     LOG_ERROR("Invalid json");
-    return sendResponse(responce, provider_->statusCodes().badRequest, "Invalid json");
+    return sendResponse(responce, provider_->statusCodes().badRequest, "Invalid json", true);
   }
 
   RegisterRequest register_request;
@@ -151,10 +161,10 @@ void AuthController::registerUser(const crow::request& req, crow::response& resp
   std::optional<User> register_user = manager_->registerUser(register_request);
   if (!register_user) {
     LOG_ERROR("User not registered");
-    return sendResponse(responce, provider_->statusCodes().userError, "User already exist");
+    return sendResponse(responce, provider_->statusCodes().userError, "User already exist", true);
   }
   LOG_INFO("User registered successfully, id is {}", register_user->id);
   std::string token = generator_->generateToken(register_user->id);
   LOG_INFO("User user {}, id {} token is {}", register_user->username, register_user->id, token);
-  sendResponse(responce, provider_->statusCodes().success, userToJson(*register_user, token).dump());
+  sendResponse(responce, provider_->statusCodes().success, userToJson(*register_user, token).dump(), false);
 }

@@ -28,6 +28,7 @@ add_library(NotificationServiceCore STATIC ${MY_SOURCES})
 enable_clang_tidy(NotificationServiceCore)
 enable_cppcheck(NotificationServiceCore)
 enable_iwyu(NotificationServiceCore)
+enable_sanitizers(NotificationServiceCore)
 
 target_include_directories(NotificationServiceCore PUBLIC
     ${NOTIFICATION_SERVICE_INCLUDE_DIR}

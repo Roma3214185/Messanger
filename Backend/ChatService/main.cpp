@@ -16,13 +16,9 @@
 int main(int argc, char* argv[]) {
   initLogger("ChatService");
   QCoreApplication  a(argc, argv);
-  QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
-  sqlite.setDatabaseName("chat_service.sqlite");
 
-  if (!sqlite.open()) {
-    qFatal("Cannot open DB");
-  }
-  SQLiteDatabase database(sqlite);
+  SQLiteDatabase database("chat_service_conn");
+
 
   // if (!database.deleteTable(sqlite, "private_chats")) {
   //   LOG_ERROR("Not deleted private_chats table");

@@ -11,7 +11,7 @@ class IMessageHandler {
 
     virtual void handle(
         const crow::json::rvalue& message,
-        std::shared_ptr<ISocket> socket,
+        const std::shared_ptr<ISocket>& socket,
         NotificationManager& manager
         ) = 0;
 };

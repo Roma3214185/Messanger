@@ -75,7 +75,7 @@ void MessageUseCase::addMessageToChat(const Message& msg) {
 
   PROFILE_SCOPE("MessageUseCase::addMessageToChat");
   DBC_REQUIRE(!msg.local_id.isEmpty());
-  DBC_REQUIRE(!msg.sender_id > 0);
+  DBC_REQUIRE(msg.sender_id > 0);
   data_manager_->saveMessage(msg);
 }
 
