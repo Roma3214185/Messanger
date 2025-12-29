@@ -10,7 +10,7 @@
 
 class SQLiteQuery : public IQuery {
   public:
-    explicit SQLiteQuery(QSqlDatabase& db) : q_(db) {}
+    explicit SQLiteQuery(QSqlDatabase db) : q_(db) {}
 
     bool prepare(const QString& sql) {
       bool res = q_.prepare(sql);

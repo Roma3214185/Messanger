@@ -17,20 +17,13 @@ int main(int argc, char* argv[]) {
   QCoreApplication a(argc, argv);
   initLogger("AuthService");
 
-  QSqlDatabase sqlite = QSqlDatabase::addDatabase("QSQLITE", "chat_service_conn");
-  sqlite.setDatabaseName("chat_service.sqlite");
-
-  if (!sqlite.open()) {
-    qFatal("Cannot open DB");
-  }
-
   // if(db.deleteTable(sqlite, "users")) {
   //   LOG_INFO("[DELETE] users table");
   // } else {
   //   LOG_ERROR("[DELETE] users table failed");
   // }
 
-  SQLiteDatabase db(sqlite);
+  SQLiteDatabase db("auth_service_conn");
   if(!db.initializeSchema()) {
     qFatal("Cannot initialise DB");
   }

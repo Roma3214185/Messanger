@@ -115,11 +115,6 @@ const QString CREATE_OUTBOX_TABLE = R"(CREATE TABLE IF NOT EXISTS outbox (
 
 } // namespace
 
-SQLiteDatabase::SQLiteDatabase(QSqlDatabase& db)
-    : db_(db) {
-
-}
-
 bool SQLiteDatabase::initializeSchema() {
   const std::vector<QString> tables = {
     CREATE_USERS_TABLE, CREATE_MESSAGES_TABLE, CREATE_MESSAGES_STATUS_TABLE,
@@ -130,7 +125,7 @@ bool SQLiteDatabase::initializeSchema() {
     };
 
   for (const auto&sql : tables) {
-    if (!executeSql(db_, sql)) {
+    if (!executeSql(db(), sql)) {
       return false;
     }
   }
@@ -139,7 +134,7 @@ bool SQLiteDatabase::initializeSchema() {
   return true;
 }
 
-bool SQLiteDatabase::executeSql(QSqlDatabase& db, const QString& sql) {
+bool SQLiteDatabase::executeSql(QSqlDatabase db, const QString& sql) {
   QSqlQuery query(db);
   if (!query.exec(sql)) {
     LOG_ERROR("SQL error: {}", query.lastError().text().toStdString());
@@ -148,15 +143,15 @@ bool SQLiteDatabase::executeSql(QSqlDatabase& db, const QString& sql) {
   return true;
 }
 
-bool SQLiteDatabase::deleteTable(QSqlDatabase& db, const QString& name) {
+bool SQLiteDatabase::deleteTable(QSqlDatabase db, const QString& name) {
   const QString sql = QString("DROP TABLE IF EXISTS \"%1\"").arg(name);
   return executeSql(db, sql);
 }
 
-bool SQLiteDatabase::tableExists(QSqlDatabase& db, const QString& tableName) {
+bool SQLiteDatabase::tableExists(QSqlDatabase db, const QString& table_name) {
   QSqlQuery query(db);
   query.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?;");
-  query.addBindValue(tableName);
+  query.addBindValue(table_name);
   if (!query.exec()) return false;
   return query.next();
 }

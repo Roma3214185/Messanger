@@ -86,7 +86,7 @@ void AuthController::handleMe(const crow::request& req, crow::response& responce
   auto [user_id, token] = verifyToken(req);
   if (!user_id) {
     LOG_ERROR("Invalid token");
-    sendResponse(responce, provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken, false);
+    sendResponse(responce, provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken, true);
     return;
   }
 
