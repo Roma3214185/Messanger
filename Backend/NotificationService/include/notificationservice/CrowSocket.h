@@ -5,11 +5,17 @@
 #include "interfaces/ISocket.h"
 #include "Debug_profiling.h"
 
-
 class CrowSocket final : public ISocket {
-     crow::websocket::connection& conn_;
+    crow::websocket::connection* conn_;
+    std::mutex conn_mutex_;
+
   public:
-    explicit CrowSocket(crow::websocket::connection& conn) : conn_(conn) {}
+    explicit CrowSocket(crow::websocket::connection* conn)
+        : conn_(conn) {}
+
+    bool isSameAs(crow::websocket::connection* other) {
+      return other == conn_;
+    }
 
     void send_text(const std::string& text) override {
       if(text.empty()) {
@@ -17,13 +23,13 @@ class CrowSocket final : public ISocket {
         return;
       }
 
-      try {
-        conn_.send_text(text);
-      } catch (...) {
-        LOG_ERROR("Crow crashed sending text");
+      std::lock_guard<std::mutex> lock(conn_mutex_);
+      if(conn_){
+        conn_->send_text(text);
+        LOG_INFO("{} is sended", text);
+      } else {
+         LOG_ERROR("{} is not sended, nullptr conn_", text);
       }
-
-      LOG_INFO("Text is sended");
     }
 };
 

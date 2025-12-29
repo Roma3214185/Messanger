@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <mutex>
 
 #include "interfaces/ISocket.h"
 
@@ -19,6 +20,7 @@ class SocketsManager {
 
  private:
   Sockets user_sockets_;
+  std::mutex ws_mutex;
 };
 
 #endif  // BACKEND_NOTIFICATION_SOCKETMANAGER_H
