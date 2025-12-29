@@ -36,11 +36,11 @@ void Server::handleSocketRoutes() {
       })
       .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
         LOG_INFO("websocket disconnected, reason: '{}' and code '{}'", reason, code);
-        auto socket = std::make_shared<CrowSocket>(&conn);
+        auto socket = std::make_shared<CrowSocket>(conn);
         notification_manager_->deleteConnections(socket);
       })
       .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool /*is_binary*/) {
-        auto socket = std::make_shared<CrowSocket>(&conn);
+        auto socket = std::make_shared<CrowSocket>(conn);
         handleSocketOnMessage(socket, data);
       });
 }

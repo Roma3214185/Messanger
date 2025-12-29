@@ -5,22 +5,20 @@
 #include "interfaces/ISocket.h"
 #include "Debug_profiling.h"
 
-using WebsocketPtr = crow::websocket::connection*;
 
-class CrowSocket : public ISocket {
-    WebsocketPtr conn_;
+class CrowSocket final : public ISocket {
+     crow::websocket::connection& conn_;
   public:
-    explicit CrowSocket(WebsocketPtr conn) : conn_(conn) {}
+    explicit CrowSocket(crow::websocket::connection& conn) : conn_(conn) {}
 
     void send_text(const std::string& text) override {
-      LOG_INFO("In socket send text: {}", text);
-      if (!conn_) {
-        LOG_WARN("Attempt send to CLOSED socket: {}", text);
+      if(text.empty()) {
+        LOG_WARN("Text to send is empty");
         return;
       }
 
       try {
-        conn_->send_text(text);
+        conn_.send_text(text);
       } catch (...) {
         LOG_ERROR("Crow crashed sending text");
       }
