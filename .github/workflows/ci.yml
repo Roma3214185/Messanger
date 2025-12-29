@@ -63,7 +63,7 @@ jobs:
         run: |
            set -eux
            ./external/vcpkg/vcpkg install \
-             boost@1.89.0 \
+             boost \
              boost-asio \
              spdlog \
              nlohmann-json \
