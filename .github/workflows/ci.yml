@@ -63,7 +63,7 @@ jobs:
         run: |
            set -eux
            ./external/vcpkg/vcpkg install \
-             boost:arm64-osx@1.89.0 \
+             boost@1.89.0 \
              boost-asio \
              spdlog \
              nlohmann-json \
