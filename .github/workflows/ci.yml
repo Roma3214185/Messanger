@@ -42,7 +42,18 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja autoconf autoconf-archive automake libtool boost catch2 sqlite3 spdlog fmt rabbitmq-c asio libsodium openssl@3 ccache lcov clang-format
+          brew install \
+              cmake \
+              ninja \
+              autoconf \
+              autoconf-archive \
+              automake \
+              libtool \
+              ccache \
+              lcov \
+              clang-format \
+              openssl@3 \
+              qt
 
        # Bootstrap vcpkg
       - name: Bootstrap vcpkg
@@ -50,13 +61,22 @@ jobs:
            set -eux
            ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
-       # Clean vcpkg to avoid protobuf mismatch
-      - name: Clean vcpkg
+      - uses: actions/cache@v4
+        with:
+          path: vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+
+      - name: Setup vcpkg cache
         run: |
-           set -eux
-           ./external/vcpkg/vcpkg remove --outdated --recurse || true
-           rm -rf ./external/vcpkg/installed/*
-           rm -rf ./external/vcpkg/buildtrees/*
+          echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
+
+      #  # Clean vcpkg to avoid protobuf mismatch
+      # - name: Clean vcpkg
+      #   run: |
+      #      set -eux
+      #      ./external/vcpkg/vcpkg remove --outdated --recurse || true
+      #      rm -rf ./external/vcpkg/installed/*
+      #      rm -rf ./external/vcpkg/buildtrees/*
 
        # Install all vcpkg dependencies together
       - name: Install vcpkg dependencies
@@ -70,18 +90,19 @@ jobs:
              openssl \
              catch2 \
              sqlite3 \
-             qtbase \
-             qtwebsockets \
-             "opentelemetry-cpp[otlp-grpc]:arm64-osx" \
-             --recurse
+             rabbitmq-c \
+             asio \
+             libsodium \
+             fmt
 
       # 7️⃣ Auto-format code
       - name: Run clang-format (auto-fix)
         run: |
           echo "Running clang-format..."
           find . -type f \( -name "*.cpp" -o -name "*.h" \) \
-            | grep -Ev "^(./external/|./build/)" \
-            | xargs clang-format -i
+            -not -path "./external/*" \
+            -not -path "./build/*" \
+            -exec clang-format -i {} +
           echo "✅ clang-format applied to all files"
 
       # 8️⃣ Configure CMake (Debug + coverage)
