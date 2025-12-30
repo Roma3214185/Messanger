@@ -85,6 +85,7 @@ add_executable(Frontend
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
     Dockerfile
+    include/DeleteMessageResponce.h
 )
 
 add_custom_command(TARGET Frontend POST_BUILD

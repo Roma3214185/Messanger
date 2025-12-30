@@ -55,6 +55,22 @@ inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
   return msg;
 }
 
+inline auto toJson(const Message& msg) -> QJsonObject {
+  return QJsonObject{
+      {"id", msg.id},
+      {"sender_id", msg.sender_id},
+      {"chat_id", msg.chat_id},
+      {"text", msg.text},
+      {"timestamp", msg.timestamp.toSecsSinceEpoch()},
+      {"readed_by_me", msg.readed_by_me},
+      {"liked_by_me", msg.liked_by_me},
+      {"read_counter", msg.read_counter},
+      {"liked_counter", msg.liked_counter},
+      {"status_sended", msg.status_sended},
+      {"local_id", msg.local_id}
+  };
+}
+
 inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
   if(!obj.contains("id")) {
     LOG_ERROR("There is no id field");

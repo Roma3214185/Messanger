@@ -53,9 +53,9 @@ NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO& request, const
   return {kBadGatewayCode, kBadGatewayMessage};
 }
 
-NetworkResponse ProxyClient::forward(const RequestDTO& request_info) {
+NetworkResponse ProxyClient::forward(const RequestDTO& request_info, const int port) {
   ForwardRequestDTO forward_request;
-  forward_request.host_with_port = get_host_with_port(request_info.port);
+  forward_request.host_with_port = get_host_with_port(port);
   forward_request.headers = getHeaders(request_info);
   forward_request.params = getParams(request_info.url_params);
   forward_request.body = request_info.body;

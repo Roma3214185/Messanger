@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QScrollBar>
 #include <QTimer>
+#include <QMenu>
 
 #include "../forms/ui_mainwindow.h"
 #include "Debug_profiling.h"
@@ -31,6 +32,7 @@ MainWindow::MainWindow(Model* model, QWidget* parent)
   setDelegators();
   seupConnections();
   setupUI();
+  setWriteMode();
 }
 
 void MainWindow::setDelegators() {
@@ -48,6 +50,7 @@ void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
   DBC_REQUIRE(!chat->title.isEmpty());
   DBC_REQUIRE(!chat->avatar_path.isEmpty());
   ui_->messageWidget->setVisible(true);
+  setWriteMode();
   const QString       name = chat->title;
   QPixmap       avatar(chat->avatar_path);
   constexpr int kAvatarSize    = 40;
@@ -136,6 +139,7 @@ void MainWindow::clearFindUserEdit() { ui_->userTextEdit->clear(); }
 void MainWindow::on_logoutButton_clicked() {
   presenter_->onLogOutButtonClicked();
   setSignInPage();
+  editable_message_.reset();
 }
 
 void MainWindow::setSignInPage() {
@@ -145,6 +149,7 @@ void MainWindow::setSignInPage() {
   ui_->signUpButton->setEnabled(true);
   ui_->inEmail->clear();
   ui_->inPassword->clear();
+  editable_message_.reset();
 }
 
 void MainWindow::setSignUpPage() {
@@ -153,6 +158,7 @@ void MainWindow::setSignUpPage() {
   ui_->SignInButton->setEnabled(true);
   ui_->signUpButton->setEnabled(false);
   clearUpInput();
+  editable_message_.reset();
 }
 
 void MainWindow::clearUpInput() {
@@ -175,6 +181,10 @@ void MainWindow::seupConnections() {
 
   connect(ui_->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
   connect(ui_->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
+
+  DBC_REQUIRE(message_list_view_ != nullptr);
+  message_list_view_->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(message_list_view_.get(),  &QListView::customContextMenuRequested, this, &MainWindow::onMessageContextMenu);
 
   connect(presenter_.get(), &Presenter::userSetted, this, &MainWindow::setMainWindow);
 }
@@ -218,3 +228,95 @@ void MainWindow::on_pushButton_clicked(bool checked) {
   checked ? setTheme(std::make_unique<DarkTheme>())
           : setTheme(std::make_unique<LightTheme>());
 }
+
+void MainWindow::onMessageContextMenu(const QPoint& pos) {
+  QModelIndex index = message_list_view_->indexAt(pos);
+  if (!index.isValid())
+    return;
+
+  Message msg = index.data(MessageModel::Roles::FullMessage).value<Message>();
+
+  QMenu menu(this);
+
+  QAction* copyAction   = menu.addAction("Copy");
+  QAction* editAction   = menu.addAction("Edit");
+  QAction* deleteAction = menu.addAction("Delete");
+
+  if(msg.id <= 0 || !msg.is_mine) { //message still offline, todo: add if it's your message and if u are admin in this chat
+    editAction->setEnabled(false);
+    deleteAction->setEnabled(false);
+  }
+
+
+  QAction* selected = menu.exec(message_list_view_->viewport()->mapToGlobal(pos));
+  if (!selected)
+    return;
+
+  if (selected == copyAction) {
+    copyMessage(msg);
+  } else if (selected == editAction) {
+    editMessage(msg);
+  } else if (selected == deleteAction) {
+    deleteMessage(msg);
+  }
+}
+
+void MainWindow::copyMessage(const Message& message) {
+  qDebug() << "Copy " << message.toString();
+}
+
+void MainWindow::editMessage(const Message& message) {
+  qDebug() << "Edit " << message.toString();
+  DBC_REQUIRE(message.is_mine && message.id > 0);
+
+  QString text_to_edit = message.text;
+  DBC_REQUIRE(!text_to_edit.isEmpty());
+  if(text_to_edit.isEmpty()) return;
+
+  ui_->inputEditStackedWidget->setCurrentIndex(1);
+  ui_->editTextEdit->setText(text_to_edit);
+  editable_message_ = message;
+}
+
+void MainWindow::deleteMessage(const Message& message) {
+  qDebug() << "Delete " << message.toString();
+  DBC_REQUIRE(message.is_mine && message.id > 0);
+  presenter_->deleteMessage(message);
+}
+
+
+void MainWindow::on_cancelEditButton_clicked() {
+  setWriteMode();
+  editable_message_.reset();
+}
+
+void MainWindow::on_okEditButton_clicked()
+{
+  QString current_text = ui_->editTextEdit->toPlainText();
+  DBC_REQUIRE(!current_text.isEmpty());
+  DBC_REQUIRE(editable_message_ != std::nullopt);
+  setWriteMode();
+  ui_->editTextEdit->clear();
+  Message message_to_update = *editable_message_;
+  message_to_update.text = current_text;
+  presenter_->updateMessage(message_to_update);
+}
+
+
+void MainWindow::on_editTextEdit_textChanged()
+{
+  QString current_text = ui_->editTextEdit->toPlainText();
+  ui_->okEditButton->setEnabled(!current_text.isEmpty());
+}
+
+void MainWindow::setWriteMode() {
+  ui_->inputEditStackedWidget->setCurrentIndex(0);
+}
+
+// void MainWindow::setEditMode() {
+//   QString text_to_edit = ui_->textEdit->toPlainText();
+//   if(text_to_edit.isEmpty()) return;
+
+//   ui_->inputEditStackedWidget->setCurrentIndex(1);
+// }
+

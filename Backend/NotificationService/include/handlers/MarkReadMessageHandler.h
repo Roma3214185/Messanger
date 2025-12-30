@@ -30,7 +30,7 @@ class MarkReadMessageHandler : public IMessageHandler {
 
       if(!read_by) return;
 
-      auto msg = from_crow_json(message);
+      auto msg = utils::entities::from_crow_json(message);
       manager.onMarkReadMessage(msg, *read_by);
       LOG_INFO("[mark_read] Message marked read by {}", *read_by);
     }

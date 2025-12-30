@@ -59,6 +59,22 @@ std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<M
   return ans;
 }
 
-[[nodiscard]] bool MessageManager::saveMessageStatus(MessageStatus& status) {
+bool MessageManager::saveMessageStatus(MessageStatus& status) {
   return repository_->save(status);
+}
+
+bool MessageManager::updateMessage(const Message& message) {
+  return repository_->save(message);
+}
+
+bool MessageManager::deleteMessage(const Message& message) {
+  if(!repository_->deleteEntity<Message>(message)) {
+    LOG_INFO("Delete entity failed");
+    return false;
+  }
+
+  auto query = QueryFactory::createDelete<MessageStatus>(executor_, cache_);
+  query->where(MessageStatusTable::MessageId, message.id);
+  auto res = query->execute(); //todo: check res for
+  return true;
 }

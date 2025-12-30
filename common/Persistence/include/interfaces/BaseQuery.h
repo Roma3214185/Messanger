@@ -89,12 +89,21 @@ class BaseQuery {
 template <typename T>
 struct SelectQuery;
 
+template <typename T>
+struct DeleteQuery;
+
 class QueryFactory {
  public:
   template <typename T>
   static std::unique_ptr<SelectQuery<T>> createSelect(ISqlExecutor*  executor,
                                                       ICacheService& cache) {
     return std::make_unique<SelectQuery<T>>(executor, cache);
+  }
+
+  template <typename T>
+  static std::unique_ptr<DeleteQuery<T>> createDelete(ISqlExecutor*  executor,
+                                                      ICacheService& cache) {
+    return std::make_unique<DeleteQuery<T>>(executor, cache);
   }
 };
 

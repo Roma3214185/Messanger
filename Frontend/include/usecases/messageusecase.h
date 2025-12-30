@@ -21,7 +21,9 @@ class MessageUseCase : public QObject {
     [[nodiscard]]  MessageModel* getMessageModel(long long chat_id);
     [[nodiscard]] QList<Message> getChatMessages(long long chat_id, int limit = 20);
     void    getChatMessagesAsync(long long chat_id);
-    void    addMessageToChat(const Message& msg);
+    void    addMessageToChat(Message& msg);
+    void    updateMessage(Message& msg);
+    void    deleteMessage(const Message& msg);
     void    logout();
     void    clearAllMessages();
 

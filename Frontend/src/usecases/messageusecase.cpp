@@ -66,7 +66,7 @@ MessageModel* MessageUseCase::getMessageModel(long long chat_id) {
   return message_model.get();
 }
 
-void MessageUseCase::addMessageToChat(const Message& msg) {
+void MessageUseCase::addMessageToChat(Message& msg) {
   //1) Add message in data_manager
   //2) Connect DataManagerMessageAdded signal
   //3) When added -> message_model_->addMessage() + signal message Added
@@ -76,7 +76,21 @@ void MessageUseCase::addMessageToChat(const Message& msg) {
   PROFILE_SCOPE("MessageUseCase::addMessageToChat");
   DBC_REQUIRE(!msg.local_id.isEmpty());
   DBC_REQUIRE(msg.sender_id > 0);
+  long long current_id = token_manager_->getCurrentUserId();
+  if(current_id == msg.sender_id) msg.is_mine = true;
   data_manager_->saveMessage(msg);
+}
+
+void MessageUseCase::updateMessage(Message& msg) {
+  long long current_id = token_manager_->getCurrentUserId();
+  if(current_id == msg.sender_id) msg.is_mine = true;
+  data_manager_->saveMessage(msg);
+  message_manager_->updateMessage(msg, token_manager_->getToken());
+}
+
+void MessageUseCase::deleteMessage(const Message& msg) {
+  data_manager_->deleteMessage(msg);
+  message_manager_->deleteMessage(msg, token_manager_->getToken());
 }
 
 void MessageUseCase::logout() {
@@ -102,7 +116,7 @@ void MessageUseCase::getChatMessagesAsync(long long chat_id) {
             try {
               auto chat_messages = watcher->result();
               LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages", chat_id, chat_messages.size());
-              for (const auto& message : chat_messages) {  // todo(roma): make pipeline
+              for (auto& message : chat_messages) {  // todo(roma): make pipeline
                 addMessageToChat(message);
               }
 

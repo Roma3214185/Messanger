@@ -26,11 +26,15 @@ class Controller : public IController {
   std::vector<Message> getMessages(const GetMessagePack&) override;
   std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>& messages, long long receiver_id) override;
 
+  Responce updateMessage(const RequestDTO& request_pack, const std::string& message_id_str) override;
+  Responce deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str) override;
+
  protected:
   void subscribeToSaveMessage();
   void subscribeToSaveMessageStatus();
   virtual void       handleSaveMessage(const std::string& payload);
   virtual void       handleSaveMessageStatus(const std::string& payload);
+  std::optional<long long> getUserIdFromToken(const std::string& token);
 
   std::mutex       socket_mutex_;
   MessageManager*  manager_;

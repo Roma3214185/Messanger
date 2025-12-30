@@ -68,10 +68,10 @@ class GenericRepository {
   std::optional<T> findOne(long long entity_id);
 
   template <typename T>
-  void deleteById(long long entity_id);
+  bool deleteById(long long entity_id);
 
   template <typename T>
-  void deleteEntity(T& entity);
+  bool deleteEntity(const T& entity); //todo : update outbox
 
   template <typename T>
   void deleteBatch(std::vector<T>& batch); //todo: make std::vector<T> to delete

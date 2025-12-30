@@ -9,7 +9,7 @@ class SendMessageHandler : public IMessageHandler {
                 const std::shared_ptr<ISocket>& socket,
                 NotificationManager& manager) override {
 
-      auto msg = from_crow_json(message);
+      auto msg = utils::entities::from_crow_json(message);
       manager.onSendMessage(msg);
       LOG_INFO("[send_message] Message processed");
     }

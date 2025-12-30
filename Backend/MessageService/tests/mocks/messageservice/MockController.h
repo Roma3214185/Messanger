@@ -7,9 +7,10 @@
 #include "entities/MessageStatus.h"
 
 struct MockController : public IController {
-   std::vector<Message> mock_messages;
+  std::vector<Message> mock_messages;
   GetMessagePack mock_messages_pack;
-   std::vector<MessageStatus> mock_messages_status;
+  std::vector<MessageStatus> mock_messages_status;
+  Responce mock_responce;
 
    std::vector<Message> getMessages(const GetMessagePack& pack) override {
     mock_messages_pack = pack;
@@ -18,6 +19,14 @@ struct MockController : public IController {
 
    std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, long long receiver_id) override {
      return mock_messages_status;
+   }
+
+   Responce updateMessage(const RequestDTO& request_pack, const std::string& message_id_str) override {
+     return mock_responce;
+   }
+
+   Responce deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str) override {
+     return mock_responce;
    }
 };
 

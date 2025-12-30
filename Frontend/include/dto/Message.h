@@ -17,7 +17,8 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
   bool      liked_by_me;
   int       read_counter  = 0;
   int       liked_counter = 0;
-  bool      status_sended = false;
+  bool      status_sended{ false };
+  bool      is_mine{ false };
   QString   local_id;
 
   void updateFrom(const Message& other) {
@@ -30,10 +31,11 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
     read_counter = other.read_counter;
     liked_counter = other.liked_counter;
     status_sended = other.status_sended;
+    is_mine = other.is_mine;
     DBC_INVARIANT(checkInvariants());
   }
 
-  std::string toString() {
+  std::string toString() const noexcept {
     std::string res;
     res += "| id = " + std::to_string(id);
     res += " | sender_id = " + std::to_string(sender_id);
@@ -46,10 +48,11 @@ struct Message { //todo: make immutable messagedomein and mutable messageview
     //res += " | liked_counter = " +  std::to_string(liked_counter + 0);
     res += " | status_sended = " + std::to_string(status_sended + 0);
     res += " | local_id = " + local_id.toStdString();
+    res += " | is_mine = " + std::to_string(is_mine + 0);
     return res;
   }
 
-  bool checkInvariants() {
+  bool checkInvariants() const noexcept {
     return id > 0 //todo: what if message saved as offline, them id will == 0, state pattern??
            && sender_id > 0
            && chat_id > 0

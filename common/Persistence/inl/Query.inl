@@ -229,3 +229,59 @@ std::string SelectQuery<T>::createCacheKey(const QString& sql, int generation_ha
           ":gen=" + std::to_string(generation_hash) +
           ":params=" + std::to_string(params_hash);
 }
+
+
+
+
+
+
+
+
+
+
+
+template <typename T>
+DeleteQuery<T>::DeleteQuery(ISqlExecutor* executor, ICacheService& cache)
+    : BaseQuery<T>(executor), cache_(cache) { }
+
+template <typename T>
+DeleteQuery<T>::DeleteQuery& DeleteQuery<T>::orderBy(const std::string& field, const OrderDirection& direction) & {
+  const QString direct = direction == OrderDirection::ASC ? "ASC" : "DESC";
+  order_ = QString("ORDER BY %1 %2")
+               .arg(QString::fromStdString(field))
+               .arg(direct);
+  return *this;
+}
+
+template <typename T>
+std::vector<T> DeleteQuery<T>::execute() const {
+  QString sql = buildDeleteQuery();
+
+  if(!this->executor_) {
+    LOG_ERROR("Executor is null");
+    return std::vector<T>{};
+  }
+
+  auto query = this->executor_->execute(sql, this->values_);
+  if(!query) {
+    LOG_ERROR("query {} failed", sql.toStdString());
+    return std::vector<T>{};
+  }
+
+  LOG_INFO("query {} succeed", sql.toStdString());
+  for(const auto& table_name : this->involved_tables_) {
+    cache_.incr(std::string("table_generation:") + table_name.toStdString());
+  }
+  return std::vector<T>{};
+}
+
+template <typename T>
+QString DeleteQuery<T>::buildDeleteQuery() const {
+  QString sql =
+      QString("DELETE * FROM %1").arg(this->table_name_);
+  sql += this->join_clause_;
+  if (!this->filters_.empty()) sql += " WHERE " + this->filters_.join(" AND ");
+  if (!this->order_.isEmpty()) sql += " " + this->order_;
+  if (!this->limit_clause_.isEmpty()) sql += " " + this->limit_clause_;
+  return sql;
+}
