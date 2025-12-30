@@ -4,7 +4,8 @@
 #include <string>
 
 struct Routes { // make namespace with inline
-  static constexpr const char* messageSaved           = "message_saved";
+  static constexpr const char* messageSaved            = "message_saved";
+  static constexpr const char* messageDeleted          = "message_deleted";
   static constexpr const char* saveMessage             = "save_message";
   static constexpr const char* saveMessageStatus       = "save_message_status";
   static constexpr const char* saveMessageQueue        = "QueueSaveMessage";

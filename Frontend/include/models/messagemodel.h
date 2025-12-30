@@ -34,6 +34,7 @@ class MessageModel : public QAbstractListModel {
   QModelIndex indexFromId(MessageId) const;
   QHash<int, QByteArray> roleNames() const override;
   void saveMessage(const Message& msg);
+  void deleteMessage(const Message& msg);
   void clear();
   std::optional<Message> getLastMessage() const;
   std::optional<Message> getOldestMessage() const;

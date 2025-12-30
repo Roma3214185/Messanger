@@ -154,8 +154,8 @@ std::optional<T> GenericRepository::findOne(long long entity_id) {
 }
 
 template <typename T>
-void GenericRepository::deleteEntity(T& entity) {
-  deleteById<T>(entity.id); //? TODO: not each entity has id field
+bool GenericRepository::deleteEntity(const T& entity) {
+  return deleteById<T>(entity.id); //? TODO: not each entity has id field
 }
 
 template <typename T>
@@ -164,7 +164,7 @@ void GenericRepository::deleteBatch(std::vector<T>& batch) {
 }
 
 template <typename T>
-void GenericRepository::deleteById(long long entity_id) {
+bool GenericRepository::deleteById(long long entity_id) {
   PROFILE_SCOPE("[repository] DeleteById");
   auto meta = Reflection<T>::meta();
   QString sql = QString("DELETE FROM %1 WHERE id = ?")
@@ -176,11 +176,12 @@ void GenericRepository::deleteById(long long entity_id) {
   if(!executor_->execute(sql, {entity_id})) {
     // LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
     //           query.lastError().text().toStdString());
-    return;
+    return false;
   }
 
   cache_.incr(std::string("table_generation:") + meta.table_name);
   cache_.remove(makeKey<T>(entity_id));
+  return true;
 }
 
 template <typename T>

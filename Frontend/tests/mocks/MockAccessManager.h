@@ -39,6 +39,14 @@ class MockNetworkAccessManager : public INetworkAccessManager {
     return reply;
   }
 
+  auto put(const QNetworkRequest&,
+                   const QByteArray& byte_array) -> QNetworkReply*     override {
+
+  }
+  auto del(const QNetworkRequest&) -> QNetworkReply*            override {
+
+  }
+
   QByteArray      last_data;
   QNetworkRequest last_request;
   int             post_counter = 0;

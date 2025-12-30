@@ -16,6 +16,7 @@
 
 #include "OpenResponceHandler.h"
 #include "NewMessageResponceHandler.h"
+#include "DeleteMessageResponce.h"
 
 namespace {
 
@@ -74,9 +75,11 @@ void Presenter::initialise() {
 void Presenter::initialHandlers() {
   const std::string opened_type     = "opened";
   const std::string new_message_type = "new_message";
+  const std::string delete_message_type = "delete_message";
 
   socket_responce_handlers_[opened_type] = std::make_unique<OpenResponceHandler>(manager_->tokenManager(), manager_->socket());
   socket_responce_handlers_[new_message_type] = std::make_unique<NewMessageResponceHandler>(manager_->tokenManager(), manager_->message());
+  socket_responce_handlers_[delete_message_type] = std::make_unique<DeleteMessageResponceHandler>(manager_->tokenManager(), manager_->message());
 }
 
 void Presenter::setMessageListView(IMessageListView* message_list_view) {
@@ -125,6 +128,16 @@ ChatItemDelegate* Presenter::getChatDelegate() {
   return chat_delegate_.get();
 }
 
+void Presenter::deleteMessage(const Message& message) {
+  DBC_REQUIRE(message.checkInvariants());
+  manager_->message()->deleteMessage(message);
+}
+
+void Presenter::updateMessage(Message& message) {
+  DBC_REQUIRE(message.checkInvariants());
+  manager_->message()->updateMessage(message);
+}
+
 void Presenter::onScroll(int value) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   if (bool chat_list_is_on_top = (value == 0); !chat_list_is_on_top) return;
@@ -139,7 +152,7 @@ void Presenter::onScroll(int value) {
   DBC_REQUIRE(message_model);
 
   message_list_view_->preserveFocusWhile(message_model, [&]{
-    for (const auto& msg : new_messages) {
+    for (auto& msg : new_messages) {
       manager_->message()->addMessageToChat(msg); //TODO: make pipeline
     }
   });
@@ -176,7 +189,10 @@ void Presenter::onChatClicked(long long chat_id) { openChat(chat_id); }
 void Presenter::newMessage(Message& msg) {
   DBC_REQUIRE(current_user_ != std::nullopt);
 
-  if (msg.sender_id == current_user_->id) msg.readed_by_me = true;
+  if (msg.sender_id == current_user_->id) {
+    msg.readed_by_me = true;
+    msg.is_mine = true;
+  }
   debug("New message received from socket", msg);
 
   const int max   = message_list_view_->getMaximumMessageScrollBar();

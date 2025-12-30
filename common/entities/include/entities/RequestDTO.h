@@ -14,23 +14,35 @@ struct RequestDTO {
     std::string request_id;
     std::string content_type;
     std::vector<std::pair<std::string, std::string>> headers;
+    std::string token;
     std::multimap<std::string, std::string> url_params;
 };
 
-namespace utils {
+
+namespace utils::details {
 
 inline std::string getContentType(const crow::request& req) {
   std::string content_type = req.get_header_value("content-type");
   return content_type.empty() ? "application/json" : content_type;
 }
 
+inline std::string extractToken(const crow::request& req) {
+  return req.get_header_value("Authorization");
+}
+
+
+} // namespace utils::details
+
+namespace utils {
+
 inline RequestDTO getDTO(const crow::request& req, const std::string& path, const int request_id = -1) {
     RequestDTO request_info;
     request_info.method = crow::method_name(req.method);
     request_info.path = path;
     request_info.body = req.body;
-    request_info.content_type = getContentType(req);
+    request_info.content_type = utils::details::getContentType(req);
     request_info.request_id = request_id;
+    request_info.token = utils::details::extractToken(req);
 
     auto keys = req.url_params.keys();
     for (const std::string& key : keys) {
@@ -42,7 +54,7 @@ inline RequestDTO getDTO(const crow::request& req, const std::string& path, cons
     }
 
     return request_info;
-  }
+}
 
 }  // utils
 

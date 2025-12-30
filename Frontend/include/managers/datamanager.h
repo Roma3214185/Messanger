@@ -37,10 +37,12 @@ class DataManager : public QObject {
   [[nodiscard]] std::optional<Message> getMessageById(const long long id);
   void          saveMessage(const Message& message);
   [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
+  void deleteMessage(const Message& msg);
 
 Q_SIGNALS:
   void chatAdded(const ChatPtr& chat);
   void messageAdded(const Message& message);
+  void messageDeleted(const Message& message);
 
  protected:
   [[nodiscard]] int             getNumberOfExistingUsers() const noexcept;

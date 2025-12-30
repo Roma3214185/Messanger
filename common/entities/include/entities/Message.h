@@ -20,6 +20,8 @@ struct Message : public IEntity {
   std::string local_id;
 };
 
+namespace utils::entities {
+
 inline Message from_crow_json(const crow::json::rvalue& json_message) {
   Message message;
 
@@ -58,6 +60,8 @@ inline crow::json::wvalue to_crow_json(const Message& message) {
 
   return json_message;
 }
+
+} //utils::entities
 
 namespace nlohmann {
 

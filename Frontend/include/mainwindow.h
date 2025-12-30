@@ -47,7 +47,16 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void on_logoutButton_clicked();
   void on_pushButton_clicked(bool checked);
 
- private:
+  void on_cancelEditButton_clicked();
+
+  void on_okEditButton_clicked();
+
+  void on_editTextEdit_textChanged();
+
+  void setWriteMode();
+  //void setEditMode();
+
+private:
   void setMainWindow();
   void setSignInPage();
   void setSignUpPage();
@@ -56,10 +65,18 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void seupConnections();
   void setupUI();
 
+  void copyMessage(const Message& message);
+  void editMessage(const Message& message);
+  void deleteMessage(const Message& message);
+
+  void onMessageContextMenu(const QPoint& pos);
+
   std::unique_ptr<ITheme>    current_theme_;
   Ui::MainWindow*            ui_;
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
+
+  std::optional<Message> editable_message_; //todo: make Page to set in currentPage, in which Message will be
 };
 
 #endif  // MAINWINDOW_H

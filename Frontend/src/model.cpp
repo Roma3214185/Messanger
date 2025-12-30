@@ -70,6 +70,12 @@ void Model::setupConnections() {
     DBC_REQUIRE(chat != nullptr); //todo: in chat class make isValid fucntion that check all self field
     message_use_case_->getChatMessagesAsync(chat->chat_id);
   });
+
+  connect(data_manager_, &DataManager::messageDeleted, this, [this](const Message& deleted_message){
+    DBC_REQUIRE(deleted_message.checkInvariants());
+    auto message_model = getMessageModel(deleted_message.chat_id);
+    message_model->deleteMessage(deleted_message);
+  });
 }
 
 std::optional<QString> Model::checkToken() {

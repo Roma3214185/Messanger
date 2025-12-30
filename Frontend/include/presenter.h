@@ -41,6 +41,9 @@ class Presenter : public QObject {
   void onLogOutButtonClicked();
   void onScroll(int value);
 
+  void deleteMessage(const Message& message);
+  void updateMessage(Message& message);
+
   MessageDelegate* getMessageDelegate();
   UserDelegate* getUserDelegate();
   ChatItemDelegate* getChatDelegate();

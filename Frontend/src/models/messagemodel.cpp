@@ -31,7 +31,6 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
     case FullMessage:
       return QVariant::fromValue(msg);
     default:
-      DBC_UNREACHABLE();
       return QVariant();
   }
 }
@@ -79,6 +78,26 @@ void MessageModel::saveMessage(const Message& msg /*, const User& user*/) {
   messages_.push_front(msg);
   sortMessagesByTimestamp();
   endInsertRows();
+}
+
+void MessageModel::deleteMessage(const Message& message) {
+  LOG_INFO("Message model try to delete message {}", message.toString());
+
+  const std::lock_guard<std::mutex> lock(messages_mutex_);
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto& other) {
+    return message.local_id == other.local_id;
+  });
+
+  if (it == messages_.end()) {
+    LOG_INFO("Message already doesn't exist)");
+    return;
+  }
+
+  const int row = std::distance(messages_.begin(), it);
+
+  beginRemoveRows(QModelIndex(), row, row);
+  messages_.erase(it);
+  endRemoveRows();
 }
 
 void MessageModel::sortMessagesByTimestamp() {

@@ -110,3 +110,20 @@ void DataManager::saveMessage(const Message& message) {
   Q_EMIT messageAdded(message); // todo: messageAdded :->: messageSaved() -> updateChatIconInList
 }
 
+void DataManager::deleteMessage(const Message& msg) {
+  const std::lock_guard<std::mutex> lock(messages_mutex_);
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const Message& existing_message){
+    return existing_message.local_id == msg.local_id; // id from server here can be null
+  });
+
+  if(it != messages_.end()) {
+    LOG_INFO("Delete message {}", msg.toString());
+    messages_.erase(it);
+  } else {
+    LOG_WARN("Message {} to delete not found", msg.toString());
+    return;
+  }
+
+  Q_EMIT messageDeleted(msg);
+}
+

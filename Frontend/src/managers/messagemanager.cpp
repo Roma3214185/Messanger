@@ -67,3 +67,27 @@ QList<Message> MessageManager::onGetChatMessages(const QByteArray& responce_data
   LOG_INFO("[onGetChatMessages] Loaded {} messages", messages.size());
   return messages;
 }
+
+void MessageManager::updateMessage(const Message& message_to_update, const QString& token) {
+  PROFILE_SCOPE("MessageManager::updateMessage");
+  DBC_REQUIRE(message_to_update.checkInvariants());
+
+  QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(message_to_update.id)));
+  LOG_INFO("Update message {}", message_to_update.toString());
+  QUrlQuery query;
+  endpoint.setQuery(query);
+  QJsonObject json = JsonService::toJson(message_to_update);
+
+  auto  request = getRequestWithToken(endpoint, token);
+  auto* reply = network_manager_->put(request, QJsonDocument(json).toJson());
+}
+
+void MessageManager::deleteMessage(const Message& message_to_delete, const QString& token) {
+  PROFILE_SCOPE("MessageManager::getChatMessages");
+  DBC_REQUIRE(message_to_delete.checkInvariants());
+
+  QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(message_to_delete.id)));
+  LOG_INFO("Delete message {}", message_to_delete.toString());
+  auto  request = getRequestWithToken(endpoint, token);
+  auto* reply = network_manager_->del(request);
+}
