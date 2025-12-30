@@ -28,7 +28,7 @@ TEST_CASE("Test handling messages") {
     auto expected_json = nlohmann::json(message_to_send);
     expected_json["type"] = "new_message";
 
-    bool result = notification_manager.notifyMember(user_id, message_to_send);
+    bool result = notification_manager.notifyMember(user_id, message_to_send, "new_message");
 
     REQUIRE(result);
     REQUIRE(socket->send_text_calls == 1);
@@ -38,7 +38,7 @@ TEST_CASE("Test handling messages") {
 
   SECTION("User offline expected socket don't receive sended text") {
     Message message_to_send;
-    bool result = notification_manager.notifyMember(user_id, message_to_send);
+    bool result = notification_manager.notifyMember(user_id, message_to_send, "new_message");
 
     REQUIRE_FALSE(result);
   }

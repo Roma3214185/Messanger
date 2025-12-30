@@ -97,7 +97,7 @@ void GatewayServer::registerRoutes() {
 void GatewayServer::registerRoute(const std::string& base_path,
                                   int port) {
   app_.route_dynamic(base_path + "/<path>")
-      .methods("GET"_method)([this, port, base_path](
+      .methods("GET"_method, crow::HTTPMethod::DELETE, crow::HTTPMethod::PUT)([this, port, base_path](
                                   const crow::request& req, crow::response& res, std::string path) {
         //pool_->enqueue([this, req = std::move(req), &res, port, base_path, path]() mutable {
           handleProxyRequest(req, res, port, base_path + "/" + path);
@@ -116,7 +116,7 @@ void GatewayServer::registerRoute(const std::string& base_path,
         // });
       });
 
-  app_.route_dynamic(base_path).methods("GET"_method)(
+  app_.route_dynamic(base_path).methods("GET"_method, crow::HTTPMethod::DELETE, crow::HTTPMethod::PUT)(
       [this, port, base_path](const crow::request& req, crow::response& res) {
         //pool_->enqueue([this, req = std::move(req), &res, port, base_path]() mutable {
          handleProxyRequest(req, res, port, base_path);

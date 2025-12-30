@@ -37,7 +37,7 @@ crow::json::wvalue Server::formMessageListJson(const std::vector<Message>& messa
   }
   int i   = 0;
   for (const auto& msg : messages) {
-    auto json_object            = to_crow_json(msg);
+    auto json_object            = utils::entities::to_crow_json(msg); //todo: make all using nlohmann::json
     json_object["readed_by_me"] = messages_status[i].is_read;
     res[i++] = std::move(json_object);
   }
@@ -57,6 +57,7 @@ Server::OptionalId Server::getUserIdFromToken(const std::string& token) {
 void Server::handleRoutes() {
   handleGetMessagesFromChat();
   handleUpdateMessage();
+  handleDeleteMessage();
 }
 
 void Server::handleGetMessagesFromChat() { //todo: chat/<string>/messages
@@ -102,13 +103,25 @@ void Server::onGetMessagesFromChat(const crow::request& req, long long chat_id, 
 }
 
 void Server::handleUpdateMessage(){
-  CROW_ROUTE(app_, "/message/<string>")
-      .methods(crow::HTTPMethod::PATCH)(
-          [&](const crow::request& req, const std::string& chat_id_str) {
-            LOG_INFO("Get reqeust to update message with id {}", chat_id_str);
+  CROW_ROUTE(app_, "/messages/<string>")
+      .methods(crow::HTTPMethod::PUT)(
+          [&](const crow::request& req, const std::string& message_id_str) {
+            LOG_INFO("Get reqeust to update message with id {}", message_id_str);
             auto request_pack = utils::getDTO(req, "message/string");
-            auto [code, body] = controller_->updateMessage(request_pack, chat_id_str);
-            LOG_INFO("Update message with id {}, code {} and body {}", chat_id_str, code, body);
+            auto [code, body] = controller_->updateMessage(request_pack, message_id_str);
+            LOG_INFO("Update message with id {}, code {} and body {}", message_id_str, code, body);
             return crow::response(code, body);
           });
+}
+
+void Server::handleDeleteMessage(){
+  CROW_ROUTE(app_, "/messages/<string>")
+  .methods(crow::HTTPMethod::DELETE)(
+      [&](const crow::request& req, const std::string& message_id_str) {
+        LOG_INFO("Get reqeust to delet message with id {}", message_id_str);
+        auto request_pack = utils::getDTO(req, "message/string");
+        auto [code, body] = controller_->deleteMessage(request_pack, message_id_str);
+        LOG_INFO("Delete message with id {}, code {} and body {}", message_id_str, code, body);
+        return crow::response(code, body);
+      });
 }

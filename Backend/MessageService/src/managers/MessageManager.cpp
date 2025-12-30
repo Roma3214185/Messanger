@@ -59,6 +59,14 @@ std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<M
   return ans;
 }
 
-[[nodiscard]] bool MessageManager::saveMessageStatus(MessageStatus& status) {
+bool MessageManager::saveMessageStatus(MessageStatus& status) {
   return repository_->save(status);
+}
+
+bool MessageManager::updateMessage(const Message& message) {
+  return repository_->save(message);
+}
+
+bool MessageManager::deleteMessage(const Message& message) {
+  return repository_->deleteEntity<Message>(message);
 }
