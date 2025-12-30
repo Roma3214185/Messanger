@@ -32,13 +32,15 @@ class NotificationManager {
   virtual void userConnected(long long user_id, SocketPtr conn);
   void saveMessageStatus(MessageStatus& status);
   void saveDeliveryStatus(const Message& msg, long long receiver_id);
-  bool notifyMember(long long user_id, const Message& msg);
+  bool notifyMember(long long user_id, const Message& msg, const std::string& type);
   virtual void onMarkReadMessage(Message& message, long long read_by);
   virtual void onSendMessage(Message& message);
   virtual void onMessageStatusSaved();
   virtual void onMessageSaved(Message& message);
   virtual void onUserSaved();
   virtual void handleMessageSaved(const std::string& payload);
+  void subscribeMessageDeleted();
+  void handleOnMessageDeleted(const std::string& payload);
 
  protected:
   std::vector<long long> fetchChatMembers(long long chat_id);

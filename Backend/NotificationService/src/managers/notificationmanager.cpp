@@ -57,6 +57,36 @@ void NotificationManager::handleMessageSaved(const std::string& payload) {
   onMessageSaved(*parsed);
 }
 
+void NotificationManager::subscribeMessageDeleted() {
+  const auto& rout_config = provider_->routes();
+  SubscribeRequest request;
+  request.queue = rout_config.messageDeleted;
+  request.exchange = rout_config.exchange;
+  request.routing_key = rout_config.messageDeleted;
+  request.exchange_type = rout_config.exchangeType;
+
+  mq_client_->subscribe(request,
+                        [this, rout_config](const std::string& event, const std::string& payload){
+                          LOG_INFO("Subscribe on deleted message received message to delete: event {} and payload {}", event, payload);
+                          handleOnMessageDeleted(payload);
+                        });
+}
+
+void NotificationManager::handleOnMessageDeleted(const std::string& payload) {
+  auto parsed = parsePayload<Message>(payload);
+  if (!parsed) return;
+
+  Message deleteted_message = *parsed;
+  auto members_of_chat = fetchChatMembers(deleteted_message.chat_id);
+  LOG_INFO("For chat id '{}' finded '{}' members", deleteted_message.chat_id, members_of_chat.size());
+  LOG_INFO("Received deleted message {}", nlohmann::json(deleteted_message).dump());
+
+  for (auto user_id : members_of_chat) {
+    LOG_INFO("{} is member of chat {}", user_id, deleteted_message.chat_id);
+    notifyMember(user_id, deleteted_message, "delete_message");
+  }
+}
+
 void NotificationManager::notifyMessageRead(long long chat_id, const MessageStatus& status_message) {}
 
 void NotificationManager::notifyNewMessages(Message& message, long long user_id) {}
@@ -104,7 +134,7 @@ void NotificationManager::onMessageSaved(Message& saved_message) {
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, saved_message.chat_id);
     saveDeliveryStatus(saved_message, user_id);
-    notifyMember(user_id, saved_message);
+    notifyMember(user_id, saved_message, "new_message");
   }
 }
 
@@ -123,7 +153,7 @@ std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {
   return network_facade_.chat().getMembersOfChat(chat_id);
 }
 
-bool NotificationManager::notifyMember(long long user_id, const Message& msg) {
+bool NotificationManager::notifyMember(long long user_id, const Message& msg, const std::string& type) { //todo: implement map
   auto socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {
@@ -133,7 +163,7 @@ bool NotificationManager::notifyMember(long long user_id, const Message& msg) {
   LOG_INFO("User {} online, send message: {}", user_id, msg.text);
 
   auto json_message = nlohmann::json(msg);
-  json_message["type"] = "new_message";
+  json_message["type"] = type;
 
   socket->send_text(json_message.dump());
   LOG_INFO("Sent message {} to user {}", msg.id, user_id);
