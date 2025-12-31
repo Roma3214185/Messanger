@@ -7,62 +7,44 @@ on:
 jobs:
   build-and-test:
     runs-on: macos-latest
-
     env:
+      CC: clang
+      CXX: clang++
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 500M
+      VCPKG_DEFAULT_TRIPLET: arm64-osx
 
     steps:
       # 1️⃣ Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
       # 2️⃣ Setup ccache
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
+      - uses: hendrikmuhs/ccache-action@v1
         with:
           key: ${{ runner.os }}-build-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-build-
           max-size: 500M
 
-      # 3️⃣ Cache vcpkg
-      - name: Cache vcpkg
-        uses: actions/cache@v4
-        with:
-          path: external/vcpkg/installed
-          key: vcpkg-${{ runner.os }}
-          restore-keys: vcpkg-${{ runner.os }}
+      # 3️⃣ Install Xcode CLI tools
+      - name: Install Xcode CLI tools
+        run: xcode-select --install || true
 
-      # 5️⃣ Install dependencies
+      # 4️⃣ Install system dependencies
       - name: Install system dependencies
         run: |
           set -eux
           brew update
-          brew install \
-              cmake \
-              ninja \
-              autoconf \
-              autoconf-archive \
-              automake \
-              libtool \
-              ccache \
-              lcov \
-              clang-format \
-              openssl@3 \
-              rabbitmq-c \
-              qt
+          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c qt
 
-      # 4️⃣ Bootstrap vcpkg
+      # 5️⃣ Bootstrap vcpkg
       - name: Bootstrap vcpkg
-        run: |
-          set -eux
-          ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        run: ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
-      # 5️⃣ vcpkg binary cache (ONLY cache you want)
+      # 6️⃣ vcpkg binary cache only
       - name: Cache vcpkg binaries
         uses: actions/cache@v4
         with:
@@ -70,48 +52,14 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
 
       - name: Setup vcpkg binary cache
-        run: |
-          echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
-
-      #  # Clean vcpkg to avoid protobuf mismatch
-      # - name: Clean vcpkg
-      #   run: |
-      #      set -eux
-      #      ./external/vcpkg/vcpkg remove --outdated --recurse || true
-      #      rm -rf ./external/vcpkg/installed/*
-      #      rm -rf ./external/vcpkg/buildtrees/*
-
-       # Install all vcpkg dependencies together
-      # - name: Install vcpkg dependencies
-      #   run: |
-      #      set -eux
-      #      ./external/vcpkg/vcpkg install \
-      #        boost-asio \
-      #        boost-chrono \
-      #        boost-system \
-      #        boost-thread \
-      #        boost-regex \
-      #        spdlog \
-      #        nlohmann-json \
-      #        openssl \
-      #        catch2 \
-      #        sqlite3 \
-      #        asio \
-      #        libsodium \
-      #        fmt \
-      #         --triplet arm64-osx
+        run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
       # 7️⃣ Auto-format code
-      - name: Run clang-format (auto-fix)
+      - name: Run clang-format
         run: |
-          echo "Running clang-format..."
-          find . -type f \( -name "*.cpp" -o -name "*.h" \) \
-            -not -path "./external/*" \
-            -not -path "./build/*" \
-            -exec clang-format -i {} +
-          echo "✅ clang-format applied to all files"
+          find . -type f \( -name "*.cpp" -o -name "*.h" \) -not -path "./external/*" -not -path "./build/*" -exec clang-format -i {} +
 
-      # 8️⃣ Configure CMake (Debug + coverage)
+      # 8️⃣ Configure CMake
       - name: Configure CMake
         run: |
           rm -rf build
@@ -123,9 +71,6 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=arm64-osx \
-            -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
-            # -DREDISPP_INCLUDE_DIR=$HOME/local/include \
-            # -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
             -DTRACY_ENABLE=ON \
             -Wno-dev
 
@@ -137,46 +82,25 @@ jobs:
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      # 1️⃣1️⃣ Generate coverage
+      # 1️⃣1️⃣ Coverage generation (optional)
       - name: Generate coverage
         run: |
           set -eux
-          # Capture coverage, ignoring errors in system headers
-          lcov --directory build --capture --output-file coverage.info \
-               --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused \
-               --rc derive_function_end_line=0
-          # Remove files that should not count in coverage
-          lcov --remove coverage.info \
-              '/usr/*' \
-              '*_deps/*' \
-              '*include*' \
-              '*tests*' \
-              '*build/*' \
-              '*main.cpp' \
-              '*\.h' \
-              '*\.hpp' \
-              --output-file coverage.info \
-              --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
-          ls -l coverage.info
+          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+          lcov --remove coverage.info '/usr/*' '*_deps/*' '*include*' '*tests*' '*build/*' '*main.cpp' '*\.h' '*\.hpp' --output-file coverage.info
 
-
-      # 1️⃣2️⃣ Generate HTML coverage report
       - name: Generate HTML coverage report
         run: |
           if [ -f coverage.info ]; then
             genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
-          else
-            echo "⚠️ coverage.info not found, skipping genhtml"
           fi
 
-      # 1️⃣3️⃣ Upload HTML coverage as artifact
-      - name: Upload coverage HTML
+      - name: Upload HTML coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage-report
 
-      # 1️⃣4️⃣ Upload coverage to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -184,5 +108,3 @@ jobs:
           fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-
