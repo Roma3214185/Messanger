@@ -2,6 +2,7 @@
   "name": "messenger",
   "version": "0.1.0",
   "dependencies": [
+    "boost",
     "boost-asio",
     "boost-chrono",
     "boost-system",

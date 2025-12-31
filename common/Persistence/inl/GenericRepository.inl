@@ -107,7 +107,7 @@ bool GenericRepository::save(const T& entity) {
 
   database_.commit();
 
-  cache_.set(makeKey<T>(entity), entity_json);
+  cache_.set(makeKey<T>(entity), entity_json, std::chrono::seconds(30));
   cache_.incr(std::string("table_generation:") + meta.table_name);
   return true;
 }

@@ -20,15 +20,6 @@
 
 namespace {
 
-void debug(const QString& log, const User& user) noexcept {
-  LOG_INFO("{}: User '{}' | email '{}' | tag '{}' id '{}'",
-           log.toStdString(),
-           user.name.toStdString(),
-           user.email.toStdString(),
-           user.tag.toStdString(),
-           user.id);
-}
-
 class EntityFactory {
   public:
     static Message createMessage(long long chat_id, long long sender_id, const QString& text, const QString& local_id, QDateTime timestamp = QDateTime::currentDateTime()) {
@@ -55,11 +46,12 @@ void Presenter::initialise() {
   view_->setChatModel(manager_->getChatModel());
   view_->setUserModel(manager_->getUserModel());
 
-  auto token_opt = manager_->checkToken(); //todo: signal and slot on Token finded(??)
-  if(token_opt) manager_->session()->authentificatesWithToken(*token_opt);
   initialConnections();
   initialHandlers();
   manager_->setupConnections();
+
+  auto token_opt = manager_->checkToken(); //todo: signal and slot on Token finded(??)
+  if(token_opt) manager_->session()->authentificatesWithToken(*token_opt);
 }
 
 void Presenter::initialHandlers() {
@@ -128,7 +120,7 @@ void Presenter::updateMessage(Message& message) {
   manager_->message()->updateMessage(message);
 }
 
-void Presenter::onScroll(int value) {
+void Presenter::onScroll(int value) { //todo: multithreaded event changed current_opened_chat_id_ (?)
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   if (bool chat_list_is_on_top = (value == 0); !chat_list_is_on_top) return;
 
@@ -155,8 +147,8 @@ void Presenter::onErrorOccurred(const QString& error) {
 }
 
 void Presenter::setUser(const User& user, const QString& token) {
-  PROFILE_SCOPE("Presenter::setUser");
-  debug("In set user:", user);
+  PROFILE_SCOPE();
+  LOG_INFO("In set user: {} and token {}", user.toString(), token.toStdString());
   DBC_REQUIRE(user.checkInvariants());
   DBC_REQUIRE(!token.isEmpty());
 
@@ -214,18 +206,17 @@ void Presenter::openChat(long long chat_id) {  // make unread message = 0; (?)
   DBC_REQUIRE(chat_id > 0);
   setCurrentChatId(chat_id);
   message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
-  message_list_view_->scrollToBottom();
-  auto chat = manager_->chat()->getChat(chat_id);
-  view_->setChatWindow(chat);
+  message_list_view_->scrollToBottom(); //todo: not in every sitation it's good idea
+  view_->setChatWindow(manager_->chat()->getChat(chat_id));
 }
 
 void Presenter::onUserClicked(long long user_id, bool is_user) {
   DBC_REQUIRE(user_id > 0);
   DBC_REQUIRE(current_user_ != std::nullopt);
-  auto user_model = manager_->getUserModel();
+  auto* user_model = manager_->getUserModel();
   DBC_REQUIRE(user_model);
   user_model->clear();
-  view_->clearFindUserEdit();
+  view_->clearFindUserEdit(); //todo: this should be in mainwindow?
 
   if (is_user && current_user_->id == user_id) {
     onErrorOccurred("[ERROR] Impossible to open chat with yourself");
@@ -234,11 +225,8 @@ void Presenter::onUserClicked(long long user_id, bool is_user) {
 
   if (is_user) {
     auto chat = manager_->chat()->getPrivateChatWithUser(user_id);
-    if (!chat) {
-      onErrorOccurred("Char is null in on_user_clicked");
-    } else {
-      openChat(chat->chat_id);
-    }
+    DBC_REQUIRE(chat != nullptr);
+    openChat(chat->chat_id);
   } else {
     DBC_UNREACHABLE();
     qDebug() << "[ERROR] Implement finding group request";
@@ -248,20 +236,21 @@ void Presenter::onUserClicked(long long user_id, bool is_user) {
 void Presenter::sendButtonClicked(const QString& text_to_send) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
+  QString trimmed_text = text_to_send.trimmed();
 
-  if (text_to_send.isEmpty()) {
+  if (trimmed_text.isEmpty()) {
     LOG_WARN("Presenter receive to send empty text");
     return;
   }
 
   //TODO: what if multithreaded will make here current_user is nullopt, after checking (?)
   auto message_to_send = EntityFactory::createMessage(*current_opened_chat_id_,
-                                                      current_user_->id, text_to_send,
+                                                      current_user_->id, trimmed_text,
                                                       QUuid::createUuid().toString());
   LOG_INFO("Message to send {}", message_to_send.toString());
   manager_->message()->addMessageToChat(message_to_send);
   message_list_view_->scrollToBottom();
-  manager_->socket()->sendMessage(message_to_send);
+  manager_->socket()->sendMessage(message_to_send); //todo: implement sending message via HHTP, not socket
 }
 
 void Presenter::onLogOutButtonClicked() {
@@ -280,7 +269,7 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString& prefix)
   auto list_of_messages_of_chat = manager_->dataManager()->getMessageModel(*current_opened_chat_id_)->messages();
 
   auto ans = std::vector<Message>{};
-  for(auto& message : list_of_messages_of_chat) {
+  for(const auto& message : list_of_messages_of_chat) {
     if(message.text.contains(prefix_trimmed)) {
       ans.push_back(message);
     }
