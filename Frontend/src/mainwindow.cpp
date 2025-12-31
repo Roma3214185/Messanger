@@ -5,6 +5,7 @@
 #include <QScrollBar>
 #include <QTimer>
 #include <QMenu>
+#include <QStandardItem>
 
 #include "../forms/ui_mainwindow.h"
 #include "Debug_profiling.h"
@@ -19,13 +20,24 @@
 #include "presenter.h"
 #include "presenter.h"
 
+namespace MessageRoles {
+enum {
+  MessageIdRole = Qt::UserRole + 1,
+  MessageTextRole
+};
+}
+
 MainWindow::MainWindow(Model* model, QWidget* parent)
     : QMainWindow(parent)
     , ui_(new Ui::MainWindow)
-    , presenter_(std::make_unique<Presenter>(this, model)) {
+    , presenter_(std::make_unique<Presenter>(this, model))
+    ,   searchResultsModel_(new QStandardItemModel(this)) {
   ui_->setupUi(this);
 
   message_list_view_ = std::make_unique<MessageListView>();
+  ui_->serch_messages_list_view->setModel(searchResultsModel_);
+  ui_->serch_messages_list_view->sizeHintForRow(0);
+  ui_->serch_messages_list_view->frameWidth();
   presenter_->setMessageListView(message_list_view_.get());
   presenter_->initialise();
 
@@ -33,6 +45,26 @@ MainWindow::MainWindow(Model* model, QWidget* parent)
   seupConnections();
   setupUI();
   setWriteMode();
+}
+
+void MainWindow::adjustSearchResultsHeight() {
+  auto *view = ui_->serch_messages_list_view;
+  auto *model = view->model();
+
+  if (!model || model->rowCount() == 0) {
+    view->setFixedHeight(0);
+    return;
+  }
+
+  const int maxRows = 5;
+  int rows = qMin(model->rowCount(), maxRows);
+
+  int rowHeight = view->sizeHintForRow(0);
+  int frame = view->frameWidth() * 2;
+
+  int height = rowHeight * rows + frame;
+
+  view->setFixedHeight(height);
 }
 
 void MainWindow::setDelegators() {
@@ -51,6 +83,7 @@ void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
   DBC_REQUIRE(!chat->avatar_path.isEmpty());
   ui_->messageWidget->setVisible(true);
   setWriteMode();
+  setTitleChatMode();
   const QString       name = chat->title;
   QPixmap       avatar(chat->avatar_path);
   constexpr int kAvatarSize    = 40;
@@ -187,6 +220,16 @@ void MainWindow::seupConnections() {
   connect(message_list_view_.get(),  &QListView::customContextMenuRequested, this, &MainWindow::onMessageContextMenu);
 
   connect(presenter_.get(), &Presenter::userSetted, this, &MainWindow::setMainWindow);
+
+
+  // connect(searchResultsModel_, &QAbstractItemModel::rowsInserted,
+  //         this, &MainWindow::adjustSearchResultsHeight);
+
+  // connect(searchResultsModel_, &QAbstractItemModel::rowsRemoved,
+  //         this, &MainWindow::adjustSearchResultsHeight);
+
+  // connect(searchResultsModel_, &QAbstractItemModel::modelReset,
+  //         this, &MainWindow::adjustSearchResultsHeight);
 }
 
 void MainWindow::setupUI() {
@@ -313,10 +356,91 @@ void MainWindow::setWriteMode() {
   ui_->inputEditStackedWidget->setCurrentIndex(0);
 }
 
-// void MainWindow::setEditMode() {
-//   QString text_to_edit = ui_->textEdit->toPlainText();
-//   if(text_to_edit.isEmpty()) return;
+QModelIndex MainWindow::findIndexByMessageId(QAbstractItemModel *model, long long id) {
+  for (int row = 0; row < model->rowCount(); ++row) {
+    QModelIndex idx = model->index(row, 0);
+    if (idx.data(MessageModel::MessageIdRole).toLongLong() == id)
+      return idx;
+  }
+  return {};
+}
 
-//   ui_->inputEditStackedWidget->setCurrentIndex(1);
-// }
+void MainWindow::setSearchMessageMode() {
+  ui_->chat_title_stacked_widget->setCurrentIndex(1);
+  ui_->serch_messages_list_view->setEnabled(false);
+}
+
+void MainWindow::setTitleChatMode() {
+  ui_->chat_title_stacked_widget->setCurrentIndex(0);
+}
+
+
+void MainWindow::on_serch_in_chat_button_clicked() { //todo: remove this func and make just connect to setSearchMessageMode
+  setSearchMessageMode();
+}
+
+
+void MainWindow::on_cancel_search_messages_button_clicked()
+{
+  setTitleChatMode();
+  ui_->search_messages_line_edit->clear();
+  ui_->serch_messages_list_view->setEnabled(false);
+  //todo: clear all
+}
+
+
+void MainWindow::on_search_messages_line_edit_textChanged(const QString& prefix)
+{
+  //ui_->search_messages_line_edit->clear();
+  searchResultsModel_->clear();
+  if(prefix.isEmpty()) {
+    ui_->serch_messages_list_view->setEnabled(false);
+    return;
+  }
+
+  ui_->serch_messages_list_view->setEnabled(true);
+
+  auto list_of_message = presenter_->getListOfMessagesBySearch(prefix); // current_open_id is in presenter;
+
+  if(list_of_message.empty()) {
+    //resultsModel_.setTitle("No results");
+    return;
+  }
+
+  for(Message& message: list_of_message) {
+    QStandardItem* item = new QStandardItem(message.text);
+
+    item->setData(message.id, MessageRoles::MessageIdRole);
+    item->setData(message.text, MessageRoles::MessageTextRole);
+
+    searchResultsModel_->appendRow(item);
+  }
+  adjustSearchResultsHeight();
+}
+
+
+void MainWindow::on_serch_messages_list_view_clicked(const QModelIndex &index)
+{
+  if (!index.isValid())
+    return;
+
+  long long messageId =
+    index.data(MessageModel::MessageIdRole).toLongLong();
+
+  qDebug() << "Clicked " << messageId;
+
+  QModelIndex target =
+    findIndexByMessageId(message_list_view_->model(), messageId);
+
+
+  if (!target.isValid())
+    return;
+
+  message_list_view_->scrollTo(
+      target, QAbstractItemView::PositionAtCenter);
+
+  message_list_view_->setCurrentIndex(target);
+
+  //highlightMessage(messageId);
+}
 

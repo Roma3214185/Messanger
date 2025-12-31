@@ -48,6 +48,8 @@ class Presenter : public QObject {
   UserDelegate* getUserDelegate();
   ChatItemDelegate* getChatDelegate();
 
+  std::vector<Message> getListOfMessagesBySearch(const QString& prefix);
+
  Q_SIGNALS:
   void userSetted();
 

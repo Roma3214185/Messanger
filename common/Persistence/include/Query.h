@@ -54,7 +54,6 @@ class SelectQuery : public BaseQuery<T> {
   [[nodiscard]] std::string buildEntityKey(const T& entity) const;
   [[nodiscard]] std::string computeCacheKey(const QString& sql) const;
   [[nodiscard]] std::optional<std::vector<T>> tryLoadFromCache(const std::string& key) const;
-  //QSqlQuery                     runDatabaseQuery(const QString& sql) const;
   void updateCache(const std::string& key, const std::vector<T>& results) const;
 };
 
@@ -69,30 +68,9 @@ class DeleteQuery : public BaseQuery<T> {  //todo: interface orderable
     DeleteQuery(ISqlExecutor* executor, ICacheService& cache);
 
     DeleteQuery&   orderBy(const std::string& field, const OrderDirection& direction = OrderDirection::ASC) &;
-    std::vector<T> execute() const override ;
+    std::vector<T> execute() const override;
     QString buildDeleteQuery() const;
-
-
-  // protected:
-  //   [[nodiscard]] std::string createCacheKey(const QString& sql, int generation_hash, int params_hash) const;
-
-  // private:
-  //   std::vector<T> buildResults(std::unique_ptr<IQuery>& query) const;
-  //   void    saveEntityInCache(const T& entity, std::chrono::hours ttl = std::chrono::hours(24)) const;
-  //   [[nodiscard]] T       buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const;
-  //   int     getEntityId(const T& entity) const;
-  //   [[nodiscard]] QString buildSelectQuery() const; //todo: std::string_view return ??
-  //   auto    getGenerations() const;
-  //   [[nodiscard]] std::size_t hashGenerations(const std::unordered_map<std::string, std::string>& generations) const;
-  //   [[nodiscard]] std::size_t hashParams(const QVector<QVariant>& values) const;
-  //   [[nodiscard]] std::string buildEntityKey(const T& entity) const;
-  //   [[nodiscard]] std::string computeCacheKey(const QString& sql) const;
-  //   [[nodiscard]] std::optional<std::vector<T>> tryLoadFromCache(const std::string& key) const;
-  //   //QSqlQuery                     runDatabaseQuery(const QString& sql) const;
-  //   void updateCache(const std::string& key, const std::vector<T>& results) const;
 };
-
-
 
 
 #include "Query.inl"

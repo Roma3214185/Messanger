@@ -4,6 +4,7 @@
 #include <QListView>
 #include <QMainWindow>
 #include <memory>
+#include <QStandardItemModel>
 
 #include "interfaces/IMainWindow.h"
 
@@ -56,6 +57,14 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setWriteMode();
   //void setEditMode();
 
+  void on_serch_in_chat_button_clicked();
+
+  void on_cancel_search_messages_button_clicked();
+
+  void on_search_messages_line_edit_textChanged(const QString &arg1);
+
+  void on_serch_messages_list_view_clicked(const QModelIndex &index);
+
 private:
   void setMainWindow();
   void setSignInPage();
@@ -64,12 +73,17 @@ private:
   void setDelegators();
   void seupConnections();
   void setupUI();
+  void adjustSearchResultsHeight();
 
   void copyMessage(const Message& message);
   void editMessage(const Message& message);
   void deleteMessage(const Message& message);
 
+  void setSearchMessageMode();
+  void setTitleChatMode();
+
   void onMessageContextMenu(const QPoint& pos);
+  QModelIndex findIndexByMessageId(QAbstractItemModel *model, long long id);
 
   std::unique_ptr<ITheme>    current_theme_;
   Ui::MainWindow*            ui_;
@@ -77,6 +91,7 @@ private:
   std::unique_ptr<MessageListView> message_list_view_;
 
   std::optional<Message> editable_message_; //todo: make Page to set in currentPage, in which Message will be
+  QStandardItemModel* searchResultsModel_;
 };
 
 #endif  // MAINWINDOW_H

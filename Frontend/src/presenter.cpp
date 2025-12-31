@@ -29,16 +29,6 @@ void debug(const QString& log, const User& user) noexcept {
            user.id);
 }
 
-void debug(const QString& log, const Message& message) noexcept {
-  LOG_INFO("{}: Message chat_id '{}' | sender_id '{}' | text '{}' timestamp '{}', local_id {}",
-           log.toStdString(),
-           message.chat_id,
-           message.sender_id,
-           message.text.toStdString(),
-           message.timestamp.toString().toStdString(),
-           message.local_id.toStdString());
-}
-
 class EntityFactory {
   public:
     static Message createMessage(long long chat_id, long long sender_id, const QString& text, const QString& local_id, QDateTime timestamp = QDateTime::currentDateTime()) {
@@ -167,7 +157,7 @@ void Presenter::onErrorOccurred(const QString& error) {
 void Presenter::setUser(const User& user, const QString& token) {
   PROFILE_SCOPE("Presenter::setUser");
   debug("In set user:", user);
-  DBC_REQUIRE(user.id > 0); //todo: User itself call fucntion i_am_valid() and checks all fields
+  DBC_REQUIRE(user.checkInvariants());
   DBC_REQUIRE(!token.isEmpty());
 
   current_user_ = user;
@@ -193,7 +183,7 @@ void Presenter::newMessage(Message& msg) {
     msg.readed_by_me = true;
     msg.is_mine = true;
   }
-  debug("New message received from socket", msg);
+  LOG_INFO("New message received from socket {}", msg.toString());
 
   const int max   = message_list_view_->getMaximumMessageScrollBar();
   const int value = message_list_view_->getMessageScrollBarValue();
@@ -268,7 +258,7 @@ void Presenter::sendButtonClicked(const QString& text_to_send) {
   auto message_to_send = EntityFactory::createMessage(*current_opened_chat_id_,
                                                       current_user_->id, text_to_send,
                                                       QUuid::createUuid().toString());
-  debug("Message to send", message_to_send);
+  LOG_INFO("Message to send {}", message_to_send.toString());
   manager_->message()->addMessageToChat(message_to_send);
   message_list_view_->scrollToBottom();
   manager_->socket()->sendMessage(message_to_send);
@@ -278,4 +268,23 @@ void Presenter::onLogOutButtonClicked() {
   manager_->logout();
   current_user_ .reset();
   current_opened_chat_id_.reset();
+}
+
+std::vector<Message> Presenter::getListOfMessagesBySearch(const QString& prefix) {
+  DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
+  QString prefix_trimmed = prefix.trimmed();
+  if(prefix_trimmed.isEmpty()) {
+    return {};
+  }
+
+  auto list_of_messages_of_chat = manager_->dataManager()->getMessageModel(*current_opened_chat_id_)->messages();
+
+  auto ans = std::vector<Message>{};
+  for(auto& message : list_of_messages_of_chat) {
+    if(message.text.contains(prefix_trimmed)) {
+      ans.push_back(message);
+    }
+  }
+
+  return ans;
 }

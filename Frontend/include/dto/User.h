@@ -2,6 +2,7 @@
 #define USER_H
 
 #include <QString>
+#include <string>
 
 struct User {
   QString email;
@@ -10,12 +11,22 @@ struct User {
   long long id;
   QString avatarPath = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
 
-  bool checkInvariants() {
-    return id > 0 //todo: what if message saved as offline, them id will == 0, state pattern??
+  bool checkInvariants() const {
+    return id > 0
            && !email.isEmpty()
            && !name.isEmpty()
            && !tag.isEmpty()
            && !avatarPath.isEmpty();
+  }
+
+  std::string toString() const noexcept {
+    std::string res;
+    res += " | id = " + std::to_string(id);
+    res += " | email = " + email.toStdString();
+    res += " | tag = " + tag.toStdString();
+    res += " | name = " + name.toStdString();
+    res += " | avatar_path = " + avatarPath.toStdString();
+    return res;
   }
 };
 
