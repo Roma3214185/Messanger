@@ -20,7 +20,7 @@
         "features": [
             "metrics",
             "trace",
-            "otlp_grpc"
+            "otlp-grpc"
         ]
     }
   ]
