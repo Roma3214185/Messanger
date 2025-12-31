@@ -1,0 +1,19 @@
+{
+  "name": "messenger",
+  "version": "0.1.0",
+  "dependencies": [
+    "boost-asio",
+    "boost-chrono",
+    "boost-system",
+    "boost-thread",
+    "boost-regex",
+    "spdlog",
+    "nlohmann-json",
+    "openssl",
+    "catch2",
+    "sqlite3",
+    "asio",
+    "libsodium",
+    "fmt"
+  ]
+}
