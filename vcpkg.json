@@ -14,6 +14,14 @@
     "sqlite3",
     "asio",
     "libsodium",
-    "fmt"
+    "fmt",
+    {
+        "name": "opentelemetry-cpp",
+        "features": [
+            "metrics",
+            "trace",
+            "otlp_grpc"
+        ]
+    }
   ]
 }
