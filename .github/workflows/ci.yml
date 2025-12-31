@@ -56,18 +56,20 @@ jobs:
               rabbitmq-c \
               qt
 
-       # Bootstrap vcpkg
+      # 4️⃣ Bootstrap vcpkg
       - name: Bootstrap vcpkg
         run: |
-           set -eux
-           ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          set -eux
+          ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
-      - uses: actions/cache@v4
+      # 5️⃣ vcpkg binary cache (ONLY cache you want)
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v4
         with:
           path: vcpkg-cache
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
 
-      - name: Setup vcpkg cache
+      - name: Setup vcpkg binary cache
         run: |
           echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
@@ -80,24 +82,24 @@ jobs:
       #      rm -rf ./external/vcpkg/buildtrees/*
 
        # Install all vcpkg dependencies together
-      - name: Install vcpkg dependencies
-        run: |
-           set -eux
-           ./external/vcpkg/vcpkg install \
-             boost-asio \
-             boost-chrono \
-             boost-system \
-             boost-thread \
-             boost-regex \
-             spdlog \
-             nlohmann-json \
-             openssl \
-             catch2 \
-             sqlite3 \
-             asio \
-             libsodium \
-             fmt \
-              --triplet arm64-osx
+      # - name: Install vcpkg dependencies
+      #   run: |
+      #      set -eux
+      #      ./external/vcpkg/vcpkg install \
+      #        boost-asio \
+      #        boost-chrono \
+      #        boost-system \
+      #        boost-thread \
+      #        boost-regex \
+      #        spdlog \
+      #        nlohmann-json \
+      #        openssl \
+      #        catch2 \
+      #        sqlite3 \
+      #        asio \
+      #        libsodium \
+      #        fmt \
+      #         --triplet arm64-osx
 
       # 7️⃣ Auto-format code
       - name: Run clang-format (auto-fix)
@@ -120,9 +122,10 @@ jobs:
             -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=arm64-osx \
             -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
-            -DREDISPP_INCLUDE_DIR=$HOME/local/include \
-            -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
+            # -DREDISPP_INCLUDE_DIR=$HOME/local/include \
+            # -DREDISPP_LIBRARY=$HOME/local/lib/libredis++.a \
             -DTRACY_ENABLE=ON \
             -Wno-dev
 
