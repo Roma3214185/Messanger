@@ -40,6 +40,10 @@ jobs:
           brew update
           brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c qt
 
+      - name: Remove Homebrew protobuf (force vcpkg)
+        run: |
+          brew uninstall --ignore-dependencies protobuf || true
+
       # 5️⃣ Bootstrap vcpkg
       - name: Bootstrap vcpkg
         run: ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
