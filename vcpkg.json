@@ -21,6 +21,8 @@
         "features": [
             "otlp-grpc"
         ]
-    }
+    },
+    "protobuf",
+    "grpc"
   ]
 }
