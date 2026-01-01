@@ -95,8 +95,8 @@ void SelectQuery<T>::updateCache(const std::string& key, const std::vector<T>& r
   }
 
   nlohmann::json j = results;
-  cache_.setPipelines(entities_keys, entities_strings);
-  cache_.set(key, j.dump(), std::chrono::hours(24));
+  cache_.setPipelines(entities_keys, entities_strings, std::chrono::seconds(30));
+  cache_.set(key, j.dump(), std::chrono::seconds(30));
 }
 
 template <typename T>

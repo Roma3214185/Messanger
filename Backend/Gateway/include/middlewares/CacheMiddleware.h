@@ -41,7 +41,7 @@ struct CacheMiddleware {
     void after_handle(const crow::request& req, crow::response& res, context& ctx, ParentCtx&  /*unused*/) {
       if(req.method != crow::HTTPMethod::GET) return;
       auto key = makeCacheKey(req);
-      cache_->set(key, res.body);
+      cache_->set(key, res.body, std::chrono::seconds(30));
     }
 
   private:

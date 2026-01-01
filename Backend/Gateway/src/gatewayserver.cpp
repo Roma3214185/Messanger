@@ -147,7 +147,7 @@ void GatewayServer::handlePostRequest(const crow::request& req, //todo: make han
                                        const int port,
                                        const std::string&   path) {
   RequestDTO request_info = getRequestInfo(req, path);
-  cache_->set("request:" + request_info.request_id, "{ \"status\": \"queued\" }");
+  cache_->set("request:" + request_info.request_id, "{ \"status\": \"queued\" }", std::chrono::seconds(30));
   auto json = nlohmann::json(request_info);
   json["port"] = port;
 
@@ -198,10 +198,10 @@ void GatewayServer::subscribeOnNewRequest() {
     LOG_INFO("Finished result in queue_->subscribe, request_info->request_id = {}, status_code = {}, body = {}",
       request_info.request_id, std::to_string(result.first), result.second.substr(0, result.second.length()));
 
-    cache_->set("request:" + request_info.request_id, "{\"status\":\"finished\"}");
-    cache_->set("request_id:" + request_info.request_id, std::to_string(result.first));
+    cache_->set("request:" + request_info.request_id, "{\"status\":\"finished\"}", std::chrono::seconds(30));
+    cache_->set("request_id:" + request_info.request_id, std::to_string(result.first), std::chrono::seconds(30));
     cache_->set("request_body:" + request_info.request_id,
-                result.second.substr(0, result.second.length() - 1) + ",\"status\":\"finished\"}"); //todo: fully refactor server responce JsonObject,
+                result.second.substr(0, result.second.length() - 1) + ",\"status\":\"finished\"}", std::chrono::seconds(30)); //todo: fully refactor server responce JsonObject,
                                                                                                   // return ["error"], ["body"], maybe ["code"]
   });
 }
