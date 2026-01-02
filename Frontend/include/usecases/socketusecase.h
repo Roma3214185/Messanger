@@ -14,6 +14,8 @@ class SocketUseCase : public QObject {
     void initSocket(long long user_id);
     void connectSocket();
     void sendMessage(const Message& msg);
+    void sendReadMessageEvent(const Message& message, long long current_user_id);
+
 
   Q_SIGNALS:
     //void chatAdded(long long id);

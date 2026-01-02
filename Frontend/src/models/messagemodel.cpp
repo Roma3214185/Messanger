@@ -69,7 +69,9 @@ void MessageModel::saveMessage(const Message& msg /*, const User& user*/) {
   if (it != messages_.end()) {
     LOG_INFO("Message already exist with id {} ans local id {} and text {}", it->id, it->local_id.toStdString(), it->text.toStdString());
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-    *it =  msg;
+    *it = msg;
+    it->readed_by_me = msg.readed_by_me;
+    it->read_counter = msg.read_counter;
     endInsertRows();
     return;
   }

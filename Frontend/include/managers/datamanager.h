@@ -38,6 +38,7 @@ class DataManager : public QObject {
   void          saveMessage(const Message& message);
   [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
   void deleteMessage(const Message& msg);
+  void readMessage(long long message_id, long long readed_by);
 
 Q_SIGNALS:
   void chatAdded(const ChatPtr& chat);
