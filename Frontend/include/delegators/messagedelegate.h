@@ -30,7 +30,7 @@ class MessageDelegate : public QStyledItemDelegate {
                           const QStyleOptionViewItem& option,
                           const MessageDrawData&      msg,
                           bool                        is_mine) const;
-  [[nodiscard]] MessageDrawData extractMessageData(const QModelIndex& index) const;
+  [[nodiscard]] MessageDrawData extractMessageData(const Message& index) const;
   void            drawBackgroundState(QPainter*                   painter,
                                       const QRect&                rect,
                                       const QStyleOptionViewItem& option,
@@ -49,6 +49,15 @@ class MessageDelegate : public QStyledItemDelegate {
                   const QRect&           rect,
                   const MessageDrawData& message_data,
                   bool                   is_mine) const;
+
+  void drawReadCounter(QPainter* painter,
+                       const QRect&           rect,
+                       const int read_cnt,
+                       bool is_mine) const;
+
+Q_SIGNALS:
+  void unreadMessage(Message& message) const;
+  //todo: this signal have to me in QlistView
 };
 
 #endif  // CHATDELEGATE_H
