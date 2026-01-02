@@ -6,6 +6,7 @@
 #include "messageservice/interfaces/IController.h"
 #include "messageservice/dto/GetMessagePack.h"
 #include "entities/RequestDTO.h"
+#include "entities/UserMessage.h"
 
 namespace {
 
@@ -23,6 +24,17 @@ int getLimit(const crow::request& req) {
 
 int getBeforeId(const crow::request& req) {
   return req.url_params.get("before_id") != nullptr ? std::stoi(req.url_params.get("before_id")) : 0;
+}
+
+nlohmann::json formMessageListJson(const std::vector<UserMessage>& messages) {
+  nlohmann::json res;
+  int i   = 0;
+  for (const auto& msg : messages) {
+    //auto json_object =
+    res[i++] = nlohmann::json(msg);
+  }
+
+  return res;
 }
 
 }  // namespace
@@ -55,6 +67,7 @@ Server::OptionalId Server::getUserIdFromToken(const std::string& token) {
 }
 
 void Server::handleRoutes() {
+  handleGetMessage();
   handleGetMessagesFromChat();
   handleUpdateMessage();
   handleDeleteMessage();
@@ -64,7 +77,8 @@ void Server::handleGetMessagesFromChat() { //todo: chat/<string>/messages
   CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::GET)(
           [&](const crow::request& req, crow::response& res, const std::string& chat_id_str) {
-            PROFILE_SCOPE("/message/<string>");
+            PROFILE_SCOPE();
+            LOG_INFO("GEt Messages of chat");
             long long chat_id;
             try {
               chat_id = std::stoll(chat_id_str);
@@ -72,6 +86,7 @@ void Server::handleGetMessagesFromChat() { //todo: chat/<string>/messages
               LOG_ERROR("Error whyle stoll in handleGetMessagesFromChat");
               res.code = 400;
               res.body = "Invalid user_id";
+              res.end();
               return;
             }
             onGetMessagesFromChat(req, chat_id, res);
@@ -79,9 +94,42 @@ void Server::handleGetMessagesFromChat() { //todo: chat/<string>/messages
           });
 }
 
+void Server::handleGetMessage() {
+  CROW_ROUTE(app_, "/message/<string>")
+      .methods(crow::HTTPMethod::GET)(
+          [&](const crow::request& req, crow::response& res, const std::string& message_id_str) {
+            PROFILE_SCOPE();
+            LOG_INFO("GEt Message by id");
+            long long message_id;
+            try {
+              message_id = std::stoll(message_id_str);
+            } catch (...) {
+              LOG_ERROR("Error whyle stoll in handleGetMessage");
+              res.code = 400;
+              res.body = "Invalid message_id";
+              res.end();
+              return;
+            }
+            auto [code, body] = controller_->getMessageById(message_id);
+            res.code = code;
+            res.body = body;
+            res.end();
+            LOG_INFO("Response code: {} | Body: {}", code, body);
+          });
+}
+
 void Server::run() {
   spdlog::info("[Message server is started on port '{}'", port_);
   app_.port(port_).multithreaded().run();
+}
+
+std::vector<MessageStatus> fetchReaded(const std::vector<MessageStatus>& messages_status) {
+  std::vector<MessageStatus> ans;
+  for(auto &msg: messages_status) {
+    if(msg.is_read) ans.emplace_back(msg);
+  }
+
+  return ans;
 }
 
 void Server::onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res) {
@@ -99,6 +147,29 @@ void Server::onGetMessagesFromChat(const crow::request& req, long long chat_id, 
   auto messages = controller_->getMessages(pack);
   auto messages_status = controller_->getMessagesStatus(messages, user_id);
   auto json_messages = formMessageListJson(messages, messages_status);
+  //auto messages_status_readed = fetchReaded(messages_status);
+  //UserMessage responce
+
+  //i need to return std::vector<UserMessage>
+  std::vector<UserMessage> ans;
+  for(auto& message : messages) {
+    std::vector<MessageStatus> message_statuses = controller_->getReadedMessageStatuses(message.id);
+    UserMessage user_message;
+    user_message.message = message;
+    user_message.read.count = message_statuses.size();
+
+    bool is_read_by_me = false;
+    for(auto& message_status : message_statuses) {
+      if(message_status.receiver_id == user_id) {
+        is_read_by_me = true;
+        break;
+      }
+    }
+    user_message.read.read_by_me = is_read_by_me;
+    //todo: reactions here
+  }
+
+  //sendResponse(res, provider_->statusCodes().success,  formMessageListJson(ans);
   sendResponse(res, provider_->statusCodes().success, json_messages.dump());
 }
 
