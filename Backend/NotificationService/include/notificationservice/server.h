@@ -3,6 +3,7 @@
 
 #include <crow.h>
 #include "interfaces/IMessageHandler.h"
+#include "notificationservice/SocketRepository.h"
 
 class NotificationManager;
 class ISocket;
@@ -21,15 +22,12 @@ class Server {
   void initRoutes();
   void initHanlers();
   void handleSocketRoutes();
-  SocketPtr findSocket(crow::websocket::connection* conn);
 
   crow::SimpleApp      app_;
   NotificationManager* notification_manager_;
   const int            notification_port_;
   std::unordered_map<std::string, std::unique_ptr<IMessageHandler>> handlers_;
-
-  std::unordered_set<SocketPtr> active_sockets;
-  std::mutex ws_mutex;
+  SocketRepository active_sockets_;
 };
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_

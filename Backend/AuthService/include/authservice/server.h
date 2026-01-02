@@ -8,11 +8,11 @@ class IGenerator;
 class Server {
  public:
   Server(crow::SimpleApp& app, int port, AuthController* controller, IGenerator* generator);
+  void initRoutes();
   void run();
   [[nodiscard]] bool generateKeys();
 
  private:
-  void initRoutes();
   void handleFindById();
   void handleFindByTag();
   void handleRegister();

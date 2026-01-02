@@ -37,7 +37,7 @@ std::string get_host_with_port(int port) {
   return "localhost:" + to_string(port);
 }
 
-httplib::Params getParams(const std::multimap<std::string, std::string>& map) {
+httplib::Params getParams(const std::unordered_map<std::string, std::string>& map) {
   httplib::Params params;
   for(auto [k, v]: map) params.emplace(k, v);
   return params;

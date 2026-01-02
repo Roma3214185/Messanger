@@ -7,122 +7,38 @@
 #include "NetworkFacade.h"
 #include "chatservice/AutoritizerProvider.h"
 #include "Debug_profiling.h"
+#include "entities/RequestDTO.h"
 
 using std::optional;
 using std::string;
 
 namespace {
 
-void sendResponse(crow::response& res, int code, const std::string& text) {
-  res.code = code;
-  res.write(text);
-  res.end();
-}
-
-}  // namespace
-
-ChatController::ChatController(IChatManager* manager,
-                       NetworkFacade* network_facade, IConfigProvider* provider)
-    : manager_(manager), network_facade_(network_facade), provider_(provider) {
-  AutoritizerProvider::set(std::make_shared<RealAutoritizer>());
-}
-
-void ChatController::createPrivateChat(const crow::request& req, crow::response& res) {
-  LOG_INFO("[temp] create private chat");
-  auto my_id = authorizeUser(req, res);
-  if (!my_id) return;
-
-  LOG_INFO("[temp] load body");
-  auto body = crow::json::load(req.body);
-  if (!body || !body.has("user_id")) {
-    if(!body) LOG_ERROR("Invalid body");
-    else LOG_ERROR("Missing 'user_id' value");
-    return sendResponse(res, provider_->statusCodes().userError, "Missing user_id value");
-  }
-
-  auto user_id = [body]() -> std::optional<long long> {
-    if (body["user_id"].t() == crow::json::type::String) {
-      return std::stoll(body["user_id"].s());
-    }
-
-    if (body["user_id"].t() == crow::json::type::Number) {
-      return static_cast<long long>(body["user_id"].d());
-    }
-
+std::optional<long long> getIdFromStr(const std::string& str) {
+  try {
+    return std::stoll(str);
+  } catch(...) {
+    LOG_ERROR("Error while get stoll of {}", str);
     return std::nullopt;
-  }();
-
-  if(!user_id) {
-    LOG_ERROR("Can't get 'user_id' from json");
-    return;
   }
-  LOG_INFO("Create private chat with {} and user {}", *my_id, *user_id);
-  optional<User> user    = getUserById(*user_id);
-
-  if (!user) {
-    LOG_ERROR("User with id {} not found", *user_id);
-    sendResponse(res, provider_->statusCodes().userError, provider_->issueMessages().userNotFound);
-    return;
-  }
-
-  LOG_INFO("User finded {}", nlohmann::json(user).dump());
-
-  std::optional<long long> chat_id = manager_->createPrivateChat(*my_id, *user_id);
-  if (!chat_id) {
-    LOG_ERROR("Failed to create private chat for users '{}, {}'", *my_id, *user_id);
-    return sendResponse(res, provider_->statusCodes().serverError, "Failed to create chat");
-  }
-
-  LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
-
-  Chat chat{.id = *chat_id, .is_group = 0 };
-  auto result = buildChatJson(chat, user, 0);
-  sendResponse(res, provider_->statusCodes().success, result.dump());
 }
 
-std::optional<long long> ChatController::autoritize(const crow::request& req) {
-  const string token   = req.get_header_value("Authorization");
-  return AutoritizerProvider::get()->autoritize(token);
+std::string formErrorResponce(const std::string& error_text){
+  return nlohmann::json{
+      {"error", error_text}
+  }.dump();
 }
 
-void ChatController::getAllChats(const crow::request& req, crow::response& res) {
-  LOG_INFO("Get all chats, req is {}", req.body);
-  auto user_id = authorizeUser(req, res);
-  if (!user_id)
-    return;
-
-  auto chats = manager_->getChatsIdOfUser(*user_id);
-  LOG_INFO("For user_id {} finded {} chats", *user_id, chats.size());
-
-  crow::json::wvalue ans;
-  ans["chats"] = crow::json::wvalue::list();
-
-  int index = 0;
-
-  for (const auto& chat_id : chats) {
-    LOG_INFO("User id {} - chat_id {}", *user_id, chat_id);
-    crow::response chat_res;
-    getChat(req, chat_res, chat_id);
-    LOG_INFO("For chat {} finded res is {}", chat_id, chat_res.body);
-
-    if (chat_res.code == provider_->statusCodes().success) {
-      ans["chats"][index++] = crow::json::load(chat_res.body);
-    } else {
-      LOG_ERROR("[GetAllChats] Failed to retrieve chat with ID '{}'", chat_id);
-      //return sendError(res, chat_res.code, chat_res.body);
-    }
-  }
-
-  sendResponse(res, provider_->statusCodes().success, ans.dump());
+Response sendResponse(int code, const std::string& text) {
+  return std::make_pair(code, text);
 }
 
-
-crow::json::wvalue ChatController::buildChatJson(
+nlohmann::json buildChatJson(
     const Chat& chat,
     const std::optional<User> other_user, //todo: make not optional
     std::optional<int> member_count
     ) {
-  crow::json::wvalue json;
+  nlohmann::json json;
   json["id"] = chat.id;
   json["type"] = chat.is_group ? "group" : "private";
 
@@ -139,14 +55,130 @@ crow::json::wvalue ChatController::buildChatJson(
   return json;
 }
 
-void ChatController::getChat(const crow::request& req, crow::response& res, long long chat_id) {
-  auto user_id = authorizeUser(req, res);
-  if (!user_id) return;
+}  //namespace
 
-  auto chat_opt = manager_->getChatById(chat_id);
+
+ChatController::ChatController(IChatManager* manager,
+                       NetworkFacade* network_facade, IConfigProvider* provider)
+    : manager_(manager), network_facade_(network_facade), provider_(provider) {
+  AutoritizerProvider::set(std::make_shared<RealAutoritizer>());
+}
+
+Response ChatController::createPrivateChat(const RequestDTO& req) {
+  auto my_id = autoritize(req.token);
+  if (!my_id) {
+    return sendResponse(provider_->statusCodes().unauthorized,
+                        formErrorResponce(provider_->issueMessages().invalidToken));
+  }
+
+  auto body = crow::json::load(req.body);
+  if (!body || !body.has("user_id")) {
+    if(!body) LOG_ERROR("Invalid body");
+    else LOG_ERROR("Missing 'user_id' value");
+    return sendResponse(provider_->statusCodes().userError,
+                        formErrorResponce("Missing user_id value"));
+  }
+
+  auto user_id = [body]() -> std::optional<long long> {
+    if (body["user_id"].t() == crow::json::type::String) {
+      return std::stoll(body["user_id"].s());
+    }
+
+    if (body["user_id"].t() == crow::json::type::Number) {
+      return static_cast<long long>(body["user_id"].d());
+    }
+
+    return std::nullopt;
+  }();
+
+  if(!user_id) {
+    LOG_ERROR("Can't get 'user_id' from json");
+    return sendResponse(provider_->statusCodes().badRequest,
+                        formErrorResponce("User_id invalid"));
+  }
+
+  LOG_INFO("Create private chat with {} and user {}", *my_id, *user_id);
+  optional<User> user    = getUserById(*user_id);
+
+  if (!user) {
+    LOG_ERROR("User with id {} not found", *user_id);
+    return sendResponse(provider_->statusCodes().userError,
+                        formErrorResponce(provider_->issueMessages().userNotFound));
+  }
+
+  LOG_INFO("User finded {}", nlohmann::json(user).dump());
+
+  std::optional<long long> chat_id = manager_->createPrivateChat(*my_id, *user_id);
+  if (!chat_id) {
+    LOG_ERROR("Failed to create private chat for users '{}, {}'", *my_id, *user_id);
+    return sendResponse(provider_->statusCodes().serverError,
+                        formErrorResponce("Failed to create chat"));
+  }
+
+  LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
+
+  Chat chat{.id = *chat_id, .is_group = 0 };
+  auto result = buildChatJson(chat, user, 0);
+  return sendResponse(provider_->statusCodes().success, result.dump());
+}
+
+std::optional<long long> ChatController::autoritize(const std::string& token) {
+  return AutoritizerProvider::get()->autoritize(token);
+}
+
+Response ChatController::getAllChats(const RequestDTO& req) {
+  LOG_INFO("Get all chats, req is {}", req.body);
+  auto user_id = autoritize(req.token);
+  if(!user_id) {
+    return sendResponse(provider_->statusCodes().userError,
+                        formErrorResponce(provider_->issueMessages().invalidToken));
+  }
+
+
+  auto chats = manager_->getChatsIdOfUser(*user_id);
+  LOG_INFO("For user_id {} finded {} chats", *user_id, chats.size());
+
+  crow::json::wvalue ans;
+  ans["chats"] = crow::json::wvalue::list();
+
+  int index = 0;
+
+  for (const auto& chat_id : chats) {
+    LOG_INFO("User id {} - chat_id {}", *user_id, chat_id);
+    auto [code, body] = getChat(req, std::to_string(chat_id));
+    LOG_INFO("For chat {} finded res is {}", chat_id, body);
+
+    if (code == provider_->statusCodes().success) {
+      ans["chats"][index++] = crow::json::load(body);
+    } else {
+      LOG_ERROR("[GetAllChats] Failed to retrieve chat with ID '{}'", chat_id);
+      //return sendError(res, chat_res.code, chat_res.body);
+    }
+  }
+
+  return sendResponse(provider_->statusCodes().success, ans.dump());
+}
+
+Response ChatController::getChat(const RequestDTO& req, const std::string& chat_id_str) {
+  auto user_id = autoritize(req.token);
+  if (!user_id) {
+    return sendResponse(provider_->statusCodes().unauthorized,
+                        formErrorResponce(provider_->issueMessages().invalidToken));
+  }
+
+  LOG_INFO("chat_id_str = {}", chat_id_str);
+  auto chat_id = getIdFromStr(chat_id_str);
+  if(!chat_id) {
+    return sendResponse(provider_->statusCodes().badRequest,
+                        formErrorResponce("Invaid id"));
+  }
+
+  LOG_INFO("Chat id is {}",* chat_id);
+
+  auto chat_opt = manager_->getChatById(*chat_id);
   if (!chat_opt) {
-    sendError(res, provider_->statusCodes().userError, "Chat not found");
-    return;
+    return sendResponse(provider_->statusCodes().userError,
+                      formErrorResponce("Chat not found"));
   }
 
   const auto& chat = *chat_opt;
@@ -154,66 +186,58 @@ void ChatController::getChat(const crow::request& req, crow::response& res, long
     auto count = manager_->getMembersCount(chat.id);
 
     if (count <= 0) {
-      return sendError(res, provider_->statusCodes().serverError,
-                       "Failed to retrieve group member count");
+      return sendResponse(provider_->statusCodes().serverError,
+                       formErrorResponce("Failed to retrieve group member count"));
     }
 
     auto chat_json = buildChatJson(chat, std::nullopt, count);
-    return sendResponse(res, provider_->statusCodes().success, chat_json.dump());
+    return sendResponse(provider_->statusCodes().success, chat_json.dump());
   }
 
   auto other_user_id = manager_->getOtherMemberId(chat.id, *user_id);
   if (!other_user_id) {
-    return sendError(res, provider_->statusCodes().notFound,
-                     "Other user not found for this chat");
+    return sendResponse(provider_->statusCodes().notFound,
+                     formErrorResponce("Other user not found for this chat"));
   }
 
   auto other_user = getUserById(*other_user_id);
   if (!other_user) {
-    return sendError(res, provider_->statusCodes().badRequest,
-                     "User profile not found");
+    return sendResponse(provider_->statusCodes().badRequest,
+                     formErrorResponce("User profile not found"));
   }
 
   auto chat_json = buildChatJson(chat, other_user, std::nullopt);
-  sendResponse(res, provider_->statusCodes().success, chat_json.dump());
+  sendResponse(provider_->statusCodes().success, chat_json.dump());
 }
 
-void ChatController::sendError(crow::response& res, int status, const std::string& message) {
-  LOG_ERROR(message);
-  // crow::json::wvalue json;
-  // json["success"] = false;
-  // json["error"] = message;
-  sendResponse(res, status, message);
-}
-
-std::optional<long long> ChatController::authorizeUser(const crow::request& req, crow::response& res) { //TODO: extract from here crow::response& res
-  auto user_id = autoritize(req);
-  if (!user_id) {
-    LOG_ERROR("[GetChat] Can't verify token");
-    sendResponse(res, provider_->statusCodes().userError, provider_->issueMessages().invalidToken);
+Response ChatController::getAllChatMembers(const RequestDTO& /*req*/, const std::string& chat_id_str) {
+  LOG_INFO("chat_id_str = {}", chat_id_str);
+  std::optional<long long> chat_id = getIdFromStr(chat_id_str);
+  if(!chat_id) {
+    return sendResponse(provider_->statusCodes().badRequest,
+                        formErrorResponce("Invalid id"));
   }
-  return user_id;
-}
 
-void ChatController::getAllChatMembers(const crow::request& /*req*/, crow::response& res, long long chat_id) {
-  auto list_of_members = manager_->getMembersOfChat(chat_id);
+  LOG_INFO("Chat id is {}", *chat_id);
+
+  auto list_of_members = manager_->getMembersOfChat(*chat_id);
   if (list_of_members.empty()) {
     LOG_ERROR("[GetAllChatsMembers] Error in db.getMembersOfChat");
-    sendResponse(res, provider_->statusCodes().serverError, "Error in db.getMembersOfChat");
-    return;
+    return sendResponse(provider_->statusCodes().serverError,
+                        formErrorResponce("Error in db.getMembersOfChat"));
   }
 
-  LOG_INFO("Db return '{}' members for chat '{}'", list_of_members.size(), chat_id);
+  LOG_INFO("Db return '{}' members for chat '{}'", list_of_members.size(), *chat_id);
   crow::json::wvalue ans;
   ans["members"] = crow::json::wvalue::list();
 
   int i = 0;
   for (auto member_id : list_of_members) {
-    LOG_INFO("ChatId '{}' - member '{}'", chat_id, member_id);
+    LOG_INFO("ChatId '{}' - member '{}'", *chat_id, member_id);
     ans["members"][i++] = member_id;
   }
 
-  sendResponse(res, provider_->statusCodes().success, ans.dump());
+  return sendResponse(provider_->statusCodes().success, ans.dump());
 }
 
 std::optional<User> ChatController::getUserById(long long id) {

@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
   // if(!server.generateKeys()) {
   //   qFatal("Cannot generate keys");
   // }
-
+  server.initRoutes();
   server.run();
 
   return 0;

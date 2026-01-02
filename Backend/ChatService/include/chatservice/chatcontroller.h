@@ -1,8 +1,6 @@
 #ifndef CHATCONTROLLER_H
 #define CHATCONTROLLER_H
 
-#include <crow.h>
-
 #include "ProdConfigProvider.h"
 
 class NetworkFacade;
@@ -10,23 +8,26 @@ class IConfigProvider;
 class IChatManager;
 class User;
 class Chat;
+class RequestDTO;
+
+using StatusCode = int;
+using ResponceBody = std::string;
+using Response = std::pair<StatusCode, ResponceBody>;
 
 class ChatController {
  public:
   ChatController(IChatManager* manager,
               NetworkFacade* network_facade, IConfigProvider* provider = &ProdConfigProvider::instance());
-  void createPrivateChat(const crow::request& req, crow::response& res);
-  void getAllChats(const crow::request& req, crow::response& res);
-  void getChat(const crow::request& req, crow::response& res, long long chat_id);
-  void getAllChatMembers(const crow::request& req, crow::response& res, long long chat_id);
+
+  Response createPrivateChat(const RequestDTO& req);
+  Response getAllChats(const RequestDTO& req);
+  Response getChat(const RequestDTO& req, const std::string& chat_id_str);
+  Response getAllChatMembers(const RequestDTO& req, const std::string& chat_id_str);
 
  private:
-  std::optional<long long> authorizeUser(const crow::request& req, crow::response& res);
-  void sendError(crow::response& res, int status, const std::string& message);
-  crow::json::wvalue buildChatJson(const Chat& chat, const std::optional<User> other_user,
-                                   std::optional<int> member_count);
+  std::optional<long long> authorizeUser(const RequestDTO& req);
   virtual std::optional<User> getUserById(long long id);
-  std::optional<long long>  autoritize(const crow::request& req);
+  std::optional<long long>  autoritize(const std::string& token);
 
   IChatManager*     manager_;
   NetworkFacade* network_facade_;
