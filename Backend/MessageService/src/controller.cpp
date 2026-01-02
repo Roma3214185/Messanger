@@ -221,3 +221,15 @@ Responce Controller::deleteMessage(const RequestDTO& request_pack, const std::st
 
   return std::make_pair(200, nlohmann::json(*message_to_delete).dump());
 }
+
+std::vector<MessageStatus> Controller::getReadedMessageStatuses(long long message_id) {
+  return manager_->getReadedMessageStatuses(message_id);
+}
+
+Responce Controller::getMessageById(long long message_id) {
+  LOG_INFO("getMessageById {}", message_id);
+  auto message_opt = manager_->getMessage(message_id);
+  if(!message_opt) return std::make_pair(404, formErrorResponce("Not found"));
+  return std::make_pair(200, nlohmann::json(*message_opt).dump());
+
+}

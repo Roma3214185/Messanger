@@ -28,6 +28,14 @@ struct MockController : public IController {
    Responce deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str) override {
      return mock_responce;
    }
+
+   std::vector<MessageStatus> getReadedMessageStatuses(long long message_id) override {
+     return mock_messages_status;
+   }
+
+   Responce getMessageById(long long message_id) override {
+     return mock_responce;
+   }
 };
 
 #endif // MOCKCONTROLLER_H

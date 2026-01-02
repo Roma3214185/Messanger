@@ -23,6 +23,7 @@ class Server {
   virtual void onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res);
   void handleGetMessagesFromChat();
   void handleRoutes();
+  void handleGetMessage();
   virtual OptionalId getUserIdFromToken(const std::string& token);
   void handleUpdateMessage();
   void handleDeleteMessage();

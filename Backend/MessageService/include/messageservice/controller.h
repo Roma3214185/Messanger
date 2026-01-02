@@ -29,6 +29,9 @@ class Controller : public IController {
   Responce updateMessage(const RequestDTO& request_pack, const std::string& message_id_str) override;
   Responce deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str) override;
 
+  std::vector<MessageStatus> getReadedMessageStatuses(long long message_id) override;
+  Responce getMessageById(long long message_id) override;
+
  protected:
   void subscribeToSaveMessage();
   void subscribeToSaveMessageStatus();

@@ -25,6 +25,7 @@ class MessageManager {
   std::vector<MessageStatus>   getMessagesStatus(const std::vector<Message>& messages, long long receiver_id);
   [[nodiscard]] bool updateMessage(const Message& message);
   [[nodiscard]] bool deleteMessage(const Message& message);
+  std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
 
  private:
   ICacheService&          cache_;
