@@ -44,20 +44,10 @@ void NotificationManager::subscribeMessageSaved() {
   mq_client_->subscribe(request,
                         [this, rout_config](const std::string& event, const std::string& payload){
                           LOG_INFO("Subscribe save message received message to save: event {} and payload {}", event, payload);
-                          if (event == rout_config.messageSaved)
-                            handleMessageSaved(payload);
-                          //else if(event == rout_config.messageStatusSaved)
-                          //  handleMessageStatusSaved(payload);
-                          else
-                            LOG_ERROR("Invalid event");
+                          onMessageSaved(payload);
                         });
 }
 
-void NotificationManager::handleMessageSaved(const std::string& payload) {
-  auto parsed = parsePayload<Message>(payload);
-  if (!parsed) return;
-  onMessageSaved(*parsed);
-}
 
 void NotificationManager::subscribeMessageDeleted() {
   const auto& rout_config = provider_->routes();
@@ -104,11 +94,6 @@ void NotificationManager::handleOnMessageDeleted(const std::string& payload) {
   }
 }
 
-//delete
-void NotificationManager::notifyMessageRead(long long chat_id, const MessageStatus& status_message) {}
-
-void NotificationManager::notifyNewMessages(Message& message, long long user_id) {}
-
 void NotificationManager::deleteConnections(const SocketPtr& socket) {
   socket_manager_->deleteConnections(socket);
 }
@@ -116,15 +101,6 @@ void NotificationManager::deleteConnections(const SocketPtr& socket) {
 void NotificationManager::userConnected(long long user_id, SocketPtr socket) {
   socket_manager_->saveConnections(user_id, socket);
   // notify users who communicate with this user
-}
-
-void NotificationManager::onMarkReadMessage(Message& message, long long read_by) {
-  const MessageStatus message_status{.message_id  = message.id,
-                                     .receiver_id = read_by,
-                                     .is_read     = true};
-
-  // manager.saveMessageStatus(status);
-  notifyMessageRead(message.id, message_status);
 }
 
 void NotificationManager::onSendMessage(Message& message) {
@@ -163,7 +139,11 @@ void NotificationManager::onMessageStatusSaved(const std::string& payload) {
   }
 }
 
-void NotificationManager::onMessageSaved(Message& saved_message) {
+void NotificationManager::onMessageSaved(const std::string& payload) {
+  auto parsed = parsePayload<Message>(payload);
+  if (!parsed) return;
+  Message saved_message = *parsed;
+
   auto members_of_chat = fetchChatMembers(saved_message.chat_id);
   LOG_INFO("For chat id '{}' finded '{}' members", saved_message.chat_id, members_of_chat.size());
   LOG_INFO("Received saved message {}", nlohmann::json(saved_message).dump());
@@ -183,8 +163,6 @@ void NotificationManager::saveMessageStatus(MessageStatus& status) {
     .exchange_type = provider_->routes().exchangeType
   });
 }
-
-void NotificationManager::onUserSaved() {}
 
 std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {
   return network_facade_.chat().getMembersOfChat(chat_id);

@@ -17,17 +17,17 @@ class RequestDTO;
 
 using StatusCode = int;
 using ResponceBody = std::string;
-using Responce = std::pair<StatusCode, ResponceBody>;
+using Response = std::pair<StatusCode, ResponceBody>;
 
 class Controller {
  public:
   Controller(IRabitMQClient* mq_client,
               MessageManager* manager, IThreadPool* pool, IConfigProvider* provider = &ProdConfigProvider::instance());
 
-  Responce updateMessage(const RequestDTO& request_pack, const std::string& message_id_str);
-  Responce deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str);
-  Responce getMessageById(const std::string& message_id_str);
-  Responce getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str);
+  Response updateMessage(const RequestDTO& request_pack, const std::string& message_id_str);
+  Response deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str);
+  Response getMessageById(const std::string& message_id_str);
+  Response getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str);
 
  protected:
   std::vector<Message> getMessages(const GetMessagePack&);

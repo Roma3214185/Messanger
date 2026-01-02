@@ -25,38 +25,28 @@ void Server::run() {
 
 void Server::initRoutes() { handleSocketRoutes(); }
 
-void Server::handleSocketRoutes() {
+void Server::  handleSocketRoutes() {
   CROW_ROUTE(app_, "/ws")
       .websocket(&app_)
       .onopen([&](crow::websocket::connection& conn) {
         auto socket = std::make_shared<CrowSocket>(&conn);
-        {
-          std::lock_guard<std::mutex> lock(ws_mutex);
-          active_sockets.insert(socket);
-        }
-
-        crow::json::wvalue json;
-        json["type"] = "opened";
+        active_sockets_.addConnection(socket);
         LOG_INFO("Websocket is connected");
-        conn.send_text(json.dump());
+        conn.send_text(nlohmann::json{{"type", "opened"}}.dump());
       })
       .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t code) {
-        auto socket = findSocket(&conn);
+        auto socket = active_sockets_.findSocket(&conn);
         if (!socket) {
           LOG_WARN("Socket not found for onclose");
           return;
         }
 
         notification_manager_->deleteConnections(socket);
-
-        std::lock_guard<std::mutex> lock(ws_mutex);
-        active_sockets.erase(socket);
+        active_sockets_.deleteConnection(socket);
         LOG_INFO("WebSocket disconnected: '{}' code {}", reason, code);
-
-
       })
       .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool /*is_binary*/) {
-        auto socket = findSocket(&conn); // use the existing wrapper
+        auto socket = active_sockets_.findSocket(&conn); // use the existing wrapper
         if (!socket) {
           LOG_ERROR("Socket not found for onmessage");
           return;
@@ -85,20 +75,5 @@ void Server::handleSocketOnMessage(const std::shared_ptr<ISocket>& socket, const
   } else {
     LOG_ERROR("Type isn't valid {}", type);
   }
-}
-
-SocketPtr Server::findSocket(crow::websocket::connection* conn) {
-  {
-    std::lock_guard<std::mutex> lock(ws_mutex);
-    for (auto& socket : active_sockets) {
-      if (auto crowSocket = std::dynamic_pointer_cast<CrowSocket>(socket)) {
-        if (crowSocket->isSameAs(conn)) {
-          return socket;
-        }
-      }
-    }
-  }
-
-  return nullptr; // not found
 }
 

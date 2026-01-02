@@ -38,7 +38,7 @@ std::optional<long long> getIdFromStr(const std::string& str) {
   }
 }
 
-std::string formErrorResponce(const std::string& error_text){
+std::string formErrorResponse(const std::string& error_text){
   return nlohmann::json{
       {"error", error_text}
     }.dump();
@@ -189,10 +189,10 @@ std::optional<long long> Controller::getUserIdFromToken(const std::string& token
   return JwtUtils::verifyTokenAndGetUserId(token);
 }
 
-Responce Controller::updateMessage(const RequestDTO& request_pack, const std::string& message_id_str) {
+Response Controller::updateMessage(const RequestDTO& request_pack, const std::string& message_id_str) {
   auto id_opt = getIdFromStr(message_id_str);
   if(!id_opt){
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce("Invalid id"));
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid id"));
   }
 
   long long message_id = *id_opt;
@@ -200,7 +200,7 @@ Responce Controller::updateMessage(const RequestDTO& request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if(!optional_user_id){
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce(provider_->issueMessages().invalidToken));
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse(provider_->issueMessages().invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -209,21 +209,21 @@ Responce Controller::updateMessage(const RequestDTO& request_pack, const std::st
   //check if u have access to update this message (update only curr user)
   std::optional<Message> message_to_update = manager_->getMessage(message_id);
   if(!message_to_update) {
-    return std::make_pair(provider_->statusCodes().notFound, formErrorResponce("Message to update not found"));
+    return std::make_pair(provider_->statusCodes().notFound, formErrorResponse("Message to update not found"));
   }
 
   if(message_to_update->sender_id != current_user_id) {
-    return std::make_pair(provider_->statusCodes().conflict, formErrorResponce("U have no permission to update this message"));
+    return std::make_pair(provider_->statusCodes().conflict, formErrorResponse("U have no permission to update this message"));
   }
 
   std::optional<Message> updated_message = parsePayload<Message>(request_pack.body);
   if(!updated_message) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce("Invalid data"));
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid data"));
   }
 
   //todo: check invariants of updated_message;
   if(!manager_->saveMessage(*updated_message)) {
-    return std::make_pair(provider_->statusCodes().serverError, formErrorResponce("Error while saving"));
+    return std::make_pair(provider_->statusCodes().serverError, formErrorResponse("Error while saving"));
   }
 
   PublishRequest request;
@@ -236,17 +236,17 @@ Responce Controller::updateMessage(const RequestDTO& request_pack, const std::st
   return std::make_pair(200, nlohmann::json(*updated_message).dump());
 }
 
-Responce Controller::deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str) {
+Response Controller::deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str) {
   auto id_opt = getIdFromStr(message_id_str);
   if(!id_opt){
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce("Invalid id"));
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid id"));
   }
 
   long long message_id = *id_opt;
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if(!optional_user_id){
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce(provider_->issueMessages().invalidToken));
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse(provider_->issueMessages().invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -254,15 +254,15 @@ Responce Controller::deleteMessage(const RequestDTO& request_pack, const std::st
 
   std::optional<Message> message_to_delete = manager_->getMessage(message_id);
   if(!message_to_delete) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce("Invalid data"));
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid data"));
   }
 
   if(message_to_delete->sender_id != current_user_id) { //in future permission will be in admins of the group chat
-    return std::make_pair(provider_->statusCodes().conflict, formErrorResponce("U have no permission to update this message"));
+    return std::make_pair(provider_->statusCodes().conflict, formErrorResponse("U have no permission to update this message"));
   }
 
   if(!manager_->deleteMessage(*message_to_delete)) {
-    return std::make_pair(provider_->statusCodes().serverError, formErrorResponce("Error while saving"));
+    return std::make_pair(provider_->statusCodes().serverError, formErrorResponse("Error while saving"));
   }
 
   PublishRequest request;
@@ -280,25 +280,25 @@ std::vector<MessageStatus> Controller::getReadedMessageStatuses(long long messag
   return manager_->getReadedMessageStatuses(message_id);
 }
 
-Responce Controller::getMessageById(const std::string& message_id_str) {
+Response Controller::getMessageById(const std::string& message_id_str) {
   LOG_INFO("getMessageById {}", message_id_str);
 
   std::optional<long long> message_id = getIdFromStr(message_id_str);
-  if(!message_id) return std::make_pair(400, formErrorResponce("Invalid message_id"));
+  if(!message_id) return std::make_pair(400, formErrorResponse("Invalid message_id"));
   auto message_opt = manager_->getMessage(*message_id);
   return message_opt ? std::make_pair(200, nlohmann::json(*message_opt).dump())
-                    : std::make_pair(404, formErrorResponce("Not found")) ;
+                    : std::make_pair(404, formErrorResponse("Not found")) ;
 }
 
-Responce Controller::getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str) {
+Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str) {
   std::optional<long long> user_id = getUserIdFromToken(request_pack.token);
   if(!user_id) {
-    return std::make_pair(provider_->statusCodes().userError, formErrorResponce(provider_->issueMessages().invalidToken));
+    return std::make_pair(provider_->statusCodes().userError, formErrorResponse(provider_->issueMessages().invalidToken));
   }
 
   std::optional<long long> chat_id = getIdFromStr(chat_id_str);
   if(!chat_id) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce("Invalid chat_id"));
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid chat_id"));
   }
 
   const GetMessagePack pack {.chat_id = *chat_id, .limit = getLimit(request_pack),
@@ -308,7 +308,7 @@ Responce Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
   auto messages_status = getMessagesStatus(messages, *user_id);
   auto json_messages = formMessageListJson(messages, messages_status);
   //auto messages_status_readed = fetchReaded(messages_status);
-  //UserMessage responce
+  //UserMessage Response
 
   //i need to return std::vector<UserMessage>
   std::vector<UserMessage> ans;
