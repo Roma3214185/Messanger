@@ -10,7 +10,9 @@
 #include "ProdConfigProvider.h"
 
 struct AuthMiddleware {
-    struct context {};
+    struct context {
+        long long user_id = -1;
+    } cont;
     IVerifier* verifier_;
     IConfigProvider* provider = &ProdConfigProvider::instance();
 
@@ -22,7 +24,9 @@ struct AuthMiddleware {
       if(!needToAuth(req.url)) return;
 
       auto token = fetchToken(req);
-      if(verifier_->verifyTokenAndGetUserId(token)) {
+      std::optional<long long> id = verifier_->verifyTokenAndGetUserId(token);
+      if(id) {
+        cont.user_id = *id;
         return;
       }
 
