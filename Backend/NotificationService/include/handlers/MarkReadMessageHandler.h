@@ -8,32 +8,19 @@ class MarkReadMessageHandler : public IMessageHandler {
     void handle(const crow::json::rvalue& message,
                 const std::shared_ptr<ISocket>& socket,
                 NotificationManager& manager) override {
-
-      LOG_INFO("Try get user_id");
-      auto read_by = [message]() -> std::optional<long long> {
-        if (!message.has("readed_by")) {
-          LOG_ERROR(" No readed_by");
-          return std::nullopt;
-        }
-
-        if (message["readed_by"].t() == crow::json::type::String) {
-          return std::stoll(message["readed_by"].s());
-        }
-
-        if (message["readed_by"].t() == crow::json::type::Number) {
-          return static_cast<long long>(message["readed_by"].d());
-        }
-
-        LOG_ERROR("Unexpected type of field 'readed_by'");
-        return std::nullopt;
-      }();
-
-      if(!read_by) return;
-
-      auto msg = utils::entities::from_crow_json(message);
-      manager.onMarkReadMessage(msg, *read_by);
-      LOG_INFO("[mark_read] Message marked read by {}", *read_by);
+      long long read_by = static_cast<long long>(message["readed_by"].d());
+      long long message_id = static_cast<long long>(message["message_id"].d());
+      MessageStatus message_status;
+      //todo: check if this user is member of chat in message service
+      message_status.is_read = true;
+      message_status.message_id = message_id;
+      message_status.receiver_id = read_by;
+      message_status.read_at = getCurrentTime();
+      manager.saveMessageStatus(message_status);
+      LOG_INFO("[mark_read] Message marked read {}", nlohmann::json(message_status).dump());
     }
 };
+
+//todo: now will be bug: 2 times saved read_message, offline and online, i think i need skip if my_id == read_by
 
 #endif // MARKREADMESSAGEHANDLER_H
