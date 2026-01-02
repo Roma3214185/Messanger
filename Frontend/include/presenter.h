@@ -57,6 +57,7 @@ class Presenter : public QObject {
   void setCurrentChatId(long long chat_id);
   void newMessage(Message& message);
   void onNewResponce(QJsonObject& json_object);
+  void onUnreadMessage(Message& message);
 
   OptionalId          current_opened_chat_id_;
   std::optional<User>  current_user_;

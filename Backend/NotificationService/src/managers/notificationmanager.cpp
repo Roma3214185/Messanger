@@ -29,6 +29,8 @@ NotificationManager::NotificationManager(IRabitMQClient* mq_client,
     : mq_client_(mq_client), socket_manager_(sock_manager)
     , network_facade_(network_facade), provider_(provider) {
   subscribeMessageSaved();
+  subscribeMessageDeleted();
+  subscribeMessageStatusSaved();
 }
 
 void NotificationManager::subscribeMessageSaved() {
@@ -72,6 +74,21 @@ void NotificationManager::subscribeMessageDeleted() {
                         });
 }
 
+void NotificationManager::subscribeMessageStatusSaved() {
+  const auto& rout_config = provider_->routes();
+  SubscribeRequest request;
+  request.queue = rout_config.messageStatusSaved;
+  request.exchange = rout_config.exchange;
+  request.routing_key = rout_config.messageStatusSaved;
+  request.exchange_type = rout_config.exchangeType;
+
+  mq_client_->subscribe(request,
+                        [this, rout_config](const std::string& event, const std::string& payload){
+                          LOG_INFO("Subscribe on message status saved received: event {} and payload {}", event, payload);
+                          onMessageStatusSaved(payload);
+                        });
+}
+
 void NotificationManager::handleOnMessageDeleted(const std::string& payload) {
   auto parsed = parsePayload<Message>(payload);
   if (!parsed) return;
@@ -87,6 +104,7 @@ void NotificationManager::handleOnMessageDeleted(const std::string& payload) {
   }
 }
 
+//delete
 void NotificationManager::notifyMessageRead(long long chat_id, const MessageStatus& status_message) {}
 
 void NotificationManager::notifyNewMessages(Message& message, long long user_id) {}
@@ -124,7 +142,26 @@ void NotificationManager::onSendMessage(Message& message) {
   });
 }
 
-void NotificationManager::onMessageStatusSaved() {}
+void NotificationManager::onMessageStatusSaved(const std::string& payload) {
+  auto parsed = parsePayload<MessageStatus>(payload);
+  if (!parsed) return;
+
+  MessageStatus message_status = *parsed;
+  //get chat_id by message_id;
+  std::optional<long long> chat_id = getChatIdOfMessage(message_status.message_id);
+  if(!chat_id) {
+    LOG_ERROR("Chat id for message {} not founded", message_status.message_id);
+    return;
+  }
+  auto members_of_chat = fetchChatMembers(*chat_id);
+  LOG_INFO("For chat id '{}' finded '{}' members", *chat_id, members_of_chat.size());
+  LOG_INFO("Received saved message status {}", nlohmann::json(message_status).dump());
+
+  for (auto user_id : members_of_chat) {
+    LOG_INFO("{} is member of chat {}", user_id, *chat_id);
+    notifyMember(user_id, message_status, "read_message");
+  }
+}
 
 void NotificationManager::onMessageSaved(Message& saved_message) {
   auto members_of_chat = fetchChatMembers(saved_message.chat_id);
@@ -133,7 +170,7 @@ void NotificationManager::onMessageSaved(Message& saved_message) {
 
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, saved_message.chat_id);
-    saveDeliveryStatus(saved_message, user_id);
+    saveDeliveryStatus(saved_message, user_id); //todo: this must be in message service when i save message
     notifyMember(user_id, saved_message, "new_message");
   }
 }
@@ -153,25 +190,23 @@ std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {
   return network_facade_.chat().getMembersOfChat(chat_id);
 }
 
-bool NotificationManager::notifyMember(long long user_id, const Message& msg, const std::string& type) { //todo: implement map
+bool NotificationManager::notifyMember(long long user_id, nlohmann::json json_message, const std::string type) { //todo: implement enum
   auto socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {
     LOG_INFO("User {} offline", user_id);
     return false;
   }
-  LOG_INFO("User {} online, send message: {}", user_id, msg.text);
 
-  auto json_message = nlohmann::json(msg);
-  json_message["type"] = type;
-
+  LOG_INFO("User {} online, type {} and send message: {}", user_id, type, json_message.dump());
+  json_message["type"] = std::move(type);
   socket->send_text(json_message.dump());
-  LOG_INFO("Sent message {} to user {}", msg.id, user_id);
+  LOG_INFO("Sent message {} to user {}", json_message.dump(), user_id);
 
   return true;
 }
 
-void NotificationManager::saveDeliveryStatus(const Message& msg, long long receiver_id) {
+void NotificationManager::saveDeliveryStatus(const Message& msg, long long receiver_id) { //todo: delete this
   LOG_INFO("saveDeliveryStatus message {} for receiver id {}", nlohmann::json(msg).dump(), receiver_id);
   MessageStatus status;
   status.message_id  = msg.id;
@@ -180,4 +215,9 @@ void NotificationManager::saveDeliveryStatus(const Message& msg, long long recei
 
   LOG_INFO("saveDeliveryStatus message_status {} for receiver id {}", nlohmann::json(status).dump(), receiver_id);
   saveMessageStatus(status);
+}
+
+std::optional<long long> NotificationManager::getChatIdOfMessage(long long message_id) {
+  DBC_REQUIRE(message_id > 0);
+  return network_facade_.msg().getChatIdOfMessage(message_id);
 }

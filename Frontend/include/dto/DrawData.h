@@ -15,6 +15,7 @@ struct MessageDrawData {
   bool    is_mine;
   bool    is_sended;
   bool    is_readed;
+  int     read_cnt;
 };
 
 struct UserDrawData {

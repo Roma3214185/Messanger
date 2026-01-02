@@ -12,10 +12,20 @@ void MessageDelegate::paint(QPainter*                   painter,
     return;
   }
 
+  auto message = [&]() -> Message {
+    auto value_message = index.data(MessageModel::FullMessage);
+    if (value_message.canConvert<Message>()) {
+      return value_message.value<Message>();
+    }
+
+    throw std::runtime_error("Message in invalid in extractMessageData");
+  }();
+
   painter->save();
-  auto draw_message_data     = extractMessageData(index);
+  auto draw_message_data = extractMessageData(message);
   const bool is_mine = draw_message_data.sender_id == draw_message_data.receiver_id;
   drawAll(painter, option, draw_message_data, is_mine);
+  if(draw_message_data.is_readed == false) Q_EMIT unreadMessage(message);
   painter->restore();
 }
 
@@ -127,16 +137,7 @@ void MessageDelegate::drawTimestamp(QPainter*      painter,
                     timestamp);
 }
 
-MessageDrawData MessageDelegate::extractMessageData(const QModelIndex& index) const {
-  auto message = [&]() -> Message {
-    auto value_message = index.data(MessageModel::FullMessage);
-    if (value_message.canConvert<Message>()) {
-      return value_message.value<Message>();
-    }
-
-    throw std::runtime_error("Message in invalid in extractMessageData");
-  }();
-
+MessageDrawData MessageDelegate::extractMessageData(const Message& message) const {
   auto user = [&]() -> User {
     std::optional<User> getted_user = data_manager_->getUser(message.sender_id);
     if(getted_user) {
@@ -155,8 +156,9 @@ MessageDrawData MessageDelegate::extractMessageData(const QModelIndex& index) co
   data.timestamp   = message.timestamp.toString("hh:mm dd.MM");
   data.sender_id   = message.sender_id;
   data.receiver_id = token_manager_->getCurrentUserId();
-  data.is_sended   = index.data(MessageModel::SendedStatusRole).toBool();
-  data.is_readed   = false;
+  data.is_sended   = message.status_sended;
+  data.is_readed   = message.readed_by_me;
+  data.read_cnt    = message.read_counter;
   return data;
 }
 
@@ -171,6 +173,7 @@ void MessageDelegate::drawAll(QPainter*                   painter,
   drawTimestamp(painter, rect, msg.timestamp, is_mine);
   drawText(painter, rect, msg.text, is_mine);
   drawStatus(painter, rect, msg, is_mine);
+  drawReadCounter(painter, rect, msg.read_cnt, is_mine);
 }
 
 void MessageDelegate::drawStatus(QPainter*              painter,
@@ -197,5 +200,40 @@ void MessageDelegate::drawStatus(QPainter*              painter,
   painter->save();
   painter->setPen(QPen(Qt::gray));
   painter->drawText(position, status_symbol());
+  painter->restore();
+}
+
+void MessageDelegate::drawReadCounter(QPainter* painter,
+                    const QRect& rect,
+                    const int read_cnt,
+                    bool is_mine) const {
+  constexpr int kSize = 15;
+
+  constexpr int kTopOffset  = 5;
+  constexpr int kLeftOffset = 10;
+
+  const int x = is_mine
+                    ? rect.left() + kLeftOffset / 2
+                    : rect.right() - 4 * kLeftOffset;
+
+  const int y = is_mine
+                    ? rect.bottom() - kTopOffset * 2
+                    : rect.top() + kTopOffset;
+
+  QRect circle_rect(x, y, kSize, kSize);
+  painter->save();
+
+  painter->setBrush(Qt::gray);
+  painter->setPen(Qt::NoPen);
+  painter->drawEllipse(circle_rect);
+
+  QFont font = painter->font();
+  font.setPixelSize(kSize - 4);
+  font.setBold(true);
+  painter->setFont(font);
+
+  painter->setPen(Qt::white);
+  painter->drawText(circle_rect, Qt::AlignCenter, QString::number(read_cnt));
+
   painter->restore();
 }

@@ -32,10 +32,10 @@ class NotificationManager {
   virtual void userConnected(long long user_id, SocketPtr conn);
   void saveMessageStatus(MessageStatus& status);
   void saveDeliveryStatus(const Message& msg, long long receiver_id);
-  bool notifyMember(long long user_id, const Message& msg, const std::string& type);
+  bool notifyMember(long long user_id, nlohmann::json json_message, const std::string type);
   virtual void onMarkReadMessage(Message& message, long long read_by);
   virtual void onSendMessage(Message& message);
-  virtual void onMessageStatusSaved();
+  virtual void onMessageStatusSaved(const std::string& payload);
   virtual void onMessageSaved(Message& message);
   virtual void onUserSaved();
   virtual void handleMessageSaved(const std::string& payload);
@@ -45,6 +45,8 @@ class NotificationManager {
  protected:
   std::vector<long long> fetchChatMembers(long long chat_id);
   void subscribeMessageSaved();
+  void subscribeMessageStatusSaved();
+  std::optional<long long> getChatIdOfMessage(long long message_id);
 };
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_

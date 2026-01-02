@@ -37,38 +37,46 @@ inline auto getUserFromResponse(const QJsonObject& res) -> User {
 }
 
 inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
-  auto msg = Message{
-    .id = obj["id"].toInteger(),
-    .sender_id = obj["sender_id"].toInteger(),
-    .chat_id = obj["chat_id"].toInteger(),
-    .text =   obj["text"].toString(),
-    .timestamp =   QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger()),
-    .readed_by_me =  obj["readed_by_me"].toBool(false),
-    .liked_by_me =  false,
-    .read_counter =  0,
-    .liked_counter =  0,
-    .status_sended =   true,
-    .local_id =   obj["local_id"].toString()
-  };
+  Message msg;
+  if(obj.contains("id")) msg.id = obj["id"].toInteger();
+  if(obj.contains("sender_id")) msg.sender_id = obj["sender_id"].toInteger();
+  if(obj.contains("chat_id")) msg.chat_id = obj["chat_id"].toInteger();
+  if(obj.contains("text")) msg.text =   obj["text"].toString();
+  if(obj.contains("timestamp")) msg.timestamp =   QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
+  if(obj.contains("local_id")) msg.local_id =   obj["local_id"].toString();
+  if(obj.contains("read")) {
+    const QJsonObject& read = obj["read"].toObject();
+    if(read.contains("read_by_me")) msg.readed_by_me = read["read_by_me"].toBool();
+    if(read.contains("count")) msg.read_counter = read["count"].toInt();
+  }
 
-  spdlog::info(msg.toString());
+  msg.liked_counter =  0;
+  msg.status_sended =   true;
+
+  spdlog::info("[JSON] {}", msg.toString());
   return msg;
 }
 
 inline auto toJson(const Message& msg) -> QJsonObject {
-  return QJsonObject{
-      {"id", msg.id},
-      {"sender_id", msg.sender_id},
-      {"chat_id", msg.chat_id},
-      {"text", msg.text},
-      {"timestamp", msg.timestamp.toSecsSinceEpoch()},
-      {"readed_by_me", msg.readed_by_me},
-      {"liked_by_me", msg.liked_by_me},
-      {"read_counter", msg.read_counter},
-      {"liked_counter", msg.liked_counter},
-      {"status_sended", msg.status_sended},
-      {"local_id", msg.local_id}
-  };
+  QJsonObject obj;
+  obj["id"] = msg.id;
+  obj["sender_id"] =  msg.sender_id;
+  obj["chat_id"] = msg.chat_id;
+  obj["text"] =  msg.text;
+  obj["timestamp"] = msg.timestamp.toSecsSinceEpoch();
+  obj["local_id"] = msg.local_id;
+
+  QJsonObject readObj;
+  readObj["read_by_me"] = msg.readed_by_me;
+  readObj["count"] = msg.read_counter;
+  obj["read"] = readObj;
+
+  //QJsonObject reactionsObj;
+  //reactionsObj["counts"] = ...;
+  //reactionsObj["my_reaction"] = ...;  // int or null
+  //obj["reactions"] = reactionsObj;
+  //obj["status_sended"] = msg.status_sended;
+  return obj;
 }
 
 inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
@@ -109,3 +117,46 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
 }  // namespace JsonService
 
 #endif  // JSONSERVER_H
+
+
+// static void to_json(nlohmann::json& j, const UserMessage& m) {
+//   j = nlohmann::json(m.message);
+//   j["read"] = {
+//       {"count", m.read.count},
+//       {"read_by_me", m.read.read_by_me}
+//   };
+
+//   j["reactions"]["counts"] = m.reactions.counts;
+
+//   if (m.reactions.my_reaction.has_value())
+//     j["reactions"]["my_reaction"] = *m.reactions.my_reaction;
+//   else
+//     j["reactions"]["my_reaction"] = nullptr;
+// }
+
+// static void from_json(const nlohmann::json& j, UserMessage& m) {
+//   j.at("message").get_to(m.message);
+
+//   if(j.contains("read")) {
+//     if (j["read"].contains("read_by_me")) j["read"].at("read_by_me").get_to(m.read.read_by_me);
+//     if (j["read"].contains("count")) j["read"].at("count").get_to(m.read.count);
+//   }
+
+//   if(j.contains("reactions")) {
+//     if (j["reactions"].contains("counts")) j["reactions"].at("counts").get_to(m.reactions.counts);
+//     if (j.contains("reactions") &&
+//         j["reactions"].contains("my_reaction") &&
+//         !j["reactions"]["my_reaction"].is_null())
+//     {
+//       m.reactions.my_reaction =
+//           j["reactions"]["my_reaction"].get<int>();
+//     }
+//     else
+//     {
+//       m.reactions.my_reaction.reset();
+//     }
+//   }
+// }
+// };
+
+// }  // namespace nlohmann

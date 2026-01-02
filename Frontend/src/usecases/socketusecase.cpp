@@ -51,3 +51,12 @@ void SocketUseCase::sendMessage(const Message& msg) {
   LOG_INFO("[sendMessage] To send message to chatId={} from user {}: '{}'",
            msg.chat_id, msg.sender_id, msg.text.toStdString());
 }
+
+void SocketUseCase::sendReadMessageEvent(const Message &message, long long current_user_id) {
+  //todo: maybe pass only id, not full Message
+  auto json = QJsonObject{{"type", "read_message"},
+                          {"message_id", message.id},
+                          {"readed_by", current_user_id}};
+
+  socket_manager_->sendText(QString(QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact))));
+}

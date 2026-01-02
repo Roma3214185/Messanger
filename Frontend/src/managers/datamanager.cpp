@@ -126,4 +126,29 @@ void DataManager::deleteMessage(const Message& msg) {
 
   Q_EMIT messageDeleted(msg);
 }
+void DataManager::readMessage(long long message_id, long long readed_by) {
+  DBC_REQUIRE(message_id > 0);
+  DBC_REQUIRE(readed_by > 0);
+  const std::lock_guard<std::mutex> lock(messages_mutex_);
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto& existing_message){
+    return existing_message.id == message_id;
+  });
+
+  if(it == messages_.end()) {
+    LOG_WARN("To read message with id {} not found", message_id); // can be if u delete message for yourself
+    return;
+  }
+
+  if(!it->readed_by_me) {
+    it->read_counter++;
+    it->readed_by_me = true;
+    LOG_INFO("{} is marked readed", it->toString());
+    Q_EMIT messageAdded(*it); // todo: rename messageChanged
+
+    //auto* model = getMessageModel(it->chat_id);
+    //model->updateMessage(*it);
+  } else {
+    LOG_INFO("{} is already marked readed", it->toString());
+  }
+}
 

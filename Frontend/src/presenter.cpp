@@ -78,6 +78,7 @@ void Presenter::initialConnections() {
   connect(manager_->session(), &SessionUseCase::userCreated, this, &Presenter::setUser);
   connect(manager_->socket(), &SocketUseCase::newResponce, this, &Presenter::onNewResponce);
   connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter::onScroll);
+  connect(message_delegate_.get(), &MessageDelegate::unreadMessage, this, &Presenter::onUnreadMessage);
 }
 
 void Presenter::onNewResponce(QJsonObject& json_object) {
@@ -276,4 +277,14 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString& prefix)
   }
 
   return ans;
+}
+
+void Presenter::onUnreadMessage(Message& message) {
+  qDebug() << "Emit onUnreadMessage";
+  DBC_REQUIRE(message.readed_by_me == false);
+  if(message.readed_by_me == true) return;
+  message.readed_by_me = true;
+  message.read_counter++;
+  manager_->dataManager()->saveMessage(message);
+  manager_->socket()->sendReadMessageEvent(message, manager_->tokenManager()->getCurrentUserId());
 }

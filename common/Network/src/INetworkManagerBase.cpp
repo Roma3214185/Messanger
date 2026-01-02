@@ -1,6 +1,7 @@
 #include "interfaces/INetworkManagerBase.h"
 
 #include <httplib.h>
+#include "Debug_profiling.h"
 
 using std::pair;
 using std::string;
@@ -22,6 +23,7 @@ pair<int, string> INetworkManagerBase::forward(
   cli.set_connection_timeout(5, 0); //todo: gateway calss to forward message -> here
 
   auto res = [&](){
+    LOG_INFO("Path in forward {}", path);
     if (method == "GET") return cli.Get(path, headers);
     if (method == "DELETE") return cli.Delete(path, headers);
     if (method == "PUT") return cli.Put(path, headers, body, "application/json");

@@ -178,10 +178,9 @@ void GatewayServer::subscribeOnNewRequest() {
                       LOG_INFO("I in subscribe with event {} and payload {}", event, payload);
     auto request_info_port = [payload]() -> std::optional<std::pair<RequestDTO, int>> {
                         try {
-                          auto json = nlohmann::json(payload);
-                          RequestDTO dto = nlohmann::json::parse(payload);
-                          const int port = json["port"];
-
+                          auto json = nlohmann::json::parse(payload);
+                          RequestDTO dto = json.get<RequestDTO>();
+                          const int port = json.at("port").get<int>();
                           return std::make_pair(dto, port);
                         } catch (const std::exception& e) {
                           LOG_ERROR("Can't parse RequestDTO from payload {}: {}", payload, e.what());

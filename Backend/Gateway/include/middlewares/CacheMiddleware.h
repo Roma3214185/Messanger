@@ -40,6 +40,7 @@ struct CacheMiddleware {
     template<typename ParentCtx>
     void after_handle(const crow::request& req, crow::response& res, context& ctx, ParentCtx&  /*unused*/) {
       if(req.method != crow::HTTPMethod::GET) return;
+      if(req.url.starts_with("/request")) return;
       auto key = makeCacheKey(req);
       cache_->set(key, res.body, std::chrono::seconds(30));
     }

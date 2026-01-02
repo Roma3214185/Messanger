@@ -17,6 +17,8 @@ class IController {
     virtual std::vector<MessageStatus> getMessagesStatus(const std::vector<Message>&, long long receiver_id) = 0;
     virtual Responce updateMessage(const RequestDTO& request_pack, const std::string& message_id_str) = 0;
     virtual Responce deleteMessage(const RequestDTO& request_pack, const std::string& message_id_str) = 0;
+    virtual Responce getMessageById(long long message_id) = 0;
+    virtual std::vector<MessageStatus> getReadedMessageStatuses(long long message_id) = 0;
 };
 
 #endif // ICONTROLLER_H

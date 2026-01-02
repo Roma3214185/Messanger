@@ -78,3 +78,13 @@ bool MessageManager::deleteMessage(const Message& message) {
   auto res = query->execute(); //todo: check res for
   return true;
 }
+
+std::vector<MessageStatus> MessageManager::getReadedMessageStatuses(long long message_id) {
+  DBC_REQUIRE(message_id > 0);
+  auto query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
+  query->where(MessageStatusTable::MessageId, message_id)
+      .where(MessageStatusTable::IsRead, 1);
+  auto res = query->execute();
+  LOG_INFO("getReadedMessageStatuses for id {} is size {} MessageStatus", message_id, res.size());
+  return res;
+}

@@ -15,7 +15,7 @@ Server::Server(int port, NotificationManager* notification_manager)
 void Server::initHanlers() {
   handlers_["init"] = std::make_unique<InitMessageHandler>();
   handlers_["send_message"] = std::make_unique<SendMessageHandler>();
-  handlers_["mark_read"] = std::make_unique<MarkReadMessageHandler>();
+  handlers_["read_message"] = std::make_unique<MarkReadMessageHandler>();
 }
 
 void Server::run() {
