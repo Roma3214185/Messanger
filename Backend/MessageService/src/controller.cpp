@@ -11,6 +11,9 @@
 #include "interfaces/IThreadPool.h"
 #include "messageservice/managers/JwtUtils.h"
 #include "entities/Message.h"
+#include "entities/UserMessage.h"
+#include "messageservice/dto/GetMessagePack.h"
+#include "entities/RequestDTO.h"
 
 namespace {
 
@@ -30,15 +33,66 @@ std::optional<long long> getIdFromStr(const std::string& str) {
   try {
     return std::stoll(str);
   } catch(...) {
-    LOG_ERROR("Error while get stool of {}", str);
+    LOG_ERROR("Error while get stoll of {}", str);
     return std::nullopt;
   }
 }
 
 std::string formErrorResponce(const std::string& error_text){
-  nlohmann::json json;
-  json["error"] = error_text;
-  return json.dump();
+  return nlohmann::json{
+      {"error", error_text}
+    }.dump();
+}
+
+int getLimit(const RequestDTO & req) {
+  auto it = req.url_params.find("limit");
+  return it != req.url_params.end()
+             ? std::stoi(it->second)
+             : INT_MAX;
+}
+
+int getBeforeId(const RequestDTO& req) {
+  auto it = req.url_params.find("before_id");
+  return it != req.url_params.end()
+             ? std::stoi(it->second)
+             : 0;
+}
+
+nlohmann::json formMessageListJson(const std::vector<UserMessage>& messages) {
+  nlohmann::json res;
+  int i   = 0;
+  for (const auto& msg : messages) {
+    res[i++] = nlohmann::json(msg);
+  }
+
+  return res;
+}
+
+crow::json::wvalue formMessageListJson(const std::vector<Message>& messages, //todo: in jsonservice
+                                               const std::vector<MessageStatus>& messages_status) {
+  crow::json::wvalue res = crow::json::wvalue::list();
+  if(messages.size() != messages_status.size()) {
+    LOG_ERROR("formMessageListJson different size of input {} vs {}",
+              messages.size(), messages_status.size());
+    return res;
+  }
+  int i   = 0;
+  for (const auto& msg : messages) {
+    auto json_object            = utils::entities::to_crow_json(msg); //todo: make all using nlohmann::json
+    json_object["readed_by_me"] = messages_status[i].is_read;
+    res[i++] = std::move(json_object);
+  }
+
+  return res;
+}
+
+std::vector<MessageStatus> fetchReaded(const std::vector<MessageStatus>& messages_status) {
+  std::vector<MessageStatus> ans;
+  for(auto &msg: messages_status) {
+    if(msg.is_read) ans.emplace_back(msg);
+  }
+
+  return ans;
 }
 
 }  // namespace
@@ -226,10 +280,54 @@ std::vector<MessageStatus> Controller::getReadedMessageStatuses(long long messag
   return manager_->getReadedMessageStatuses(message_id);
 }
 
-Responce Controller::getMessageById(long long message_id) {
-  LOG_INFO("getMessageById {}", message_id);
-  auto message_opt = manager_->getMessage(message_id);
-  if(!message_opt) return std::make_pair(404, formErrorResponce("Not found"));
-  return std::make_pair(200, nlohmann::json(*message_opt).dump());
+Responce Controller::getMessageById(const std::string& message_id_str) {
+  LOG_INFO("getMessageById {}", message_id_str);
 
+  std::optional<long long> message_id = getIdFromStr(message_id_str);
+  if(!message_id) return std::make_pair(400, formErrorResponce("Invalid message_id"));
+  auto message_opt = manager_->getMessage(*message_id);
+  return message_opt ? std::make_pair(200, nlohmann::json(*message_opt).dump())
+                    : std::make_pair(404, formErrorResponce("Not found")) ;
+}
+
+Responce Controller::getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str) {
+  std::optional<long long> user_id = getUserIdFromToken(request_pack.token);
+  if(!user_id) {
+    return std::make_pair(provider_->statusCodes().userError, formErrorResponce(provider_->issueMessages().invalidToken));
+  }
+
+  std::optional<long long> chat_id = getIdFromStr(chat_id_str);
+  if(!chat_id) {
+    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponce("Invalid chat_id"));
+  }
+
+  const GetMessagePack pack {.chat_id = *chat_id, .limit = getLimit(request_pack),
+                            .before_id = getBeforeId(request_pack), .user_id = *user_id };
+
+  auto messages = getMessages(pack);
+  auto messages_status = getMessagesStatus(messages, *user_id);
+  auto json_messages = formMessageListJson(messages, messages_status);
+  //auto messages_status_readed = fetchReaded(messages_status);
+  //UserMessage responce
+
+  //i need to return std::vector<UserMessage>
+  std::vector<UserMessage> ans;
+  for(auto& message : messages) {
+    std::vector<MessageStatus> message_statuses = getReadedMessageStatuses(message.id);
+    UserMessage user_message;
+    user_message.message = message;
+    user_message.read.count = message_statuses.size();
+
+    bool is_read_by_me = false;
+    for(auto& message_status : message_statuses) {
+      if(message_status.receiver_id == *user_id) {
+        is_read_by_me = true;
+        break;
+      }
+    }
+    user_message.read.read_by_me = is_read_by_me;
+    //todo: reactions here
+  }
+
+  return std::make_pair(provider_->statusCodes().success, json_messages.dump());
 }

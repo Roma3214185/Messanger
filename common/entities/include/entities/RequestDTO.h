@@ -15,7 +15,7 @@ struct RequestDTO {
     std::string content_type; //todo: req.get_context<AuthMiddleware>().user_id;
     std::vector<std::pair<std::string, std::string>> headers;
     std::string token;
-    std::multimap<std::string, std::string> url_params;
+    std::unordered_map<std::string, std::string> url_params;
 };
 
 
