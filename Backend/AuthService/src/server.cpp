@@ -2,8 +2,8 @@
 
 #include "Debug_profiling.h"
 #include "authservice/authmanager.h"
-#include "authservice/interfaces/IGenerator.h"
 #include "entities/RequestDTO.h"
+#include "authservice/authcontroller.h"
 
 namespace {
 
@@ -15,8 +15,8 @@ void sendResponse(crow::response& res, int code, std::string& body) {
 
 }  // namespace
 
-Server::Server(crow::SimpleApp& app, int port, AuthController* controller, IGenerator* generator)
-    : app_(app), port_(port), controller_(controller), generator_(generator) { }
+Server::Server(crow::SimpleApp& app, int port, AuthController* controller)
+    : app_(app), port_(port), controller_(controller) { }
 
 void Server::run() {
   LOG_INFO("Starting Auth Server on port '{}'", port_);
@@ -31,7 +31,7 @@ void Server::initRoutes() {
   handleLogin();
 }
 
-bool Server::generateKeys() { return generator_->generateKeys(); }
+bool Server::generateKeys() { return controller_->generateKeys(); }
 
 void Server::handleFindById() {
   CROW_ROUTE(app_, "/users/<string>")

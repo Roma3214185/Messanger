@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 
+#include "SQLiteDataBase.h"
 #include "Batcher.h"
 #include "Debug_profiling.h"
 #include "GenericRepository.h"

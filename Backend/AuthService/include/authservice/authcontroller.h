@@ -1,7 +1,6 @@
 #ifndef AUTHCONTROLLER_H
 #define AUTHCONTROLLER_H
 
-#include <crow.h>
 #include "ProdConfigProvider.h"
 
 class IAuthManager;

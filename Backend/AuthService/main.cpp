@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 
+#include "SQLiteDataBase.h"
 #include "Debug_profiling.h"
 #include "GenericRepository.h"
 #include "RedisCache.h"
@@ -39,7 +40,7 @@ int main(int argc, char* argv[]) {
   JwtGenerator generator;
   AuthController controller(&manager, &authoritizer, &generator);
   crow::SimpleApp app;
-  Server server(app, provider.ports().authService, &controller, &generator);
+  Server server(app, provider.ports().authService, &controller);
 
   // if(!server.generateKeys()) {
   //   qFatal("Cannot generate keys");

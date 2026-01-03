@@ -2,7 +2,7 @@
 #define SQLITEDATABASE_H
 
 #include "interfaces/IDataBase.h"
-#include "SQLiteQuery.h"
+#include "query/SQLiteQuery.h"
 
 #include <QSqlDatabase>
 #include <QThread>

@@ -1,13 +1,13 @@
 #ifndef AUTH_SERVICE_SERVER_H
 #define AUTH_SERVICE_SERVER_H
 
-#include "authservice/authcontroller.h"
+#include <crow.h>
 
-class IGenerator;
+class AuthController;
 
 class Server {
  public:
-  Server(crow::SimpleApp& app, int port, AuthController* controller, IGenerator* generator);
+  Server(crow::SimpleApp& app, int port, AuthController* controller);
   void initRoutes();
   void run();
   [[nodiscard]] bool generateKeys();
@@ -22,7 +22,6 @@ class Server {
   crow::SimpleApp&   app_;
   int               port_;
   AuthController*   controller_;
-  IGenerator* generator_;
 };
 
 #endif  // AUTH_SERVICE_SERVER_H
