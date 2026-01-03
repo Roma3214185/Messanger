@@ -11,7 +11,7 @@
 #include "Debug_profiling.h"
 #include "interfaces/entity.h"
 
-struct Message : public IEntity {
+struct Message final : public IEntity {
   long long   id{ 0 };
   long long   chat_id{ 0 };
   long long   sender_id{ 0 };

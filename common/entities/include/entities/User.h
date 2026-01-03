@@ -7,7 +7,7 @@
 
 #include "interfaces/entity.h"
 
-struct User : public IEntity {
+struct User final : public IEntity {
   long long id = 0;
   std::string username;
   std::string email;

@@ -8,7 +8,7 @@
 #include "Fields.h"
 #include "interfaces/entity.h"
 
-struct Chat : public IEntity {
+struct Chat final : public IEntity {
   long long   id{ 0 };
   int         is_group{ 0 };
   std::string name;

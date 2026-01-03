@@ -8,7 +8,7 @@
 
 #include "interfaces/entity.h"
 
-struct UserCredentials : public IEntity {
+struct UserCredentials final : public IEntity {
   long long   user_id{ 0 };
   std::string hash_password;
 };

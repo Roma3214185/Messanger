@@ -7,7 +7,7 @@
 #include "Fields.h"
 #include "interfaces/entity.h"
 
-struct PrivateChat : public IEntity {
+struct PrivateChat final : public IEntity {
     long long   chat_id;
     long long   first_user;
     long long   second_user;

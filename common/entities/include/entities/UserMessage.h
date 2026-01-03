@@ -4,7 +4,7 @@
 #include "Message.h"
 #include <optional>
 
-struct Reaction {
+struct Reaction final : public IEntity {
     long long message_id;
     long long user_id;
     int type; // 1 -> like, 2 -> smile, 3 -> dislike, 4 -> heart

@@ -14,7 +14,7 @@ inline long long getCurrentTime() {
   return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
 }
 
-struct MessageStatus : public IEntity {
+struct MessageStatus final : public IEntity {
   long long message_id{ 0 };
   long long receiver_id{ 0 };
   long long read_at{ 0 };
