@@ -5,13 +5,14 @@
 #include <QString>
 
 #include "Meta.h"
+#include "metaentity/EntityConcept.h"
 
 struct SqlStatement {
   QString         query;
   QList<QVariant> values;
 };
 
-template <typename T>
+template <EntityJson T>
 class SqlBuilder {
  public:
   SqlStatement buildInsert(const Meta& meta, const T& entity);

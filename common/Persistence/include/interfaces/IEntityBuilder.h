@@ -2,6 +2,7 @@
 #define BACKEND_GENERICREPOSITORY_IENTITYBUILDER_H_
 
 #include <QtSql/qsqlquery.h>
+#include <QDateTime>
 
 #include <memory>
 #include <cstdint>

@@ -9,15 +9,16 @@
 #include "threadpool.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
+#include "metaentity/EntityConcept.h"
 
 enum class Operator : std::uint8_t { Equal, Less, More, MoreEqual, NotEqual, LessEqual };
 
-template <typename T>
+template <EntityJson T>
 class BaseQuery {
  protected:
   ISqlExecutor*            executor_;
   std::vector<QString>     involved_tables_;
-  inline static ThreadPool pool{4};
+  inline static ThreadPool pool{ 4 };
   QStringList              filters_;
   QVector<QVariant>        values_;
   QString                  limit_clause_;
@@ -86,21 +87,21 @@ class BaseQuery {
     };
 };
 
-template <typename T>
+template <EntityJson T>
 struct SelectQuery;
 
-template <typename T>
+template <EntityJson T>
 struct DeleteQuery;
 
 class QueryFactory {
  public:
-  template <typename T>
+  template <EntityJson T>
   static std::unique_ptr<SelectQuery<T>> createSelect(ISqlExecutor*  executor,
                                                       ICacheService& cache) {
     return std::make_unique<SelectQuery<T>>(executor, cache);
   }
 
-  template <typename T>
+  template <EntityJson T>
   static std::unique_ptr<DeleteQuery<T>> createDelete(ISqlExecutor*  executor,
                                                       ICacheService& cache) {
     return std::make_unique<DeleteQuery<T>>(executor, cache);

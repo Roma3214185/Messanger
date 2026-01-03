@@ -4,7 +4,7 @@
 
 #include "Meta.h"
 
-template <typename T>
+template <EntityJson T>
 QVariant toVariant(const Field& f, const T& entity) {
   std::any val = f.get(&entity);
 
@@ -23,7 +23,7 @@ QVariant toVariant(const Field& f, const T& entity) {
   return {};
 }
 
-template <typename T>
+template <EntityJson T>
 std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
   if (!v.isValid()) {
     LOG_ERROR("v.isValid == false");
@@ -48,7 +48,7 @@ std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
   return {};
 }
 
-template <typename T>
+template <EntityJson T>
 std::pair<QStringList, QStringList> buildInsertParts(
     const Meta& meta, const T& entity, QList<QVariant>& values) {
   QStringList cols, ph;
@@ -60,7 +60,7 @@ std::pair<QStringList, QStringList> buildInsertParts(
   return {cols, ph};
 }
 
-template<typename T>
+template<EntityJson T>
 SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity) {
   SqlStatement res;
   auto values =  QList<QVariant>{};
@@ -76,7 +76,7 @@ SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity) {
   return res;
 }
 
-template <typename T>
+template <EntityJson T>
 std::vector<T> SqlBuilder<T>::buildResults(std::unique_ptr<IQuery>& query) const {
   if(!query) return {};
   std::vector<T> results;
