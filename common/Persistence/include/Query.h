@@ -14,18 +14,19 @@
 #include "metaentity/UserMeta.h"
 #include "metaentity/MessageMeta.h"
 #include "metaentity/UserCredentialsMeta.h"
+#include "metaentity/EntityConcept.h"
 
 struct Meta;
 
 template <typename T>
 struct Reflection;
 
-template <typename T>
+template <EntityJson T>
 struct BaseQuery;
 
 enum class OrderDirection{ASC, DESC};
 
-template <typename T>
+template <EntityJson T>
 class SelectQuery : public BaseQuery<T> {
   ICacheService& cache_;
   QString        order_;
@@ -59,16 +60,16 @@ class SelectQuery : public BaseQuery<T> {
 
 //todo: make pattern to update cache like read_impl
 
-template <typename T>
+template <EntityJson T>
 class DeleteQuery : public BaseQuery<T> {  //todo: interface orderable
     ICacheService& cache_;
-    QString        order_;
 
   public:
     DeleteQuery(ISqlExecutor* executor, ICacheService& cache);
 
-    DeleteQuery&   orderBy(const std::string& field, const OrderDirection& direction = OrderDirection::ASC) &;
     std::vector<T> execute() const override;
+
+  private:
     QString buildDeleteQuery() const;
 };
 

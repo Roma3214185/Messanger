@@ -7,7 +7,7 @@
 
 namespace {
 
-// template <typename T>
+// template <EntityJson T>
 // bool needsIdReturn(const Field* id_field, const T& entity) {
 //   if (!id_field) return false;
 
@@ -31,7 +31,7 @@ void bindToQuery(std::unique_ptr<IQuery>& query, const QList<QVariant>& values) 
 
 }  // namespace
 
-template <typename T>
+template <EntityJson T>
 inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) const {
   std::any val = f.get(&entity);
 
@@ -56,7 +56,7 @@ inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) co
   return {};
 }
 
-template <typename T>
+template <EntityJson T>
 bool GenericRepository::save(const T& entity) {
   PROFILE_SCOPE("[repository] Save");
 
@@ -112,7 +112,7 @@ bool GenericRepository::save(const T& entity) {
   return true;
 }
 
-template <typename T>
+template <EntityJson T>
 bool GenericRepository::save(std::vector<T>& entity) {
   bool res = true;
   for(auto el: entity) { //TODO: implement bathcer save
@@ -121,7 +121,7 @@ bool GenericRepository::save(std::vector<T>& entity) {
   return res;
 }
 
-template <typename T>
+template <EntityJson T>
 void GenericRepository::saveAsync(T& entity) {
   if (!pool_) {
     LOG_WARN("Pool isn't initialized");
@@ -132,7 +132,7 @@ void GenericRepository::saveAsync(T& entity) {
   }
 }
 
-template <typename T>
+template <EntityJson T>
 inline std::future<std::optional<T>> GenericRepository::findOneAsync(long long entity_id) {
   if (!pool_) {
     LOG_WARN("Pool isn't initialized");
@@ -144,7 +144,7 @@ inline std::future<std::optional<T>> GenericRepository::findOneAsync(long long e
   }
 }
 
-template <typename T>
+template <EntityJson T>
 std::optional<T> GenericRepository::findOne(long long entity_id) {
   LOG_INFO("Id in dindOne {}", entity_id);
   auto query = QueryFactory::createSelect<T>(executor_, cache_);
@@ -153,17 +153,17 @@ std::optional<T> GenericRepository::findOne(long long entity_id) {
   return res.empty() ? std::nullopt : std::make_optional(res.front());
 }
 
-template <typename T>
+template <EntityJson T>
 bool GenericRepository::deleteEntity(const T& entity) {
   return deleteById<T>(entity.id); //? TODO: not each entity has id field
 }
 
-template <typename T>
+template <EntityJson T>
 void GenericRepository::deleteBatch(std::vector<T>& batch) {
   qDebug() << "Not implemented";
 }
 
-template <typename T>
+template <EntityJson T>
 bool GenericRepository::deleteById(long long entity_id) {
   PROFILE_SCOPE("[repository] DeleteById");
   auto meta = Reflection<T>::meta();
@@ -184,13 +184,13 @@ bool GenericRepository::deleteById(long long entity_id) {
   return true;
 }
 
-template <typename T>
+template <EntityJson T>
 std::vector<T> GenericRepository::findByField(const std::string& field,
                            const std::string& value) {
   return findByField<T>(field, QVariant(QString::fromStdString(value)));
 }
 
-template <typename T>
+template <EntityJson T>
 std::vector<T> GenericRepository::findByField(const std::string& field, const QVariant& value) {
   LOG_INFO("findByField {}", field);
   auto query = QueryFactory::createSelect<T>(executor_, cache_);
@@ -198,26 +198,26 @@ std::vector<T> GenericRepository::findByField(const std::string& field, const QV
   return query->execute();
 }
 
-template <typename T>
+template <EntityJson T>
 T GenericRepository::buildEntity(QSqlQuery& query, BuilderType type) const {
   auto builder = makeBuilder<T>(type);
   return builder->build(query);
 }
 
-template <typename T>
+template <EntityJson T>
 std::string GenericRepository::makeKey(const T& entity) const {
   EntityKey<T> key_builder;
   return "entity_cache:" + std::string(Reflection<T>::meta().table_name) +
          ":" + key_builder.get(entity);
 }
 
-template <typename T>
+template <EntityJson T>
 std::string GenericRepository::makeKey(long long id) const {
   return "entity_cache:" + std::string(Reflection<T>::meta().table_name) +
         ":" + std::to_string(id);
 }
 
-template <typename T>
+template <EntityJson T>
 long long GenericRepository::getId(const T& obj) const {
   auto meta = Reflection<T>::meta();
   if (auto f = meta.find("id")) return std::any_cast<long long>(f->get(&obj));

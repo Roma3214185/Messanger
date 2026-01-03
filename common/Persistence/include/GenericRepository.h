@@ -1,36 +1,25 @@
 #ifndef BACKEND_GENERICREPOSITORY_GENERICREPOSITORY_H_
 #define BACKEND_GENERICREPOSITORY_GENERICREPOSITORY_H_
 
-#include <QtSql/qsqlquery.h>
-
-#include <QDateTime>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlDriver>
-#include <QtSql/QSqlError>
-#include <functional>
-#include <string>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "Meta.h"
 #include "Query.h"
-#include "RedisCache.h"
-#include "SQLiteDataBase.h"
-#include "SqlBuilder.h"
-#include "interfaces/IEntityBuilder.h"
+#include "metaentity/EntityConcept.h"
 #include "OutboxWorker.h"
+#include "interfaces/IEntityBuilder.h"
 
-#include "interfaces/entity.h"
+//#include "SQLiteDataBase.h"
 
-template <typename T>
+template <EntityJson T>
 using ResultList = std::vector<T>;
-template <typename T>
+template <EntityJson T>
 using FutureResultList = std::future<std::vector<T>>;
 
 class ISqlExecutor;
 class ICacheService;
 class IThreadPool;
+
 
 class GenericRepository {
   IDataBase&     database_;
@@ -52,50 +41,50 @@ class GenericRepository {
   ISqlExecutor* getExecutor() { return executor_; }
   void       clearCache();
 
-  template <typename T>
+  template <EntityJson T>
   bool save(const T& entity);
 
-  template <typename T>
+  template <EntityJson T>
   bool save(std::vector<T>& entity);
 
-  template <typename T>
+  template <EntityJson T>
   void saveAsync(T& entity);
 
-  template <typename T>
+  template <EntityJson T>
   std::future<std::optional<T>> findOneAsync(long long entity_id);
 
-  template <typename T>
+  template <EntityJson T>
   std::optional<T> findOne(long long entity_id);
 
-  template <typename T>
+  template <EntityJson T>
   bool deleteById(long long entity_id);
 
-  template <typename T>
+  template <EntityJson T>
   bool deleteEntity(const T& entity); //todo : update outbox
 
-  template <typename T>
+  template <EntityJson T>
   void deleteBatch(std::vector<T>& batch); //todo: make std::vector<T> to delete
 
-  template <typename T>
+  template <EntityJson T>
   std::vector<T> findByField(const std::string& field, const std::string& value);
 
-  template <typename T>
+  template <EntityJson T>
   std::vector<T> findByField(const std::string& field, const QVariant& value);
 
-  template <typename T>
+  template <EntityJson T>
   T buildEntity(QSqlQuery& query, BuilderType type = BuilderType::Generic) const;
 
  private:
-  template <typename T>
+  template <EntityJson T>
   std::string makeKey(const T& entity) const;
 
-  template <typename T>
+  template <EntityJson T>
   [[nodiscard]] std::string makeKey(long long entity_id) const;
 
-  template <typename T>
+  template <EntityJson T>
   long long getId(const T& obj) const;
 
-  template <typename T>
+  template <EntityJson T>
   QVariant toVariant(const Field& field, const T& entity) const;
 };
 

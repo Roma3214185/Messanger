@@ -7,7 +7,7 @@
 #include "Meta.h"
 #include "SqlBuilder.h"
 
-template <typename T>
+template <EntityJson T>
 std::optional<std::vector<T>> SelectQuery<T>::tryLoadFromCache(const std::string& key) const {
   if (std::optional<std::string> entity_string = cache_.get(key)) {
     LOG_INFO("[QueryCache] HIT for key '{}'", key);
@@ -25,11 +25,11 @@ std::optional<std::vector<T>> SelectQuery<T>::tryLoadFromCache(const std::string
   return std::nullopt;
 }
 
-template <typename T>
+template <EntityJson T>
 SelectQuery<T>::SelectQuery(ISqlExecutor* executor, ICacheService& cache)
     : BaseQuery<T>(executor), cache_(cache) { }
 
-template <typename T>
+template <EntityJson T>
 std::vector<T> SelectQuery<T>::execute() const {
   QString sql = buildSelectQuery();
   std::string cache_key = computeCacheKey(sql);
@@ -57,7 +57,7 @@ std::vector<T> SelectQuery<T>::execute() const {
   return results;
 }
 
-// template <typename T>
+// template <EntityJson T>
 // QSqlQuery SelectQuery<T>::runDatabaseQuery(const QString& sql) const {
 //   QSqlQuery query;
 //   if (!this->executor_->execute(sql, this->values_)) {
@@ -66,7 +66,7 @@ std::vector<T> SelectQuery<T>::execute() const {
 //   return query;
 // }
 
-template <typename T>
+template <EntityJson T>
 std::vector<T> SelectQuery<T>::buildResults(std::unique_ptr<IQuery>& query) const {
   if(!query) {
     LOG_ERROR("Query in null");
@@ -84,7 +84,7 @@ std::vector<T> SelectQuery<T>::buildResults(std::unique_ptr<IQuery>& query) cons
   return results;
 }
 
-template <typename T>
+template <EntityJson T>
 void SelectQuery<T>::updateCache(const std::string& key, const std::vector<T>& results) const {
   std::vector<std::string> entities_strings;
   std::vector<std::string> entities_keys;
@@ -99,7 +99,7 @@ void SelectQuery<T>::updateCache(const std::string& key, const std::vector<T>& r
   cache_.set(key, j.dump(), std::chrono::seconds(30));
 }
 
-template <typename T>
+template <EntityJson T>
 std::string SelectQuery<T>::computeCacheKey(const QString& sql) const {
   LOG_INFO("computeCacheKey start");
   auto generations = getGenerations();
@@ -108,19 +108,19 @@ std::string SelectQuery<T>::computeCacheKey(const QString& sql) const {
   return createCacheKey(sql, generation_hash, params_hash);
 }
 
-template <typename T>
+template <EntityJson T>
 std::future<std::vector<T>> SelectQuery<T>::executeAsync() const {
   return this->pool.enqueue([this]() { return execute(); });
 }
 
-// template <typename T>
+// template <EntityJson T>
 // std::future<std::vector<T>> SelectQuery<T>::executeWithoutCacheAsync() const {
 //   return this->pool.enqueue([this]() {
 //     return executeWithoutCache();  // DB initialized in this thread
 //   });
 // }
 
-//template <typename T>
+//template <EntityJson T>
 //std::vector<T> SelectQuery<T>::executeWithoutCache() const {
   // QString sql = buildSelectQuery();
   // QSqlDatabase threadDb =
@@ -145,14 +145,14 @@ std::future<std::vector<T>> SelectQuery<T>::executeAsync() const {
   // return results;
 //}
 
-template <typename T>
+template <EntityJson T>
 void SelectQuery<T>::saveEntityInCache(
     const T& entity, std::chrono::hours ttl) const {
   std::string entity_key = buildEntityKey(entity);
   cache_.set(entity_key, entity, ttl);
 }
 
-template <typename T>
+template <EntityJson T>
 T SelectQuery<T>::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const { //TODO(roma): in builder
   if(!query) throw std::runtime_error("Nullptr in buildEntity"); //TODO: make NullptrObject
   T entity;
@@ -163,10 +163,10 @@ T SelectQuery<T>::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) 
   return entity;
 }
 
-template <typename T>
+template <EntityJson T>
 int SelectQuery<T>::getEntityId(const T& entity) const { return entity.id; }
 
-template <typename T>
+template <EntityJson T>
 QString SelectQuery<T>::buildSelectQuery() const {
   QString sql =
       QString("SELECT * FROM %1").arg(this->table_name_);
@@ -177,7 +177,7 @@ QString SelectQuery<T>::buildSelectQuery() const {
   return sql;
 }
 
-template <typename T>
+template <EntityJson T>
 auto SelectQuery<T>::getGenerations() const {
   std::unordered_map<std::string, std::string> generations;
   for (const auto& table : this->involved_tables_) {
@@ -190,7 +190,7 @@ auto SelectQuery<T>::getGenerations() const {
 
 using Table = std::string;
 
-template <typename T>
+template <EntityJson T>
 std::size_t SelectQuery<T>::hashGenerations(
     const std::unordered_map<Table, std::string>& generations) const {
   std::size_t generation_hash = 0;
@@ -199,7 +199,7 @@ std::size_t SelectQuery<T>::hashGenerations(
   return generation_hash;
 }
 
-template <typename T>
+template <EntityJson T>
 SelectQuery<T>& SelectQuery<T>::orderBy(const std::string& field,
                             const OrderDirection& direction) & {
   const QString direct = direction == OrderDirection::ASC ? "ASC" : "DESC";
@@ -209,7 +209,7 @@ SelectQuery<T>& SelectQuery<T>::orderBy(const std::string& field,
   return *this;
 }
 
-template <typename T>
+template <EntityJson T>
 std::size_t SelectQuery<T>::hashParams(const  QVector<QVariant>& values) const {
   std::size_t params_hash = 0;
   for (const auto& v : values)
@@ -217,12 +217,12 @@ std::size_t SelectQuery<T>::hashParams(const  QVector<QVariant>& values) const {
   return params_hash;
 }
 
-template <typename T>
+template <EntityJson T>
 std::string SelectQuery<T>::buildEntityKey(const T& entity) const {
   return "entity_cache:" + this->table_name_.toStdString() + ":" + EntityKey<T>::get(entity);
 }
 
-template <typename T>
+template <EntityJson T>
 std::string SelectQuery<T>::createCacheKey(const QString& sql, int generation_hash,
                            int params_hash) const {
   return "query_cache:" + sql.toStdString() +
@@ -231,29 +231,11 @@ std::string SelectQuery<T>::createCacheKey(const QString& sql, int generation_ha
 }
 
 
-
-
-
-
-
-
-
-
-
-template <typename T>
+template <EntityJson T>
 DeleteQuery<T>::DeleteQuery(ISqlExecutor* executor, ICacheService& cache)
     : BaseQuery<T>(executor), cache_(cache) { }
 
-template <typename T>
-DeleteQuery<T>::DeleteQuery& DeleteQuery<T>::orderBy(const std::string& field, const OrderDirection& direction) & {
-  const QString direct = direction == OrderDirection::ASC ? "ASC" : "DESC";
-  order_ = QString("ORDER BY %1 %2")
-               .arg(QString::fromStdString(field))
-               .arg(direct);
-  return *this;
-}
-
-template <typename T>
+template <EntityJson T>
 std::vector<T> DeleteQuery<T>::execute() const {
   QString sql = buildDeleteQuery();
 
@@ -275,13 +257,12 @@ std::vector<T> DeleteQuery<T>::execute() const {
   return std::vector<T>{};
 }
 
-template <typename T>
+template <EntityJson T>
 QString DeleteQuery<T>::buildDeleteQuery() const {
   QString sql =
       QString("DELETE * FROM %1").arg(this->table_name_);
   sql += this->join_clause_;
   if (!this->filters_.empty()) sql += " WHERE " + this->filters_.join(" AND ");
-  if (!this->order_.isEmpty()) sql += " " + this->order_;
   if (!this->limit_clause_.isEmpty()) sql += " " + this->limit_clause_;
   return sql;
 }
