@@ -1,28 +1,12 @@
 #pragma once
 
-#include "interfaces/BaseQuery.h"
+#include "interfaces/IBaseQuery.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/ISqlExecutor.h"
 #include "SqlBuilder.h"
+#include "QueryFactory.h"
 
 namespace {
-
-// template <EntityJson T>
-// bool needsIdReturn(const Field* id_field, const T& entity) {
-//   if (!id_field) return false;
-
-//   std::any id_any = id_field->get(&entity);
-//   if (!id_any.has_value()) return false;
-
-//   if (id_any.type() == typeid(int))
-//     return std::any_cast<int>(id_any) == 0;
-//   if (id_any.type() == typeid(long long))
-//     return std::any_cast<long long>(idAny) == 0;
-//   if (id_any.type() == typeid(qulonglong))
-//     return std::any_cast<qulonglong>(id_any) == 0;
-
-//   return false;
-// }
 
 void bindToQuery(std::unique_ptr<IQuery>& query, const QList<QVariant>& values) {
   if(!query) return;
@@ -150,7 +134,8 @@ std::optional<T> GenericRepository::findOne(long long entity_id) {
   auto query = QueryFactory::createSelect<T>(executor_, cache_);
   query->where("id", entity_id).limit(1);
   auto res = query->execute();
-  return res.empty() ? std::nullopt : std::make_optional(res.front());
+  auto select_res = QueryFactory::getSelectResult(res);
+  return select_res.result.empty() ? std::nullopt : std::make_optional(select_res.result.front());
 }
 
 template <EntityJson T>
@@ -195,7 +180,9 @@ std::vector<T> GenericRepository::findByField(const std::string& field, const QV
   LOG_INFO("findByField {}", field);
   auto query = QueryFactory::createSelect<T>(executor_, cache_);
   query->where(field, value);
-  return query->execute();
+  auto res = query->execute();
+  auto select_res = QueryFactory::getSelectResult(res);
+  return select_res.result;
 }
 
 template <EntityJson T>
