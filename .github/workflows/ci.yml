@@ -61,7 +61,8 @@ jobs:
       # 7️⃣ Auto-format code
       - name: Run clang-format
         run: |
-          find . -type f \( -name "*.cpp" -o -name "*.h" \) -not -path "./external/*" -not -path "./build/*" -exec clang-format -i {} +
+          chmod +x .run-clang.sh
+          ./.run-clang.sh
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
