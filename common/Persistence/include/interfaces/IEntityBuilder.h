@@ -2,10 +2,10 @@
 #define BACKEND_GENERICREPOSITORY_IENTITYBUILDER_H_
 
 #include <QtSql/qsqlquery.h>
-#include <QDateTime>
 
-#include <memory>
+#include <QDateTime>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -29,12 +29,9 @@ class MetaEntityBuilder : public IEntityBuilder<T> {
       if (!v.isValid()) continue;
 
       auto val = [f, v]() -> std::any {
-        if (f.type == typeid(long long))
-          return v.toLongLong();
-        if (f.type == typeid(std::string))
-          return v.toString().toStdString();
-        if (f.type == typeid(QDateTime))
-          return v.toDateTime();
+        if (f.type == typeid(long long)) return v.toLongLong();
+        if (f.type == typeid(std::string)) return v.toString().toStdString();
+        if (f.type == typeid(QDateTime)) return v.toDateTime();
 
         LOG_ERROR("In build MetaEntityBuilder invalid type: {}", f.type.name());
         return {};

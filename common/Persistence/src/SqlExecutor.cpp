@@ -6,7 +6,7 @@ std::unique_ptr<IQuery> SqlExecutor::execute(const QString& sql, const QList<QVa
   PROFILE_SCOPE("[SqlExecutor] Execute");
 
   auto outQuery = database_.prepare(sql);
-  if(!outQuery) {
+  if (!outQuery) {
     LOG_ERROR("Error prepare outQuery");
     return nullptr;
   }

@@ -5,20 +5,20 @@
 #include <future>
 
 struct IThreadPool {
-    virtual ~IThreadPool() = default;
+  virtual ~IThreadPool() = default;
 
-    template <typename F>
-    auto enqueue(F&& f) -> std::future<decltype(f())> {
-      using ReturnType = decltype(f());
-      auto task = std::make_shared<std::packaged_task<ReturnType()>>(std::forward<F>(f));
-      std::future<ReturnType> result = task->get_future();
-      enqueueTask([task]() { (*task)(); });
+  template <typename F>
+  auto enqueue(F&& f) -> std::future<decltype(f())> {
+    using ReturnType = decltype(f());
+    auto task        = std::make_shared<std::packaged_task<ReturnType()>>(std::forward<F>(f));
+    std::future<ReturnType> result = task->get_future();
+    enqueueTask([task]() { (*task)(); });
 
-      return result;
-    }
+    return result;
+  }
 
-  protected:
-    virtual void enqueueTask(std::function<void()> task) = 0;
+ protected:
+  virtual void enqueueTask(std::function<void()> task) = 0;
 };
 
-#endif // BACKEND_GENERICREPOSITORY_ITHREADPOOL_H_
+#endif  // BACKEND_GENERICREPOSITORY_ITHREADPOOL_H_

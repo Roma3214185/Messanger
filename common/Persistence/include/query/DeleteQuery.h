@@ -6,16 +6,16 @@
 
 template <EntityJson T>
 class DeleteQuery : public IBaseQuery<T> {
-    ICacheService& cache_;
+  ICacheService& cache_;
 
-  public:
-    DeleteQuery(ISqlExecutor* executor, ICacheService& cache);
-    QueryResult<T> execute() const override;
+ public:
+  DeleteQuery(ISqlExecutor* executor, ICacheService& cache);
+  QueryResult<T> execute() const override;
 
-  private:
-    QString buildQuery() const override;
+ private:
+  QString buildQuery() const override;
 };
 
 #include "DeleteQuery.inl"
 
-#endif // DELETEQUERY_H
+#endif  // DELETEQUERY_H

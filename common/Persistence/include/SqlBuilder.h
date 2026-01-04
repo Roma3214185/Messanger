@@ -15,10 +15,10 @@ struct SqlStatement {
 template <EntityJson T>
 class SqlBuilder {
  public:
-  SqlStatement buildInsert(const Meta& meta, const T& entity);
+  SqlStatement    buildInsert(const Meta& meta, const T& entity);
   static std::any getFieldValue(const QVariant& v, const Field& f);
-  std::vector<T> buildResults(std::unique_ptr<IQuery>& query) const;
-  T buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const;
+  std::vector<T>  buildResults(std::unique_ptr<IQuery>& query) const;
+  T               buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const;
 };
 
 #include "SqlBuilder.inl"

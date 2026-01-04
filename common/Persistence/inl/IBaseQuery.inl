@@ -3,7 +3,7 @@
 
 namespace {
 
-const static std::unordered_map<Operator, std::string> operator_to_sql = {
+const static std::unordered_map<Operator, std::string> kOperatorToSql = {
     {Operator::Equal, "="},
     {Operator::Less, "<"},
     {Operator::More, ">"},
@@ -15,11 +15,13 @@ const static std::unordered_map<Operator, std::string> operator_to_sql = {
 inline std::string trim(std::string_view sv) {
   auto is_space = [](unsigned char c) { return std::isspace(c); };
 
-  auto begin = std::find_if_not(sv.begin(), sv.end(), is_space);
-  auto end   = std::find_if_not(sv.rbegin(), sv.rend(), is_space).base();
+  auto begin = std::ranges::find_if_not(sv, is_space);
+  auto end   = std::ranges::find_if_not(
+                 sv | std::views::reverse,
+                 is_space
+                 ).base();
 
-  if (begin >= end) return {};
-  return std::string(begin, end);
+  return begin >= end ? std::string{} : std::string{begin, end};
 }
 
 } // namespace
@@ -59,13 +61,13 @@ IBaseQuery<T>& IBaseQuery<T>::where(const std::string& field, Operator op, const
 
 template <EntityJson T>
 IBaseQuery<T>& IBaseQuery<T>::where(const std::string& field, Operator op, const QVariant& value) & {
-  auto it = operator_to_sql.find(op);
+  auto it = kOperatorToSql.find(op);
   std::string field_trimmed = trim(field);
-  DBC_REQUIRE(it != operator_to_sql.end());
+  DBC_REQUIRE(it != kOperatorToSql.end());
   DBC_REQUIRE(!field_trimmed.empty());
   DBC_REQUIRE(value.isValid());
   filters_.push_back(QString("%1 %2 ?").arg(QString::fromStdString(field_trimmed))
-                         .arg(QString::fromStdString(operator_to_sql.at(op))));
+                         .arg(QString::fromStdString(kOperatorToSql.at(op))));
   values_.push_back(value);
   return *this;
 }

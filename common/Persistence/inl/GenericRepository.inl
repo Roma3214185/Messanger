@@ -10,7 +10,7 @@ namespace {
 
 void bindToQuery(std::unique_ptr<IQuery>& query, const QList<QVariant>& values) {
   if(!query) return;
-  for (int i = 0; i < values.size(); ++i) query->bind(values[i]);
+  for (const auto & value : values) query->bind(value);
 }
 
 }  // namespace
@@ -33,7 +33,7 @@ inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) co
       dt = QDateTime::currentDateTime();
     }
 
-    return QVariant(dt.toSecsSinceEpoch());
+    return QVariant{dt.toSecsSinceEpoch()};
   }
 
   LOG_ERROR("Invalid type in toVariant for entity {}", nlohmann::json(entity).dump());
@@ -45,9 +45,9 @@ bool GenericRepository::save(const T& entity) {
   PROFILE_SCOPE("[repository] Save");
 
   const auto& meta = Reflection<T>::meta();
-  const Field* idField = meta.find("id");
-  if(idField) {
-    long long entity_id = toVariant(*idField, entity).toLongLong();
+  const Field* id_field = meta.find("id");
+  if(id_field) {
+    long long entity_id = toVariant(*id_field, entity).toLongLong();
     LOG_INFO("In entity id is {}", entity_id);
     if(entity_id <= 0) {
       LOG_ERROR("Failed to save {}, id {} is invalid", entity_id, nlohmann::json(entity).dump());
@@ -97,10 +97,10 @@ bool GenericRepository::save(const T& entity) {
 }
 
 template <EntityJson T>
-bool GenericRepository::save(std::vector<T>& entity) {
+bool GenericRepository::save(std::vector<T>& entities) {
   bool res = true;
-  for(auto el: entity) { //TODO: implement bathcer save
-    res |= save(el);
+  for(auto &entity: entities) { //TODO: implement bathcer save
+    res |= save(entity);
   }
   return res;
 }

@@ -1,8 +1,8 @@
 #include "SQLiteDataBase.h"
 
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlError>
 #include <QThread>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlQuery>
 
 #include "Debug_profiling.h"
 
@@ -89,7 +89,7 @@ const QString CREATE_CREDENTIALS_TABLE = R"(
             hash_password TEXT NOT NULL
         );
     )";
-//TODO: commit when insert private_chat and in table chat
+// TODO: commit when insert private_chat and in table chat
 const QString CREATE_PRIVATE_CHATS_TABLE = R"(CREATE TABLE IF NOT EXISTS private_chats (
     chat_id       INTEGER PRIMARY KEY,
     user1_id      INTEGER NOT NULL,
@@ -113,18 +113,21 @@ const QString CREATE_OUTBOX_TABLE = R"(CREATE TABLE IF NOT EXISTS outbox (
     );
   )";
 
-} // namespace
+}  // namespace
 
 bool SQLiteDatabase::initializeSchema() {
-  const std::vector<QString> tables = {
-    CREATE_USERS_TABLE, CREATE_MESSAGES_TABLE, CREATE_MESSAGES_STATUS_TABLE,
-      CREATE_CHATS_TABLE, CREATE_CHAT_MEMBERS_TABLE, CREATE_CREDENTIALS_TABLE,
-      CREATE_PRIVATE_CHATS_TABLE, CREATE_OUTBOX_TABLE
-      , CREATE_USERS_BY_EMAIL_TABLE
-      , CREATE_USERS_BY_EMAIL_INDEX
-    };
+  const std::vector<QString> tables = {CREATE_USERS_TABLE,
+                                       CREATE_MESSAGES_TABLE,
+                                       CREATE_MESSAGES_STATUS_TABLE,
+                                       CREATE_CHATS_TABLE,
+                                       CREATE_CHAT_MEMBERS_TABLE,
+                                       CREATE_CREDENTIALS_TABLE,
+                                       CREATE_PRIVATE_CHATS_TABLE,
+                                       CREATE_OUTBOX_TABLE,
+                                       CREATE_USERS_BY_EMAIL_TABLE,
+                                       CREATE_USERS_BY_EMAIL_INDEX};
 
-  for (const auto&sql : tables) {
+  for (const auto& sql : tables) {
     if (!executeSql(db(), sql)) {
       return false;
     }

@@ -1,11 +1,13 @@
 #ifndef BACKEND_REDISCACHE_REDISCACHE_H_
 #define BACKEND_REDISCACHE_REDISCACHE_H_
 
+#include <sw/redis++/redis.h>
+
 #include <chrono>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <sw/redis++/redis.h>
+
 #include "interfaces/ICacheService.h"
 
 class RedisCache : public ICacheService {
@@ -13,20 +15,20 @@ class RedisCache : public ICacheService {
   static RedisCache& instance();
   RedisCache(const RedisCache&)            = delete;
   RedisCache& operator=(const RedisCache&) = delete;
-  RedisCache(RedisCache&&) = delete;
-  RedisCache& operator=(RedisCache&&) = delete;
+  RedisCache(RedisCache&&)                 = delete;
+  RedisCache& operator=(RedisCache&&)      = delete;
 
-  void               incr(const std::string& key) override;
-  void               remove(const std::string& key) override;
-  void               clearCache() override;
-  void               clearPrefix(const std::string& prefix) override;
+  void incr(const std::string& key) override;
+  void remove(const std::string& key) override;
+  void clearCache() override;
+  void clearPrefix(const std::string& prefix) override;
 
-  void setPipelines(const std::vector<std::string>&    keys,
+  void setPipelines(const std::vector<std::string>& keys,
                     const std::vector<std::string>& results,
-                    std::chrono::seconds ttl = std::chrono::seconds(5)) override;
+                    std::chrono::seconds            ttl = std::chrono::seconds(5)) override;
 
-  void set(const std::string&        key,
-           const std::string&     value,
+  void set(const std::string&   key,
+           const std::string&   value,
            std::chrono::seconds ttl = std::chrono::seconds(5)) override;
 
   std::optional<std::string> get(const std::string& key) override;
@@ -45,7 +47,7 @@ class RedisCache : public ICacheService {
 
   int getTtlWithJitter(std::chrono::seconds ttl);
 
-  RedisCache()                             = default;
+  RedisCache()  = default;
   ~RedisCache() = default;
 };
 
