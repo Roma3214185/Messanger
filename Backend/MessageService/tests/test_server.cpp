@@ -30,7 +30,8 @@
 //     int calls_onGetMessagesFromChat = 0;
 //     int last_chat_id;
 
-//     void onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res) override {
+//     void onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res)
+//     override {
 //       ++calls_onGetMessagesFromChat;
 //       last_chat_id = chat_id;
 //     }
@@ -156,7 +157,8 @@
 //   CHECK(r[1]["readed_by_me"].b() == false);
 // }
 
-// TEST_CASE("formMessageListJson got vectors of different sizes expected return empty JSON array") {
+// TEST_CASE("formMessageListJson got vectors of different sizes expected return empty JSON array")
+// {
 //   TestFixture fix;
 //   TestServer2 server(fix.app, fix.port, &fix.controller, &fix.provider);
 
@@ -174,4 +176,3 @@
 
 //   REQUIRE(r.size() == 0);
 // }
-
