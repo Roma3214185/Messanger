@@ -26,8 +26,8 @@ class MockCache : public ICache {
     cache_.erase(key);
   }
 
-  int get_calls = 0;
-  int save_calls = 0;
+  int get_calls    = 0;
+  int save_calls   = 0;
   int delete_calls = 0;
 
  private:

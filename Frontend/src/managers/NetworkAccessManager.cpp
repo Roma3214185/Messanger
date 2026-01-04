@@ -1,6 +1,7 @@
 #include "managers/networkaccessmanager.h"
 
-QNetworkReply* NetworkAccessManager::post(const QNetworkRequest& req, const QByteArray& byte_array) {
+QNetworkReply* NetworkAccessManager::post(const QNetworkRequest& req,
+                                          const QByteArray&      byte_array) {
   return net_manager_.post(req, byte_array);
 }
 

@@ -5,12 +5,12 @@
 
 #include "Debug_profiling.h"
 
-//std::optional<int> MessageModel::currentUserId = std::nullopt;
+// std::optional<int> MessageModel::currentUserId = std::nullopt;
 
 MessageModel::MessageModel(QObject* parent) : QAbstractListModel(parent) {}
 
 QVariant MessageModel::data(const QModelIndex& index, int role) const {
-  //DBC_REQUIRE(index.isValid() && index.row() < messages_.size());
+  // DBC_REQUIRE(index.isValid() && index.row() < messages_.size());
   if (!index.isValid() || index.row() < 0 || index.row() >= messages_.size()) return QVariant();
 
   const Message msg = messages_.at(index.row());
@@ -37,16 +37,15 @@ QVariant MessageModel::data(const QModelIndex& index, int role) const {
 
 QModelIndex MessageModel::indexFromId(long long messageId) const {
   for (int row = 0; row < messages_.size(); ++row) {
-    if (messages_[row].id == messageId)
-      return index(row);
+    if (messages_[row].id == messageId) return index(row);
   }
 
-  return QModelIndex(); // Not found
+  return QModelIndex();  // Not found
 }
 
-//void MessageModel::setCurrentUserId(long long user_id) { currentUserId = user_id; }
+// void MessageModel::setCurrentUserId(long long user_id) { currentUserId = user_id; }
 
-//void MessageModel::resetCurrentUseId() { currentUserId = std::nullopt; }
+// void MessageModel::resetCurrentUseId() { currentUserId = std::nullopt; }
 
 std::optional<Message> MessageModel::getLastMessage() const {
   if (messages_.empty()) return std::nullopt;
@@ -59,7 +58,10 @@ std::optional<Message> MessageModel::getOldestMessage() const {
 }
 
 void MessageModel::saveMessage(const Message& msg /*, const User& user*/) {
-  LOG_INFO("[MessageModel::saveMessage]Msg id {} ans local_id {}, and status {}", msg.id, msg.local_id.toStdString(), msg.status_sended);
+  LOG_INFO("[MessageModel::saveMessage]Msg id {} ans local_id {}, and status {}",
+           msg.id,
+           msg.local_id.toStdString(),
+           msg.status_sended);
 
   const std::lock_guard<std::mutex> lock(messages_mutex_);
   auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto& other) {
@@ -67,9 +69,12 @@ void MessageModel::saveMessage(const Message& msg /*, const User& user*/) {
   });
 
   if (it != messages_.end()) {
-    LOG_INFO("Message already exist with id {} ans local id {} and text {}", it->id, it->local_id.toStdString(), it->text.toStdString());
+    LOG_INFO("Message already exist with id {} ans local id {} and text {}",
+             it->id,
+             it->local_id.toStdString(),
+             it->text.toStdString());
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-    *it = msg;
+    *it              = msg;
     it->readed_by_me = msg.readed_by_me;
     it->read_counter = msg.read_counter;
     endInsertRows();
@@ -103,13 +108,13 @@ void MessageModel::deleteMessage(const Message& message) {
 }
 
 void MessageModel::sortMessagesByTimestamp() {
-  std::sort(messages_.begin(), messages_.end(),
-            [](const auto& a, const auto& b) {
-              return a.timestamp < b.timestamp;
-            });
+  std::sort(messages_.begin(), messages_.end(), [](const auto& a, const auto& b) {
+    return a.timestamp < b.timestamp;
+  });
 
   // const std::lock_guard<std::mutex> lock(messages_mutex_);
-  // std::sort(messages_.begin(), messages_.end(), [](const auto& first_message, const auto& second_message){
+  // std::sort(messages_.begin(), messages_.end(), [](const auto& first_message, const auto&
+  // second_message){
   //   return first_message.timestamp < second_message.timestamp;
   // });
 }
@@ -121,18 +126,14 @@ void MessageModel::clear() {
 
   beginRemoveRows(QModelIndex(), 0, messages_.size() - 1);
   messages_.clear();
-  //users_by_message_id_.clear();
+  // users_by_message_id_.clear();
   endRemoveRows();
 
   DBC_ENSURE(messages_.isEmpty());
 }
 
 QHash<int, QByteArray> MessageModel::roleNames() const {
-  return {
-    {TextRole, "text"},
-    {TimestampRole, "timestamp"},
-    {SenderIdRole, "sender_id"}
-  };
+  return {{TextRole, "text"}, {TimestampRole, "timestamp"}, {SenderIdRole, "sender_id"}};
 }
 
 int MessageModel::rowCount(const QModelIndex& parent) const {

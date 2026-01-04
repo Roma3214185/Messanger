@@ -4,8 +4,8 @@
 #include <QObject>
 
 #include "dto/ChatBase.h"
-#include "models/messagemodel.h"
 #include "dto/User.h"
+#include "models/messagemodel.h"
 
 class MessageModel;
 
@@ -21,32 +21,34 @@ using OptionalUser    = std::optional<User>;
 using ListMessage     = std::vector<Message>;
 
 class DataManager : public QObject {
-    Q_OBJECT
+  Q_OBJECT
  public:
   [[nodiscard]] ChatPtr         getPrivateChatWithUser(UserId);
   [[nodiscard]] MessageModelPtr getMessageModel(ChatId);
   [[nodiscard]] ChatPtr         getChat(ChatId);
   [[nodiscard]] int             getNumberOfExistingChats() const noexcept;
-  void          clearAllChats(); //todo: think about clear chats authoatically clear message-models
-  void          clearAllUsers();
-  void          clearAllMessageModels();
-  void          addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
-  void          saveUser(const User&);
-  void          clearAll();
-  [[nodiscard]] OptionalUser    getUser(UserId);
+  void clearAllChats();  // todo: think about clear chats authoatically clear message-models
+  void clearAllUsers();
+  void clearAllMessageModels();
+  void addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
+  void saveUser(const User&);
+  void clearAll();
+  [[nodiscard]] OptionalUser           getUser(UserId);
   [[nodiscard]] std::optional<Message> getMessageById(const long long id);
-  void          saveMessage(const Message& message);
-  [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
+  void                                 saveMessage(const Message& message);
+  [[nodiscard]] int                    getNumberOfMessageModels() const noexcept {
+    return message_models_by_chat_id_.size();
+  }
   void deleteMessage(const Message& msg);
   void readMessage(long long message_id, long long readed_by);
 
-Q_SIGNALS:
+ Q_SIGNALS:
   void chatAdded(const ChatPtr& chat);
   void messageAdded(const Message& message);
   void messageDeleted(const Message& message);
 
  protected:
-  [[nodiscard]] int             getNumberOfExistingUsers() const noexcept;
+  [[nodiscard]] int getNumberOfExistingUsers() const noexcept;
 
   ChatMap         chats_by_id_;
   UserMap         users_by_id_;

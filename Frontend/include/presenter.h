@@ -20,13 +20,14 @@ class User;
 class QJsonObject;
 
 template <typename T>
-using Optional    = std::optional<T>;
+using Optional   = std::optional<T>;
 using OptionalId = std::optional<long long>;
 
 class Presenter : public QObject {
   Q_OBJECT
  public:
-  using SocketHandlersMap = std::unordered_map<std::string, std::unique_ptr<ISocketResponceHandler>>;
+  using SocketHandlersMap =
+      std::unordered_map<std::string, std::unique_ptr<ISocketResponceHandler>>;
 
   Presenter(IMainWindow* window, Model* manager);
 
@@ -44,8 +45,8 @@ class Presenter : public QObject {
   void deleteMessage(const Message& message);
   void updateMessage(Message& message);
 
-  MessageDelegate* getMessageDelegate();
-  UserDelegate* getUserDelegate();
+  MessageDelegate*  getMessageDelegate();
+  UserDelegate*     getUserDelegate();
   ChatItemDelegate* getChatDelegate();
 
   std::vector<Message> getListOfMessagesBySearch(const QString& prefix);
@@ -60,7 +61,7 @@ class Presenter : public QObject {
   void onUnreadMessage(Message& message);
 
   OptionalId          current_opened_chat_id_;
-  std::optional<User>  current_user_;
+  std::optional<User> current_user_;
 
  private:
   void initialConnections();
@@ -69,13 +70,13 @@ class Presenter : public QObject {
   void onErrorOccurred(const QString& error);
   void initialHandlers();
 
-  SocketHandlersMap    socket_responce_handlers_;
-  IMainWindow*         view_;
-  Model*               manager_;
-  IMessageListView*    message_list_view_;
+  SocketHandlersMap socket_responce_handlers_;
+  IMainWindow*      view_;
+  Model*            manager_;
+  IMessageListView* message_list_view_;
 
-  std::unique_ptr<MessageDelegate> message_delegate_;
-  std::unique_ptr<UserDelegate> user_delegate_;
+  std::unique_ptr<MessageDelegate>  message_delegate_;
+  std::unique_ptr<UserDelegate>     user_delegate_;
   std::unique_ptr<ChatItemDelegate> chat_delegate_;
 };
 

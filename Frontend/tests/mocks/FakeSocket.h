@@ -17,13 +17,9 @@ class FakeSocket : public ISocket {
     last_sended_message = msg;
   }
 
-  void disconnect() override {
-    ++disconnect_calls;
-  }
+  void disconnect() override { ++disconnect_calls; }
 
-  void close() override {
-    ++close_calls;
-  }
+  void close() override { ++close_calls; }
 
   void receiveTextMessage(const QString& message) { Q_EMIT textMessageReceived(message); }
 

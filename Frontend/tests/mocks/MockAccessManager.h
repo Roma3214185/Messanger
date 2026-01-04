@@ -11,7 +11,7 @@ class MockNetworkAccessManager : public INetworkAccessManager {
  public:
   MockNetworkAccessManager(MockReply* mock_reply) : reply(mock_reply) {}
 
-  bool shouldFail = false;
+  bool shouldFail           = false;
   bool shouldReturnResponce = true;
 
   MockReply* post(const QNetworkRequest& req, const QByteArray& byte_array) override {
@@ -20,10 +20,12 @@ class MockNetworkAccessManager : public INetworkAccessManager {
     ++post_counter;
     if (!reply) LOG_WARN("[MockNetworkAccessManager] Reply in nullptr");
 
-    if(!shouldReturnResponce) return reply;
+    if (!shouldReturnResponce) return reply;
 
-    if(shouldFail) QTimer::singleShot(0, reply, &MockReply::errorOccurred);
-    else QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    if (shouldFail)
+      QTimer::singleShot(0, reply, &MockReply::errorOccurred);
+    else
+      QTimer::singleShot(0, reply, &MockReply::emitFinished);
     return reply;
   }
 
@@ -32,20 +34,17 @@ class MockNetworkAccessManager : public INetworkAccessManager {
     ++get_counter;
     if (!reply) LOG_WARN("[MockNetworkAccessManager] Reply in nullptr");
 
-    if(!shouldReturnResponce) return reply;
+    if (!shouldReturnResponce) return reply;
 
-    if(shouldFail) QTimer::singleShot(0, reply, &MockReply::errorOccurred);
-    else QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    if (shouldFail)
+      QTimer::singleShot(0, reply, &MockReply::errorOccurred);
+    else
+      QTimer::singleShot(0, reply, &MockReply::emitFinished);
     return reply;
   }
 
-  auto put(const QNetworkRequest&,
-                   const QByteArray& byte_array) -> QNetworkReply*     override {
-
-  }
-  auto del(const QNetworkRequest&) -> QNetworkReply*            override {
-
-  }
+  auto put(const QNetworkRequest&, const QByteArray& byte_array) -> QNetworkReply* override {}
+  auto del(const QNetworkRequest&) -> QNetworkReply* override {}
 
   QByteArray      last_data;
   QNetworkRequest last_request;

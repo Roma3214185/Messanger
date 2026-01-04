@@ -6,8 +6,8 @@
 #include <QString>
 
 #include "Debug_profiling.h"
-#include "dto/User.h"
 #include "dto/Message.h"
+#include "dto/User.h"
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
 
@@ -16,11 +16,11 @@ using ChatPtr = std::shared_ptr<ChatBase>;
 namespace JsonService {
 
 inline auto getUserFromResponse(const QJsonObject& res) -> User {
-  if(!res.contains("email")) LOG_ERROR("No email field");
-  if(!res.contains("tag")) LOG_ERROR("No tag field");
-  if(!res.contains("name")) LOG_ERROR("No name field");
-  if(!res.contains("id")) LOG_ERROR("No id field");
-  if(!res.contains("avatar_path")) LOG_ERROR("No avatar_path field");
+  if (!res.contains("email")) LOG_ERROR("No email field");
+  if (!res.contains("tag")) LOG_ERROR("No tag field");
+  if (!res.contains("name")) LOG_ERROR("No name field");
+  if (!res.contains("id")) LOG_ERROR("No id field");
+  if (!res.contains("avatar_path")) LOG_ERROR("No avatar_path field");
   User user;
   user.email      = res["email"].toString();
   user.tag        = res["tag"].toString();
@@ -38,20 +38,21 @@ inline auto getUserFromResponse(const QJsonObject& res) -> User {
 
 inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
   Message msg;
-  if(obj.contains("id")) msg.id = obj["id"].toInteger();
-  if(obj.contains("sender_id")) msg.sender_id = obj["sender_id"].toInteger();
-  if(obj.contains("chat_id")) msg.chat_id = obj["chat_id"].toInteger();
-  if(obj.contains("text")) msg.text =   obj["text"].toString();
-  if(obj.contains("timestamp")) msg.timestamp =   QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
-  if(obj.contains("local_id")) msg.local_id =   obj["local_id"].toString();
-  if(obj.contains("read")) {
+  if (obj.contains("id")) msg.id = obj["id"].toInteger();
+  if (obj.contains("sender_id")) msg.sender_id = obj["sender_id"].toInteger();
+  if (obj.contains("chat_id")) msg.chat_id = obj["chat_id"].toInteger();
+  if (obj.contains("text")) msg.text = obj["text"].toString();
+  if (obj.contains("timestamp"))
+    msg.timestamp = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
+  if (obj.contains("local_id")) msg.local_id = obj["local_id"].toString();
+  if (obj.contains("read")) {
     const QJsonObject& read = obj["read"].toObject();
-    if(read.contains("read_by_me")) msg.readed_by_me = read["read_by_me"].toBool();
-    if(read.contains("count")) msg.read_counter = read["count"].toInt();
+    if (read.contains("read_by_me")) msg.readed_by_me = read["read_by_me"].toBool();
+    if (read.contains("count")) msg.read_counter = read["count"].toInt();
   }
 
-  msg.liked_counter =  0;
-  msg.status_sended =   true;
+  msg.liked_counter = 0;
+  msg.status_sended = true;
 
   spdlog::info("[JSON] {}", msg.toString());
   return msg;
@@ -59,33 +60,33 @@ inline auto getMessageFromJson(const QJsonObject& obj) -> Message {
 
 inline auto toJson(const Message& msg) -> QJsonObject {
   QJsonObject obj;
-  obj["id"] = msg.id;
-  obj["sender_id"] =  msg.sender_id;
-  obj["chat_id"] = msg.chat_id;
-  obj["text"] =  msg.text;
+  obj["id"]        = msg.id;
+  obj["sender_id"] = msg.sender_id;
+  obj["chat_id"]   = msg.chat_id;
+  obj["text"]      = msg.text;
   obj["timestamp"] = msg.timestamp.toSecsSinceEpoch();
-  obj["local_id"] = msg.local_id;
+  obj["local_id"]  = msg.local_id;
 
   QJsonObject readObj;
   readObj["read_by_me"] = msg.readed_by_me;
-  readObj["count"] = msg.read_counter;
-  obj["read"] = readObj;
+  readObj["count"]      = msg.read_counter;
+  obj["read"]           = readObj;
 
-  //QJsonObject reactionsObj;
-  //reactionsObj["counts"] = ...;
-  //reactionsObj["my_reaction"] = ...;  // int or null
-  //obj["reactions"] = reactionsObj;
-  //obj["status_sended"] = msg.status_sended;
+  // QJsonObject reactionsObj;
+  // reactionsObj["counts"] = ...;
+  // reactionsObj["my_reaction"] = ...;  // int or null
+  // obj["reactions"] = reactionsObj;
+  // obj["status_sended"] = msg.status_sended;
   return obj;
 }
 
 inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
-  if(!obj.contains("id")) {
+  if (!obj.contains("id")) {
     LOG_ERROR("There is no id field");
     return nullptr;
   }
 
-  if(!obj.contains("type")) {
+  if (!obj.contains("type")) {
     LOG_ERROR("There is no type field");
     return nullptr;
   }
@@ -100,7 +101,7 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
     chat->avatar_path  = userObj["avatar"].toString();
     chat->user_id      = static_cast<long long>(userObj["id"].toDouble());
     LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
-    //todo: check invariants
+    // todo: check invariants
     return chat;
   } else if (type == "group") {
     auto chat          = std::make_shared<GroupChat>();
@@ -117,7 +118,6 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
 }  // namespace JsonService
 
 #endif  // JSONSERVER_H
-
 
 // static void to_json(nlohmann::json& j, const UserMessage& m) {
 //   j = nlohmann::json(m.message);
@@ -143,8 +143,8 @@ inline auto getChatFromJson(const QJsonObject& obj) -> ChatPtr {
 //   }
 
 //   if(j.contains("reactions")) {
-//     if (j["reactions"].contains("counts")) j["reactions"].at("counts").get_to(m.reactions.counts);
-//     if (j.contains("reactions") &&
+//     if (j["reactions"].contains("counts"))
+//     j["reactions"].at("counts").get_to(m.reactions.counts); if (j.contains("reactions") &&
 //         j["reactions"].contains("my_reaction") &&
 //         !j["reactions"]["my_reaction"].is_null())
 //     {

@@ -3,8 +3,8 @@
 
 #include <QListView>
 #include <QMainWindow>
-#include <memory>
 #include <QStandardItemModel>
+#include <memory>
 
 #include "interfaces/IMainWindow.h"
 
@@ -55,17 +55,17 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void on_editTextEdit_textChanged();
 
   void setWriteMode();
-  //void setEditMode();
+  // void setEditMode();
 
   void on_serch_in_chat_button_clicked();
 
   void on_cancel_search_messages_button_clicked();
 
-  void on_search_messages_line_edit_textChanged(const QString &arg1);
+  void on_search_messages_line_edit_textChanged(const QString& arg1);
 
-  void on_serch_messages_list_view_clicked(const QModelIndex &index);
+  void on_serch_messages_list_view_clicked(const QModelIndex& index);
 
-private:
+ private:
   void setMainWindow();
   void setSignInPage();
   void setSignUpPage();
@@ -82,15 +82,16 @@ private:
   void setSearchMessageMode();
   void setTitleChatMode();
 
-  void onMessageContextMenu(const QPoint& pos);
-  QModelIndex findIndexByMessageId(QAbstractItemModel *model, long long id);
+  void        onMessageContextMenu(const QPoint& pos);
+  QModelIndex findIndexByMessageId(QAbstractItemModel* model, long long id);
 
-  std::unique_ptr<ITheme>    current_theme_;
-  Ui::MainWindow*            ui_;
-  std::unique_ptr<Presenter> presenter_;
+  std::unique_ptr<ITheme>          current_theme_;
+  Ui::MainWindow*                  ui_;
+  std::unique_ptr<Presenter>       presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
 
-  std::optional<Message> editable_message_; //todo: make Page to set in currentPage, in which Message will be
+  std::optional<Message>
+      editable_message_;  // todo: make Page to set in currentPage, in which Message will be
   QStandardItemModel* searchResultsModel_;
 };
 

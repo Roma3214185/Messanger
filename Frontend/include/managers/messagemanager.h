@@ -24,9 +24,9 @@ class MessageManager : public BaseManager {
   void deleteMessage(const Message& message_to_delete, const QString& token);
 
   QFuture<QList<Message>> getChatMessages(const QString& current_token,
-                                          long long            chat_id,
-                                          long long            before_id,
-                                          long long            limit);
+                                          long long      chat_id,
+                                          long long      before_id,
+                                          long long      limit);
 
  protected:
   QList<Message> onGetChatMessages(const QByteArray& responce_data);

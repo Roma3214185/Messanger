@@ -14,12 +14,12 @@ class MockReply : public QNetworkReply {
     setUrl(QUrl("http://mock.url"));
   }
 
-  QString mock_str = "Mock network error";
+  QString                     mock_str  = "Mock network error";
   QNetworkReply::NetworkError mock_code = ConnectionRefusedError;
 
   void setMockError(QNetworkReply::NetworkError code, const QString& str) {
     setError(code, str);
-    mock_str = str;
+    mock_str  = str;
     mock_code = code;
   }
 

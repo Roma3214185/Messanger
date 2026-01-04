@@ -11,14 +11,13 @@ class RedisClient : public ICache {
   RedisClient(std::string url) : redis(url) {}
 
   OptionalToken get(const Key& key) override {
-    OptionalToken takenOpt;
     try {
-      takenOpt = redis.get(key);
+      return redis.get(key);
     } catch (const sw::redis::Error& e) {
       spdlog::error("Redis error: '{}'", e.what());
+      return std::nullopt;
     }
 
-    return takenOpt;
   }
 
   void saveToken(const Key& key, const Token& token) override { redis.set(key, token); }

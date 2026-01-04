@@ -1,4 +1,5 @@
 #include "models/chatmodel.h"
+
 #include "Debug_profiling.h"
 
 ChatModel::ChatModel(QObject* parent) : QAbstractListModel(parent) {}
@@ -9,7 +10,7 @@ int ChatModel::rowCount(const QModelIndex& parent) const {
 }
 
 QVariant ChatModel::data(const QModelIndex& index, int role) const {
-  //DBC_REQUIRE(index.isValid() && index.row() < chats_.size());
+  // DBC_REQUIRE(index.isValid() && index.row() < chats_.size());
   if (!index.isValid() || index.row() >= chats_.size() || index.row() < 0) return QVariant();
 
   const auto& chat = chats_.at(index.row());
@@ -43,8 +44,8 @@ QHash<int, QByteArray> ChatModel::roleNames() const {
 }
 
 void ChatModel::addChat(const ChatPtr& chat) {
-  for(auto& existing_chat: chats_) {
-    if(existing_chat->chat_id == chat->chat_id) {
+  for (auto& existing_chat : chats_) {
+    if (existing_chat->chat_id == chat->chat_id) {
       return LOG_WARN("Chat with id {} already exist");
     }
   }
@@ -65,17 +66,15 @@ void ChatModel::sortChats() {
   endInsertRows();
 }
 
-void ChatModel::updateChatInfo(const long long        chat_id,
-                           const std::optional<Message>&  message
-                           /*, TODO: int unread = 0,*/) {
-  if(message == std::nullopt) return;
+void ChatModel::updateChatInfo(const long long chat_id, const std::optional<Message>& message
+                               /*, TODO: int unread = 0,*/) {
+  if (message == std::nullopt) return;
   DBC_REQUIRE(chat_id > 0);
 
-  auto it = std::find_if(chats_.begin(), chats_.end(), [&](const auto& chat){
-    return chat->chat_id == chat_id;
-  });
+  auto it = std::find_if(
+      chats_.begin(), chats_.end(), [&](const auto& chat) { return chat->chat_id == chat_id; });
   if (it == chats_.end()) return;
-  //todo: make copy-asigned constructor
+  // todo: make copy-asigned constructor
   (*it)->last_message      = message->text;
   (*it)->unread            = 0;  // unread++;
   (*it)->last_message_time = message->timestamp;
