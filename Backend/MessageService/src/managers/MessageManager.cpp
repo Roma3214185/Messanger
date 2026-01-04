@@ -1,12 +1,15 @@
 #include "messageservice/managers/MessageManager.h"
 
 #include "GenericRepository.h"
-#include "interfaces/ISqlExecutor.h"
 #include "interfaces/ICacheService.h"
-#include "messageservice/dto/GetMessagePack.h"
 #include "interfaces/IIdGenerator.h"
+#include "interfaces/ISqlExecutor.h"
+#include "messageservice/dto/GetMessagePack.h"
 
-MessageManager::MessageManager(GenericRepository* repository, ISqlExecutor*  executor, IIdGenerator* generator, ICacheService& cache)
+MessageManager::MessageManager(GenericRepository* repository,
+                               ISqlExecutor*      executor,
+                               IIdGenerator*      generator,
+                               ICacheService&     cache)
     : repository_(repository), executor_(executor), generator_(generator), cache_(cache) {}
 
 bool MessageManager::saveMessage(Message& msg) {
@@ -18,22 +21,25 @@ std::optional<Message> MessageManager::getMessage(long long message_id) {
   return repository_->findOne<Message>(message_id);
 }
 
-std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_id, long long receiver_id) {
-  auto        custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
-  custom_query
-      ->where(MessageStatusTable::MessageId, message_id)
-      .where(MessageStatusTable::ReceiverId, receiver_id).limit(1);
-  auto res = custom_query->execute();
+std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_id,
+                                                              long long receiver_id) {
+  auto custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
+  custom_query->where(MessageStatusTable::MessageId, message_id)
+      .where(MessageStatusTable::ReceiverId, receiver_id)
+      .limit(1);
+  auto res        = custom_query->execute();
   auto select_res = QueryFactory::getSelectResult(res);
   return select_res.result.empty() ? std::nullopt : std::make_optional(select_res.result.front());
 }
 
 std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {
-  auto        custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
+  auto custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
   custom_query
-      ->join(MessageStatusTable::Table, MessageTable::Id, MessageStatusTable::fullField(
-                                                              MessageStatusTable::MessageId))
-      .where(MessageTable::ChatId, pack.chat_id).limit(pack.limit)
+      ->join(MessageStatusTable::Table,
+             MessageTable::Id,
+             MessageStatusTable::fullField(MessageStatusTable::MessageId))
+      .where(MessageTable::ChatId, pack.chat_id)
+      .limit(pack.limit)
       .where(MessageStatusTable::fullField(MessageStatusTable::ReceiverId), pack.user_id);
 
   custom_query->orderBy(MessageTable::Timestamp, OrderDirection::DESC);
@@ -46,31 +52,31 @@ std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack)
   return QueryFactory::getSelectResult(res).result;
 }
 
-std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<Message>& messages, long long receiver_id) {
+std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<Message>& messages,
+                                                             long long receiver_id) {
   std::vector<MessageStatus> ans;
 
-  for(const auto& msg: messages) {
+  for (const auto& msg : messages) {
     auto custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
-    custom_query->where(MessageStatusTable::MessageId, msg.id).where(MessageStatusTable::ReceiverId, receiver_id);
-    auto res = custom_query->execute();
+    custom_query->where(MessageStatusTable::MessageId, msg.id)
+        .where(MessageStatusTable::ReceiverId, receiver_id);
+    auto res           = custom_query->execute();
     auto returned_list = QueryFactory::getSelectResult(res).result;
-    if(returned_list.size() != 1) LOG_WARN("Returned {}", returned_list.size());
-    else ans.emplace_back(returned_list.front());
+    if (returned_list.size() != 1)
+      LOG_WARN("Returned {}", returned_list.size());
+    else
+      ans.emplace_back(returned_list.front());
   }
 
   return ans;
 }
 
-bool MessageManager::saveMessageStatus(MessageStatus& status) {
-  return repository_->save(status);
-}
+bool MessageManager::saveMessageStatus(MessageStatus& status) { return repository_->save(status); }
 
-bool MessageManager::updateMessage(const Message& message) {
-  return repository_->save(message);
-}
+bool MessageManager::updateMessage(const Message& message) { return repository_->save(message); }
 
 bool MessageManager::deleteMessage(const Message& message) {
-  if(!repository_->deleteEntity<Message>(message)) {
+  if (!repository_->deleteEntity<Message>(message)) {
     LOG_INFO("Delete entity failed");
     return false;
   }
@@ -84,8 +90,7 @@ bool MessageManager::deleteMessage(const Message& message) {
 std::vector<MessageStatus> MessageManager::getReadedMessageStatuses(long long message_id) {
   DBC_REQUIRE(message_id > 0);
   auto query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
-  query->where(MessageStatusTable::MessageId, message_id)
-      .where(MessageStatusTable::IsRead, 1);
+  query->where(MessageStatusTable::MessageId, message_id).where(MessageStatusTable::IsRead, 1);
   auto res = query->execute();
   return QueryFactory::getSelectResult(res).result;
 }

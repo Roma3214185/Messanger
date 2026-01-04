@@ -1,6 +1,7 @@
 #include "messageservice/managers/JwtUtils.h"
 
 #include <jwt-cpp/jwt.h>
+
 #include <fstream>
 
 #include "Debug_profiling.h"
@@ -23,7 +24,7 @@ namespace JwtUtils {
 
 std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
-    auto        decoded    = jwt::decode(token);
+    auto              decoded    = jwt::decode(token);
     const std::string public_key = readFile(kPublicKeyFile);
 
     auto verifier = jwt::verify()

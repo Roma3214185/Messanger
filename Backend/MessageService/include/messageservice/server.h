@@ -19,8 +19,8 @@ class Server {
   void handleDeleteMessage();
 
   crow::SimpleApp& app_;
-  int             port_;
-  Controller*   controller_;
+  int              port_;
+  Controller*      controller_;
 };
 
 #endif  // BACKEND_MESSAGESERVICE_SERVER_SERVER_H_
