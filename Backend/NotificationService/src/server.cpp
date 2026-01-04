@@ -2,9 +2,9 @@
 
 #include <crow.h>
 
-#include "notificationservice/managers/notificationmanager.h"
-#include "notificationservice/CrowSocket.h"
 #include "handlers/MessageHanldlers.h"
+#include "notificationservice/CrowSocket.h"
+#include "notificationservice/managers/notificationmanager.h"
 
 Server::Server(int port, NotificationManager* notification_manager)
     : notification_manager_(notification_manager), notification_port_(port) {
@@ -13,7 +13,7 @@ Server::Server(int port, NotificationManager* notification_manager)
 }
 
 void Server::initHanlers() {
-  handlers_["init"] = std::make_unique<InitMessageHandler>();
+  handlers_["init"]         = std::make_unique<InitMessageHandler>();
   handlers_["send_message"] = std::make_unique<SendMessageHandler>();
   handlers_["read_message"] = std::make_unique<MarkReadMessageHandler>();
 }
@@ -25,7 +25,7 @@ void Server::run() {
 
 void Server::initRoutes() { handleSocketRoutes(); }
 
-void Server::  handleSocketRoutes() {
+void Server::handleSocketRoutes() {
   CROW_ROUTE(app_, "/ws")
       .websocket(&app_)
       .onopen([&](crow::websocket::connection& conn) {
@@ -45,18 +45,20 @@ void Server::  handleSocketRoutes() {
         active_sockets_.deleteConnection(socket);
         LOG_INFO("WebSocket disconnected: '{}' code {}", reason, code);
       })
-      .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool /*is_binary*/) {
-        auto socket = active_sockets_.findSocket(&conn); // use the existing wrapper
-        if (!socket) {
-          LOG_ERROR("Socket not found for onmessage");
-          return;
-        }
+      .onmessage(
+          [&](crow::websocket::connection& conn, const std::string& data, bool /*is_binary*/) {
+            auto socket = active_sockets_.findSocket(&conn);  // use the existing wrapper
+            if (!socket) {
+              LOG_ERROR("Socket not found for onmessage");
+              return;
+            }
 
-        handleSocketOnMessage(socket, data);
-      });
+            handleSocketOnMessage(socket, data);
+          });
 }
 
-void Server::handleSocketOnMessage(const std::shared_ptr<ISocket>& socket, const std::string& data) {
+void Server::handleSocketOnMessage(const std::shared_ptr<ISocket>& socket,
+                                   const std::string&              data) {
   auto message_ptr = crow::json::load(data);
   if (!message_ptr) {
     LOG_ERROR("[onMessage] Failed in loading data: {}", data);
@@ -76,4 +78,3 @@ void Server::handleSocketOnMessage(const std::shared_ptr<ISocket>& socket, const
     LOG_ERROR("Type isn't valid {}", type);
   }
 }
-

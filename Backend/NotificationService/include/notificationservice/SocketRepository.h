@@ -2,6 +2,7 @@
 #define SOCKETREPOSITORY_H
 
 #include <crow/crow.h>
+
 #include <unordered_set>
 
 #include "interfaces/ISocket.h"
@@ -9,14 +10,14 @@
 using SocketPtr = std::shared_ptr<ISocket>;
 
 class SocketRepository {
-  public:
-    SocketPtr findSocket(crow::websocket::connection* conn);
-    void addConnection(const SocketPtr& socket);
-    void deleteConnection(const SocketPtr& socket);
+ public:
+  SocketPtr findSocket(crow::websocket::connection* conn);
+  void      addConnection(const SocketPtr& socket);
+  void      deleteConnection(const SocketPtr& socket);
 
-  private:
-    std::unordered_set<SocketPtr> active_sockets_;
-    std::mutex ws_mutex;
+ private:
+  std::unordered_set<SocketPtr> active_sockets_;
+  std::mutex                    ws_mutex;
 };
 
-#endif // SOCKETREPOSITORY_H
+#endif  // SOCKETREPOSITORY_H
