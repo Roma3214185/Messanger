@@ -3,6 +3,6 @@
 
 int main(int argc, char* argv[]) {
   Catch::Session session;
-  int result = session.run(argc, argv);
+  int            result = session.run(argc, argv);
   return result;
 }
