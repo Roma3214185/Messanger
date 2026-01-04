@@ -25,16 +25,19 @@ OptionalUser AuthManager::findUserByEmail(const std::string& email) {
   LOG_INFO("Find user by email {}", email);
   auto query = QueryFactory::createSelect<User>(rep_.getExecutor(), rep_.getCache()); //TODO: remove executor and cache;
   query->from(UserTable::Table).where(UserTable::Email, email);
-  auto finded_users = query->execute();
+  auto result = query->execute();
+  auto select_result = QueryFactory::getSelectResult<User>(result);
+  auto finded_users = select_result.result;
   return finded_users.empty() ? std::nullopt : std::make_optional(finded_users.front());
 }
 
 std::optional<UserCredentials> AuthManager::findUserCredentials(long long user_id) {
   DBC_REQUIRE(user_id > 0);
-  auto result = rep_.findByField<UserCredentials>(UserCredentialsTable::UserId, user_id);
-  if(result.empty()) LOG_ERROR("findUserCredentials for id {} is failed");
-  else LOG_INFO("findUserCredentials for id {} is succed, hash is {}", user_id, result.front().hash_password);
-  return result.empty() ? std::nullopt :std::make_optional(result.front());
+  auto result = QueryFactory::createSelect<UserCredentials>(rep_.getExecutor(), rep_.getCache())->where(UserCredentialsTable::UserId, user_id).execute();
+  auto select_result = QueryFactory::getSelectResult(result);
+  if(select_result.result.empty()) LOG_ERROR("findUserCredentials for id {} is failed");
+  else LOG_INFO("findUserCredentials for id {} is succed, hash is {}", user_id, select_result.result.front().hash_password);
+  return select_result.result.empty() ? std::nullopt :std::make_optional(select_result.result.front());
 }
 
 OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {

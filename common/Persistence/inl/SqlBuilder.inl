@@ -77,6 +77,17 @@ SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity) {
 }
 
 template <EntityJson T>
+T SqlBuilder<T>::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const {
+  if(!query) throw std::runtime_error("Nullptr in buildEntity"); //TODO: make NullptrObject
+  T entity;
+  for (const auto& f : meta.fields) {
+    std::any val = SqlBuilder<T>::getFieldValue(query->value(f.name), f);
+    f.set(&entity, val);
+  }
+  return entity;
+}
+
+template <EntityJson T>
 std::vector<T> SqlBuilder<T>::buildResults(std::unique_ptr<IQuery>& query) const {
   if(!query) return {};
   std::vector<T> results;

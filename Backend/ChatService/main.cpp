@@ -1,7 +1,8 @@
 #include <crow.h>
-
 #include <QCoreApplication>
 
+#include "RedisCache.h"
+#include "SQLiteDataBase.h"
 #include "Debug_profiling.h"
 #include "GenericRepository.h"
 #include "SqlExecutor.h"

@@ -4,12 +4,9 @@
 #include <vector>
 
 #include "Meta.h"
-#include "Query.h"
 #include "metaentity/EntityConcept.h"
 #include "OutboxWorker.h"
 #include "interfaces/IEntityBuilder.h"
-
-//#include "SQLiteDataBase.h"
 
 template <EntityJson T>
 using ResultList = std::vector<T>;

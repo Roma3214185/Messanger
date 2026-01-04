@@ -39,8 +39,9 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
   custom_query->where(PrivateChatTable::FirstUserId, min_user_id)
       .where(PrivateChatTable::SecondUserId, max_user_id);
 
-  auto res = custom_query->execute();
-  assert(res.size() <= 1);
+  auto result = custom_query->execute();
+  auto res = QueryFactory::getSelectResult(result).result;
+  //DBC_REQUIRE(res.size() <= 1);
   if(res.size() == 1) {
     LOG_INFO("Private chat is existed, id is {}", res[0].chat_id);
     return res[0].chat_id;

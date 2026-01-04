@@ -1,7 +1,6 @@
 #include "messageservice/managers/MessageManager.h"
 
 #include "GenericRepository.h"
-#include "interfaces/BaseQuery.h"
 #include "interfaces/ISqlExecutor.h"
 #include "interfaces/ICacheService.h"
 #include "messageservice/dto/GetMessagePack.h"
@@ -25,7 +24,8 @@ std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_
       ->where(MessageStatusTable::MessageId, message_id)
       .where(MessageStatusTable::ReceiverId, receiver_id).limit(1);
   auto res = custom_query->execute();
-  return res.empty() ? std::nullopt : std::make_optional(res.front());
+  auto select_res = QueryFactory::getSelectResult(res);
+  return select_res.result.empty() ? std::nullopt : std::make_optional(select_res.result.front());
 }
 
 std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack) {
@@ -42,7 +42,8 @@ std::vector<Message> MessageManager::getChatMessages(const GetMessagePack& pack)
     custom_query->where(MessageTable::Id, Operator::Less, pack.before_id);
   }
 
-  return custom_query->execute();
+  auto res = custom_query->execute();
+  return QueryFactory::getSelectResult(res).result;
 }
 
 std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<Message>& messages, long long receiver_id) {
@@ -51,7 +52,8 @@ std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<M
   for(const auto& msg: messages) {
     auto custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
     custom_query->where(MessageStatusTable::MessageId, msg.id).where(MessageStatusTable::ReceiverId, receiver_id);
-    auto returned_list = custom_query->execute();
+    auto res = custom_query->execute();
+    auto returned_list = QueryFactory::getSelectResult(res).result;
     if(returned_list.size() != 1) LOG_WARN("Returned {}", returned_list.size());
     else ans.emplace_back(returned_list.front());
   }
@@ -75,8 +77,8 @@ bool MessageManager::deleteMessage(const Message& message) {
 
   auto query = QueryFactory::createDelete<MessageStatus>(executor_, cache_);
   query->where(MessageStatusTable::MessageId, message.id);
-  auto res = query->execute(); //todo: check res for
-  return true;
+  auto res = query->execute();
+  return QueryFactory::getDeleteResult(res).success;
 }
 
 std::vector<MessageStatus> MessageManager::getReadedMessageStatuses(long long message_id) {
@@ -85,6 +87,5 @@ std::vector<MessageStatus> MessageManager::getReadedMessageStatuses(long long me
   query->where(MessageStatusTable::MessageId, message_id)
       .where(MessageStatusTable::IsRead, 1);
   auto res = query->execute();
-  LOG_INFO("getReadedMessageStatuses for id {} is size {} MessageStatus", message_id, res.size());
-  return res;
+  return QueryFactory::getSelectResult(res).result;
 }
