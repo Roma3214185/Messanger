@@ -36,3 +36,8 @@ keys/private.pem
 .clang-tidy
 .clang-format
 .clang-tidy.save
+
+vcpkg_installed/
+external/vcpkg_installed/
+external/vcpkg/buildtrees/
+external/vcpkg/packages/

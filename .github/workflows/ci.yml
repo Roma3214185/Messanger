@@ -38,7 +38,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c qt
+          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c
 
       - name: Remove Homebrew protobuf (force vcpkg)
         run: |
