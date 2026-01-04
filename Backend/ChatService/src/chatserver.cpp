@@ -1,7 +1,7 @@
 #include "chatservice/chatserver.h"
 
-#include "chatservice/chatcontroller.h"
 #include "Debug_profiling.h"
+#include "chatservice/chatcontroller.h"
 #include "entities/RequestDTO.h"
 
 namespace {
@@ -65,7 +65,8 @@ void ChatServer::handleGetAllChatsMembers() {
       .methods(crow::HTTPMethod::GET)(
           [&](const crow::request& req, crow::response& res, const std::string& chat_id_str) {
             PROFILE_SCOPE();
-            auto [code, body] = controller_->getAllChatMembers(utils::getDTO(req, "/chats/id/members"), chat_id_str);
+            auto [code, body] = controller_->getAllChatMembers(
+                utils::getDTO(req, "/chats/id/members"), chat_id_str);
             sendResponse(res, code, body);
           });
 }

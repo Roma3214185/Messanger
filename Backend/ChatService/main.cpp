@@ -1,25 +1,25 @@
 #include <crow.h>
+
 #include <QCoreApplication>
 
-#include "RedisCache.h"
-#include "SQLiteDataBase.h"
 #include "Debug_profiling.h"
+#include "GeneratorId.h"
 #include "GenericRepository.h"
-#include "SqlExecutor.h"
-#include "chatservice/chatmanager.h"
-#include "chatservice/chatcontroller.h"
-#include "chatservice/chatserver.h"
+#include "NetworkFacade.h"
 #include "NetworkManager.h"
 #include "ProdConfigProvider.h"
-#include "NetworkFacade.h"
-#include "GeneratorId.h"
+#include "RedisCache.h"
+#include "SQLiteDataBase.h"
+#include "SqlExecutor.h"
+#include "chatservice/chatcontroller.h"
+#include "chatservice/chatmanager.h"
+#include "chatservice/chatserver.h"
 
 int main(int argc, char* argv[]) {
   initLogger("ChatService");
-  QCoreApplication  a(argc, argv);
+  QCoreApplication a(argc, argv);
 
   SQLiteDatabase database("chat_service_conn");
-
 
   // if (!database.deleteTable(sqlite, "private_chats")) {
   //   LOG_ERROR("Not deleted private_chats table");
@@ -39,22 +39,21 @@ int main(int argc, char* argv[]) {
   //   LOG_WARN("chat_members table is deleted");
   // }
 
-
-  if(!database.initializeSchema()) {
+  if (!database.initializeSchema()) {
     qFatal("Cannot initialise DB");
   }
 
-  SqlExecutor       executor(database);
-  constexpr int service_id = 2;
-  GeneratorId generator(service_id);
-  GenericRepository genetic_rep(database, &executor, RedisCache::instance());
-  ChatManager       manager(&genetic_rep, &generator); //TODO: pass executor to mock
-  NetworkManager    network_manager;
+  SqlExecutor        executor(database);
+  constexpr int      service_id = 2;
+  GeneratorId        generator(service_id);
+  GenericRepository  genetic_rep(database, &executor, RedisCache::instance());
+  ChatManager        manager(&genetic_rep, &generator);  // TODO: pass executor to mock
+  NetworkManager     network_manager;
   ProdConfigProvider provider;
-  NetworkFacade facade = NetworkFactory::create(&network_manager);
-  crow::SimpleApp app;
-  ChatController controller(&manager, &facade);
-  ChatServer            server(app, provider.ports().chatService, &controller);
+  NetworkFacade      facade = NetworkFactory::create(&network_manager);
+  crow::SimpleApp    app;
+  ChatController     controller(&manager, &facade);
+  ChatServer         server(app, provider.ports().chatService, &controller);
   LOG_INFO("Chat service on port '{}'", provider.ports().chatService);
   server.run();
 }

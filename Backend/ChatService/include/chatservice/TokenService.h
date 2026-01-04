@@ -6,7 +6,7 @@
 
 namespace JwtUtils {
 
-extern const char* kIssuer;
+extern const char*       kIssuer;
 extern const std::string kKeysDir;
 extern const std::string kPublicKeyFile;
 
