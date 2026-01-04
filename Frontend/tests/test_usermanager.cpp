@@ -14,7 +14,9 @@ class TestUserManager : public UserManager {
  public:
   using UserManager::UserManager;
 
-  std::optional<User> onGetUser(QNetworkReply* reply) { return UserManager::onGetUser(reply->readAll()); }
+  std::optional<User> onGetUser(QNetworkReply* reply) {
+    return UserManager::onGetUser(reply->readAll());
+  }
 
   QList<User> onFindUsersByTag(QNetworkReply* reply) {
     return UserManager::onFindUsersByTag(reply->readAll());
@@ -22,15 +24,15 @@ class TestUserManager : public UserManager {
 };
 
 TEST_CASE("Test user manager") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8083/");
-  std::chrono::milliseconds times_out{ 20 };
-  std::chrono::milliseconds delay{ 3 };
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8083/");
+  std::chrono::milliseconds times_out{20};
+  std::chrono::milliseconds delay{3};
 
-  UserManager              user_manager(&network_manager, url, times_out);
-  int                      user_id{ 4 };
-  auto                     reply   = std::make_unique<MockReply>();
+  UserManager user_manager(&network_manager, url, times_out);
+  int         user_id{4};
+  auto        reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
   User user{.id         = 1,
             .name       = "roma",
@@ -45,8 +47,8 @@ TEST_CASE("Test user manager") {
                     {"avatar_path", user.avatarPath}};
   QJsonDocument doc(obj);
   QByteArray    json_data = doc.toJson();
-  QString token = "secret-token-123";
-  auto doGetUser = [&]() -> QFuture<std::optional<User>> {
+  QString       token     = "secret-token-123";
+  auto          doGetUser = [&]() -> QFuture<std::optional<User>> {
     return user_manager.getUser(user_id, token);
   };
 
@@ -106,7 +108,7 @@ TEST_CASE("Test user manager") {
     mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError, "error");
     network_manager.setReply(mock_reply);
 
-    //QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
     auto future = doGetUser();
     QCoreApplication::processEvents();
 
@@ -121,7 +123,7 @@ TEST_CASE("Test user manager") {
     mock_reply->setData(json_data);
     network_manager.setReply(mock_reply);
 
-    //QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
     doGetUser();
     QCoreApplication::processEvents();
 
@@ -133,7 +135,7 @@ TEST_CASE("Test user manager") {
     mock_reply->setData(json_data);
     network_manager.setReply(mock_reply);
 
-    //QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
     auto future = doGetUser();
     QCoreApplication::processEvents();
 
@@ -255,14 +257,14 @@ TEST_CASE("Test onGetUser") {
 }
 
 TEST_CASE("Test findUsersByTag") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8083/");
-  std::chrono::milliseconds times_out{ 20 };
-  std::chrono::milliseconds delay{ 5 };
-  UserManager              user_manager(&network_manager, url, times_out);
-  QString                  tag   = "roma222";
-  auto                     reply = new MockReply();
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8083/");
+  std::chrono::milliseconds times_out{20};
+  std::chrono::milliseconds delay{5};
+  UserManager               user_manager(&network_manager, url, times_out);
+  QString                   tag   = "roma222";
+  auto                      reply = new MockReply();
   network_manager.setReply(reply);
 
   QList<User> users;
@@ -292,8 +294,8 @@ TEST_CASE("Test findUsersByTag") {
   root["users"] = array;
 
   QJsonDocument doc(root);
-  QByteArray    json_data = doc.toJson();
-  QString currect_token = "test-token-123";
+  QByteArray    json_data     = doc.toJson();
+  QString       currect_token = "test-token-123";
 
   SECTION("ExpectedFucntionCreateRightUrl") {
     user_manager.findUsersByTag(tag, currect_token);
@@ -339,16 +341,17 @@ TEST_CASE("Test findUsersByTag") {
                                    "there is no authentification");
     network_manager.setReply(reply_with_error);
     QSignalSpy spyErrorOccurred(&user_manager, &BaseManager::errorOccurred);
-    int        before_calls = spyErrorOccurred.count();
+    int        before_calls    = spyErrorOccurred.count();
     network_manager.shouldFail = true;
 
-    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
     auto future = user_manager.findUsersByTag(tag, currect_token);
     QCoreApplication::processEvents();
 
     REQUIRE(spyErrorOccurred.count() == before_calls + 1);
     auto arguments = spyErrorOccurred.takeFirst();
-    REQUIRE(arguments.at(0).toString().toStdString() == "Error occurred: there is no authentification");
+    REQUIRE(arguments.at(0).toString().toStdString() ==
+            "Error occurred: there is no authentification");
   }
 
   SECTION("ValidReplyExpectedNotEmittedError") {
@@ -385,13 +388,13 @@ TEST_CASE("Test findUsersByTag") {
 }
 
 TEST_CASE("Tests onUserFindedByTag") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8083/");
-  std::chrono::milliseconds times_out{ 20 };
-  TestUserManager          user_manager(&network_manager, url, times_out);
-  QString                  tag   = "roma222";
-  auto                     reply = new MockReply();
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8083/");
+  std::chrono::milliseconds times_out{20};
+  TestUserManager           user_manager(&network_manager, url, times_out);
+  QString                   tag   = "roma222";
+  auto                      reply = new MockReply();
   network_manager.setReply(reply);
 
   QList<User> users;
@@ -452,13 +455,13 @@ TEST_CASE("Tests onUserFindedByTag") {
 }
 
 TEST_CASE("UserManager onFindUsersByTag invalid JSON handling") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8083/");
-  std::chrono::milliseconds times_out{ 20 };
-  TestUserManager          user_manager(&network_manager, url, times_out);
-  QString                  tag   = "roma222";
-  auto                     reply = new MockReply();
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8083/");
+  std::chrono::milliseconds times_out{20};
+  TestUserManager           user_manager(&network_manager, url, times_out);
+  QString                   tag   = "roma222";
+  auto                      reply = new MockReply();
   network_manager.setReply(reply);
 
   // SECTION("Network error") {

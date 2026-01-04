@@ -4,11 +4,11 @@
 
 TEST_CASE("Test user model") {
   UserModel user_model;
-  User user;
-  user.id = 1;
-  user.email = "romanlobach@gmail.com";
-  user.name = "Roma";
-  user.tag = "romanlobach";
+  User      user;
+  user.id         = 1;
+  user.email      = "romanlobach@gmail.com";
+  user.name       = "Roma";
+  user.tag        = "romanlobach";
   user.avatarPath = "path/to/avatar";
 
   SECTION("Add user expected list of users increase by 1") {
@@ -41,9 +41,9 @@ TEST_CASE("Test user model") {
 
   SECTION("Expected return valid hash map") {
     QHash<int, QByteArray> expected = {{UserModel::Roles::UserIdRole, "chat_id"},
-                                        {UserModel::Roles::NameRole, "name"},
-                                        {UserModel::Roles::TagRole, "tag"},
-                                        {UserModel::Roles::EmailRole, "email"},
+                                       {UserModel::Roles::NameRole, "name"},
+                                       {UserModel::Roles::TagRole, "tag"},
+                                       {UserModel::Roles::EmailRole, "email"},
                                        {UserModel::Roles::AvatarRole, "avatar"}};
 
     REQUIRE(user_model.roleNames() == expected);

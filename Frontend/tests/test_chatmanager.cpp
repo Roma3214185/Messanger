@@ -14,7 +14,9 @@ class TestChatManager : public ChatManager {
  public:
   using ChatManager::ChatManager;
 
-  QList<ChatPtr> onLoadChats(QNetworkReply* reply) { return ChatManager::onLoadChats(reply->readAll()); }
+  QList<ChatPtr> onLoadChats(QNetworkReply* reply) {
+    return ChatManager::onLoadChats(reply->readAll());
+  }
 
   ChatPtr onChatLoaded(QNetworkReply* reply) { return ChatManager::onChatLoaded(reply->readAll()); }
 
@@ -24,16 +26,16 @@ class TestChatManager : public ChatManager {
 };
 
 TEST_CASE("Test ChatManager loadChats") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8081");
-  std::chrono::milliseconds times_out{ 20 };
-  std::chrono::milliseconds delay{ 5 };
-  TestChatManager          chat_manager(&network_manager, url, times_out);
-  QJsonObject              chat_obj{
-                   {"type", "private"},
-                   {"id", 43},
-                   {"user", QJsonObject{{"id", 123}, {"name", "Chat43"}, {"avatar", "path/to/avatar"}}}};
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8081");
+  std::chrono::milliseconds times_out{20};
+  std::chrono::milliseconds delay{5};
+  TestChatManager           chat_manager(&network_manager, url, times_out);
+  QJsonObject               chat_obj{
+                    {"type", "private"},
+                    {"id", 43},
+                    {"user", QJsonObject{{"id", 123}, {"name", "Chat43"}, {"avatar", "path/to/avatar"}}}};
 
   QJsonArray chat_array;
   chat_array.append(chat_obj);
@@ -50,7 +52,7 @@ TEST_CASE("Test ChatManager loadChats") {
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     network_manager.shouldReturnResponce = false;
 
-    auto       future = chat_manager.loadChats("token");
+    auto future = chat_manager.loadChats("token");
 
     QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, times_out + delay);
     REQUIRE(future.result().isEmpty());
@@ -63,7 +65,7 @@ TEST_CASE("Test ChatManager loadChats") {
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     network_manager.shouldFail = true;
-    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
     auto future = chat_manager.loadChats("token");
     QCoreApplication::processEvents();
 
@@ -78,7 +80,7 @@ TEST_CASE("Test ChatManager loadChats") {
     auto reply = new MockReply();
     reply->setData(valid_json_data);
     network_manager.setReply(reply);
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChats("token");
     QCoreApplication::processEvents();
@@ -97,7 +99,7 @@ TEST_CASE("Test ChatManager loadChats") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChats("token");
     QCoreApplication::processEvents();
@@ -108,11 +110,11 @@ TEST_CASE("Test ChatManager loadChats") {
 }
 
 TEST_CASE("Test ChatManager loadChat") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8081");
-  std::chrono::milliseconds times_out{ 20 };
-  TestChatManager          chat_manager(&network_manager, url, times_out);
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8081");
+  std::chrono::milliseconds times_out{20};
+  TestChatManager           chat_manager(&network_manager, url, times_out);
 
   QJsonObject chat_obj{
       {"type", "private"},
@@ -133,7 +135,7 @@ TEST_CASE("Test ChatManager loadChat") {
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     network_manager.shouldFail = true;
-    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChat("token", 42);
     QCoreApplication::processEvents();
@@ -148,7 +150,7 @@ TEST_CASE("Test ChatManager loadChat") {
     auto reply = new MockReply();
     reply->setData(valid_json);
     network_manager.setReply(reply);
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChat("token", 42);
     QCoreApplication::processEvents();
@@ -164,7 +166,7 @@ TEST_CASE("Test ChatManager loadChat") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChat("token", 42);
     QCoreApplication::processEvents();
@@ -175,25 +177,17 @@ TEST_CASE("Test ChatManager loadChat") {
 }
 
 TEST_CASE("Test ChatManager createPrivateChat") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8081");
-  std::chrono::milliseconds times_out{ 20 };
-  TestChatManager          chat_manager(&network_manager, url, times_out);
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8081");
+  std::chrono::milliseconds times_out{20};
+  TestChatManager           chat_manager(&network_manager, url, times_out);
 
-  QJsonObject user_obj{
-      {"id", 55},
-      {"name", "PrivateChat101"},
-      {"avatar", "/path/to/avatar.png"}
-  };
+  QJsonObject user_obj{{"id", 55}, {"name", "PrivateChat101"}, {"avatar", "/path/to/avatar.png"}};
 
-  QJsonObject chat_obj{
-      {"type", "private"},
-      {"id", 101},
-      {"user", user_obj}
-  };
+  QJsonObject chat_obj{{"type", "private"}, {"id", 101}, {"user", user_obj}};
 
-  QByteArray  valid_json = QJsonDocument(chat_obj).toJson();
+  QByteArray valid_json = QJsonDocument(chat_obj).toJson();
 
   SECTION("Correct POST request URL and body") {
     chat_manager.createPrivateChat("token", 5);
@@ -206,7 +200,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     network_manager.setReply(reply_with_error);
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
-    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
@@ -219,7 +213,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     auto reply = new MockReply();
     reply->setData(valid_json);
     network_manager.setReply(reply);
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
@@ -237,7 +231,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
 
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
     int        before = spyError.count();
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
@@ -254,7 +248,7 @@ TEST_CASE("Test ChatManager createPrivateChat") {
     network_manager.setReply(reply);
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
 
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
     auto future = chat_manager.createPrivateChat("token", 5);
     QCoreApplication::processEvents();
 

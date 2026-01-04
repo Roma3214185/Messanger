@@ -43,7 +43,7 @@ TEST_CASE("Test socket") {
 
   SECTION("Socket is sending init message expected send message") {
     int user_id = 2;
-    int before = fakesocket.sendTextMessage_calls;
+    int before  = fakesocket.sendTextMessage_calls;
     socket_manager.initSocket(user_id);
 
     REQUIRE(fakesocket.sendTextMessage_calls == before + 1);
@@ -51,7 +51,7 @@ TEST_CASE("Test socket") {
     auto sended_message = fakesocket.last_sended_message;
 
     QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(sended_message.toUtf8(), &parseError);
+    QJsonDocument   doc = QJsonDocument::fromJson(sended_message.toUtf8(), &parseError);
 
     REQUIRE(parseError.error == QJsonParseError::NoError);
     REQUIRE(doc.isObject());
@@ -65,7 +65,7 @@ TEST_CASE("Test socket") {
   }
 
   SECTION("Socket close expected calls close() and disconnect()") {
-    int before_close_calls = fakesocket.close_calls;
+    int before_close_calls      = fakesocket.close_calls;
     int before_disconnect_calls = fakesocket.disconnect_calls;
 
     socket_manager.close();
@@ -81,5 +81,4 @@ TEST_CASE("Test socket") {
 
     REQUIRE(fakesocket.last_sended_message == message_to_send);
   }
-
 }
