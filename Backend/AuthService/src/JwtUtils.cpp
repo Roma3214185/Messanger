@@ -22,12 +22,12 @@ std::string readFile(const std::string& path) {
 
 namespace JwtUtils {
 
-inline constexpr const char* kIssuer         = "auth_service";
-constexpr int                kTenYears       = 24 * 365 * 10;
-const std::string            kPublicKeysDir  = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-const std::string            kPtivateKeysDir = "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
-const std::string            kPrivateKeyFile = kPtivateKeysDir + "private_key.pem";
-const std::string            kPublicKeyFile  = kPublicKeysDir + "public_key.pem";
+inline constexpr const char* kIssuer        = "auth_service";
+constexpr int                kTenYears      = 24 * 365 * 10;
+const std::string            kPublicKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+const std::string kPtivateKeysDir = "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
+const std::string kPrivateKeyFile = kPtivateKeysDir + "private_key.pem";
+const std::string kPublicKeyFile  = kPublicKeysDir + "public_key.pem";
 
 std::string generateToken(UserId user_id) {
   auto private_key = readFile(kPrivateKeyFile);
@@ -49,7 +49,7 @@ std::string generateToken(UserId user_id) {
 
 std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
-    auto        decoded    = jwt::decode(token);
+    auto              decoded    = jwt::decode(token);
     const std::string public_key = readFile(kPublicKeyFile);
 
     auto verifier = jwt::verify()

@@ -3,9 +3,9 @@
 #include <optional>
 #include <string>
 
+#include "Debug_profiling.h"
 #include "authservice/PasswordService.h"
 #include "entities/RegisterRequest.h"
-#include "Debug_profiling.h"
 #include "entities/UserCredentials.h"
 #include "interfaces/IIdGenerator.h"
 
@@ -23,21 +23,29 @@ OptionalUser AuthManager::getUser(long long user_id) {
 
 OptionalUser AuthManager::findUserByEmail(const std::string& email) {
   LOG_INFO("Find user by email {}", email);
-  auto query = QueryFactory::createSelect<User>(rep_.getExecutor(), rep_.getCache()); //TODO: remove executor and cache;
+  auto query = QueryFactory::createSelect<User>(
+      rep_.getExecutor(), rep_.getCache());  // TODO: remove executor and cache;
   query->from(UserTable::Table).where(UserTable::Email, email);
-  auto result = query->execute();
+  auto result        = query->execute();
   auto select_result = QueryFactory::getSelectResult<User>(result);
-  auto finded_users = select_result.result;
+  auto finded_users  = select_result.result;
   return finded_users.empty() ? std::nullopt : std::make_optional(finded_users.front());
 }
 
 std::optional<UserCredentials> AuthManager::findUserCredentials(long long user_id) {
   DBC_REQUIRE(user_id > 0);
-  auto result = QueryFactory::createSelect<UserCredentials>(rep_.getExecutor(), rep_.getCache())->where(UserCredentialsTable::UserId, user_id).execute();
+  auto result = QueryFactory::createSelect<UserCredentials>(rep_.getExecutor(), rep_.getCache())
+                    ->where(UserCredentialsTable::UserId, user_id)
+                    .execute();
   auto select_result = QueryFactory::getSelectResult(result);
-  if(select_result.result.empty()) LOG_ERROR("findUserCredentials for id {} is failed");
-  else LOG_INFO("findUserCredentials for id {} is succed, hash is {}", user_id, select_result.result.front().hash_password);
-  return select_result.result.empty() ? std::nullopt :std::make_optional(select_result.result.front());
+  if (select_result.result.empty())
+    LOG_ERROR("findUserCredentials for id {} is failed");
+  else
+    LOG_INFO("findUserCredentials for id {} is succed, hash is {}",
+             user_id,
+             select_result.result.front().hash_password);
+  return select_result.result.empty() ? std::nullopt
+                                      : std::make_optional(select_result.result.front());
 }
 
 OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
@@ -64,29 +72,37 @@ OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
   return user_with_same_email;
 }
 
-bool AuthManager::passwordIsValid(const std::string& password_to_check, const std::string& hash_password) {
-  //TODO: make check if password_to_check satisfy condition (length, symbols, etc)
+bool AuthManager::passwordIsValid(const std::string& password_to_check,
+                                  const std::string& hash_password) {
+  // TODO: make check if password_to_check satisfy condition (length, symbols, etc)
   return PasswordService::verify(password_to_check, hash_password);
 }
 
 OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
   auto user_with_same_email = findUserByEmail(req.email);
-  if(user_with_same_email) {
-    LOG_WARN("There is user with email {} already, his email {} name is {} and tag is {}", req.email,
-             user_with_same_email->email, user_with_same_email->username, user_with_same_email->tag);
+  if (user_with_same_email) {
+    LOG_WARN("There is user with email {} already, his email {} name is {} and tag is {}",
+             req.email,
+             user_with_same_email->email,
+             user_with_same_email->username,
+             user_with_same_email->tag);
     return std::nullopt;
   }
 
   auto users_with_same_tag = findUserWithSameTag(req.tag);
-  if(users_with_same_tag) {
-    LOG_WARN("There is user with tag {} already, his email {} name is {} and tag is {}", req.tag,
-             users_with_same_tag->email, users_with_same_tag->username, users_with_same_tag->tag);
+  if (users_with_same_tag) {
+    LOG_WARN("There is user with tag {} already, his email {} name is {} and tag is {}",
+             req.tag,
+             users_with_same_tag->email,
+             users_with_same_tag->username,
+             users_with_same_tag->tag);
     return std::nullopt;
   }
 
   LOG_INFO("User can be saved");
 
-  User user_to_save{.id = generator_->generateId(), .username = req.name, .email = req.email, .tag = req.tag};
+  User user_to_save{
+      .id = generator_->generateId(), .username = req.name, .email = req.email, .tag = req.tag};
 
   LOG_INFO("User_to_save: {}", nlohmann::json(user_to_save).dump());
   if (!rep_.save(user_to_save)) {
@@ -99,7 +115,7 @@ OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
   user_credentials.hash_password = getHashPassword(req.password);
 
   LOG_INFO("User saved, try to save credentials {}", nlohmann::json(user_credentials).dump());
-   //TODO: make transaction -> save(vector<IEntity>){user_to_save, user_credentials}
+  // TODO: make transaction -> save(vector<IEntity>){user_to_save, user_credentials}
   if (!rep_.save(user_credentials)) {
     LOG_ERROR("Server error while saving credentials");
     return std::nullopt;
@@ -113,7 +129,7 @@ std::string AuthManager::getHashPassword(const std::string& raw_passport) {
   return PasswordService::hash(raw_passport);
 }
 
-std::vector<User> AuthManager::findUsersByTag(const string& tag) {  //TODO: make trie
+std::vector<User> AuthManager::findUsersByTag(const string& tag) {  // TODO: make trie
   return rep_.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
 }
 
@@ -122,4 +138,5 @@ std::optional<User> AuthManager::findUserWithSameTag(const std::string& tag) {
   return result.empty() ? std::nullopt : std::make_optional(result.front());
 }
 
-AuthManager::AuthManager(GenericRepository& repository, IIdGenerator* generator) : rep_(repository), generator_(generator) {}
+AuthManager::AuthManager(GenericRepository& repository, IIdGenerator* generator)
+    : rep_(repository), generator_(generator) {}
