@@ -14,16 +14,16 @@
 #include "mocks/MockIdGenerator.h"
 
 TEST_CASE("Test saving entity in database") {
-  MockQuery query;
-  MockDatabase      db;
+  MockQuery    query;
+  MockDatabase db;
   db.mock_query = query;
   MockCache         cache;
   FakeSqlExecutor   executor;
   GenericRepository rep(db, &executor, cache);
 
-  int mocked_id = 6;
+  int  mocked_id = 6;
   User user;
-  user.id = mocked_id;
+  user.id       = mocked_id;
   user.email    = "romanlobach@gmail.com";
   user.tag      = "roma222";
   user.username = "roma";
@@ -35,12 +35,10 @@ TEST_CASE("Test saving entity in database") {
   //   REQUIRE(executor.execute_calls == before + 1);
   // }
 
-
   SECTION("Save user expected returned true status") {
     bool ok = rep.save(user);
     REQUIRE(ok == true);
   }
-
 
   SECTION("Save user with invalid id expected false") {
     user.id = 0;
@@ -54,9 +52,7 @@ TEST_CASE("Test saving entity in database") {
   auto timepoint             = QDateTime::currentMSecsSinceEpoch();
   message_status.read_at     = timepoint;
 
-
   SECTION("Save message_status expected true") { REQUIRE(rep.save(message_status)); }
-
 
   SECTION("Save message_status expected any fields is changed") {
     REQUIRE(message_status.receiver_id == 3);
@@ -64,7 +60,6 @@ TEST_CASE("Test saving entity in database") {
     REQUIRE(message_status.is_read == true);
     REQUIRE(message_status.read_at == timepoint);
   }
-
 
   SECTION("Save message with id expected id not changed") {
     Message message;
@@ -80,7 +75,6 @@ TEST_CASE("Test saving entity in database") {
 //   FakeSqlExecutor   executor;
 //   GenericRepository rep(db, &executor, cache);
 
-
 //   SECTION("Save user expected right created sql command") {
 //     std::string valid_sql =
 //         "INSERT OR REPLACE INTO users (id, username, tag, email) "
@@ -91,7 +85,6 @@ TEST_CASE("Test saving entity in database") {
 //     REQUIRE(db.last_execute_sql == valid_sql);
 //   }
 
-
 //   SECTION("Save message_status expected right created sql command") {
 //     std::string valid_sql =
 //         "INSERT OR REPLACE INTO messages_status (message_id, receiver_id, is_read, read_at) "
@@ -100,7 +93,6 @@ TEST_CASE("Test saving entity in database") {
 //     rep.save(message_status);
 //     REQUIRE(db.last_execute_sql == valid_sql);
 //   }
-
 
 //   SECTION("Save message expected right created sql command") {
 //     QString valid_sql =
@@ -112,7 +104,6 @@ TEST_CASE("Test saving entity in database") {
 
 //     REQUIRE(db.last_execute_sql == valid_sql);
 //   }
-
 
 //   SECTION("Save chat expected right created sql command") {
 //     std::string valid_sql =
@@ -126,7 +117,6 @@ TEST_CASE("Test saving entity in database") {
 //     REQUIRE(db.last_execute_sql == valid_sql);
 //   }
 
-
 //   SECTION("Save chat_member expected right created sql command") {
 //     std::string valid_sql =
 //         "INSERT OR REPLACE INTO chat_members (chat_id, user_id, status, added_at) "
@@ -136,7 +126,6 @@ TEST_CASE("Test saving entity in database") {
 //     rep.save(chat_member);
 //     REQUIRE(db.last_execute_sql == valid_sql);
 //   }
-
 
 //   SECTION("Save user_credentilas expected right created sql command") {
 //     std::string valid_sql =
