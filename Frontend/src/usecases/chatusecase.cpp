@@ -25,11 +25,11 @@ T waitForFuture(QFuture<T>& future) {
 
 }  // namespace
 
-ChatUseCase::ChatUseCase(ChatManager*  chat_manager,
+ChatUseCase::ChatUseCase(std::unique_ptr<ChatManager>  chat_manager,
                          DataManager*  data_manager,
                          ChatModel*    chat_model,
                          TokenManager* token_manager)
-    : chat_manager_(chat_manager),
+    : chat_manager_(std::move(chat_manager)),
       data_manager_(data_manager),
       chat_model_(chat_model),
       token_manager_(token_manager) {

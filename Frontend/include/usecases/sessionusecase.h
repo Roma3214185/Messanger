@@ -12,7 +12,7 @@ struct User;
 class SessionUseCase : public QObject {
   Q_OBJECT
  public:
-  SessionUseCase(SessionManager* session_manager);
+  SessionUseCase(std::unique_ptr<SessionManager> session_manager);
   void authentificatesWithToken(const QString& token);
   void signIn(const LogInRequest& login_request);
   void signUp(const SignUpRequest& signup_request);
@@ -21,7 +21,7 @@ class SessionUseCase : public QObject {
   void userCreated(const User&, const QString& token);
 
  private:
-  SessionManager* session_manager_;
+  std::unique_ptr<SessionManager> session_manager_;
 };
 
 #endif  // SESSIONUSERCASE_H

@@ -12,13 +12,13 @@ class UserUseCase : public QObject {
   Q_OBJECT
  public:
   using Token = QString;
-  UserUseCase(DataManager*, UserManager*, TokenManager*);
+  UserUseCase(DataManager*, std::unique_ptr<UserManager>, TokenManager*);
   void                getUserAsync(long long user_id);
   std::optional<User> getUser(long long user_id);
   QList<User>         findUsers(const QString& text);
 
  private:
-  UserManager*  user_manager_;
+  std::unique_ptr<UserManager> user_manager_;
   DataManager*  data_manager_;
   TokenManager* token_manager_;
 };

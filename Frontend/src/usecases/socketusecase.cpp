@@ -6,8 +6,8 @@
 #include "Debug_profiling.h"
 #include "dto/Message.h"
 
-SocketUseCase::SocketUseCase(SocketManager* socket_manager) : socket_manager_(socket_manager) {
-  connect(socket_manager_,
+SocketUseCase::SocketUseCase(std::unique_ptr<SocketManager> socket_manager) : socket_manager_(std::move(socket_manager)) {
+  connect(socket_manager_.get(),
           &SocketManager::newTextFromSocket,
           this,
           &SocketUseCase::onMessageReceived);  // todo: onResponce from server in use cases or in

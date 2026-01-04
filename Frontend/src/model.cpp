@@ -40,28 +40,23 @@ Model::Model(const QUrl&            url,
     : cache_(cash),
       chat_model_(std::make_unique<ChatModel>()),
       user_model_(std::make_unique<UserModel>()),
-      session_manager_(std::make_unique<SessionManager>(netManager, url)),
-      chat_manager_(std::make_unique<ChatManager>(netManager, url)),
-      message_manager_(std::make_unique<MessageManager>(netManager, url)),
-      user_manager_(std::make_unique<UserManager>(netManager, url)),
-      socket_manager_(std::make_unique<SocketManager>(socket, url)),
       data_manager_(data_manager),
       token_manager_(std::make_unique<TokenManager>()),
-      socket_use_case_(std::make_unique<SocketUseCase>(socket_manager_.get())),
+      socket_use_case_(std::make_unique<SocketUseCase>(std::make_unique<SocketManager>(socket, url))),
       chat_use_case_(std::make_unique<ChatUseCase>(
-          chat_manager_.get(), data_manager_, chat_model_.get(), token_manager_.get())),
+          std::make_unique<ChatManager>(netManager, url), data_manager_, chat_model_.get(), token_manager_.get())),
       user_use_case_(
-          std::make_unique<UserUseCase>(data_manager_, user_manager_.get(), token_manager_.get())),
+          std::make_unique<UserUseCase>(data_manager_, std::make_unique<UserManager>(netManager, url), token_manager_.get())),
       message_use_case_(std::make_unique<MessageUseCase>(
-          data_manager_, message_manager_.get(), token_manager_.get())),
-      session_use_case_(std::make_unique<SessionUseCase>(session_manager_.get())) {
+          data_manager_, std::make_unique<MessageManager>(netManager, url), token_manager_.get())),
+      session_use_case_(std::make_unique<SessionUseCase>(std::make_unique<SessionManager>(netManager, url))) {
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'", url.toString().toStdString());
 }
 
 void Model::setupConnections() {
   connect(data_manager_, &DataManager::chatAdded, this, [this](const ChatPtr& added_chat) {
     DBC_REQUIRE(added_chat != nullptr);
-    message()->getChatMessagesAsync(added_chat->chat_id);
+    message_use_case_.get()->getChatMessagesAsync(added_chat->chat_id);
     getChatModel()->addChat(added_chat);
   });
 
@@ -116,7 +111,7 @@ void Model::logout() {
   PROFILE_SCOPE();
   LOG_INFO("[logout] Logging out user");
 
-  socket_manager_->close();
+  socket_use_case_->close();
   data_manager_->clearAll();
   cache_->deleteToken("TOKEN");
   token_manager_->resetData();

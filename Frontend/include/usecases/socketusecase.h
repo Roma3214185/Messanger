@@ -10,11 +10,12 @@ struct Message;
 class SocketUseCase : public QObject {
   Q_OBJECT
  public:
-  SocketUseCase(SocketManager* socket_manager);
+  SocketUseCase(std::unique_ptr<SocketManager> socket_manager);
   void initSocket(long long user_id);
   void connectSocket();
   void sendMessage(const Message& msg);
   void sendReadMessageEvent(const Message& message, long long current_user_id);
+  void close() { socket_manager_->close(); }
 
  Q_SIGNALS:
   // void chatAdded(long long id);
@@ -24,7 +25,7 @@ class SocketUseCase : public QObject {
  private:
   void onMessageReceived(const QString& msg);
 
-  SocketManager* socket_manager_;
+  std::unique_ptr<SocketManager> socket_manager_;
 };
 
 #endif  // SOCKETUSECASE_H

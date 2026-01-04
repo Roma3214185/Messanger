@@ -26,10 +26,10 @@ T waitForFuture(QFuture<T>& future) {
 }  // namespace
 
 MessageUseCase::MessageUseCase(DataManager*    data_manager,
-                               MessageManager* message_manager,
+                               std::unique_ptr<MessageManager> message_manager,
                                TokenManager*   token_manager)
     : data_manager_(data_manager),
-      message_manager_(message_manager),
+      message_manager_(std::move(message_manager)),
       token_manager_(token_manager) {
   connect(data_manager_, &DataManager::messageAdded, this, [&](const Message& added_messaage) {
     LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.text.toStdString());

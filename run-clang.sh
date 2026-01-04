@@ -13,9 +13,9 @@ EXCLUDE="./external|./build|./common/Persistence/tests|./Frontend/tests"
 PARALLEL=4                   # Number of parallel clang-tidy processes
 CLANG_TIDY_LOG="clang-tidy.log"
 
-echo "========================================"
-echo "Running clang-format + clang-tidy"
-echo "========================================"
+#echo "========================================"
+#echo "Running clang-format + clang-tidy"
+#echo "========================================"
 
 # -------------------------------
 # clang-format
