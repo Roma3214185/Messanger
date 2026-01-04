@@ -61,8 +61,8 @@ jobs:
       # 7️⃣ Auto-format code
       - name: Run clang-format
         run: |
-          chmod +x .run-clang.sh
-          ./.run-clang.sh
+          chmod +x run-clang.sh
+          ./run-clang.sh
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
