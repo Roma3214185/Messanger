@@ -1,68 +1,65 @@
-#include <catch2/catch_all.hpp>
-
 #include <crow.h>
 
-#include "middlewares/Middlewares.h"
-#include "mocks/MockUtils.h"
-#include "mocks/MockTheadPool.h"
-#include "mocks/MockConfigProvider.h"
+#include <catch2/catch_all.hpp>
 
+#include "middlewares/Middlewares.h"
+#include "mocks/MockConfigProvider.h"
+#include "mocks/MockTheadPool.h"
+#include "mocks/MockUtils.h"
 #include "mocks/gateway/GatewayMocks.h"
 
 struct DummyParentCtx {
-    MetricsMiddleware::context metrics_ctx;
+  MetricsMiddleware::context metrics_ctx;
 
-    template <typename MW>
-    auto& get() {
-      static_assert(std::is_same_v<MW, MetricsMiddleware>,
-                    "Only MetricsMiddleware supported in this dummy");
-      return metrics_ctx;
-    }
+  template <typename MW>
+  auto& get() {
+    static_assert(std::is_same_v<MW, MetricsMiddleware>,
+                  "Only MetricsMiddleware supported in this dummy");
+    return metrics_ctx;
+  }
 };
 
 struct TestGatewayMiddlewaresFixrute {
-    LoggingMiddleware logging_middleware;
-    RateLimitMiddleware rate_limit_middleware;
-    AuthMiddleware auth_middleware;
-    CacheMiddleware cache_middleware;
-    MetricsMiddleware metrics_middleware;
-    MockApiCache cache;
-    MockConfigProvider provider;
-    crow::request req;
-    crow::response res;
-    MockMetrics metrics;
-    MockVerifier verifier;
-    MockRateLimiter rate_limiter;
-    DummyParentCtx dummy_parent_ctx;
-    MockThreadPool pool;
-    int user_id = 123;
+  LoggingMiddleware   logging_middleware;
+  RateLimitMiddleware rate_limit_middleware;
+  AuthMiddleware      auth_middleware;
+  CacheMiddleware     cache_middleware;
+  MetricsMiddleware   metrics_middleware;
+  MockApiCache        cache;
+  MockConfigProvider  provider;
+  crow::request       req;
+  crow::response      res;
+  MockMetrics         metrics;
+  MockVerifier        verifier;
+  MockRateLimiter     rate_limiter;
+  DummyParentCtx      dummy_parent_ctx;
+  MockThreadPool      pool;
+  int                 user_id = 123;
 
-    RateLimitMiddleware::context rate_ctx;
-    AuthMiddleware::context auth_ctx;
-    LoggingMiddleware::context log_ctx;
-    CacheMiddleware::context cache_ctx;
-    MetricsMiddleware::context metrics_ctx;
+  RateLimitMiddleware::context rate_ctx;
+  AuthMiddleware::context      auth_ctx;
+  LoggingMiddleware::context   log_ctx;
+  CacheMiddleware::context     cache_ctx;
+  MetricsMiddleware::context   metrics_ctx;
 
-    TestGatewayMiddlewaresFixrute()
-        : provider(MockUtils::getMockCodes()) {
-      auth_middleware.verifier_ = &verifier;
-      auth_middleware.provider = &provider;
-      cache_middleware.cache_ = &cache;
-      cache_middleware.provider = &provider;
-      rate_limit_middleware.rate_limiter_ = &rate_limiter;
-      rate_limit_middleware.provider_ = &provider;
-      metrics_middleware.metrics_ = &metrics;
+  TestGatewayMiddlewaresFixrute() : provider(MockUtils::getMockCodes()) {
+    auth_middleware.verifier_           = &verifier;
+    auth_middleware.provider            = &provider;
+    cache_middleware.cache_             = &cache;
+    cache_middleware.provider           = &provider;
+    rate_limit_middleware.rate_limiter_ = &rate_limiter;
+    rate_limit_middleware.provider_     = &provider;
+    metrics_middleware.metrics_         = &metrics;
 
-      rate_limiter.should_fail = true;
-      verifier.mock_ans = std::nullopt;
-      cache.mock_answer = std::nullopt;
-    }
+    rate_limiter.should_fail = true;
+    verifier.mock_ans        = std::nullopt;
+    cache.mock_answer        = std::nullopt;
+  }
 };
 
 TEST_CASE("Test Authmiddleware") {
   TestGatewayMiddlewaresFixrute fix;
   fix.req.url = "/auth/me";  // url that needs verification
-
 
   auto doCallBefore = [&]() {
     fix.auth_middleware.before_handle(fix.req, fix.res, fix.auth_ctx, fix.dummy_parent_ctx);
@@ -91,10 +88,8 @@ TEST_CASE("Test Authmiddleware") {
     REQUIRE(fix.res.body == fix.provider.issueMessages().invalidToken);
   }
 
-  SECTION("After handle expected no throw") {
-    REQUIRE_NOTHROW(doCallAfter());
-  }
- }
+  SECTION("After handle expected no throw") { REQUIRE_NOTHROW(doCallAfter()); }
+}
 
 TEST_CASE("Test RateLimitMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
@@ -123,10 +118,8 @@ TEST_CASE("Test RateLimitMiddleware") {
     REQUIRE_FALSE(fix.res.is_completed());
   }
 
-  SECTION("After handle expected no throw") {
-    REQUIRE_NOTHROW(doCallAfter());
-  }
- }
+  SECTION("After handle expected no throw") { REQUIRE_NOTHROW(doCallAfter()); }
+}
 
 TEST_CASE("Test LogMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
@@ -139,14 +132,10 @@ TEST_CASE("Test LogMiddleware") {
     fix.logging_middleware.after_handle(fix.req, fix.res, fix.log_ctx, fix.dummy_parent_ctx);
   };
 
-  SECTION("Before handle expected no throw") {
-    REQUIRE_NOTHROW(doCallBefore());
-  }
+  SECTION("Before handle expected no throw") { REQUIRE_NOTHROW(doCallBefore()); }
 
-  SECTION("After handle expected no throw") {
-    REQUIRE_NOTHROW(doCallAfter());
-  }
- }
+  SECTION("After handle expected no throw") { REQUIRE_NOTHROW(doCallAfter()); }
+}
 
 TEST_CASE("Test cacheMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
@@ -173,9 +162,11 @@ TEST_CASE("Test cacheMiddleware") {
     REQUIRE_FALSE(fix.res.is_completed());
   }
 
-  SECTION("Cache returned expected res is completed and success status code and res.body == value from cache") {
+  SECTION(
+      "Cache returned expected res is completed and success status code and res.body == value from "
+      "cache") {
     std::string value_from_cache = "cached_value_from_cache";
-    fix.cache.mock_answer = value_from_cache;
+    fix.cache.mock_answer        = value_from_cache;
     doCallBefore();
     REQUIRE(fix.res.is_completed());
     REQUIRE(fix.res.code == fix.provider.statusCodes().success);
@@ -184,14 +175,14 @@ TEST_CASE("Test cacheMiddleware") {
 
   SECTION("Cache returned expected metrics_ctx hit_cache = true") {
     std::string value_from_cache = "cached_value_from_cache";
-    fix.cache.mock_answer = value_from_cache;
+    fix.cache.mock_answer        = value_from_cache;
     doCallBefore();
 
     REQUIRE(fix.dummy_parent_ctx.metrics_ctx.hit_cache == true);
   }
 
   SECTION("After handle expected with no-get method expected not set") {
-    fix.req.method = "POST"_method;
+    fix.req.method            = "POST"_method;
     int before_call_cache_set = fix.cache.call_set;
 
     doCallAfter();
@@ -200,11 +191,11 @@ TEST_CASE("Test cacheMiddleware") {
   }
 
   SECTION("Get method expected set value in cache") {
-    fix.req.method = "GET"_method;
-    fix.req.url = "/test/auth";
-    fix.req.body = "user=2";
+    fix.req.method            = "GET"_method;
+    fix.req.url               = "/test/auth";
+    fix.req.body              = "user=2";
     int before_call_cache_set = fix.cache.call_set;
-    fix.res.body = "mock_set_cache";
+    fix.res.body              = "mock_set_cache";
 
     doCallAfter();
 
@@ -212,7 +203,7 @@ TEST_CASE("Test cacheMiddleware") {
     REQUIRE(fix.cache.last_set_key == "cache:GET:/test/auth|user=2|body=user=2");
     REQUIRE(fix.cache.last_set_value == fix.res.body);
   }
- }
+}
 
 TEST_CASE("Test metrics middlewares") {
   TestGatewayMiddlewaresFixrute fix;
@@ -234,7 +225,7 @@ TEST_CASE("Test metrics middlewares") {
   }
 
   SECTION("Expected after_handle call request ended and save latency") {
-    int before_call_request_end = fix.metrics.call_requestEnded;
+    int before_call_request_end  = fix.metrics.call_requestEnded;
     int before_call_save_latency = fix.metrics.call_saveRequestLatency;
     doCallAfter();
     CHECK(fix.metrics.call_requestEnded == before_call_request_end + 1);
