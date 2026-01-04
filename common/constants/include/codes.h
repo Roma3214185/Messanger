@@ -3,7 +3,7 @@
 
 #include <string>
 
-struct StatusCodes { //todo: namespace
+struct StatusCodes {  // todo: namespace
   static constexpr int success      = 200;
   static constexpr int accepted     = 202;
   static constexpr int serverError  = 500;
@@ -16,9 +16,9 @@ struct StatusCodes { //todo: namespace
 };
 
 struct IssueMessages {
-  static constexpr const char* userNotFound = "User not founded";
-  static constexpr const char* invalidToken = "Invalid or expired token";
+  static constexpr const char* userNotFound    = "User not founded";
+  static constexpr const char* invalidToken    = "Invalid or expired token";
   static constexpr const char* rateLimitExceed = "Rate limit exceeded";
 };
 
-#endif // CODES_H
+#endif  // CODES_H

@@ -12,4 +12,4 @@ struct Ports {
   static constexpr int metrics             = 8089;
 };
 
-#endif // PORTS_H
+#endif  // PORTS_H

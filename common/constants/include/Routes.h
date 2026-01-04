@@ -3,7 +3,7 @@
 
 #include <string>
 
-struct Routes { // make namespace with inline
+struct Routes {  // make namespace with inline
   static constexpr const char* messageSaved            = "message_saved";
   static constexpr const char* messageDeleted          = "message_deleted";
   static constexpr const char* saveMessage             = "save_message";
@@ -16,6 +16,6 @@ struct Routes { // make namespace with inline
   static constexpr const char* messageStatusSaved      = "message_status_saved";
   static constexpr const char* sendRequest             = "send_request";
   static constexpr const char* exchangeType            = "direct";
-}; // routes
+};  // routes
 
-#endif // ROUTES_H
+#endif  // ROUTES_H

@@ -5,11 +5,10 @@
 #include <string>
 
 #include "Fields.h"
-
 #include "interfaces/entity.h"
 
 struct UserCredentials final : public IEntity {
-  long long   user_id{ 0 };
+  long long   user_id{0};
   std::string hash_password;
 };
 
