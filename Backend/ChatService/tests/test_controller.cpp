@@ -64,7 +64,8 @@
 //     REQUIRE(fix.res.body == "Missing user_id value");
 //   }
 
-//   SECTION("Request body don't have user_id fiels expected return userError status code and info about issue") {
+//   SECTION("Request body don't have user_id fiels expected return userError status code and info
+//   about issue") {
 //     fix.req.body = R"({"users_id": 1})";
 //     fix.controller.createPrivateChat(fix.req, fix.res);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
@@ -240,7 +241,6 @@
 //   SECTION("Expected success status code and valid json responce") {
 //     fix.controller.getChat(fix.req, fix.res, chat_id);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().success);
-
 
 //     auto r = crow::json::load(fix.res.body);
 
