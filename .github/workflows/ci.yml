@@ -91,14 +91,35 @@ jobs:
       - name: Generate coverage
         run: |
           set -eux
-          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
-          lcov --remove coverage.info '/usr/*' '*_deps/*' '*include*' '*tests*' '*build/*' '*main.cpp' '*\.h' '*\.hpp' --output-file coverage.info
+
+          lcov \
+            --directory build \
+            --capture \
+            --output-file coverage.info \
+            --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+
+          lcov \
+            --remove coverage.info \
+            '/usr/*' \
+            '*_deps/*' \
+            '*include*' \
+            '*tests*' \
+            '*build/*' \
+            '*main.cpp' \
+            '*.h' \
+            '*.hpp' \
+            '*__cxx_global_var_init*' \
+            --output-file coverage.info
 
       - name: Generate HTML coverage report
         run: |
           if [ -f coverage.info ]; then
-            genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+            genhtml \
+              coverage.info \
+              --output-directory coverage-report \
+              --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
           fi
+
 
       - name: Upload HTML coverage
         uses: actions/upload-artifact@v4
