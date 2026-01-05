@@ -43,13 +43,13 @@ Field make_field(const char* name, M T::* member) {
                    [member](void* obj, const std::any& val) {
                      auto* element = static_cast<T*>(obj);
 
-                       // if constexpr (std::is_same_v<M, std::string>) {
-                       //    if (val.type() == typeid(const char*)) {
-                       //     (element->*member) = std::string(std::any_cast<const char*>(val));
-                       //    }
-                       //    else
-                      (element->*member) = std::any_cast<M>(val);
-                       //} /
+                     // if constexpr (std::is_same_v<M, std::string>) {
+                     //    if (val.type() == typeid(const char*)) {
+                     //     (element->*member) = std::string(std::any_cast<const char*>(val));
+                     //    }
+                     //    else
+                     (element->*member) = std::any_cast<M>(val);
+                     //} /
                      //}
                    }};
 }

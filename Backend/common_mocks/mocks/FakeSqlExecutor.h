@@ -12,18 +12,18 @@ class FakeSqlExecutor : public ISqlExecutor {
  public:
   QString         lastSql = "";
   QList<QVariant> lastValues;
-  bool            shouldFail                 = false;
-  int             execute_calls              = 0;
+  bool            shouldFail    = false;
+  int             execute_calls = 0;
 
   std::vector<std::string> last_sqls;
-  MockQuery mock_query;
+  MockQuery                mock_query;
 
   std::unique_ptr<IQuery> execute(const QString& sql, const QList<QVariant>& values) override {
     ++execute_calls;
     lastSql    = sql;
     lastValues = values;
     last_sqls.push_back(lastSql.toStdString());
-    if(shouldFail) return nullptr;
+    if (shouldFail) return nullptr;
     return std::make_unique<MockQuery>(mock_query);
   }
 

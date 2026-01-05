@@ -7,18 +7,18 @@
 
 #include <optional>
 
-#include "interfaces/IVerifier.h"
 #include "Debug_profiling.h"
+#include "interfaces/IVerifier.h"
 
 class JWTVerifier : public IVerifier {
-  public:
-    explicit JWTVerifier(const std::string& public_key_path, const std::string& issuer);
+ public:
+  explicit JWTVerifier(const std::string& public_key_path, const std::string& issuer);
 
-    std::optional<long long> verifyTokenAndGetUserId(const std::string& token) override;
+  std::optional<long long> verifyTokenAndGetUserId(const std::string& token) override;
 
-  private:
-    std::string public_key_;
-    jwt::verifier<jwt::default_clock, jwt::traits::kazuho_picojson> verifier_;
+ private:
+  std::string                                                     public_key_;
+  jwt::verifier<jwt::default_clock, jwt::traits::kazuho_picojson> verifier_;
 };
 
 #endif  // APIGATE_SERVICE_HEADERS_JWTUTILS_H

@@ -10,7 +10,7 @@ struct SignUpRequest {
   QString name;
 };
 
-struct LogInRequest { //todo: make immutable
+struct LogInRequest {  // todo: make immutable
   QString email;
   QString password;
 };

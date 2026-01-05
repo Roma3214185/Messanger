@@ -1,21 +1,22 @@
 #ifndef BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 #define BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 
+#include <crow.h>  //TODO: remove crow from here
+
+#include <nlohmann/json.hpp>
 #include <string>
 #include <tuple>
-#include <crow.h> //TODO: remove crow from here
-#include <nlohmann/json.hpp>
 
+#include "Debug_profiling.h"
 #include "Fields.h"
 #include "TimestampService.h"
-#include "Debug_profiling.h"
 #include "interfaces/entity.h"
 
 struct Message final : public IEntity {
-  long long   id{ 0 };
-  long long   chat_id{ 0 };
-  long long   sender_id{ 0 };
-  long long   timestamp{ 0 };
+  long long   id{0};
+  long long   chat_id{0};
+  long long   sender_id{0};
+  long long   timestamp{0};
   std::string text;
   std::string local_id;
 };
@@ -50,18 +51,18 @@ inline Message from_crow_json(const crow::json::rvalue& json_message) {
 inline crow::json::wvalue to_crow_json(const Message& message) {
   crow::json::wvalue json_message;
   json_message[MessageTable::Id]        = message.id;
-  json_message[MessageTable::ChatId]   = message.chat_id;
-  json_message[MessageTable::SenderId] = message.sender_id;
+  json_message[MessageTable::ChatId]    = message.chat_id;
+  json_message[MessageTable::SenderId]  = message.sender_id;
   json_message[MessageTable::Text]      = message.text;
   json_message[MessageTable::Timestamp] = message.timestamp;
-  json_message[MessageTable::LocalId]  = message.local_id;
+  json_message[MessageTable::LocalId]   = message.local_id;
 
   LOG_INFO("Local_id for text {} is {}", message.text, message.local_id);
 
   return json_message;
 }
 
-} //utils::entities
+}  // namespace utils::entities
 
 namespace nlohmann {
 

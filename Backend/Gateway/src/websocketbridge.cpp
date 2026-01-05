@@ -1,13 +1,14 @@
 #include "websocketbridge.h"
+
 #include "Debug_profiling.h"
 
-namespace{
+namespace {
 
 std::string makeClientId(crow::websocket::connection& client) {
   return client.get_remote_ip() + ":" + std::to_string((uintptr_t)&client);
 }
 
-} // namespace
+}  // namespace
 
 WebSocketBridge::WebSocketBridge(std::string backend_url) : backend_url_(std::move(backend_url)) {}
 
@@ -40,16 +41,16 @@ std::shared_ptr<ix::WebSocket> WebSocketBridge::createBackendConnection(
 }
 
 void WebSocketBridge::onClientConnect(crow::websocket::connection& client) {
-  std::string client_id = makeClientId(client);
-  auto backend_connection = createBackendConnection(client_id);
-  clients_[client_id] =  &client;
-  connections_[client_id] = backend_connection;
+  std::string client_id          = makeClientId(client);
+  auto        backend_connection = createBackendConnection(client_id);
+  clients_[client_id]            = &client;
+  connections_[client_id]        = backend_connection;
 }
 
 void WebSocketBridge::onClientMessage(crow::websocket::connection& client,
                                       const std::string&           data) {
   const std::string client_id = makeClientId(client);
-  auto it = connections_.find(client_id);
+  auto              it        = connections_.find(client_id);
   if (it != connections_.end() && it->second) {
     it->second->send(data);
   }
@@ -57,7 +58,7 @@ void WebSocketBridge::onClientMessage(crow::websocket::connection& client,
 
 void WebSocketBridge::onClientClose(crow::websocket::connection& client,
                                     const std::string& /*reason*/,
-                                    uint16_t  /*code*/) {
+                                    uint16_t /*code*/) {
   const std::string id = makeClientId(client);
 
   auto it = connections_.find(id);

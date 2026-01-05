@@ -5,18 +5,14 @@
 #include <string>
 
 struct User {
-  QString email;
-  QString tag;
-  QString name;
+  QString   email;
+  QString   tag;
+  QString   name;
   long long id;
-  QString avatarPath = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
+  QString   avatarPath = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
 
   bool checkInvariants() const {
-    return id > 0
-           && !email.isEmpty()
-           && !name.isEmpty()
-           && !tag.isEmpty()
-           && !avatarPath.isEmpty();
+    return id > 0 && !email.isEmpty() && !name.isEmpty() && !tag.isEmpty() && !avatarPath.isEmpty();
   }
 
   std::string toString() const noexcept {

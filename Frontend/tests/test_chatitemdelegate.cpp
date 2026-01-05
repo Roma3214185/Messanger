@@ -1,16 +1,16 @@
-#include <catch2/catch_all.hpp>
 #include <QStandardItem>
+#include <catch2/catch_all.hpp>
 
 #include "delegators/chatitemdelegate.h"
 
 struct TestChatItemDelegate : public ChatItemDelegate {
-    using ChatItemDelegate::ChatItemDelegate;
-    using ChatItemDelegate::extractChatData;
-    using ChatItemDelegate::refactorLastMessage;
+  using ChatItemDelegate::ChatItemDelegate;
+  using ChatItemDelegate::extractChatData;
+  using ChatItemDelegate::refactorLastMessage;
 };
 
 TEST_CASE("ChatItemDelegate::refactorLastMessage") {
-  ChatItemStyle style;
+  ChatItemStyle        style;
   TestChatItemDelegate delegate(nullptr, style);
 
   SECTION("empty message returns default text") {
@@ -33,7 +33,7 @@ TEST_CASE("ChatItemDelegate::extractChatData") {
   TestChatItemDelegate delegate;
 
   QStandardItemModel model;
-  QStandardItem* item = new QStandardItem();
+  QStandardItem*     item = new QStandardItem();
   item->setData("Chat Title", ChatModel::TitleRole);
   item->setData("Last message", ChatModel::LastMessageRole);
   item->setData("avatar.png", ChatModel::AvatarRole);
@@ -41,8 +41,8 @@ TEST_CASE("ChatItemDelegate::extractChatData") {
   item->setData(3, ChatModel::UnreadRole);
   model.appendRow(item);
 
-  QModelIndex index = model.index(0, 0);
-  ChatDrawData data = delegate.extractChatData(index);
+  QModelIndex  index = model.index(0, 0);
+  ChatDrawData data  = delegate.extractChatData(index);
 
   REQUIRE(data.title == "Chat Title");
   REQUIRE(data.last_message == "Last message");
@@ -53,7 +53,7 @@ TEST_CASE("ChatItemDelegate::extractChatData") {
 
 TEST_CASE("ChatItemDelegate sizeHint returns configured size") {
   ChatItemStyle style;
-  style.chat_item_width = 300;
+  style.chat_item_width  = 300;
   style.chat_item_height = 80;
   ChatItemDelegate delegate(nullptr, style);
 

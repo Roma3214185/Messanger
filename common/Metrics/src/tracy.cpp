@@ -1,3 +1,3 @@
 #include "tracy.h"
 
-//Tracy::Tracy() {}
+// Tracy::Tracy() {}

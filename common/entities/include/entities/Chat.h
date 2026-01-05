@@ -1,19 +1,18 @@
 #ifndef BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_
 #define BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_
 
-#include <string>
-
 #include <nlohmann/json.hpp>
+#include <string>
 
 #include "Fields.h"
 #include "interfaces/entity.h"
 
 struct Chat final : public IEntity {
-  long long   id{ 0 };
-  int         is_group{ 0 };
+  long long   id{0};
+  int         is_group{0};
   std::string name;
   std::string avatar;
-  long long   created_at{ 0 };
+  long long   created_at{0};
 };
 
 namespace nlohmann {

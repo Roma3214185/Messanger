@@ -1,9 +1,9 @@
 #include "authservice/server.h"
 
 #include "Debug_profiling.h"
+#include "authservice/authcontroller.h"
 #include "authservice/authmanager.h"
 #include "entities/RequestDTO.h"
-#include "authservice/authcontroller.h"
 
 namespace {
 
@@ -16,7 +16,7 @@ void sendResponse(crow::response& res, int code, std::string& body) {
 }  // namespace
 
 Server::Server(crow::SimpleApp& app, int port, AuthController* controller)
-    : app_(app), port_(port), controller_(controller) { }
+    : app_(app), port_(port), controller_(controller) {}
 
 void Server::run() {
   LOG_INFO("Starting Auth Server on port '{}'", port_);

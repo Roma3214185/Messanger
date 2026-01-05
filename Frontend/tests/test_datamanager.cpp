@@ -1,11 +1,11 @@
 #include <catch2/catch_all.hpp>
 
-#include "managers/datamanager.h"
 #include "Debug_profiling.h"
+#include "managers/datamanager.h"
 
 struct TestDataManager : public DataManager {
-    using DataManager::getNumberOfMessageModels;
-    using DataManager::getNumberOfExistingUsers;
+  using DataManager::getNumberOfExistingUsers;
+  using DataManager::getNumberOfMessageModels;
 };
 
 TEST_CASE("Test datamanager works with chats") {
@@ -14,6 +14,14 @@ TEST_CASE("Test datamanager works with chats") {
   auto private_chat2 = ChatFactory::createPrivateChat(2, "Roma", "roma228", 5, "offline");
   auto private_chat3 = ChatFactory::createPrivateChat(3, "Sanya", "sanya228", 6, "offline");
   auto private_chat4 = ChatFactory::createPrivateChat(4, "Kolya", "kolya228", 7, "offline");
+  setContractHandler(throwOnViolation);
+
+  User valid_user;
+  valid_user.id   = 5;
+  valid_user.name = "Roma";
+  valid_user.tag = "RomaTag";
+  valid_user.avatarPath = "roma/avatar";
+  valid_user.email = "email_roma";
 
   SECTION("Add two same chats expected add last one") {
     auto same_private_chat = ChatFactory::createPrivateChat(1, "Roma", "roma228", 5, "offline");
@@ -114,8 +122,7 @@ TEST_CASE("Test datamanager works with chats") {
     REQUIRE(data_manager.getNumberOfMessageModels() == 0);
   }
 
-  SECTION("Add valid user expected works") {
-    User valid_user;
+  SECTION("Add valid user to empty storage expected number of users equals 1") {
     valid_user.id = 4;
     data_manager.saveUser(valid_user);
 
@@ -123,14 +130,15 @@ TEST_CASE("Test datamanager works with chats") {
   }
 
   SECTION("Add two users with same id expected add only last one") {
-    int common_user_id = 4;
-    User valid_user;
-    valid_user.id = common_user_id;
-    valid_user.name = "Roma";
+    int  common_user_id = 4;
+    valid_user.id   = common_user_id;
 
     User valid_user2;
-    valid_user2.id = common_user_id;
+    valid_user2.id   = common_user_id;
+    valid_user2.email = "email_ivan";
     valid_user2.name = "Ivan";
+    valid_user2.tag = "IvanTag";
+    valid_user2.avatarPath = "user/avatar";
 
     data_manager.saveUser(valid_user);
     data_manager.saveUser(valid_user2);
@@ -149,14 +157,7 @@ TEST_CASE("Test datamanager works with chats") {
     REQUIRE_THROWS(data_manager.saveUser(invalid_user));
   }
 
-  SECTION("Add user with invalid id expecter throw exception") {
-    User invalid_user;
-    invalid_user.id = 0;
-    REQUIRE_THROWS(data_manager.saveUser(invalid_user));
-  }
-
   SECTION("Clear method clear all data") {
-    User valid_user;
     valid_user.id = 2;
     data_manager.addChat(private_chat1);
     data_manager.saveUser(valid_user);

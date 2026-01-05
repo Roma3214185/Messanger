@@ -20,11 +20,11 @@ class TestMessageManager : public MessageManager {
 };
 
 TEST_CASE("Test MessageManager getChatMessages") {
-  MockReply                mock_reply;
-  MockNetworkAccessManager network_manager(&mock_reply);
-  QUrl                     url("http://localhost:8081");
-  std::chrono::milliseconds  timeout_ms = std::chrono::milliseconds{ 30 };
-  TestMessageManager       message_manager(&network_manager, url, timeout_ms);
+  MockReply                 mock_reply;
+  MockNetworkAccessManager  network_manager(&mock_reply);
+  QUrl                      url("http://localhost:8081");
+  std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{30};
+  TestMessageManager        message_manager(&network_manager, url, timeout_ms);
 
   QJsonArray messages_array{
       QJsonObject{
@@ -45,8 +45,8 @@ TEST_CASE("Test MessageManager getChatMessages") {
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
     network_manager.shouldReturnResponce = false;
 
-    auto       future = message_manager.getChatMessages("token", 77, 0, 10);
-    std::chrono::milliseconds  timeout_wait_ms{ 5 };
+    auto                      future = message_manager.getChatMessages("token", 77, 0, 10);
+    std::chrono::milliseconds timeout_wait_ms{5};
     QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, timeout_ms + timeout_wait_ms);
 
     REQUIRE(future.result().isEmpty());
@@ -61,7 +61,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     network_manager.shouldFail = true;
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    //QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
 
     auto future = message_manager.getChatMessages("token", 10, 0, 10);
     QCoreApplication::processEvents();
@@ -80,7 +80,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = message_manager.getChatMessages("token_xyz", 5, 0, 10);
     QCoreApplication::processEvents();
@@ -99,7 +99,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     network_manager.setReply(reply);
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
-    //QTimer::singleShot(0, reply, &MockReply::emitFinished);
+    // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = message_manager.getChatMessages("token_ok", 42, 0, 2);
     QCoreApplication::processEvents();
@@ -119,7 +119,7 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   MockReply                 mock_reply;
   MockNetworkAccessManager  network_manager(&mock_reply);
   QUrl                      url("http://localhost:8081");
-  std::chrono::milliseconds timeout_ms{ 30 };
+  std::chrono::milliseconds timeout_ms{30};
   TestMessageManager        message_manager(&network_manager, url, timeout_ms);
 
   SECTION("Invalid JSON emits error and returns empty list") {

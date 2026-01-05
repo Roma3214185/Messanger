@@ -21,9 +21,9 @@ auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkReques
 }  // namespace
 
 QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_token,
-                                                        long long            chat_id,
-                                                        long long            before_id,
-                                                        long long            limit) {
+                                                        long long      chat_id,
+                                                        long long      before_id,
+                                                        long long      limit) {
   PROFILE_SCOPE("MessageManager::getChatMessages");
 
   QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(chat_id)));
@@ -33,7 +33,7 @@ QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_t
   query.addQueryItem("before_id", QString::number(before_id));
   endpoint.setQuery(query);
   auto  request = getRequestWithToken(endpoint, current_token);
-  auto* reply = network_manager_->get(request);
+  auto* reply   = network_manager_->get(request);
   // TODO(roma): make function getReplyGetChatMessages();
 
   return handleReplyWithTimeout<QList<Message>>(
@@ -45,7 +45,7 @@ QFuture<QList<Message>> MessageManager::getChatMessages(const QString& current_t
 
 QList<Message> MessageManager::onGetChatMessages(const QByteArray& responce_data) {
   PROFILE_SCOPE("ChatManager::onGetChatMessages");
-  //QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
+  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
   // if (!reply || reply->error() != QNetworkReply::NoError) {
   //   LOG_ERROR("[onGetChatMessages] Network error: '{}'", reply->errorString().toStdString());
@@ -79,7 +79,7 @@ void MessageManager::updateMessage(const Message& message_to_update, const QStri
   QJsonObject json = JsonService::toJson(message_to_update);
 
   auto  request = getRequestWithToken(endpoint, token);
-  auto* reply = network_manager_->put(request, QJsonDocument(json).toJson());
+  auto* reply   = network_manager_->put(request, QJsonDocument(json).toJson());
 }
 
 void MessageManager::deleteMessage(const Message& message_to_delete, const QString& token) {
@@ -89,5 +89,5 @@ void MessageManager::deleteMessage(const Message& message_to_delete, const QStri
   QUrl endpoint = url_.resolved(QUrl(QString("/messages/%1").arg(message_to_delete.id)));
   LOG_INFO("Delete message {}", message_to_delete.toString());
   auto  request = getRequestWithToken(endpoint, token);
-  auto* reply = network_manager_->del(request);
+  auto* reply   = network_manager_->del(request);
 }

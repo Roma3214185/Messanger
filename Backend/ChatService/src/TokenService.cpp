@@ -1,9 +1,12 @@
 #include "chatservice/TokenService.h"
+
 #include <jwt-cpp/jwt.h>
+
 #include <exception>
 #include <fstream>
 #include <iterator>
 #include <stdexcept>
+
 #include "Debug_profiling.h"
 #include "jwt-cpp/traits/kazuho-picojson/defaults.h"
 #include "jwt-cpp/traits/kazuho-picojson/traits.h"
@@ -12,8 +15,7 @@ namespace {
 
 std::string readFile(const std::string& path) {
   std::ifstream file(path);
-  if (!file.is_open())
-    throw std::runtime_error("Cannot open file " + path);
+  if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
 
   std::string key((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   LOG_INFO("Key first 40 chars:\n{}", key.substr(0, 40));
@@ -21,17 +23,17 @@ std::string readFile(const std::string& path) {
   return key;
 }
 
-} // namespace
+}  // namespace
 
 namespace JwtUtils {
 
-const char* kIssuer = "auth_service";
-const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+const char*       kIssuer        = "auth_service";
+const std::string kKeysDir       = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
 
 std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   try {
-    auto decoded = jwt::decode(token);
+    auto        decoded    = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
 
     auto verifier = jwt::verify()
@@ -52,4 +54,4 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string& token) {
   }
 }
 
-} // namespace JwtUtils
+}  // namespace JwtUtils

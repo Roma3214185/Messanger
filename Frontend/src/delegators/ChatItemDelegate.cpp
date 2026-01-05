@@ -9,14 +9,14 @@ void ChatItemDelegate::paint(QPainter*                   painter,
   painter->restore();
 }
 
-void ChatItemDelegate::drawBackgroundState(QPainter*                   painter,
-                                           const QRect&                 /*rect*/,
+void ChatItemDelegate::drawBackgroundState(QPainter* painter,
+                                           const QRect& /*rect*/,
                                            const QStyleOptionViewItem& option) const {
   if (option.state != 0u && QStyle::State_Selected) {
     const QColor bg = option.palette.color(QPalette::Base);
-    int    r  = qMin(bg.red() + 38, 255);
-    int    g  = qMin(bg.green() + 38, 255);
-    int    b  = qMin(bg.blue() + 38, 255);
+    int          r  = qMin(bg.red() + 38, 255);
+    int          g  = qMin(bg.green() + 38, 255);
+    int          b  = qMin(bg.blue() + 38, 255);
     painter->fillRect(option.rect, QColor(r, g, b));
   }
 }
@@ -48,16 +48,18 @@ void ChatItemDelegate::drawAll(QPainter*                   painter,
 void ChatItemDelegate::drawAvatar(QPainter*      painter,
                                   const QRect&   rect,
                                   const QPixmap& avatar) const {
-  QRect         avatar_rect(rect.left() + 5, rect.top() + 5, style_.avatar_size, style_.avatar_size);
+  QRect avatar_rect(rect.left() + 5, rect.top() + 5, style_.avatar_size, style_.avatar_size);
   painter->drawPixmap(
       avatar_rect,
-      avatar.scaled(style_.avatar_size, style_.avatar_size, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+      avatar.scaled(
+          style_.avatar_size, style_.avatar_size, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
 void ChatItemDelegate::drawNameOfChat(QPainter*      painter,
                                       const QRect&   rect,
                                       const QString& username) const {
-  painter->setFont(QFont(style_.last_message_font_style, style_.last_message_font_size, QFont::Bold));
+  painter->setFont(
+      QFont(style_.last_message_font_style, style_.last_message_font_size, QFont::Bold));
   painter->drawText(rect.left() + 55, rect.top() + 20, username);
 }
 
@@ -79,7 +81,10 @@ void ChatItemDelegate::drawTimestamp(QPainter*        painter,
 void ChatItemDelegate::drawUnread(QPainter* painter, const QRect& rect, const int unread) const {
   if (unread <= 0) return;
 
-  QRect circle_rect(rect.right() - 25, rect.center().y() - 10, style_.unread_label_size, style_.unread_label_size);
+  QRect circle_rect(rect.right() - 25,
+                    rect.center().y() - 10,
+                    style_.unread_label_size,
+                    style_.unread_label_size);
   painter->setBrush(Qt::red);
   painter->setPen(Qt::NoPen);
   painter->drawEllipse(circle_rect);
@@ -95,7 +100,8 @@ QString ChatItemDelegate::refactorLastMessage(const QString& msg) const {
   }
 
   if (msg.length() >= style_.max_message_len) {
-    return msg.left(style_.max_message_len - style_.num_dots) + QString(style_.num_dots, QChar('.'));
+    return msg.left(style_.max_message_len - style_.num_dots) +
+           QString(style_.num_dots, QChar('.'));
   }
 
   return msg;

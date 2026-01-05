@@ -1,74 +1,67 @@
 #ifndef SQLITEDATABASE_H
 #define SQLITEDATABASE_H
 
-#include "interfaces/IDataBase.h"
-#include "query/SQLiteQuery.h"
-
 #include <QSqlDatabase>
 #include <QThread>
 
 #include "Debug_profiling.h"
+#include "interfaces/IDataBase.h"
+#include "query/SQLiteQuery.h"
 
 class SQLiteDatabase : public IDataBase {
-    QString db_name_;
+  QString db_name_;
+
  public:
-    explicit SQLiteDatabase(QString db_name) : db_name_(std::move(db_name)) {}
+  explicit SQLiteDatabase(QString db_name) : db_name_(std::move(db_name)) {}
 
-   [[nodiscard]]
-   QSqlDatabase db() const {
-     const QString conn =
-         QString("%1_%2")
-             .arg(db_name_)
-             .arg(reinterpret_cast<quintptr>(QThread::currentThreadId()));
+  [[nodiscard]]
+  QSqlDatabase db() const {
+    const QString conn =
+        QString("%1_%2").arg(db_name_).arg(reinterpret_cast<quintptr>(QThread::currentThreadId()));
 
-     if (!QSqlDatabase::contains(conn)) {
-       auto db = QSqlDatabase::addDatabase("QSQLITE", conn);
-       db.setDatabaseName(db_name_);
-       if (!db.open()) {
-         qFatal("Failed to open DB");
-       }
-       return db;
-     }
-
-     return QSqlDatabase::database(conn);
-   }
-
-   [[nodiscard]]
-   bool exec(const QString& sql) override {
-     QSqlQuery q(db());
-     LOG_INFO("To execute {}", sql.toStdString());
-     if(!q.exec(sql)) {
-        LOG_ERROR("For sql {} execute failed: {}", sql.toStdString(), q.lastError().text().toStdString());
-       return false;
+    if (!QSqlDatabase::contains(conn)) {
+      auto db = QSqlDatabase::addDatabase("QSQLITE", conn);
+      db.setDatabaseName(db_name_);
+      if (!db.open()) {
+        qFatal("Failed to open DB");
       }
-     LOG_INFO("Execute succced, affected : {} rows", q.numRowsAffected());
-     return true;
-   }
+      return db;
+    }
 
-   std::unique_ptr<IQuery> prepare(const std::string& sql) override {
-     return prepare(QString::fromStdString(sql));
-   }
+    return QSqlDatabase::database(conn);
+  }
 
-   void rollback() override {
+  [[nodiscard]]
+  bool exec(const QString& sql) override {
+    QSqlQuery q(db());
+    LOG_INFO("To execute {}", sql.toStdString());
+    if (!q.exec(sql)) {
+      LOG_ERROR(
+          "For sql {} execute failed: {}", sql.toStdString(), q.lastError().text().toStdString());
+      return false;
+    }
+    LOG_INFO("Execute succced, affected : {} rows", q.numRowsAffected());
+    return true;
+  }
 
-   }
+  std::unique_ptr<IQuery> prepare(const std::string& sql) override {
+    return prepare(QString::fromStdString(sql));
+  }
 
-   bool transaction() override {
-     return db().transaction();
-   }
+  void rollback() override {}
 
-   std::unique_ptr<IQuery> prepare(const QString& sql) override {
-     auto query = std::make_unique<SQLiteQuery>(db()); //TODO: factory??
-     if (!query->prepare(sql)) {
-       LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(), query->error());
-       return nullptr;
-     }
-     return query;
-   }
+  bool transaction() override { return db().transaction(); }
 
-   bool commit() override {
-     return db().commit();
-   }
+  std::unique_ptr<IQuery> prepare(const QString& sql) override {
+    auto query = std::make_unique<SQLiteQuery>(db());  // TODO: factory??
+    if (!query->prepare(sql)) {
+      LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(), query->error());
+      return nullptr;
+    }
+    return query;
+  }
+
+  bool commit() override { return db().commit(); }
 
   bool initializeSchema();
 

@@ -9,32 +9,34 @@
 #include <QStyledItemDelegate>
 
 #include "dto/DrawData.h"
-#include "models/messagemodel.h"
 #include "managers/TokenManager.h"
+#include "models/messagemodel.h"
 
 class MessageDelegate : public QStyledItemDelegate {
   Q_OBJECT
-  DataManager* data_manager_;
+  DataManager*  data_manager_;
   TokenManager* token_manager_;
+
  public:
   MessageDelegate(DataManager* data_manager, TokenManager* token_manager)
       : data_manager_(data_manager), token_manager_(token_manager) {}
 
-  void  paint(QPainter*                   painter,
-              const QStyleOptionViewItem& option,
-              const QModelIndex&          index) const override;
-  [[nodiscard]] QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+  void                paint(QPainter*                   painter,
+                            const QStyleOptionViewItem& option,
+                            const QModelIndex&          index) const override;
+  [[nodiscard]] QSize sizeHint(const QStyleOptionViewItem& option,
+                               const QModelIndex&          index) const override;
 
  private:
-  void            drawAll(QPainter*                   painter,
-                          const QStyleOptionViewItem& option,
-                          const MessageDrawData&      msg,
-                          bool                        is_mine) const;
+  void                          drawAll(QPainter*                   painter,
+                                        const QStyleOptionViewItem& option,
+                                        const MessageDrawData&      msg,
+                                        bool                        is_mine) const;
   [[nodiscard]] MessageDrawData extractMessageData(const Message& index) const;
-  void            drawBackgroundState(QPainter*                   painter,
-                                      const QRect&                rect,
-                                      const QStyleOptionViewItem& option,
-                                      bool                        is_mine) const;
+  void                          drawBackgroundState(QPainter*                   painter,
+                                                    const QRect&                rect,
+                                                    const QStyleOptionViewItem& option,
+                                                    bool                        is_mine) const;
   void drawAvatar(QPainter* painter, const QRect& rect, const QPixmap& avatar, bool is_mine) const;
   void drawUsername(QPainter*      painter,
                     const QRect&   rect,
@@ -50,14 +52,14 @@ class MessageDelegate : public QStyledItemDelegate {
                   const MessageDrawData& message_data,
                   bool                   is_mine) const;
 
-  void drawReadCounter(QPainter* painter,
-                       const QRect&           rect,
-                       const int read_cnt,
-                       bool is_mine) const;
+  void drawReadCounter(QPainter*    painter,
+                       const QRect& rect,
+                       const int    read_cnt,
+                       bool         is_mine) const;
 
-Q_SIGNALS:
+ Q_SIGNALS:
   void unreadMessage(Message& message) const;
-  //todo: this signal have to me in QlistView
+  // todo: this signal have to me in QlistView
 };
 
 #endif  // CHATDELEGATE_H

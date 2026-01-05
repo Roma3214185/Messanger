@@ -1,12 +1,11 @@
 #include "messageservice/server.h"
 
-#include "messageservice/controller.h"
-#include "interfaces/IRabitMQClient.h"
-#include "messageservice/managers/JwtUtils.h"
-#include "messageservice/controller.h"
-#include "messageservice/dto/GetMessagePack.h"
 #include "entities/RequestDTO.h"
 #include "entities/UserMessage.h"
+#include "interfaces/IRabitMQClient.h"
+#include "messageservice/controller.h"
+#include "messageservice/dto/GetMessagePack.h"
+#include "messageservice/managers/JwtUtils.h"
 
 namespace {
 
@@ -31,12 +30,13 @@ void Server::handleRoutes() {
   handleDeleteMessage();
 }
 
-void Server::handleGetMessagesFromChat() { //todo: chat/<string>/messages
+void Server::handleGetMessagesFromChat() {  // todo: chat/<string>/messages
   CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::GET)(
           [&](const crow::request& req, crow::response& res, const std::string& chat_id_str) {
             PROFILE_SCOPE();
-            auto [code, body] = controller_->getMessagesFromChat(utils::getDTO(req, "messages/<chat_id>"), chat_id_str);
+            auto [code, body] = controller_->getMessagesFromChat(
+                utils::getDTO(req, "messages/<chat_id>"), chat_id_str);
             sendResponse(res, code, body);
           });
 }
@@ -56,22 +56,24 @@ void Server::run() {
   app_.port(port_).multithreaded().run();
 }
 
-void Server::handleUpdateMessage(){
+void Server::handleUpdateMessage() {
   CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::PUT)(
           [&](const crow::request& req, crow::response& res, const std::string& message_id_str) {
             PROFILE_SCOPE();
-            auto [code, body] = controller_->updateMessage(utils::getDTO(req, "message/string"), message_id_str);
+            auto [code, body] =
+                controller_->updateMessage(utils::getDTO(req, "message/string"), message_id_str);
             sendResponse(res, code, body);
           });
 }
 
-void Server::handleDeleteMessage(){
+void Server::handleDeleteMessage() {
   CROW_ROUTE(app_, "/messages/<string>")
-  .methods(crow::HTTPMethod::DELETE)(
-      [&](const crow::request& req, crow::response& res, const std::string& message_id_str) {
-        PROFILE_SCOPE();
-        auto [code, body] = controller_->deleteMessage(utils::getDTO(req, "message/string"), message_id_str);
-        sendResponse(res, code, body);
-      });
+      .methods(crow::HTTPMethod::DELETE)(
+          [&](const crow::request& req, crow::response& res, const std::string& message_id_str) {
+            PROFILE_SCOPE();
+            auto [code, body] =
+                controller_->deleteMessage(utils::getDTO(req, "message/string"), message_id_str);
+            sendResponse(res, code, body);
+          });
 }

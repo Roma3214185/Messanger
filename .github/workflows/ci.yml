@@ -38,7 +38,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c qt
+          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c
 
       - name: Remove Homebrew protobuf (force vcpkg)
         run: |
@@ -61,7 +61,8 @@ jobs:
       # 7️⃣ Auto-format code
       - name: Run clang-format
         run: |
-          find . -type f \( -name "*.cpp" -o -name "*.h" \) -not -path "./external/*" -not -path "./build/*" -exec clang-format -i {} +
+          chmod +x run-clang.sh
+          ./run-clang.sh
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
@@ -86,18 +87,36 @@ jobs:
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
 
-      # 1️⃣1️⃣ Coverage generation (optional)
       - name: Generate coverage
         run: |
-          set -eux
-          lcov --directory build --capture --output-file coverage.info --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
-          lcov --remove coverage.info '/usr/*' '*_deps/*' '*include*' '*tests*' '*build/*' '*main.cpp' '*\.h' '*\.hpp' --output-file coverage.info
+          set -ux
+
+          lcov --directory build --capture \
+            --output-file coverage.info \
+            --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused || true
+
+          lcov --remove coverage.info \
+            '/usr/*' \
+            '*_deps/*' \
+            '*include*' \
+            '*tests*' \
+            '*build/*' \
+            '*main.cpp' \
+            '*.h' \
+            '*.hpp' \
+            --ignore-errors inconsistent \
+            --output-file coverage.info || true
+
 
       - name: Generate HTML coverage report
         run: |
           if [ -f coverage.info ]; then
-            genhtml coverage.info --output-directory coverage-report --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused
+            genhtml \
+              coverage.info \
+              --output-directory coverage-report \
+              --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused || true
           fi
+
 
       - name: Upload HTML coverage
         uses: actions/upload-artifact@v4

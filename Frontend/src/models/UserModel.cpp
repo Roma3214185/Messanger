@@ -10,10 +10,10 @@ int UserModel::rowCount(const QModelIndex& parent) const {
 }
 
 void UserModel::addUser(const User& user) {
-  if(user.id <= 0) throw std::runtime_error("Invalid user id");
+  if (user.id <= 0) throw std::runtime_error("Invalid user id");
 
-  for(auto existing_user: users_) {
-    if(existing_user.id == user.id) {
+  for (auto existing_user : users_) {
+    if (existing_user.id == user.id) {
       LOG_ERROR("User with id {} already exist", user.id);
       return;
     }

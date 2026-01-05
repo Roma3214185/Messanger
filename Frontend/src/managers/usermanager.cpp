@@ -25,9 +25,9 @@ QFuture<std::optional<User>> UserManager::getUser(long long user_id, const QStri
   LOG_INFO("[getUser] Loading user id={}", user_id);
   PROFILE_SCOPE("UserManager::getUser");
 
-  QUrl            endpoint = url_.resolved(QUrl(QString("/users/%1").arg(user_id)));
-  auto req = getRequestWithToken(endpoint, current_token);
-  auto*           reply = network_manager_->get(req);
+  QUrl  endpoint = url_.resolved(QUrl(QString("/users/%1").arg(user_id)));
+  auto  req      = getRequestWithToken(endpoint, current_token);
+  auto* reply    = network_manager_->get(req);
 
   return handleReplyWithTimeout<std::optional<User>>(
       reply,
@@ -57,10 +57,10 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag, const QStri
   PROFILE_SCOPE("UserManager::findUsersByTag");
   LOG_INFO("[findUsersByTag] Searching for users with tag={}", tag.toStdString());
 
-  QUrl            endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
-  auto request = getRequestWithToken(endpoint, current_token);
+  QUrl endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
+  auto request  = getRequestWithToken(endpoint, current_token);
 
-  auto*           reply = network_manager_->get(request);
+  auto* reply = network_manager_->get(request);
 
   return handleReplyWithTimeout<QList<User>>(
       reply,
@@ -74,7 +74,7 @@ QList<User> UserManager::onFindUsersByTag(const QByteArray& responce_data) const
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
   // auto responseData = reply->readAll();
-  auto doc          = QJsonDocument::fromJson(responce_data);
+  auto doc = QJsonDocument::fromJson(responce_data);
 
   if (!doc.isObject()) {
     LOG_ERROR("Invalid JSON: expected object at root");
@@ -82,14 +82,14 @@ QList<User> UserManager::onFindUsersByTag(const QByteArray& responce_data) const
     return {};
   }
 
-  auto        rootObj = doc.object();
+  auto rootObj = doc.object();
   if (!rootObj.contains("users")) {
     LOG_ERROR("Invalid JSON: no 'users' field");
     Q_EMIT errorOccurred("Invalid JSON: no 'users' field");
     return {};
   }
 
-  auto        arr     = rootObj["users"].toArray();
+  auto        arr = rootObj["users"].toArray();
   QList<User> users;
 
   for (const auto& value : std::as_const(arr)) {

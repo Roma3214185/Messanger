@@ -1,11 +1,11 @@
 #include "DataInputService.h"
 
-#include <algorithm>
 #include <QChar>
 #include <QLocale>
 #include <QMutex>
 #include <QRegularExpression>
 #include <QString>
+#include <algorithm>
 
 namespace {
 
@@ -24,11 +24,9 @@ int utf8Length(const QString& str) {
   return len;
 }
 
-} // namespace
+}  // namespace
 
 namespace DataInputService {
-
-
 
 inline void loadDomains(const Config& cfg) {
   if (!cfg.kDomains.isEmpty()) {
@@ -59,7 +57,8 @@ ValidationResult nameValidDetailed(const QString& name, const Config& cfg) {
   // Count only letters and digits for length checks (ignore spaces, hyphens, apostrophes)
   int meaningful_len = 0;
   for (const QChar& c : name) {
-    if (c.category() == QChar::Other_Control) return {.valid = false, .message = "Name contains invalid character"};
+    if (c.category() == QChar::Other_Control)
+      return {.valid = false, .message = "Name contains invalid character"};
 
     // treat letters and numbers as meaningful
     if (c.isLetter() || c.isNumber()) {
@@ -67,11 +66,14 @@ ValidationResult nameValidDetailed(const QString& name, const Config& cfg) {
     }
   }
 
-  if (std::cmp_less(meaningful_len, cfg.kMinLenOfName)) return {.valid = false, .message = "Name too short"};
-  if (std::cmp_greater(meaningful_len, cfg.kMaxLenOfName)) return {.valid = false, .message = "Name too long"};
+  if (std::cmp_less(meaningful_len, cfg.kMinLenOfName))
+    return {.valid = false, .message = "Name too short"};
+  if (std::cmp_greater(meaningful_len, cfg.kMaxLenOfName))
+    return {.valid = false, .message = "Name too long"};
 
   for (const QChar& c : name) {
-    if (c.category() == QChar::Other_Control) return {.valid = false, .message = "Name contains invalid character"};
+    if (c.category() == QChar::Other_Control)
+      return {.valid = false, .message = "Name contains invalid character"};
 
     const ushort u = c.unicode();
     if (u < 128) {
@@ -99,8 +101,10 @@ ValidationResult emailValidDetailed(const QString& email, const Config& cfg) {
   const QString domain = email.mid(at_pos + 1);
 
   if (local.isEmpty()) return {false, "Local part is empty"};
-  if (std::cmp_less(local.size(), cfg.kMinEmailLocalPartLength)) return {.valid = false, .message = "Local part too short"};
-  if (std::cmp_greater(local.size(), cfg.kMaxEmailLocalPartLength)) return {.valid = false, .message = "Local part too long"};
+  if (std::cmp_less(local.size(), cfg.kMinEmailLocalPartLength))
+    return {.valid = false, .message = "Local part too short"};
+  if (std::cmp_greater(local.size(), cfg.kMaxEmailLocalPartLength))
+    return {.valid = false, .message = "Local part too long"};
 
   const bool is_quoted = (local.size() >= 2 && local.front() == '"' && local.back() == '"');
   if (!is_quoted) {
@@ -109,7 +113,8 @@ ValidationResult emailValidDetailed(const QString& email, const Config& cfg) {
 
     for (int i = 0; i < local.size(); ++i) {
       const QChar c = local[i];
-      if (c.unicode() < 0x20) return {.valid = false, .message = "Local part contains control characters"};
+      if (c.unicode() < 0x20)
+        return {.valid = false, .message = "Local part contains control characters"};
 
       if (c == '.') {
         if (i + 1 < local.size() && local[i + 1] == '.')
@@ -155,13 +160,16 @@ ValidationResult emailValidDetailed(const QString& email, const Config& cfg) {
 
 ValidationResult passwordValidDetailed(const QString& password, const Config& cfg) {
   if (password.isEmpty()) return {.valid = false, .message = "Password is empty"};
-  if (password.size() < cfg.kMinPasswordLength) return {.valid = false, .message = "Password is too short"};
-  if (password.size() > cfg.kMaxPasswordLength) return {.valid = false, .message = "Password is too long"};
+  if (password.size() < cfg.kMinPasswordLength)
+    return {.valid = false, .message = "Password is too short"};
+  if (password.size() > cfg.kMaxPasswordLength)
+    return {.valid = false, .message = "Password is too long"};
 
   static const QString allowedSymbols = QStringLiteral("!$_+@#%&*-");
   for (const QChar& c : password) {
     if (c.unicode() >= 0x80) continue;
-    if (isControlOrSpace(c)) return {.valid = false, .message = "Password contains space or control character"};
+    if (isControlOrSpace(c))
+      return {.valid = false, .message = "Password contains space or control character"};
     if (c.isLetterOrNumber()) continue;
     if (allowedSymbols.contains(c)) continue;
 
@@ -172,8 +180,10 @@ ValidationResult passwordValidDetailed(const QString& password, const Config& cf
 
 ValidationResult tagValidDetailed(const QString& tag, const Config& cfg) {
   if (tag.isEmpty()) return {.valid = false, .message = "Tag is empty"};
-  if (std::cmp_less(tag.size(), cfg.kMinTagLength)) return {.valid = false, .message = "Tag too short"};
-  if (std::cmp_greater(tag.size(), cfg.kMaxTagLength)) return {.valid = false, .message = "Tag too long"};
+  if (std::cmp_less(tag.size(), cfg.kMinTagLength))
+    return {.valid = false, .message = "Tag too short"};
+  if (std::cmp_greater(tag.size(), cfg.kMaxTagLength))
+    return {.valid = false, .message = "Tag too long"};
 
   const QChar first = tag.front();
   if (first.unicode() < 0x80 && !first.isLetterOrNumber())
@@ -190,7 +200,8 @@ ValidationResult tagValidDetailed(const QString& tag, const Config& cfg) {
       continue;
     }
     if (c == '_') {
-      if (prevWasUnderscore) return {.valid = false, .message = "Tag contains consecutive underscores"};
+      if (prevWasUnderscore)
+        return {.valid = false, .message = "Tag contains consecutive underscores"};
       prevWasUnderscore = true;
       continue;
     }

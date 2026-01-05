@@ -4,7 +4,7 @@
 #include "AuthMiddleware.h"
 #include "CacheMiddleware.h"
 #include "LoggingMiddleware.h"
-#include "RateLimitMiddleware.h"
 #include "MetricsMiddleware.h"
+#include "RateLimitMiddleware.h"
 
-#endif // MIDDLEWARES_H
+#endif  // MIDDLEWARES_H

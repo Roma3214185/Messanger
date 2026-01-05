@@ -4,10 +4,10 @@
 #include <QFutureWatcher>
 #include <QtConcurrent/QtConcurrent>
 
+#include "managers/TokenManager.h"
 #include "managers/chatmanager.h"
 #include "managers/datamanager.h"
 #include "models/chatmodel.h"
-#include "managers/TokenManager.h"
 
 namespace {
 
@@ -25,12 +25,14 @@ T waitForFuture(QFuture<T>& future) {
 
 }  // namespace
 
-ChatUseCase::ChatUseCase(ChatManager* chat_manager, DataManager* data_manager, ChatModel* chat_model, TokenManager* token_manager)
-    : chat_manager_(chat_manager)
-    , data_manager_(data_manager)
-    , chat_model_(chat_model)
-    , token_manager_(token_manager) {
-
+ChatUseCase::ChatUseCase(std::unique_ptr<ChatManager>  chat_manager,
+                         DataManager*  data_manager,
+                         ChatModel*    chat_model,
+                         TokenManager* token_manager)
+    : chat_manager_(std::move(chat_manager)),
+      data_manager_(data_manager),
+      chat_model_(chat_model),
+      token_manager_(token_manager) {
   // QObject::connect(data_manager_, &DataManager::chatAdded, this, [&](const ChatPtr& chat){
   //   chat_model_->addChat(chat);
   //   Q_EMIT chatAdded(chat->chat_id);
@@ -53,7 +55,7 @@ auto ChatUseCase::loadChats() -> QList<ChatPtr> {
 
 ChatPtr ChatUseCase::loadChat(long long chat_id) {
   auto future = chat_manager_->loadChat(token_manager_->getToken(), chat_id);
-  auto chat = waitForFuture(future);
+  auto chat   = waitForFuture(future);
   return chat;
 }
 
@@ -71,31 +73,27 @@ auto ChatUseCase::getPrivateChatWithUser(long long user_id) -> ChatPtr {
 
 auto ChatUseCase::createPrivateChat(long long user_id) -> ChatPtr {
   auto future = chat_manager_->createPrivateChat(token_manager_->getToken(), user_id);
-  return waitForFuture(future); //todo: create but not saved now (??)
+  return waitForFuture(future);  // todo: create but not saved now (??)
 }
 
 void ChatUseCase::loadChatsAsync() {
   auto watcher = new QFutureWatcher<QList<ChatPtr>>(this);
 
-  connect(watcher, &QFutureWatcher<QList<ChatPtr>>::finished, this,
-          [this, watcher]() {
+  connect(watcher, &QFutureWatcher<QList<ChatPtr>>::finished, this, [this, watcher]() {
+    try {
+      QList<ChatPtr> chats = watcher->result();
 
-            try {
-              QList<ChatPtr> chats = watcher->result();
+      for (const auto& chat : chats) {
+        addChat(chat);  // todo(roma): make pipeline
+      }
+    } catch (...) {
+      LOG_ERROR("Something failed in loading chats");
+    }
 
-              for (const auto& chat : chats) {
-                addChat(chat); //todo(roma): make pipeline
-              }
-            } catch(...) {
-              LOG_ERROR("Something failed in loading chats");
-            }
+    watcher->deleteLater();
+  });
 
-            watcher->deleteLater();
-          });
-
-  watcher->setFuture(
-      chat_manager_->loadChats(token_manager_->getToken())
-      );
+  watcher->setFuture(chat_manager_->loadChats(token_manager_->getToken()));
 }
 
 auto ChatUseCase::getNumberOfExistingChats() const -> int {
@@ -120,7 +118,7 @@ void ChatUseCase::clearAllChats() {
 void ChatUseCase::addChat(const ChatPtr& chat) {
   PROFILE_SCOPE("ChatUseCase::addChat");
   data_manager_->addChat(chat);
-  //chat_model_->addChat(chat);
+  // chat_model_->addChat(chat);
 }
 
 ChatPtr ChatUseCase::getChat(long long chat_id) { return data_manager_->getChat(chat_id); }
@@ -132,8 +130,8 @@ void ChatUseCase::createChat(long long chat_id) {
     return;
   }
   auto new_chat = loadChat(chat_id);
-  //message_use_case->fillChatWithMessages(chat_id);
+  // message_use_case->fillChatWithMessages(chat_id);
   addChat(new_chat);
-  //chat_model_->addChat(new_chat); //todo: make just add, and in chat_model_ sort
-  //data_manager_->addChat(chat);
+  // chat_model_->addChat(new_chat); //todo: make just add, and in chat_model_ sort
+  // data_manager_->addChat(chat);
 }

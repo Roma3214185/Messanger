@@ -2,12 +2,12 @@
 
 #include "managers/sessionmanager.h"
 
-SessionUseCase::SessionUseCase(SessionManager* session_manager)
-    : session_manager_(session_manager) {
-  connect(session_manager_, &SessionManager::userCreated, this, &SessionUseCase::userCreated);
+SessionUseCase::SessionUseCase(std::unique_ptr<SessionManager> session_manager)
+    : session_manager_(std::move(session_manager)) {
+  connect(session_manager_.get(), &SessionManager::userCreated, this, &SessionUseCase::userCreated);
 }
 
-void SessionUseCase::authentificatesWithToken(const QString& token ) {
+void SessionUseCase::authentificatesWithToken(const QString& token) {
   DBC_REQUIRE(!token.isEmpty());
   session_manager_->authenticateWithToken(token);
 }

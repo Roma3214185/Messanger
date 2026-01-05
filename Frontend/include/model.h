@@ -9,12 +9,12 @@
 #include <unordered_map>
 
 #include "managers/Managers.h"
+#include "managers/TokenManager.h"
 #include "usecases/chatusecase.h"
 #include "usecases/messageusecase.h"
 #include "usecases/sessionusecase.h"
-#include "usecases/userusecase.h"
-#include "managers/TokenManager.h"
 #include "usecases/socketusecase.h"
+#include "usecases/userusecase.h"
 
 struct ChatBase;
 class MessageModel;
@@ -38,6 +38,8 @@ using ChatId          = long long;
 using ChatPtr         = std::shared_ptr<ChatBase>;
 using MessageModelPtr = std::shared_ptr<MessageModel>;
 
+class ModelAttorney;
+
 class Model : public QObject {
   Q_OBJECT
 
@@ -46,16 +48,17 @@ class Model : public QObject {
                  INetworkAccessManager* net_manager,
                  ICache*                cache,
                  ISocket*               socket,
-                 DataManager* data_manager);
+                 DataManager*           data_manager);
 
   ChatModel* getChatModel() const noexcept { return chat_model_.get(); }
   UserModel* getUserModel() const noexcept { return user_model_.get(); }
 
-  MessageModel* getMessageModel(long long chat_id);
+  MessageModel*                        getMessageModel(long long chat_id);
   [[nodiscard]] std::optional<QString> checkToken();
-  void deleteToken() const;
-  void saveData(const QString& token, long long current_id);
-  void logout();
+  void                                 deleteToken() const;
+  void                                 saveData(const QString& token, long long current_id);
+  void                                 logout();
+  void setupConnections();
 
   SessionUseCase* session() const noexcept { return session_use_case_.get(); }
   MessageUseCase* message() const noexcept { return message_use_case_.get(); }
@@ -65,28 +68,34 @@ class Model : public QObject {
   TokenManager* tokenManager() const noexcept { return token_manager_.get(); }
   SocketUseCase* socket() const noexcept { return socket_use_case_.get(); }
 
-  void setupConnections();
-
  private:
   ICache* cache_;
 
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
 
-  std::unique_ptr<SessionManager> session_manager_;
-  std::unique_ptr<ChatManager>    chat_manager_;
-  std::unique_ptr<MessageManager> message_manager_;
-  std::unique_ptr<UserManager>    user_manager_;
-  std::unique_ptr<SocketManager>  socket_manager_;
-
-  DataManager*    data_manager_;
+  DataManager*                  data_manager_;
   std::unique_ptr<TokenManager> token_manager_;
 
-  std::unique_ptr<SocketUseCase> socket_use_case_;
-  std::unique_ptr<ChatUseCase> chat_use_case_;
-  std::unique_ptr<UserUseCase> user_use_case_;
+  std::unique_ptr<SocketUseCase>  socket_use_case_;
+  std::unique_ptr<ChatUseCase>    chat_use_case_;
+  std::unique_ptr<UserUseCase>    user_use_case_;
   std::unique_ptr<MessageUseCase> message_use_case_;
   std::unique_ptr<SessionUseCase> session_use_case_;
+
+  friend class ModelAttorney;
 };
+
+// class ModelAttorney {
+//   private:
+//     static SessionUseCase* session(Model& model) const noexcept { return model.session_use_case_.get(); }
+//     static MessageUseCase* message(Model& model) const noexcept { return model.message_use_case_.get(); }
+//     static UserUseCase* user(Model& model) const noexcept { return model.user_use_case_.get(); }
+//     static ChatUseCase* chat(Model& model) const noexcept { return model.chat_use_case_.get(); }
+//     static DataManager* dataManager(Model& model) const noexcept { return model.data_manager_; }
+//     static TokenManager* tokenManager(Model& model) const noexcept { return model.token_manager_.get(); }
+//     static SocketUseCase* socket(Model& model) const noexcept { return model.socket_use_case_.get(); }
+//     friend class Presenter;
+// };
 
 #endif  // MODEL_H

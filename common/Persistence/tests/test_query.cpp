@@ -131,7 +131,8 @@
 //     QString     sql             = "SELECT * FROM users WHERE id = 3";
 //     int         generation_hash = 12002;
 //     int         params_hash     = 1222;
-//     std::string expected_key = "query_cache:SELECT * FROM users WHERE id = 3:gen=12002:params=1222";
+//     std::string expected_key = "query_cache:SELECT * FROM users WHERE id =
+//     3:gen=12002:params=1222";
 
 //     std::string created_key = selected_query.createCacheKey(sql, generation_hash, params_hash);
 

@@ -81,8 +81,8 @@
 //     int before_calls = fix.window.call_setChatWindow;
 //     int chat_id = 4;
 //     int user_id = 5;
-//     auto private_chat = ChatFactory::createPrivateChat(chat_id, "Roma", "roma228", user_id, "offline");
-//     fix.model.addChat(private_chat);
+//     auto private_chat = ChatFactory::createPrivateChat(chat_id, "Roma", "roma228", user_id,
+//     "offline"); fix.model.addChat(private_chat);
 
 //     fix.presenter.onChatClicked(chat_id);
 
@@ -194,7 +194,8 @@
 //     REQUIRE(returned_message->senderId == new_message.senderId);
 //   }
 
-//   SECTION("Test presenter receive new messages before the oldest expected this message will be oldest") {
+//   SECTION("Test presenter receive new messages before the oldest expected this message will be
+//   oldest") {
 //     Message new_message;
 //     new_message.id = 4;
 //     new_message.text = "Roma";
@@ -216,7 +217,8 @@
 //     REQUIRE(returned_message->senderId == new_message.senderId);
 //   }
 
-//   SECTION("Presenter receive responce socket connection opened expected send initial socket message") {
+//   SECTION("Presenter receive responce socket connection opened expected send initial socket
+//   message") {
 //     QJsonObject json;
 //     json["type"] = "opened";
 //     int before_calls = fix.fake_socket.sendTextMessage_calls;
@@ -230,7 +232,8 @@
 // TEST_CASE("Test sign in/up") {
 //   TestPresenterFixrute fix;
 
-//   SECTION("Presenter handle sig in expected network manager get to execute POST method with valid params") {
+//   SECTION("Presenter handle sig in expected network manager get to execute POST method with valid
+//   params") {
 //     LogInRequest login {
 //       .email = fix.email,
 //       .password = fix.password
@@ -250,7 +253,8 @@
 //     CHECK(body["password"].toString() == login.password);
 //   }
 
-//   SECTION("Presenter handle sig in expected network manager get to execute POST method with valid params") {
+//   SECTION("Presenter handle sig in expected network manager get to execute POST method with valid
+//   params") {
 //     SignUpRequest register_request {
 //         .email = fix.email,
 //         .password = fix.password,

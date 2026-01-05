@@ -8,8 +8,8 @@ class AuthController;
 class Server {
  public:
   Server(crow::SimpleApp& app, int port, AuthController* controller);
-  void initRoutes();
-  void run();
+  void               initRoutes();
+  void               run();
   [[nodiscard]] bool generateKeys();
 
  private:
@@ -19,9 +19,9 @@ class Server {
   void handleMe();
   void handleLogin();
 
-  crow::SimpleApp&   app_;
-  int               port_;
-  AuthController*   controller_;
+  crow::SimpleApp& app_;
+  int              port_;
+  AuthController*  controller_;
 };
 
 #endif  // AUTH_SERVICE_SERVER_H

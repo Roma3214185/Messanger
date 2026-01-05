@@ -36,9 +36,7 @@ void SessionManager::signIn(const LogInRequest& login_request) {
 
   handleReplyWithTimeoutVoid(
       reply,
-      [this](const QByteArray& responce_data) {
-        return onReplyFinished(responce_data);
-      },
+      [this](const QByteArray& responce_data) { return onReplyFinished(responce_data); },
       timeout_ms_);
 }
 
@@ -47,14 +45,14 @@ void SessionManager::onReplyFinished(const QByteArray& responce) {
   // if(!checkReply(reply)) return;
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
   LOG_INFO("Raw responce: {}", responce.toStdString());
-  auto    jsonResponse  = QJsonDocument::fromJson(responce);
-  auto    responseObj   = jsonResponse.object();
-  if(!responseObj.contains("user")) { //TODO: common checkField(responseObj, "user") function;
+  auto jsonResponse = QJsonDocument::fromJson(responce);
+  auto responseObj  = jsonResponse.object();
+  if (!responseObj.contains("user")) {  // TODO: common checkField(responseObj, "user") function;
     LOG_ERROR("Reply doen't contain 'user' filed");
     return;
   }
 
-  if(!responseObj.contains("token")) {
+  if (!responseObj.contains("token")) {
     LOG_ERROR("Reply doen't contain 'token' filed");
     return;
   }
@@ -64,7 +62,7 @@ void SessionManager::onReplyFinished(const QByteArray& responce) {
 
   LOG_INFO("[onReplyFinished] User created. User: '{}', Token: '{}'",
            createdUser.name.toStdString(),
-           current_token.toStdString()); //TODO: debug(createdUser);
+           current_token.toStdString());  // TODO: debug(createdUser);
   Q_EMIT userCreated(createdUser, current_token);
 }
 
@@ -89,9 +87,9 @@ void SessionManager::signUp(const SignUpRequest& signup_request) {
 }
 
 void SessionManager::authenticateWithToken(const QString& token) {
-  QUrl endpoint = url_.resolved(QUrl("/auth/me"));
-  auto req = getRequestWithToken(endpoint, token);
-  auto* reply = network_manager_->get(req);
+  QUrl  endpoint = url_.resolved(QUrl("/auth/me"));
+  auto  req      = getRequestWithToken(endpoint, token);
+  auto* reply    = network_manager_->get(req);
   handleReplyWithTimeoutVoid(
       reply,
       [this](const QByteArray& responce_data) { return onReplyFinished(responce_data); },

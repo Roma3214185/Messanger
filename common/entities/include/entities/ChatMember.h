@@ -8,10 +8,10 @@
 #include "interfaces/entity.h"
 
 struct ChatMember final : public IEntity {
-    long long   chat_id{ 0 };
-    long long   user_id{ 0 };
-    std::string status;
-    long long   added_at { 0 };
+  long long   chat_id{0};
+  long long   user_id{0};
+  std::string status;
+  long long   added_at{0};
 };
 
 namespace nlohmann {

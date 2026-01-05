@@ -85,8 +85,6 @@ add_executable(Frontend
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
     Dockerfile
-    include/DeleteMessageResponce.h
-    include/ReadMessageHandler.h
 )
 
 add_custom_command(TARGET Frontend POST_BUILD
@@ -96,9 +94,3 @@ add_custom_command(TARGET Frontend POST_BUILD
 )
 
 target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
-
-# set_target_properties(Frontend PROPERTIES
-#     BUILD_WITH_INSTALL_RPATH ON
-#     INSTALL_RPATH "/usr/local/lib;/opt/homebrew/lib"
-#     INSTALL_RPATH_USE_LINK_PATH ON
-# )

@@ -12,14 +12,14 @@
 #include <vector>
 
 #include "Debug_profiling.h"
-#include "threadpool.h"
 #include "interfaces/IRabitMQClient.h"
+#include "threadpool.h"
 
 struct RabbitMQConfig {
-    std::string host;
-    int         port;
-    std::string user;
-    std::string password;
+  std::string host;
+  int         port;
+  std::string user;
+  std::string password;
 };
 
 struct IThreadPool;
@@ -29,10 +29,10 @@ class RabbitMQClient : public IRabitMQClient {
   RabbitMQClient(const RabbitMQConfig& rabbitmq_config, IThreadPool* thread_pool);
   ~RabbitMQClient();
 
-  RabbitMQClient(const RabbitMQClient&) = delete;
+  RabbitMQClient(const RabbitMQClient&)            = delete;
   RabbitMQClient& operator=(const RabbitMQClient&) = delete;
 
-  RabbitMQClient(RabbitMQClient&&) = delete;
+  RabbitMQClient(RabbitMQClient&&)            = delete;
   RabbitMQClient& operator=(RabbitMQClient&&) = delete;
 
   void publish(const PublishRequest& publish_request) override;
@@ -42,8 +42,8 @@ class RabbitMQClient : public IRabitMQClient {
  private:
   void declareExchange(const std::string& exchange, const std::string& type, bool durable);
 
-  std::atomic<bool>               running_{ false };
-   IThreadPool*                   pool_;
+  std::atomic<bool>               running_{false};
+  IThreadPool*                    pool_;
   std::vector<std::thread>        consumer_threads_;
   std::mutex                      consumer_threads_mutex_;
   std::unordered_set<std::string> declared_exchanges_;

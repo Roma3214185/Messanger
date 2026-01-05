@@ -29,21 +29,21 @@ class MessageModel : public QAbstractListModel {
 
   explicit MessageModel(QObject* parent = nullptr);
 
-  int                    rowCount(const QModelIndex& parent = QModelIndex()) const override;
-  QVariant               data(const QModelIndex& index, int role) const override;
-  QModelIndex indexFromId(MessageId) const;
-  QHash<int, QByteArray> roleNames() const override;
-  void saveMessage(const Message& msg);
-  void deleteMessage(const Message& msg);
-  void clear();
-  std::optional<Message> getLastMessage() const;
-  std::optional<Message> getOldestMessage() const;
+  int                          rowCount(const QModelIndex& parent = QModelIndex()) const override;
+  QVariant                     data(const QModelIndex& index, int role) const override;
+  QModelIndex                  indexFromId(MessageId) const;
+  QHash<int, QByteArray>       roleNames() const override;
+  void                         saveMessage(const Message& msg);
+  void                         deleteMessage(const Message& msg);
+  void                         clear();
+  std::optional<Message>       getLastMessage() const;
+  std::optional<Message>       getOldestMessage() const;
   [[nodiscard]] ListOfMessages messages() const noexcept { return messages_; }
 
  private:
-  void  sortMessagesByTimestamp();
+  void sortMessagesByTimestamp();
 
-  std::mutex messages_mutex_;
+  std::mutex     messages_mutex_;
   ListOfMessages messages_;
 };
 

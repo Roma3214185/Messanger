@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "Meta.h"
-#include "metaentity/EntityConcept.h"
 #include "OutboxWorker.h"
 #include "interfaces/IEntityBuilder.h"
+#include "metaentity/EntityConcept.h"
 
 template <EntityJson T>
 using ResultList = std::vector<T>;
@@ -17,26 +17,25 @@ class ISqlExecutor;
 class ICacheService;
 class IThreadPool;
 
-
 class GenericRepository {
-  IDataBase&     database_;
-  ISqlExecutor*  executor_;
-  ICacheService& cache_;
-  IThreadPool*    pool_;
+  IDataBase&                    database_;
+  ISqlExecutor*                 executor_;
+  ICacheService&                cache_;
+  IThreadPool*                  pool_;
   std::unique_ptr<OutboxWorker> outbox_worker_;
 
  public:
   GenericRepository(IDataBase&     database,
-                    ISqlExecutor* executor,
+                    ISqlExecutor*  executor,
                     ICacheService& cache,
-                    IThreadPool*    pool_ = nullptr);
+                    IThreadPool*   pool_ = nullptr);
   ~GenericRepository();
 
   ICacheService& getCache() { return cache_; }
 
-  IDataBase& getDatabase() { return database_; }
+  IDataBase&    getDatabase() { return database_; }
   ISqlExecutor* getExecutor() { return executor_; }
-  void       clearCache();
+  void          clearCache();
 
   template <EntityJson T>
   bool save(const T& entity);
@@ -57,10 +56,10 @@ class GenericRepository {
   bool deleteById(long long entity_id);
 
   template <EntityJson T>
-  bool deleteEntity(const T& entity); //todo : update outbox
+  bool deleteEntity(const T& entity);  // todo : update outbox
 
   template <EntityJson T>
-  void deleteBatch(std::vector<T>& batch); //todo: make std::vector<T> to delete
+  void deleteBatch(std::vector<T>& batch);  // todo: make std::vector<T> to delete
 
   template <EntityJson T>
   std::vector<T> findByField(const std::string& field, const std::string& value);

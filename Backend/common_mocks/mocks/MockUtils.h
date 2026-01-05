@@ -43,7 +43,6 @@ inline Ports getMockPorts() {
   return ports;
 }
 
+}  // namespace MockUtils
 
-}  // MockUtils
-
-#endif // MOCKUTILS_H
+#endif  // MOCKUTILS_H

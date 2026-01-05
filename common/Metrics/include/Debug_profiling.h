@@ -1,29 +1,32 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 #include <chrono>
+#include <filesystem>
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <filesystem>
-#include <sstream>
+
 #include "tracy.h"
 
-//todo: remove ScopedTimer from here, make file Logger and file Tracer, and extract_class_and_function in separate namespace
+// todo: remove ScopedTimer from here, make file Logger and file Tracer, and
+// extract_class_and_function in separate namespace
 
 class ScopedTimer;
 
-#define PROFILE_SCOPE(name) ScopedTimer timer##__LINE__(extract_class_and_function(__PRETTY_FUNCTION__).c_str())
+#define PROFILE_SCOPE(name) \
+  ScopedTimer timer##__LINE__(extract_class_and_function(__PRETTY_FUNCTION__).c_str())
 
 inline std::string extract_class_and_function(const char* full_func) {
-  const std::string full(full_func);
+  std::string full(full_func);
   std::stringstream sstream(full);
-  std::string token;
+  std::string       token;
 
   while (sstream >> token) {
     if (token.find('(') != std::string::npos) {
@@ -65,29 +68,44 @@ inline std::string extract_class_and_function(const char* full_func) {
 
 #ifdef DEBUG
 #define LOG_INFO(...) ((void)0)
-//#define LOG_INFO(...) \
-//spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
+// #define LOG_INFO(...) \
+// spdlog::log(spdlog::source_loc{__FILE__, __LINE__,
+// extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
 #else
-#define LOG_INFO(...) \
- spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::info, __VA_ARGS__)
+#define LOG_INFO(...)                                                                   \
+  spdlog::log(                                                                          \
+      spdlog::source_loc{                                                               \
+          __FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, \
+      spdlog::level::info,                                                              \
+      __VA_ARGS__)
 #endif
 
-#define LOG_WARN(...) \
-spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::warn, __VA_ARGS__)
+#define LOG_WARN(...)                                                                   \
+  spdlog::log(                                                                          \
+      spdlog::source_loc{                                                               \
+          __FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, \
+      spdlog::level::warn,                                                              \
+      __VA_ARGS__)
 
-#define LOG_ERROR(...) \
-spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::err, __VA_ARGS__)
+#define LOG_ERROR(...)                                                                  \
+  spdlog::log(                                                                          \
+      spdlog::source_loc{                                                               \
+          __FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, \
+      spdlog::level::err,                                                               \
+      __VA_ARGS__)
 
 #ifdef NDEBUG
- #define LOG_DEBUG(...) ((void)0)
+#define LOG_DEBUG(...) ((void)0)
 constexpr bool kLogEnabled = false;
 #else
- #define LOG_DEBUG(...) \
- spdlog::log(spdlog::source_loc{__FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, spdlog::level::debug, __VA_ARGS__)
+#define LOG_DEBUG(...)                                                                  \
+  spdlog::log(                                                                          \
+      spdlog::source_loc{                                                               \
+          __FILE__, __LINE__, extract_class_and_function(__PRETTY_FUNCTION__).c_str()}, \
+      spdlog::level::debug,                                                             \
+      __VA_ARGS__)
 constexpr bool kLogEnabled = true;
 #endif
-
-
 
 // template <typename T>
 // inline auto to_loggable(T&& value) {
@@ -127,21 +145,17 @@ inline void measureNetworkCall(const std::string& name, const std::function<void
 
 inline void initLogger(const std::string& service_name) {
   try {
-    constexpr int kFiveMB = 5 * 1024 * 1024;
-    constexpr size_t kMaxLogFileSize = kFiveMB;
-    constexpr size_t kMaxLogFiles = 3;
-    constexpr std::string_view kLogDirectory = "/Users/roma/QtProjects/Chat/logs/";
-    constexpr std::string_view kLogExtension = ".log";
-    const std::string kLogPattern = "[%d-%m %H:%M:%S] [%l] [%!] %v";
+    constexpr int              kFiveMB         = 5 * 1024 * 1024;
+    constexpr size_t           kMaxLogFileSize = kFiveMB;
+    constexpr size_t           kMaxLogFiles    = 3;
+    constexpr std::string_view kLogDirectory   = "/Users/roma/QtProjects/Chat/logs/";
+    constexpr std::string_view kLogExtension   = ".log";
+    const std::string          kLogPattern     = "[%d-%m %H:%M:%S] [%l] [%!] %v";
 
     std::filesystem::create_directories(kLogDirectory);
 
     std::string filename;
-    filename.reserve(
-        kLogDirectory.size() +
-        service_name.size() +
-        kLogExtension.size()
-        );
+    filename.reserve(kLogDirectory.size() + service_name.size() + kLogExtension.size());
 
     filename.append(kLogDirectory);
     filename.append(service_name);
@@ -164,104 +178,91 @@ inline void initLogger(const std::string& service_name) {
   }
 }
 
-enum class ContractLevel {
-  Precondition,
-  Postcondition,
-  Invariant,
-  Assert,
-  Unreachable
-};
+enum class ContractLevel { Precondition, Postcondition, Invariant, Assert, Unreachable };
 
 struct ContractViolation {
-    ContractLevel level;
-    const char* expr;
-    const char* file;
-    int line;
-    const char* func;
+  ContractLevel level;
+  const char*   expr;
+  const char*   file;
+  int           line;
+  const char*   func;
 };
 
-using ContractHandler = void(*)(const ContractViolation&);
+using ContractHandler = void (*)(const ContractViolation&);
 
-static const char* to_string(ContractLevel level) {
+static const char* toString(ContractLevel level) {
   switch (level) {
-  case ContractLevel::Precondition: return "Precondition";
-  case ContractLevel::Postcondition: return "Postcondition";
-  case ContractLevel::Invariant: return "Invariant";
-  case ContractLevel::Assert: return "Assert";
-  case ContractLevel::Unreachable: return "Unreachable";
+    case ContractLevel::Precondition:
+      return "Precondition";
+    case ContractLevel::Postcondition:
+      return "Postcondition";
+    case ContractLevel::Invariant:
+      return "Invariant";
+    case ContractLevel::Assert:
+      return "Assert";
+    case ContractLevel::Unreachable:
+      return "Unreachable";
   }
   return "Unknown";
 }
 
 class ContractViolationError : public std::logic_error {
-  public:
-    ContractViolation v;
+ public:
+  ContractViolation v;
 
-    explicit ContractViolationError(const ContractViolation& violation)
-        : std::logic_error(build_message(violation)),
-        v(violation)
-    {}
+  explicit ContractViolationError(const ContractViolation& violation)
+      : std::logic_error(buildMessage(violation)), v(violation) {}
 
-  private:
-    static std::string build_message(const ContractViolation& v) {
-      std::ostringstream oss;
-      oss << "Contract violation: "
-          << to_string(v.level)
-          << " failed: " << v.expr
-          << " at " << v.file << ":" << v.line
-          << " (" << v.func << ")";
-      return oss.str();
-    }
+ private:
+  static std::string buildMessage(const ContractViolation& v) {
+    std::ostringstream oss;
+    oss << "Contract violation: " << toString(v.level) << " failed: " << v.expr << " at " << v.file
+        << ":" << v.line << " (" << v.func << ")";
+    return oss.str();
+  }
 };
 
-inline void throw_on_violation(const ContractViolation& v) {
-  throw ContractViolationError(v);
-}
+inline void throwOnViolation(const ContractViolation& v) { throw ContractViolationError(v); }
 
-inline void log_contract(const ContractViolation& v) {
+inline void logContract(const ContractViolation& v) {
   spdlog::error(
-      "[CONTRACT] {} failed: {} at {}:{} ({})",
-      to_string(v.level),
-      v.expr,
-      v.file,
-      v.line,
-      v.func
-      );
+      "[CONTRACT] {} failed: {} at {}:{} ({})", toString(v.level), v.expr, v.file, v.line, v.func);
 }
 
-inline ContractHandler& contract_handler() {
-  static ContractHandler handler = log_contract;
+inline ContractHandler& contractHandler() {
+#if defined(NDEBUG)
+  static ContractHandler handler = logContract;        // Release
+#else
+  static ContractHandler handler = throwOnViolation;   // Debug
+#endif
   return handler;
 }
 
-#define CONTRACT_CHECK(level, expr) \
-  do {                              \
-      if (!(expr)) {                \
-        contract_handler()({        \
-        level,                      \
-        #expr,                      \
-        __FILE__,                   \
-        __LINE__,                   \
-        __func__                    \
-        });                         \
-  }                                 \
-} while (0)
+inline void setContractHandler(ContractHandler h) {
+  contractHandler() = h;
+}
+
+#define CONTRACT_CHECK(level, expr)                                     \
+  do {                                                                  \
+    if (!(expr)) {                                                      \
+      contractHandler()({level, #expr, __FILE__, __LINE__, __func__}); \
+    }                                                                   \
+  } while (0)
 
 #ifndef ENABLE_CONTRACTS
 #define ENABLE_CONTRACTS
 #endif
 
 #ifdef ENABLE_CONTRACTS
-#define DBC_REQUIRE(expr)      CONTRACT_CHECK(ContractLevel::Precondition, expr)
-#define DBC_ENSURE(expr)     CONTRACT_CHECK(ContractLevel::Postcondition, expr)
-#define DBC_INVARIANT(expr)    CONTRACT_CHECK(ContractLevel::Invariant, expr)
-#define DBC_ASSERT_INTERNAL(expr) \
-  CONTRACT_CHECK(ContractLevel::Assert, expr)
-#define DBC_UNREACHABLE()      CONTRACT_CHECK(ContractLevel::Unreachable, false)
+#define DBC_REQUIRE(expr) CONTRACT_CHECK(ContractLevel::Precondition, expr)
+#define DBC_ENSURE(expr) CONTRACT_CHECK(ContractLevel::Postcondition, expr)
+#define DBC_INVARIANT(expr) CONTRACT_CHECK(ContractLevel::Invariant, expr)
+#define DBC_ASSERT_INTERNAL(expr) CONTRACT_CHECK(ContractLevel::Assert, expr)
+#define DBC_UNREACHABLE() CONTRACT_CHECK(ContractLevel::Unreachable, false)
 #else
-#define DBC_REQUIRE(expr)      ((void)0)
-#define DBC_ENSURE(expr)     ((void)0)
-#define DBC_INVARIANT(expr)    ((void)0)
+#define DBC_REQUIRE(expr) ((void)0)
+#define DBC_ENSURE(expr) ((void)0)
+#define DBC_INVARIANT(expr) ((void)0)
 #define DBC_ASSERT_INTERNAL(expr) ((void)0)
-#define DBC_UNREACHABLE()      ((void)0)
+#define DBC_UNREACHABLE() ((void)0)
 #endif

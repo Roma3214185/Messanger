@@ -2,10 +2,9 @@
 #define GATEWAYMOCKS_H
 
 #include "MockApiCache.h"
-#include "MockVerifier.h"
-#include "MockRateLimiter.h"
-#include "MockMetrics.h"
-#include "MockApiCache.h"
 #include "MockClient.h"
+#include "MockMetrics.h"
+#include "MockRateLimiter.h"
+#include "MockVerifier.h"
 
-#endif // GATEWAYMOCKS_H
+#endif  // GATEWAYMOCKS_H
