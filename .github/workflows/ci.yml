@@ -105,14 +105,14 @@ jobs:
             --output-file coverage.info
 
 
-        - name: Generate HTML coverage report
-          run: |
-            if [ -f coverage.info ]; then
-              genhtml \
-                coverage.info \
-                --output-directory coverage-report \
-                --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused || true
-            fi
+      - name: Generate HTML coverage report
+        run: |
+          if [ -f coverage.info ]; then
+            genhtml \
+              coverage.info \
+              --output-directory coverage-report \
+              --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused || true
+          fi
 
 
       - name: Upload HTML coverage
