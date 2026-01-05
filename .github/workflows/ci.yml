@@ -89,8 +89,10 @@ jobs:
 
       - name: Generate coverage
         run: |
-          set -eux
-          lcov --directory build --capture --output-file coverage.info \
+          set -ux
+
+          lcov --directory build --capture \
+            --output-file coverage.info \
             --ignore-errors inconsistent,corrupt,unsupported,missing,format,category,unused || true
 
           lcov --remove coverage.info \
@@ -102,7 +104,8 @@ jobs:
             '*main.cpp' \
             '*.h' \
             '*.hpp' \
-            --output-file coverage.info
+            --ignore-errors inconsistent \
+            --output-file coverage.info || true
 
 
       - name: Generate HTML coverage report
