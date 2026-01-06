@@ -6,7 +6,7 @@
 #include "interfaces/entity.h"
 
 template <typename T>
-concept JsonRoundTrip = requires(const nlohmann::json& j, const T& t) {
+concept JsonRoundTrip = requires(const nlohmann::json &j, const T &t) {
   { j.get<T>() } -> std::convertible_to<T>;
   { nlohmann::json(t) } -> std::same_as<nlohmann::json>;
 };
@@ -17,4 +17,4 @@ concept Entity = std::derived_from<T, IEntity>;
 template <typename T>
 concept EntityJson = Entity<T> && JsonRoundTrip<T>;
 
-#endif  // ENTITYCONCEPT_H
+#endif // ENTITYCONCEPT_H

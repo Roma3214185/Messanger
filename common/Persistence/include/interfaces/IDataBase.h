@@ -6,15 +6,15 @@
 #include "interfaces/IQuery.h"
 
 class IDataBase {
- public:
+public:
   virtual ~IDataBase() = default;
 
-  virtual bool                    exec(const QString& sql)        = 0;
-  virtual std::unique_ptr<IQuery> prepare(const QString& sql)     = 0;
-  virtual std::unique_ptr<IQuery> prepare(const std::string& sql) = 0;
-  virtual bool                    commit()                        = 0;
-  virtual void                    rollback()                      = 0;
-  virtual bool                    transaction()                   = 0;
+  virtual bool exec(const QString &sql) = 0;
+  virtual std::unique_ptr<IQuery> prepare(const QString &sql) = 0;
+  virtual std::unique_ptr<IQuery> prepare(const std::string &sql) = 0;
+  virtual bool commit() = 0;
+  virtual void rollback() = 0;
+  virtual bool transaction() = 0;
 
   // QSqlDatabase& getThreadDatabase() {
   //    PROFILE_SCOPE("QSqlDatabase::getThreadDatabase");
@@ -35,7 +35,8 @@ class IDataBase {
   //       throw std::runtime_error("Cannot open database for this thread");
   //     }
 
-  //     QObject::connect(QThread::currentThread(), &QThread::finished, [connection_name]() -> void
+  //     QObject::connect(QThread::currentThread(), &QThread::finished,
+  //     [connection_name]() -> void
   //     {
   //       QSqlDatabase::removeDatabase(connection_name);
   //     });
@@ -48,4 +49,4 @@ class IDataBase {
   // virtual ~IDataBase() = default;
 };
 
-#endif  // IDATABASE_H
+#endif // IDATABASE_H

@@ -15,7 +15,7 @@
 #include "chatservice/chatmanager.h"
 #include "chatservice/chatserver.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   initLogger("ChatService");
   QCoreApplication a(argc, argv);
 
@@ -43,17 +43,17 @@ int main(int argc, char* argv[]) {
     qFatal("Cannot initialise DB");
   }
 
-  SqlExecutor        executor(database);
-  constexpr int      service_id = 2;
-  GeneratorId        generator(service_id);
-  GenericRepository  genetic_rep(database, &executor, RedisCache::instance());
-  ChatManager        manager(&genetic_rep, &generator);  // TODO: pass executor to mock
-  NetworkManager     network_manager;
+  SqlExecutor executor(database);
+  constexpr int service_id = 2;
+  GeneratorId generator(service_id);
+  GenericRepository genetic_rep(database, &executor, RedisCache::instance());
+  ChatManager manager(&genetic_rep, &generator); // TODO: pass executor to mock
+  NetworkManager network_manager;
   ProdConfigProvider provider;
-  NetworkFacade      facade = NetworkFactory::create(&network_manager);
-  crow::SimpleApp    app;
-  ChatController     controller(&manager, &facade);
-  ChatServer         server(app, provider.ports().chatService, &controller);
+  NetworkFacade facade = NetworkFactory::create(&network_manager);
+  crow::SimpleApp app;
+  ChatController controller(&manager, &facade);
+  ChatServer server(app, provider.ports().chatService, &controller);
   LOG_INFO("Chat service on port '{}'", provider.ports().chatService);
   server.run();
 }

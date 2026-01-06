@@ -8,25 +8,28 @@
 #include "interfaces/entity.h"
 
 struct UserCredentials final : public IEntity {
-  long long   user_id{0};
+  long long user_id{0};
   std::string hash_password;
 };
 
 namespace nlohmann {
 
-template <>
-struct adl_serializer<UserCredentials> {
-  static void to_json(nlohmann::json& json, const UserCredentials& user_credentials) {
-    json = nlohmann::json{{UserCredentialsTable::UserId, user_credentials.user_id},
-                          {UserCredentialsTable::HashPassword, user_credentials.hash_password}};
+template <> struct adl_serializer<UserCredentials> {
+  static void to_json(nlohmann::json &json,
+                      const UserCredentials &user_credentials) {
+    json = nlohmann::json{
+        {UserCredentialsTable::UserId, user_credentials.user_id},
+        {UserCredentialsTable::HashPassword, user_credentials.hash_password}};
   }
 
-  static void from_json(const nlohmann::json& json, UserCredentials& user_credentials) {
+  static void from_json(const nlohmann::json &json,
+                        UserCredentials &user_credentials) {
     json.at(UserCredentialsTable::UserId).get_to(user_credentials.user_id);
-    json.at(UserCredentialsTable::HashPassword).get_to(user_credentials.hash_password);
+    json.at(UserCredentialsTable::HashPassword)
+        .get_to(user_credentials.hash_password);
   }
 };
 
-}  // namespace nlohmann
+} // namespace nlohmann
 
-#endif  // USERCREDENTIALS_H
+#endif // USERCREDENTIALS_H

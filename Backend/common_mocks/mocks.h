@@ -13,4 +13,4 @@
 #include "mocks/MockTheadPool.h"
 #include "mocks/MockUtils.h"
 
-#endif  // MOCKS_H
+#endif // MOCKS_H

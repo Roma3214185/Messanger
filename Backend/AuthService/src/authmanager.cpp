@@ -18,37 +18,41 @@ OptionalUser AuthManager::getUser(long long user_id) {
 
 // OptionalUser AuthManager::findUserByEmail(const std::string& email) {
 //   auto finded_users = rep_.findByField<User>(UserTable::Email, email);
-//   return finded_users.empty() ? std::nullopt : std::make_optional(finded_users.front());
+//   return finded_users.empty() ? std::nullopt :
+//   std::make_optional(finded_users.front());
 // }
 
-OptionalUser AuthManager::findUserByEmail(const std::string& email) {
+OptionalUser AuthManager::findUserByEmail(const std::string &email) {
   LOG_INFO("Find user by email {}", email);
   auto query = QueryFactory::createSelect<User>(
-      rep_.getExecutor(), rep_.getCache());  // TODO: remove executor and cache;
+      rep_.getExecutor(), rep_.getCache()); // TODO: remove executor and cache;
   query->from(UserTable::Table).where(UserTable::Email, email);
-  auto result        = query->execute();
+  auto result = query->execute();
   auto select_result = QueryFactory::getSelectResult<User>(result);
-  auto finded_users  = select_result.result;
-  return finded_users.empty() ? std::nullopt : std::make_optional(finded_users.front());
+  auto finded_users = select_result.result;
+  return finded_users.empty() ? std::nullopt
+                              : std::make_optional(finded_users.front());
 }
 
-std::optional<UserCredentials> AuthManager::findUserCredentials(long long user_id) {
+std::optional<UserCredentials>
+AuthManager::findUserCredentials(long long user_id) {
   DBC_REQUIRE(user_id > 0);
-  auto result = QueryFactory::createSelect<UserCredentials>(rep_.getExecutor(), rep_.getCache())
+  auto result = QueryFactory::createSelect<UserCredentials>(rep_.getExecutor(),
+                                                            rep_.getCache())
                     ->where(UserCredentialsTable::UserId, user_id)
                     .execute();
   auto select_result = QueryFactory::getSelectResult(result);
   if (select_result.result.empty())
     LOG_ERROR("findUserCredentials for id {} is failed");
   else
-    LOG_INFO("findUserCredentials for id {} is succed, hash is {}",
-             user_id,
+    LOG_INFO("findUserCredentials for id {} is succed, hash is {}", user_id,
              select_result.result.front().hash_password);
-  return select_result.result.empty() ? std::nullopt
-                                      : std::make_optional(select_result.result.front());
+  return select_result.result.empty()
+             ? std::nullopt
+             : std::make_optional(select_result.result.front());
 }
 
-OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
+OptionalUser AuthManager::loginUser(const LoginRequest &login_request) {
   auto user_with_same_email = findUserByEmail(login_request.email);
 
   if (!user_with_same_email) {
@@ -56,15 +60,18 @@ OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
     return std::nullopt;
   }
 
-  LOG_INFO("User found with email '{}', id is '{}'", login_request.email, user_with_same_email->id);
+  LOG_INFO("User found with email '{}', id is '{}'", login_request.email,
+           user_with_same_email->id);
 
   auto user_credentials = findUserCredentials(user_with_same_email->id);
   if (!user_credentials) {
-    LOG_ERROR("User credentilas not found for user_id {} ", user_with_same_email->id);
+    LOG_ERROR("User credentilas not found for user_id {} ",
+              user_with_same_email->id);
     return std::nullopt;
   }
 
-  if (!passwordIsValid(login_request.password, user_credentials->hash_password)) {
+  if (!passwordIsValid(login_request.password,
+                       user_credentials->hash_password)) {
     LOG_ERROR("Invalid password: {}", login_request.password);
     return std::nullopt;
   }
@@ -72,37 +79,38 @@ OptionalUser AuthManager::loginUser(const LoginRequest& login_request) {
   return user_with_same_email;
 }
 
-bool AuthManager::passwordIsValid(const std::string& password_to_check,
-                                  const std::string& hash_password) {
-  // TODO: make check if password_to_check satisfy condition (length, symbols, etc)
+bool AuthManager::passwordIsValid(const std::string &password_to_check,
+                                  const std::string &hash_password) {
+  // TODO: make check if password_to_check satisfy condition (length, symbols,
+  // etc)
   return PasswordService::verify(password_to_check, hash_password);
 }
 
-OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
+OptionalUser AuthManager::registerUser(const RegisterRequest &req) {
   auto user_with_same_email = findUserByEmail(req.email);
   if (user_with_same_email) {
-    LOG_WARN("There is user with email {} already, his email {} name is {} and tag is {}",
-             req.email,
-             user_with_same_email->email,
-             user_with_same_email->username,
-             user_with_same_email->tag);
+    LOG_WARN("There is user with email {} already, his email {} name is {} and "
+             "tag is {}",
+             req.email, user_with_same_email->email,
+             user_with_same_email->username, user_with_same_email->tag);
     return std::nullopt;
   }
 
   auto users_with_same_tag = findUserWithSameTag(req.tag);
   if (users_with_same_tag) {
-    LOG_WARN("There is user with tag {} already, his email {} name is {} and tag is {}",
-             req.tag,
-             users_with_same_tag->email,
-             users_with_same_tag->username,
+    LOG_WARN("There is user with tag {} already, his email {} name is {} and "
+             "tag is {}",
+             req.tag, users_with_same_tag->email, users_with_same_tag->username,
              users_with_same_tag->tag);
     return std::nullopt;
   }
 
   LOG_INFO("User can be saved");
 
-  User user_to_save{
-      .id = generator_->generateId(), .username = req.name, .email = req.email, .tag = req.tag};
+  User user_to_save{.id = generator_->generateId(),
+                    .username = req.name,
+                    .email = req.email,
+                    .tag = req.tag};
 
   LOG_INFO("User_to_save: {}", nlohmann::json(user_to_save).dump());
   if (!rep_.save(user_to_save)) {
@@ -111,11 +119,13 @@ OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
   }
 
   UserCredentials user_credentials;
-  user_credentials.user_id       = user_to_save.id;
+  user_credentials.user_id = user_to_save.id;
   user_credentials.hash_password = getHashPassword(req.password);
 
-  LOG_INFO("User saved, try to save credentials {}", nlohmann::json(user_credentials).dump());
-  // TODO: make transaction -> save(vector<IEntity>){user_to_save, user_credentials}
+  LOG_INFO("User saved, try to save credentials {}",
+           nlohmann::json(user_credentials).dump());
+  // TODO: make transaction -> save(vector<IEntity>){user_to_save,
+  // user_credentials}
   if (!rep_.save(user_credentials)) {
     LOG_ERROR("Server error while saving credentials");
     return std::nullopt;
@@ -125,18 +135,20 @@ OptionalUser AuthManager::registerUser(const RegisterRequest& req) {
   return user_to_save;
 }
 
-std::string AuthManager::getHashPassword(const std::string& raw_passport) {
+std::string AuthManager::getHashPassword(const std::string &raw_passport) {
   return PasswordService::hash(raw_passport);
 }
 
-std::vector<User> AuthManager::findUsersByTag(const string& tag) {  // TODO: make trie
+std::vector<User>
+AuthManager::findUsersByTag(const string &tag) { // TODO: make trie
   return rep_.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
 }
 
-std::optional<User> AuthManager::findUserWithSameTag(const std::string& tag) {
-  auto result = rep_.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
+std::optional<User> AuthManager::findUserWithSameTag(const std::string &tag) {
+  auto result =
+      rep_.findByField<User>(UserTable::Tag, QString::fromStdString(tag));
   return result.empty() ? std::nullopt : std::make_optional(result.front());
 }
 
-AuthManager::AuthManager(GenericRepository& repository, IIdGenerator* generator)
+AuthManager::AuthManager(GenericRepository &repository, IIdGenerator *generator)
     : rep_(repository), generator_(generator) {}

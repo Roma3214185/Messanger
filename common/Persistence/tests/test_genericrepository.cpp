@@ -14,20 +14,20 @@
 #include "mocks/MockIdGenerator.h"
 
 TEST_CASE("Test saving entity in database") {
-  MockQuery    query;
+  MockQuery query;
   MockDatabase db;
   db.mock_query = query;
-  MockCache         cache;
-  FakeSqlExecutor   executor;
+  MockCache cache;
+  FakeSqlExecutor executor;
   GenericRepository rep(db, &executor, cache);
 
-  int  mocked_id = 6;
+  int mocked_id = 6;
   User user;
-  user.id       = mocked_id;
-  user.email    = "romanlobach@gmail.com";
-  user.tag      = "roma222";
+  user.id = mocked_id;
+  user.email = "romanlobach@gmail.com";
+  user.tag = "roma222";
   user.username = "roma";
-  user.id       = mocked_id;
+  user.id = mocked_id;
 
   // SECTION("Save user expected executor call") {
   //   int before = executor.execute_calls;
@@ -47,12 +47,14 @@ TEST_CASE("Test saving entity in database") {
 
   MessageStatus message_status;
   message_status.receiver_id = 3;
-  message_status.message_id  = 4;
-  message_status.is_read     = true;
-  auto timepoint             = QDateTime::currentMSecsSinceEpoch();
-  message_status.read_at     = timepoint;
+  message_status.message_id = 4;
+  message_status.is_read = true;
+  auto timepoint = QDateTime::currentMSecsSinceEpoch();
+  message_status.read_at = timepoint;
 
-  SECTION("Save message_status expected true") { REQUIRE(rep.save(message_status)); }
+  SECTION("Save message_status expected true") {
+    REQUIRE(rep.save(message_status));
+  }
 
   SECTION("Save message_status expected any fields is changed") {
     REQUIRE(message_status.receiver_id == 3);
@@ -87,8 +89,8 @@ TEST_CASE("Test saving entity in database") {
 
 //   SECTION("Save message_status expected right created sql command") {
 //     std::string valid_sql =
-//         "INSERT OR REPLACE INTO messages_status (message_id, receiver_id, is_read, read_at) "
-//         "VALUES (?, ?, ?, ?)";
+//         "INSERT OR REPLACE INTO messages_status (message_id, receiver_id,
+//         is_read, read_at) " "VALUES (?, ?, ?, ?)";
 //     MessageStatus message_status;
 //     rep.save(message_status);
 //     REQUIRE(db.last_execute_sql == valid_sql);
@@ -96,8 +98,8 @@ TEST_CASE("Test saving entity in database") {
 
 //   SECTION("Save message expected right created sql command") {
 //     QString valid_sql =
-//         "INSERT OR REPLACE INTO messages (id, sender_id, chat_id, text, timestamp, local_id) "
-//         "VALUES (?, ?, ?, ?, ?, ?)";
+//         "INSERT OR REPLACE INTO messages (id, sender_id, chat_id, text,
+//         timestamp, local_id) " "VALUES (?, ?, ?, ?, ?, ?)";
 //     Message message;
 //     message.id = 10;
 //     rep.save(message);
@@ -107,8 +109,8 @@ TEST_CASE("Test saving entity in database") {
 
 //   SECTION("Save chat expected right created sql command") {
 //     std::string valid_sql =
-//         "INSERT OR REPLACE INTO chats (id, is_group, name, avatar, created_at) "
-//         "VALUES (?, ?, ?, ?, ?)";
+//         "INSERT OR REPLACE INTO chats (id, is_group, name, avatar,
+//         created_at) " "VALUES (?, ?, ?, ?, ?)";
 
 //     Chat chat;
 //     chat.id = 10;
@@ -119,8 +121,8 @@ TEST_CASE("Test saving entity in database") {
 
 //   SECTION("Save chat_member expected right created sql command") {
 //     std::string valid_sql =
-//         "INSERT OR REPLACE INTO chat_members (chat_id, user_id, status, added_at) "
-//         "VALUES (?, ?, ?, ?)";
+//         "INSERT OR REPLACE INTO chat_members (chat_id, user_id, status,
+//         added_at) " "VALUES (?, ?, ?, ?)";
 
 //     ChatMember chat_member;
 //     rep.save(chat_member);
@@ -139,18 +141,18 @@ TEST_CASE("Test saving entity in database") {
 // }
 
 TEST_CASE("Test integration with cache while saving") {
-  MockDatabase      db;
-  MockCache         cache;
-  FakeSqlExecutor   executor;
+  MockDatabase db;
+  MockCache cache;
+  FakeSqlExecutor executor;
   GenericRepository rep(db, &executor, cache);
 
   SECTION("Saved entity eepected updated cache") {
     User user;
-    user.id               = 10;
-    std::string tableKey  = "table_generation:users";
+    user.id = 10;
+    std::string tableKey = "table_generation:users";
     std::string entityKey = "entity_cache:users:10";
 
-    int before_table  = cache.getCalls(tableKey);
+    int before_table = cache.getCalls(tableKey);
     int before_entity = cache.getCalls(entityKey);
 
     rep.save(user);
@@ -165,12 +167,12 @@ TEST_CASE("Test integration with cache while saving") {
 
   SECTION("Saved message_status with custom key exepected updated cache") {
     MessageStatus status;
-    status.message_id     = 1;
-    status.receiver_id    = 2;
-    std::string tableKey  = "table_generation:messages_status";
+    status.message_id = 1;
+    status.receiver_id = 2;
+    std::string tableKey = "table_generation:messages_status";
     std::string entityKey = "entity_cache:messages_status:1";
 
-    int before_table  = cache.getCalls(tableKey);
+    int before_table = cache.getCalls(tableKey);
     int before_entity = cache.getCalls(entityKey);
 
     rep.save(status);
@@ -185,12 +187,12 @@ TEST_CASE("Test integration with cache while saving") {
 
   SECTION("Saved user_credentials with custom key exepected updated cache") {
     UserCredentials credentials;
-    credentials.user_id       = 3;
+    credentials.user_id = 3;
     credentials.hash_password = "123";
-    std::string tableKey      = "table_generation:credentials";
-    std::string entityKey     = "entity_cache:credentials:3";
+    std::string tableKey = "table_generation:credentials";
+    std::string entityKey = "entity_cache:credentials:3";
 
-    int before_table  = cache.getCalls(tableKey);
+    int before_table = cache.getCalls(tableKey);
     int before_entity = cache.getCalls(entityKey);
 
     rep.save(credentials);
@@ -205,12 +207,12 @@ TEST_CASE("Test integration with cache while saving") {
 
   SECTION("Saved chat_members with custom key exepected updated cache") {
     ChatMember member;
-    member.chat_id        = 3;
-    member.user_id        = 4;
-    std::string tableKey  = "table_generation:chat_members";
+    member.chat_id = 3;
+    member.user_id = 4;
+    std::string tableKey = "table_generation:chat_members";
     std::string entityKey = "entity_cache:chat_members:3, 4";
 
-    int before_table  = cache.getCalls(tableKey);
+    int before_table = cache.getCalls(tableKey);
     int before_entity = cache.getCalls(entityKey);
 
     rep.save(member);
@@ -225,8 +227,8 @@ TEST_CASE("Test integration with cache while saving") {
 
   SECTION("Clear cache expected clear all data") {
     ChatMember member;
-    member.chat_id        = 3;
-    member.user_id        = 4;
+    member.chat_id = 3;
+    member.user_id = 4;
     std::string entityKey = "entity_cache:chat_members:3, 4";
     rep.save(member);
     REQUIRE(cache.exists(entityKey));

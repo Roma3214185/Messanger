@@ -24,15 +24,16 @@ TEST_CASE("Test sqlitedatabase create tables") {
 
   // SECTION("Execute valid sql expected true and table exist") {
   //   bool result = db_.executeSql(database_,
-  //                                 "CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY
-  //                                 KEY)");
+  //                                 "CREATE TABLE IF NOT EXISTS test_table (id
+  //                                 INTEGER PRIMARY KEY)");
   //   REQUIRE(result);
   //   REQUIRE(db_.tableExists(database_, "test_table"));
   // }
 
   // SECTION("Delete existing table expect no table") {
   //   bool result = db_.executeSql(database_,
-  //                              "CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY KEY)");
+  //                              "CREATE TABLE IF NOT EXISTS test_table (id
+  //                              INTEGER PRIMARY KEY)");
   //   REQUIRE(result);
 
   //   db_.deleteTable(database_, "test_table");

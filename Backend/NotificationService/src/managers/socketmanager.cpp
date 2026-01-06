@@ -9,12 +9,13 @@ void SocketsManager::saveConnections(UserId user_id, SocketPtr socket) {
 }
 
 void SocketsManager::deleteConnections(
-    SocketPtr conn_to_delete) {  // todo: on close user send message (e.g "deinit")
+    SocketPtr
+        conn_to_delete) { // todo: on close user send message (e.g "deinit")
   std::lock_guard<std::mutex> lock(ws_mutex);
 
-  auto it = std::find_if(user_sockets_.begin(), user_sockets_.end(), [&](const auto& p) {
-    return p.second == conn_to_delete;
-  });
+  auto it =
+      std::find_if(user_sockets_.begin(), user_sockets_.end(),
+                   [&](const auto &p) { return p.second == conn_to_delete; });
   if (it != user_sockets_.end()) {
     user_sockets_.erase(it);
     LOG_INFO("Deleted connection");
@@ -29,7 +30,7 @@ bool SocketsManager::userOnline(UserId user_id) {
 
 SocketPtr SocketsManager::getUserSocket(UserId user_id) {
   std::lock_guard<std::mutex> lock(ws_mutex);
-  auto                        find = user_sockets_.find(user_id);
+  auto find = user_sockets_.find(user_id);
   if (find == user_sockets_.end()) {
     return nullptr;
   }

@@ -9,40 +9,40 @@
 #include "mocks/gateway/GatewayMocks.h"
 
 struct BenchmarkGatewayServerFixrute {
-  GatewayApp         app;
-  MockApiCache       cache;
-  MockClient         client;
+  GatewayApp app;
+  MockApiCache cache;
+  MockClient client;
   MockConfigProvider provider;
-  crow::request      req;
-  crow::response     res;
-  GatewayServer      server;
-  MockMetrics        metrics;
-  MockRabitMQClient  rabit_mq;
-  std::string        mock_client_ans  = "TEST FORWARD";
-  int                mock_client_code = 1356;
-  MockVerifier       verifier;
-  MockRateLimiter    rate_limiter;
-  MockThreadPool     pool;
-  int                user_id = 123;
+  crow::request req;
+  crow::response res;
+  GatewayServer server;
+  MockMetrics metrics;
+  MockRabitMQClient rabit_mq;
+  std::string mock_client_ans = "TEST FORWARD";
+  int mock_client_code = 1356;
+  MockVerifier verifier;
+  MockRateLimiter rate_limiter;
+  MockThreadPool pool;
+  int user_id = 123;
 
   BenchmarkGatewayServerFixrute()
       : provider(MockUtils::getMockPorts()),
         server(app, &client, &cache, &pool, &provider, &rabit_mq) {
     app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
-    app.get_middleware<CacheMiddleware>().cache_   = &cache;
+    app.get_middleware<CacheMiddleware>().cache_ = &cache;
     app.get_middleware<LoggingMiddleware>();
     app.get_middleware<RateLimitMiddleware>().rate_limiter_ = &rate_limiter;
-    app.get_middleware<MetricsMiddleware>().metrics_        = &metrics;
+    app.get_middleware<MetricsMiddleware>().metrics_ = &metrics;
 
     provider.mock_codes = MockUtils::getMockCodes();
-    client.wait_for     = std::chrono::milliseconds(150);
+    client.wait_for = std::chrono::milliseconds(150);
 
-    verifier.mock_ans    = user_id;
+    verifier.mock_ans = user_id;
     client.mock_response = std::make_pair(mock_client_code, mock_client_ans);
 
     server.registerRoutes();
     req.method = crow::HTTPMethod::Post;
-    req.url    = "/auth/register";
+    req.url = "/auth/register";
     app.validate();
   }
 
@@ -52,7 +52,7 @@ struct BenchmarkGatewayServerFixrute {
   }
 };
 
-static void BM_AsyncRequestResponceWithRabiqMQ(benchmark::State& state) {
+static void BM_AsyncRequestResponceWithRabiqMQ(benchmark::State &state) {
   BenchmarkGatewayServerFixrute fix;
 
   for (auto _ : state) {

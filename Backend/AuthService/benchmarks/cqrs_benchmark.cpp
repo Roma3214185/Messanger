@@ -111,7 +111,8 @@
 //   QCoreApplication app(argc, argv);
 
 //   //BENCHMARK(BM_FindUserByEmail_WithoutCQRS_Mock);
-//   //BENCHMARK(BM_FindUserByEmail_WithoutCQRS_SQLite); //a lot of memory needed
+//   //BENCHMARK(BM_FindUserByEmail_WithoutCQRS_SQLite); //a lot of memory
+//   needed
 
 //   //BENCHMARK(BM_SaveUser_WithoutCQRS_Mock);
 //   //BENCHMARK(BM_SaveUser_WithoutCQRS_SQlite);

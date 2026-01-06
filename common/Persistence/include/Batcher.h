@@ -7,28 +7,25 @@
 #include "Debug_profiling.h"
 #include "GenericRepository.h"
 
-template <typename T>
-class SaverBatcher {
- private:
-  std::vector<T>                  batcher_;
-  std::mutex                      mtx_;
-  std::condition_variable         cv_;
-  GenericRepository&              rep_;
-  ThreadPool                      pool_;
-  const int                       batch_size_;
+template <typename T> class SaverBatcher {
+private:
+  std::vector<T> batcher_;
+  std::mutex mtx_;
+  std::condition_variable cv_;
+  GenericRepository &rep_;
+  ThreadPool pool_;
+  const int batch_size_;
   const std::chrono::milliseconds flush_interval_;
 
   std::atomic<bool> running_{true};
-  std::thread       flush_thread_;
+  std::thread flush_thread_;
 
- public:
-  SaverBatcher(GenericRepository&        repository,
-               int                       batch_size       = 500,
-               std::chrono::milliseconds interval         = std::chrono::milliseconds(100),
-               int                       thread_pool_size = 4)
-      : rep_(repository),
-        pool_(thread_pool_size),
-        batch_size_(batch_size),
+public:
+  SaverBatcher(
+      GenericRepository &repository, int batch_size = 500,
+      std::chrono::milliseconds interval = std::chrono::milliseconds(100),
+      int thread_pool_size = 4)
+      : rep_(repository), pool_(thread_pool_size), batch_size_(batch_size),
         flush_interval_(interval) {
     flush_thread_ = std::thread([this]() { flushLoop(); });
   }
@@ -39,13 +36,14 @@ class SaverBatcher {
       running_.store(false);
     }
     cv_.notify_one();
-    if (flush_thread_.joinable()) flush_thread_.join();
+    if (flush_thread_.joinable())
+      flush_thread_.join();
 
     flush();
     LOG_INFO("~SaverBatcher()");
   }
 
-  void saveEntity(T& entity) {
+  void saveEntity(T &entity) {
     PROFILE_SCOPE("Batcher::SaveEntity");
     std::unique_lock<std::mutex> lock(mtx_);
     batcher_.emplace_back(std::move(entity));
@@ -55,7 +53,8 @@ class SaverBatcher {
     std::vector<T> local_batch;
     {
       std::unique_lock<std::mutex> lock(mtx_);
-      if (batcher_.empty()) return;
+      if (batcher_.empty())
+        return;
 
       local_batch = std::move(batcher_);
       batcher_.clear();
@@ -70,43 +69,41 @@ class SaverBatcher {
     });
   }
 
- private:
+private:
   void flushLoop() {
     std::unique_lock<std::mutex> lock(mtx_);
     while (running_.load()) {
-      cv_.wait_for(lock, flush_interval_, [this]() { return !running_.load(); });
+      cv_.wait_for(lock, flush_interval_,
+                   [this]() { return !running_.load(); });
       lock.unlock();
       flush();
       lock.lock();
     }
   }
 
-  SaverBatcher(const SaverBatcher&)            = delete;
-  SaverBatcher& operator=(const SaverBatcher&) = delete;
+  SaverBatcher(const SaverBatcher &) = delete;
+  SaverBatcher &operator=(const SaverBatcher &) = delete;
 };
 
-template <typename T>
-class DeleterBatcher {
- private:
-  std::vector<T>                  batcher_;
-  std::mutex                      mtx_;
-  std::condition_variable         cv_;
-  GenericRepository&              rep_;
-  ThreadPool                      pool_;
-  const int                       batch_size_;
+template <typename T> class DeleterBatcher {
+private:
+  std::vector<T> batcher_;
+  std::mutex mtx_;
+  std::condition_variable cv_;
+  GenericRepository &rep_;
+  ThreadPool pool_;
+  const int batch_size_;
   const std::chrono::milliseconds flush_interval_;
 
   std::atomic<bool> running_{true};
-  std::thread       flush_thread_;
+  std::thread flush_thread_;
 
- public:
-  DeleterBatcher(GenericRepository&        repository,
-                 int                       batch_size       = 500,
-                 std::chrono::milliseconds interval         = std::chrono::milliseconds(100),
-                 int                       thread_pool_size = 4)
-      : rep_(repository),
-        pool_(thread_pool_size),
-        batch_size_(batch_size),
+public:
+  DeleterBatcher(
+      GenericRepository &repository, int batch_size = 500,
+      std::chrono::milliseconds interval = std::chrono::milliseconds(100),
+      int thread_pool_size = 4)
+      : rep_(repository), pool_(thread_pool_size), batch_size_(batch_size),
         flush_interval_(interval) {
     flush_thread_ = std::thread([this]() { flushLoop(); });
   }
@@ -117,7 +114,8 @@ class DeleterBatcher {
       running_.store(false);
     }
     cv_.notify_one();
-    if (flush_thread_.joinable()) flush_thread_.join();
+    if (flush_thread_.joinable())
+      flush_thread_.join();
 
     flush();
     LOG_INFO("~DeleterBatcher()");
@@ -151,7 +149,8 @@ class DeleterBatcher {
     std::vector<T> local_batch;
     {
       std::unique_lock<std::mutex> lock(mtx_);
-      if (batcher_.empty()) return;
+      if (batcher_.empty())
+        return;
 
       local_batch = std::move(batcher_);
       batcher_.clear();
@@ -166,37 +165,37 @@ class DeleterBatcher {
     });
   }
 
- private:
+private:
   void flushLoop() {
     std::unique_lock<std::mutex> lock(mtx_);
     while (running_.load()) {
-      cv_.wait_for(lock, flush_interval_, [this]() { return !running_.load(); });
+      cv_.wait_for(lock, flush_interval_,
+                   [this]() { return !running_.load(); });
       lock.unlock();
       flush();
       lock.lock();
     }
   }
 
-  DeleterBatcher(const DeleterBatcher&)            = delete;
-  DeleterBatcher& operator=(const DeleterBatcher&) = delete;
+  DeleterBatcher(const DeleterBatcher &) = delete;
+  DeleterBatcher &operator=(const DeleterBatcher &) = delete;
 };
-template <typename T>
-class Batcher {
-  SaverBatcher<T>&   saverBatcher;
-  DeleterBatcher<T>& deleterBatcher;
+template <typename T> class Batcher {
+  SaverBatcher<T> &saverBatcher;
+  DeleterBatcher<T> &deleterBatcher;
 
- public:
-  Batcher(SaverBatcher<T>& saverBatcher, DeleterBatcher<T>& deleterBatcher)
+public:
+  Batcher(SaverBatcher<T> &saverBatcher, DeleterBatcher<T> &deleterBatcher)
       : saverBatcher(saverBatcher), deleterBatcher(deleterBatcher) {}
 
   ~Batcher() { LOG_INFO("~Batcher()"); }
 
-  void save(T& entity) {
+  void save(T &entity) {
     PROFILE_SCOPE("Batcher::save");
     saverBatcher.saveEntity(entity);
   }
 
-  void deleteEntity(T& entity) { deleterBatcher.deleteEntity(entity); }
+  void deleteEntity(T &entity) { deleterBatcher.deleteEntity(entity); }
 };
 
-#endif  // BACKEND_GENERICREPOSITORY_BATCHER_H_
+#endif // BACKEND_GENERICREPOSITORY_BATCHER_H_

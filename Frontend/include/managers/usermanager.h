@@ -15,15 +15,19 @@ struct User;
 
 class UserManager : public BaseManager {
   Q_OBJECT
- public:
+public:
   using BaseManager::BaseManager;
 
-  QFuture<QList<User>>         findUsersByTag(const QString& tag, const QString& current_token);
-  QFuture<std::optional<User>> getUser(long long user_id, const QString& current_token);
+  QFuture<QList<User>> findUsersByTag(const QString &tag,
+                                      const QString &current_token);
+  QFuture<std::optional<User>> getUser(long long user_id,
+                                       const QString &current_token);
 
- protected:
-  [[nodiscard]] QList<User>         onFindUsersByTag(const QByteArray& responce_data) const;
-  [[nodiscard]] std::optional<User> onGetUser(const QByteArray& responce_data) const;
+protected:
+  [[nodiscard]] QList<User>
+  onFindUsersByTag(const QByteArray &responce_data) const;
+  [[nodiscard]] std::optional<User>
+  onGetUser(const QByteArray &responce_data) const;
 };
 
-#endif  // USERMANAGER_H
+#endif // USERMANAGER_H

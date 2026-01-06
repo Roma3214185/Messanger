@@ -6,22 +6,23 @@
 #include "interfaces/IMetrics.h"
 
 struct MetricsTracker {
-  IMetrics*                             metrics_ = nullptr;
+  IMetrics *metrics_ = nullptr;
   std::chrono::steady_clock::time_point start;
 
-  void startTimer(IMetrics* metrics) {
+  void startTimer(IMetrics *metrics) {
     metrics_ = metrics;
-    start    = std::chrono::steady_clock::now();
+    start = std::chrono::steady_clock::now();
   }
 
   ~MetricsTracker() {
-    if (!metrics_) return;
+    if (!metrics_)
+      return;
     using namespace std::chrono;
 
-    auto end     = steady_clock::now();
+    auto end = steady_clock::now();
     auto latency = duration<double>(end - start).count();
     metrics_->saveRequestLatency(latency);
   }
 };
 
-#endif  // METRICSTRACKER_H
+#endif // METRICSTRACKER_H

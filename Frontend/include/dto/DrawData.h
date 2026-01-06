@@ -6,16 +6,16 @@
 #include <QString>
 
 struct MessageDrawData {
-  QString   username;
-  QString   text;
-  QString   avatar_path;
-  QString   timestamp;
+  QString username;
+  QString text;
+  QString avatar_path;
+  QString timestamp;
   long long sender_id;
   long long receiver_id;
-  bool      is_mine;
-  bool      is_sended;
-  bool      is_readed;
-  int       read_cnt;
+  bool is_mine;
+  bool is_sended;
+  bool is_readed;
+  int read_cnt;
 };
 
 struct UserDrawData {
@@ -25,11 +25,11 @@ struct UserDrawData {
 };
 
 struct ChatDrawData {
-  QString   title;
-  QString   last_message;
-  QString   avatar_path;
+  QString title;
+  QString last_message;
+  QString avatar_path;
   QDateTime time;
-  int       unread;
+  int unread;
 };
 
-#endif  // DRAWDATA_H
+#endif // DRAWDATA_H

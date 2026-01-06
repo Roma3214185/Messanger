@@ -12,30 +12,32 @@ struct User;
 
 class MessageUseCase : public QObject {
   Q_OBJECT
- public:
+public:
   using MessageModelPtr = std::shared_ptr<MessageModel>;
-  using Token           = QString;
+  using Token = QString;
 
-  MessageUseCase(DataManager*, std::unique_ptr<MessageManager> message_manager, TokenManager* token_manager);
-  [[nodiscard]] MessageModel*  getMessageModel(long long chat_id);
-  [[nodiscard]] QList<Message> getChatMessages(long long chat_id, int limit = 20);
-  void                         getChatMessagesAsync(long long chat_id);
-  void                         addMessageToChat(Message& msg);
-  void                         updateMessage(Message& msg);
-  void                         deleteMessage(const Message& msg);
-  void                         logout();
-  void                         clearAllMessages();
+  MessageUseCase(DataManager *, std::unique_ptr<MessageManager> message_manager,
+                 TokenManager *token_manager);
+  [[nodiscard]] MessageModel *getMessageModel(long long chat_id);
+  [[nodiscard]] QList<Message> getChatMessages(long long chat_id,
+                                               int limit = 20);
+  void getChatMessagesAsync(long long chat_id);
+  void addMessageToChat(Message &msg);
+  void updateMessage(Message &msg);
+  void deleteMessage(const Message &msg);
+  void logout();
+  void clearAllMessages();
 
- Q_SIGNALS:
-  void messageAdded(const Message&);
+Q_SIGNALS:
+  void messageAdded(const Message &);
 
- private:
-  void onMessageReceived(const QString& message_text);
+private:
+  void onMessageReceived(const QString &message_text);
   void setupConnections();
 
-  DataManager*    data_manager_;
+  DataManager *data_manager_;
   std::unique_ptr<MessageManager> message_manager_;
-  TokenManager*   token_manager_;
+  TokenManager *token_manager_;
 };
 
-#endif  // MESSAGEUSECASE_H
+#endif // MESSAGEUSECASE_H

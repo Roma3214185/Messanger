@@ -9,4 +9,4 @@ class NetworkManager : public IUserNetworkManager,
                        public IMessageNetworkManager,
                        public IChatNetworkManager {};
 
-#endif  // NETWORKMANAGER_H
+#endif // NETWORKMANAGER_H

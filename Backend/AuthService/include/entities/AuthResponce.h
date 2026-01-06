@@ -7,8 +7,8 @@
 #include "entities/User.h"
 
 struct AuthResponce {
-  std::string         token;
+  std::string token;
   std::optional<User> user;
 };
 
-#endif  // BACKEND_AUTHSERVICE_SRC_HEADERS_AUTHRESPONCE_H_
+#endif // BACKEND_AUTHSERVICE_SRC_HEADERS_AUTHRESPONCE_H_

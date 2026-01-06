@@ -12,11 +12,13 @@
 
 class MessageListView : public IMessageListView {
   Q_OBJECT
- public:
-  explicit MessageListView(QWidget* parent = nullptr) {
-    connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int value) {
-      if (value == 0) Q_EMIT scrollChanged(value);
-    });
+public:
+  explicit MessageListView(QWidget *parent = nullptr) {
+    connect(this->verticalScrollBar(), &QScrollBar::valueChanged, this,
+            [this](int value) {
+              if (value == 0)
+                Q_EMIT scrollChanged(value);
+            });
 
     QListView::setFocusPolicy(Qt::NoFocus);
     QListView::setSelectionMode(QAbstractItemView::NoSelection);
@@ -25,33 +27,43 @@ class MessageListView : public IMessageListView {
     setMouseTracking(false);
   }
 
-  void setMessageModel(MessageModel* model) override { QListView::setModel(model); }
-
-  void scrollToBottom() override {
-    QTimer::singleShot(
-        20, this, [this]() { setMessageScrollBarValue(getMaximumMessageScrollBar()); });
+  void setMessageModel(MessageModel *model) override {
+    QListView::setModel(model);
   }
 
-  int getMaximumMessageScrollBar() const override { return this->verticalScrollBar()->maximum(); }
+  void scrollToBottom() override {
+    QTimer::singleShot(20, this, [this]() {
+      setMessageScrollBarValue(getMaximumMessageScrollBar());
+    });
+  }
 
-  int getMessageScrollBarValue() const override { return this->verticalScrollBar()->value(); }
+  int getMaximumMessageScrollBar() const override {
+    return this->verticalScrollBar()->maximum();
+  }
 
-  void setMessageScrollBarValue(int value) override { this->verticalScrollBar()->setValue(value); }
+  int getMessageScrollBarValue() const override {
+    return this->verticalScrollBar()->value();
+  }
 
-  void preserveFocusWhile(MessageModel*         message_model,
+  void setMessageScrollBarValue(int value) override {
+    this->verticalScrollBar()->setValue(value);
+  }
+
+  void preserveFocusWhile(MessageModel *message_model,
                           std::function<void()> update_model) override {
     const QModelIndex anchor_index = indexAt(QPoint(0, 0));
-    const int anchor_id = message_model->data(anchor_index, MessageModel::MessageIdRole).toInt();
-    const int anchor_y  = visualRect(anchor_index).top();
+    const int anchor_id =
+        message_model->data(anchor_index, MessageModel::MessageIdRole).toInt();
+    const int anchor_y = visualRect(anchor_index).top();
 
     update_model();
 
     const QModelIndex new_anchor_index = message_model->indexFromId(anchor_id);
-    const int         new_anchor_y     = visualRect(new_anchor_index).top();
+    const int new_anchor_y = visualRect(new_anchor_index).top();
 
     const int delta = new_anchor_y - anchor_y;
     verticalScrollBar()->setValue(verticalScrollBar()->value() + delta);
   }
 };
 
-#endif  // MESSAGELISTVIEW_H
+#endif // MESSAGELISTVIEW_H

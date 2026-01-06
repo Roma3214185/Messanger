@@ -9,14 +9,14 @@
 #include "models/messagemodel.h"
 
 class IMainWindow {
- public:
+public:
   virtual void setChatWindow(std::shared_ptr<ChatBase> chat) = 0;
-  virtual void setChatModel(ChatModel* model)                = 0;
-  virtual void setUserModel(UserModel* user_model)           = 0;
-  virtual void clearFindUserEdit()                           = 0;
-  virtual void showError(const QString& error)               = 0;
-  virtual void setMessageListView(QListView* list_view)      = 0;
-  virtual void setCurrentChatIndex(QModelIndex idx)          = 0;
+  virtual void setChatModel(ChatModel *model) = 0;
+  virtual void setUserModel(UserModel *user_model) = 0;
+  virtual void clearFindUserEdit() = 0;
+  virtual void showError(const QString &error) = 0;
+  virtual void setMessageListView(QListView *list_view) = 0;
+  virtual void setCurrentChatIndex(QModelIndex idx) = 0;
 };
 
-#endif  // IMAINWINDOW_H
+#endif // IMAINWINDOW_H

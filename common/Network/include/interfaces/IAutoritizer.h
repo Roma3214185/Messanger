@@ -4,9 +4,9 @@
 #include <optional>
 
 class IAutoritizer {
- public:
-  virtual ~IAutoritizer()                                               = default;
-  virtual std::optional<long long> autoritize(const std::string& token) = 0;
+public:
+  virtual ~IAutoritizer() = default;
+  virtual std::optional<long long> autoritize(const std::string &token) = 0;
 };
 
-#endif  // IAUTORITIZER_H
+#endif // IAUTORITIZER_H

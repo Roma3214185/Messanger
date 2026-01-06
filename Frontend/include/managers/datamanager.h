@@ -9,50 +9,51 @@
 
 class MessageModel;
 
-using ChatId          = long long;
-using ChatPtr         = std::shared_ptr<ChatBase>;
-using MessageId       = long long;
-using UserId          = long long;
+using ChatId = long long;
+using ChatPtr = std::shared_ptr<ChatBase>;
+using MessageId = long long;
+using UserId = long long;
 using MessageModelPtr = std::shared_ptr<MessageModel>;
-using ChatMap         = std::unordered_map<ChatId, ChatPtr>;
+using ChatMap = std::unordered_map<ChatId, ChatPtr>;
 using MessageModelMap = std::unordered_map<MessageId, MessageModelPtr>;
-using UserMap         = std::unordered_map<UserId, User>;
-using OptionalUser    = std::optional<User>;
-using ListMessage     = std::vector<Message>;
+using UserMap = std::unordered_map<UserId, User>;
+using OptionalUser = std::optional<User>;
+using ListMessage = std::vector<Message>;
 
 class DataManager : public QObject {
   Q_OBJECT
- public:
-  [[nodiscard]] ChatPtr         getPrivateChatWithUser(UserId);
+public:
+  [[nodiscard]] ChatPtr getPrivateChatWithUser(UserId);
   [[nodiscard]] MessageModelPtr getMessageModel(ChatId);
-  [[nodiscard]] ChatPtr         getChat(ChatId);
-  [[nodiscard]] int             getNumberOfExistingChats() const noexcept;
-  void clearAllChats();  // todo: think about clear chats authoatically clear message-models
+  [[nodiscard]] ChatPtr getChat(ChatId);
+  [[nodiscard]] int getNumberOfExistingChats() const noexcept;
+  void clearAllChats(); // todo: think about clear chats authoatically clear
+                        // message-models
   void clearAllUsers();
   void clearAllMessageModels();
   void addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
-  void saveUser(const User&);
+  void saveUser(const User &);
   void clearAll();
-  [[nodiscard]] OptionalUser           getUser(UserId);
+  [[nodiscard]] OptionalUser getUser(UserId);
   [[nodiscard]] std::optional<Message> getMessageById(const long long id);
-  void                                 saveMessage(const Message& message);
-  [[nodiscard]] int                    getNumberOfMessageModels() const noexcept {
+  void saveMessage(const Message &message);
+  [[nodiscard]] int getNumberOfMessageModels() const noexcept {
     return message_models_by_chat_id_.size();
   }
-  void deleteMessage(const Message& msg);
+  void deleteMessage(const Message &msg);
   void readMessage(long long message_id, long long readed_by);
 
- Q_SIGNALS:
-  void chatAdded(const ChatPtr& chat);
-  void messageAdded(const Message& message);
-  void messageDeleted(const Message& message);
+Q_SIGNALS:
+  void chatAdded(const ChatPtr &chat);
+  void messageAdded(const Message &message);
+  void messageDeleted(const Message &message);
 
- protected:
+protected:
   [[nodiscard]] int getNumberOfExistingUsers() const noexcept;
 
-  ChatMap         chats_by_id_;
-  UserMap         users_by_id_;
-  ListMessage     messages_;
+  ChatMap chats_by_id_;
+  UserMap users_by_id_;
+  ListMessage messages_;
   MessageModelMap message_models_by_chat_id_;
 
   std::mutex messages_mutex_;
@@ -60,4 +61,4 @@ class DataManager : public QObject {
   std::mutex user_mutex_;
 };
 
-#endif  // DATAMANAGER_H
+#endif // DATAMANAGER_H

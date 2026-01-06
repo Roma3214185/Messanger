@@ -16,19 +16,20 @@ bool isControlOrSpace(QChar ch) {
   return ch.isSpace() || (code < 0x20) || (code == 0x7F);
 }
 
-int utf8Length(const QString& str) {
+int utf8Length(const QString &str) {
   int len = 0;
-  for (const QChar& c : str) {
-    if ((c.unicode() & 0xC0) != 0x80) ++len;
+  for (const QChar &c : str) {
+    if ((c.unicode() & 0xC0) != 0x80)
+      ++len;
   }
   return len;
 }
 
-}  // namespace
+} // namespace
 
 namespace DataInputService {
 
-inline void loadDomains(const Config& cfg) {
+inline void loadDomains(const Config &cfg) {
   if (!cfg.kDomains.isEmpty()) {
     return;
   }
@@ -38,25 +39,28 @@ inline void loadDomains(const Config& cfg) {
     QTextStream in(&file);
     while (!in.atEnd()) {
       QString line = in.readLine().trimmed();
-      if (!line.isEmpty()) cfg.kDomains.append(line);
+      if (!line.isEmpty())
+        cfg.kDomains.append(line);
     }
   } else {
     qWarning() << "Cannot open domains file:" << cfg.kConfigDomainsPath;
   }
 }
 
-static bool isValidDomain(const QString& domain, const Config& cfg) {
+static bool isValidDomain(const QString &domain, const Config &cfg) {
   loadDomains(cfg);
   const QString normalized = domain.toLower();
   return cfg.kDomains.contains(normalized);
 }
 
-ValidationResult nameValidDetailed(const QString& name, const Config& cfg) {
-  if (name.isEmpty()) return {.valid = false, .message = "Name is empty"};
+ValidationResult nameValidDetailed(const QString &name, const Config &cfg) {
+  if (name.isEmpty())
+    return {.valid = false, .message = "Name is empty"};
 
-  // Count only letters and digits for length checks (ignore spaces, hyphens, apostrophes)
+  // Count only letters and digits for length checks (ignore spaces, hyphens,
+  // apostrophes)
   int meaningful_len = 0;
-  for (const QChar& c : name) {
+  for (const QChar &c : name) {
     if (c.category() == QChar::Other_Control)
       return {.valid = false, .message = "Name contains invalid character"};
 
@@ -71,7 +75,7 @@ ValidationResult nameValidDetailed(const QString& name, const Config& cfg) {
   if (std::cmp_greater(meaningful_len, cfg.kMaxLenOfName))
     return {.valid = false, .message = "Name too long"};
 
-  for (const QChar& c : name) {
+  for (const QChar &c : name) {
     if (c.category() == QChar::Other_Control)
       return {.valid = false, .message = "Name contains invalid character"};
 
@@ -91,22 +95,26 @@ ValidationResult nameValidDetailed(const QString& name, const Config& cfg) {
   return {.valid = true, .message = ""};
 }
 
-ValidationResult emailValidDetailed(const QString& email, const Config& cfg) {
-  if (email.isEmpty()) return {.valid = false, .message = "Email is empty"};
+ValidationResult emailValidDetailed(const QString &email, const Config &cfg) {
+  if (email.isEmpty())
+    return {.valid = false, .message = "Email is empty"};
 
   const int at_pos = email.indexOf('@');
-  if (at_pos == -1) return {.valid = false, .message = "Email does not contain @"};
+  if (at_pos == -1)
+    return {.valid = false, .message = "Email does not contain @"};
 
-  const QString local  = email.left(at_pos);
+  const QString local = email.left(at_pos);
   const QString domain = email.mid(at_pos + 1);
 
-  if (local.isEmpty()) return {false, "Local part is empty"};
+  if (local.isEmpty())
+    return {false, "Local part is empty"};
   if (std::cmp_less(local.size(), cfg.kMinEmailLocalPartLength))
     return {.valid = false, .message = "Local part too short"};
   if (std::cmp_greater(local.size(), cfg.kMaxEmailLocalPartLength))
     return {.valid = false, .message = "Local part too long"};
 
-  const bool is_quoted = (local.size() >= 2 && local.front() == '"' && local.back() == '"');
+  const bool is_quoted =
+      (local.size() >= 2 && local.front() == '"' && local.back() == '"');
   if (!is_quoted) {
     if (local.startsWith('.') || local.endsWith('.'))
       return {false, "Local part starts/ends with dot"};
@@ -114,7 +122,8 @@ ValidationResult emailValidDetailed(const QString& email, const Config& cfg) {
     for (int i = 0; i < local.size(); ++i) {
       const QChar c = local[i];
       if (c.unicode() < 0x20)
-        return {.valid = false, .message = "Local part contains control characters"};
+        return {.valid = false,
+                .message = "Local part contains control characters"};
 
       if (c == '.') {
         if (i + 1 < local.size() && local[i + 1] == '.')
@@ -122,16 +131,21 @@ ValidationResult emailValidDetailed(const QString& email, const Config& cfg) {
         continue;
       }
 
-      static const QString kAllowedSymbols = QStringLiteral("!#$%&'*+-/=?^_`{|}~");
-      if (c.isLetterOrNumber() || kAllowedSymbols.contains(c) || c == '+') continue;
+      static const QString kAllowedSymbols =
+          QStringLiteral("!#$%&'*+-/=?^_`{|}~");
+      if (c.isLetterOrNumber() || kAllowedSymbols.contains(c) || c == '+')
+        continue;
 
-      return {.valid = false, .message = "Local part contains invalid character"};
+      return {.valid = false,
+              .message = "Local part contains invalid character"};
     }
   }
 
-  if (domain.isEmpty()) return {.valid = false, .message = "Domain is empty"};
+  if (domain.isEmpty())
+    return {.valid = false, .message = "Domain is empty"};
 
-  if (!isValidDomain(domain, cfg)) return {.valid = false, .message = "Invalid domain"};
+  if (!isValidDomain(domain, cfg))
+    return {.valid = false, .message = "Invalid domain"};
 
   // if (domain.startsWith('[') && domain.endsWith(']')) {
   //   const QString inside = domain.mid(1, domain.size() - 2);
@@ -158,28 +172,35 @@ ValidationResult emailValidDetailed(const QString& email, const Config& cfg) {
   return {.valid = true, .message = "Email is valid"};
 }
 
-ValidationResult passwordValidDetailed(const QString& password, const Config& cfg) {
-  if (password.isEmpty()) return {.valid = false, .message = "Password is empty"};
+ValidationResult passwordValidDetailed(const QString &password,
+                                       const Config &cfg) {
+  if (password.isEmpty())
+    return {.valid = false, .message = "Password is empty"};
   if (password.size() < cfg.kMinPasswordLength)
     return {.valid = false, .message = "Password is too short"};
   if (password.size() > cfg.kMaxPasswordLength)
     return {.valid = false, .message = "Password is too long"};
 
   static const QString allowedSymbols = QStringLiteral("!$_+@#%&*-");
-  for (const QChar& c : password) {
-    if (c.unicode() >= 0x80) continue;
+  for (const QChar &c : password) {
+    if (c.unicode() >= 0x80)
+      continue;
     if (isControlOrSpace(c))
-      return {.valid = false, .message = "Password contains space or control character"};
-    if (c.isLetterOrNumber()) continue;
-    if (allowedSymbols.contains(c)) continue;
+      return {.valid = false,
+              .message = "Password contains space or control character"};
+    if (c.isLetterOrNumber())
+      continue;
+    if (allowedSymbols.contains(c))
+      continue;
 
     return {.valid = false, .message = "Password contains invalid character"};
   }
   return {.valid = true, .message = "Password is valid"};
 }
 
-ValidationResult tagValidDetailed(const QString& tag, const Config& cfg) {
-  if (tag.isEmpty()) return {.valid = false, .message = "Tag is empty"};
+ValidationResult tagValidDetailed(const QString &tag, const Config &cfg) {
+  if (tag.isEmpty())
+    return {.valid = false, .message = "Tag is empty"};
   if (std::cmp_less(tag.size(), cfg.kMinTagLength))
     return {.valid = false, .message = "Tag too short"};
   if (std::cmp_greater(tag.size(), cfg.kMaxTagLength))
@@ -187,10 +208,11 @@ ValidationResult tagValidDetailed(const QString& tag, const Config& cfg) {
 
   const QChar first = tag.front();
   if (first.unicode() < 0x80 && !first.isLetterOrNumber())
-    return {.valid = false, .message = "First character must be letter or number"};
+    return {.valid = false,
+            .message = "First character must be letter or number"};
 
   bool prevWasUnderscore = false;
-  for (const QChar& c : tag) {
+  for (const QChar &c : tag) {
     if (c.unicode() >= 0x80) {
       prevWasUnderscore = false;
       continue;
@@ -201,7 +223,8 @@ ValidationResult tagValidDetailed(const QString& tag, const Config& cfg) {
     }
     if (c == '_') {
       if (prevWasUnderscore)
-        return {.valid = false, .message = "Tag contains consecutive underscores"};
+        return {.valid = false,
+                .message = "Tag contains consecutive underscores"};
       prevWasUnderscore = true;
       continue;
     }
@@ -215,30 +238,38 @@ ValidationResult tagValidDetailed(const QString& tag, const Config& cfg) {
   return {.valid = true, .message = "Tag is valid"};
 }
 
-ValidationResult validateRegistrationUserInput(const SignUpRequest& input, const Config& cfg) {
+ValidationResult validateRegistrationUserInput(const SignUpRequest &input,
+                                               const Config &cfg) {
   ValidationResult r = nameValidDetailed(input.name, cfg);
-  if (!r.valid) return r;
+  if (!r.valid)
+    return r;
 
   r = emailValidDetailed(input.email, cfg);
-  if (!r.valid) return r;
+  if (!r.valid)
+    return r;
 
   r = passwordValidDetailed(input.password, cfg);
-  if (!r.valid) return r;
+  if (!r.valid)
+    return r;
 
   r = tagValidDetailed(input.tag, cfg);
-  if (!r.valid) return r;
+  if (!r.valid)
+    return r;
 
   return {.valid = true, .message = "All fields valid"};
 }
 
-ValidationResult validateLoginUserInput(const LogInRequest& input, const Config& cfg) {
+ValidationResult validateLoginUserInput(const LogInRequest &input,
+                                        const Config &cfg) {
   ValidationResult r = emailValidDetailed(input.email, cfg);
-  if (!r.valid) return r;
+  if (!r.valid)
+    return r;
 
   r = passwordValidDetailed(input.password, cfg);
-  if (!r.valid) return r;
+  if (!r.valid)
+    return r;
 
   return {.valid = true, .message = "All fields valid"};
 }
 
-}  // namespace DataInputService
+} // namespace DataInputService

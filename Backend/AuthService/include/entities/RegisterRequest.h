@@ -15,4 +15,4 @@ struct LoginRequest {
   std::string password;
 };
 
-#endif  // BACKEND_AUTHSERVICE_SRC_HEADERS_REGISTERREQUEST_H_
+#endif // BACKEND_AUTHSERVICE_SRC_HEADERS_REGISTERREQUEST_H_

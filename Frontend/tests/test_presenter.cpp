@@ -70,7 +70,8 @@
 //     REQUIRE(fix.cache.get_calls == before_calls_cash_get + 1);
 //   }
 
-//   SECTION("Presenter receive responce but currend_user_id == nullopt expected throw exception") {
+//   SECTION("Presenter receive responce but currend_user_id == nullopt expected
+//   throw exception") {
 //     QJsonObject json;
 //     json["type"] = "opened";
 
@@ -81,8 +82,8 @@
 //     int before_calls = fix.window.call_setChatWindow;
 //     int chat_id = 4;
 //     int user_id = 5;
-//     auto private_chat = ChatFactory::createPrivateChat(chat_id, "Roma", "roma228", user_id,
-//     "offline"); fix.model.addChat(private_chat);
+//     auto private_chat = ChatFactory::createPrivateChat(chat_id, "Roma",
+//     "roma228", user_id, "offline"); fix.model.addChat(private_chat);
 
 //     fix.presenter.onChatClicked(chat_id);
 
@@ -116,9 +117,8 @@
 //   int chat_id = 2;
 //   int user_id = 4;
 //   fix.presenter.setCurrentChatId(chat_id);
-//   auto private_chat = ChatFactory::createPrivateChat(chat_id, "r", "3", user_id, "o");
-//   fix.data_manager.addChat(private_chat);
-//   User mock_user;
+//   auto private_chat = ChatFactory::createPrivateChat(chat_id, "r", "3",
+//   user_id, "o"); fix.data_manager.addChat(private_chat); User mock_user;
 //   mock_user.id = user_id;
 //   mock_user.email = fix.email;
 //   mock_user.tag = fix.tag;
@@ -127,7 +127,8 @@
 
 //   fix.presenter.setMockCurrentUser(mock_user);
 
-//   SECTION("Send message with valid chat_id expected socket gets message to send") {
+//   SECTION("Send message with valid chat_id expected socket gets message to
+//   send") {
 //     QString message_to_send = "Hi, i'm from test";
 //     int before = fix.fake_socket.sendTextMessage_calls;
 //     fix.presenter.sendButtonClicked(message_to_send);
@@ -145,8 +146,8 @@
 
 //   User user;
 //   user.id = 8;
-//   auto private_chat4 = ChatFactory::createPrivateChat(chat_id, "r", "3", 8, "2");
-//   auto message_model = std::make_shared<MessageModel>();
+//   auto private_chat4 = ChatFactory::createPrivateChat(chat_id, "r", "3", 8,
+//   "2"); auto message_model = std::make_shared<MessageModel>();
 //   fix.data_manager.addChat(private_chat4, message_model);
 //   fix.data_manager.saveUser(user);
 //   Message first_message;
@@ -157,7 +158,8 @@
 //   first_message.timestamp = QDateTime::currentDateTime();
 //   message_model->saveMessage(first_message);
 
-//   SECTION("Presenter receive new messages expected adding this message to model") {
+//   SECTION("Presenter receive new messages expected adding this message to
+//   model") {
 //     Message new_message;
 //     new_message.id = 4;
 //     new_message.text = "Roma";
@@ -171,7 +173,8 @@
 //     REQUIRE(message_model->rowCount() == before + 1);
 //   }
 
-//   SECTION("Presenter receive new messages expected this message will be last message") {
+//   SECTION("Presenter receive new messages expected this message will be last
+//   message") {
 //     int chat_id = 2;
 //     Message new_message;
 //     new_message.id = 4;
@@ -194,8 +197,8 @@
 //     REQUIRE(returned_message->senderId == new_message.senderId);
 //   }
 
-//   SECTION("Test presenter receive new messages before the oldest expected this message will be
-//   oldest") {
+//   SECTION("Test presenter receive new messages before the oldest expected
+//   this message will be oldest") {
 //     Message new_message;
 //     new_message.id = 4;
 //     new_message.text = "Roma";
@@ -217,8 +220,8 @@
 //     REQUIRE(returned_message->senderId == new_message.senderId);
 //   }
 
-//   SECTION("Presenter receive responce socket connection opened expected send initial socket
-//   message") {
+//   SECTION("Presenter receive responce socket connection opened expected send
+//   initial socket message") {
 //     QJsonObject json;
 //     json["type"] = "opened";
 //     int before_calls = fix.fake_socket.sendTextMessage_calls;
@@ -232,8 +235,8 @@
 // TEST_CASE("Test sign in/up") {
 //   TestPresenterFixrute fix;
 
-//   SECTION("Presenter handle sig in expected network manager get to execute POST method with valid
-//   params") {
+//   SECTION("Presenter handle sig in expected network manager get to execute
+//   POST method with valid params") {
 //     LogInRequest login {
 //       .email = fix.email,
 //       .password = fix.password
@@ -244,8 +247,9 @@
 //     fix.presenter.signIn(login);
 
 //     REQUIRE(fix.netManager.post_counter == before_cnt_post + 1);
-//     CHECK(fix.netManager.last_request.url().toString().toStdString() == expected_url);
-//     QJsonDocument doc = QJsonDocument::fromJson(fix.netManager.last_data);
+//     CHECK(fix.netManager.last_request.url().toString().toStdString() ==
+//     expected_url); QJsonDocument doc =
+//     QJsonDocument::fromJson(fix.netManager.last_data);
 //     REQUIRE(doc.isObject());
 
 //     QJsonObject body = doc.object();
@@ -253,8 +257,8 @@
 //     CHECK(body["password"].toString() == login.password);
 //   }
 
-//   SECTION("Presenter handle sig in expected network manager get to execute POST method with valid
-//   params") {
+//   SECTION("Presenter handle sig in expected network manager get to execute
+//   POST method with valid params") {
 //     SignUpRequest register_request {
 //         .email = fix.email,
 //         .password = fix.password,
@@ -267,8 +271,9 @@
 //     fix.presenter.signUp(register_request);
 
 //     REQUIRE(fix.netManager.post_counter == before_cnt_post + 1);
-//     CHECK(fix.netManager.last_request.url().toString().toStdString() == expected_url);
-//     QJsonDocument doc = QJsonDocument::fromJson(fix.netManager.last_data);
+//     CHECK(fix.netManager.last_request.url().toString().toStdString() ==
+//     expected_url); QJsonDocument doc =
+//     QJsonDocument::fromJson(fix.netManager.last_data);
 //     REQUIRE(doc.isObject());
 
 //     QJsonObject body = doc.object();
@@ -286,10 +291,11 @@
 //   fix.presenter.setMockOpenedChatId(chat_id);
 //   fix.netManager.shouldFail = true;
 //   auto reply_with_error = new MockReply();
-//   reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, "connection refused");
-//   fix.netManager.setReply(reply_with_error);
+//   reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError,
+//   "connection refused"); fix.netManager.setReply(reply_with_error);
 
-//   SECTION("On scroll received non-zero value expected no call getChatMessages") {
+//   SECTION("On scroll received non-zero value expected no call
+//   getChatMessages") {
 //     int value = 1;
 //     int before_call_net_manager_ger = fix.netManager.get_counter;
 
@@ -298,7 +304,8 @@
 //     REQUIRE(fix.netManager.get_counter == before_call_net_manager_ger);
 //   }
 
-//   SECTION("On scroll received zero value but chat not opened expected no call getChatMessages") {
+//   SECTION("On scroll received zero value but chat not opened expected no call
+//   getChatMessages") {
 //     fix.presenter.onLogOutButtonClicked();
 //     int before_call_net_manager_ger = fix.netManager.get_counter;
 

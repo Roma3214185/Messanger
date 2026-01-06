@@ -38,7 +38,8 @@
 //     query->where(MessageTable::Id, 10);
 //     query->where(MessageTable::ChatId, 3);
 //     query->where(MessageTable::SenderId, 5);
-//     QString valid_sql = "SELECT * FROM messages WHERE id = ? AND chat_id = ? AND sender_id = ?";
+//     QString valid_sql = "SELECT * FROM messages WHERE id = ? AND chat_id = ?
+//     AND sender_id = ?";
 
 //     query->execute();
 //     REQUIRE(executor.lastSql == valid_sql);
@@ -50,7 +51,8 @@
 //     query->where(MessageTable::ChatId, 3);
 //     query->orderBy(MessageTable::Timestamp);
 //     QString valid_sql =
-//         "SELECT * FROM messages WHERE id = ? AND chat_id = ? ORDER BY timestamp ASC";
+//         "SELECT * FROM messages WHERE id = ? AND chat_id = ? ORDER BY
+//         timestamp ASC";
 
 //     query->execute();
 //     REQUIRE(executor.lastSql == valid_sql);
@@ -62,7 +64,8 @@
 //     query->where(MessageTable::ChatId, Operator::Less, 3);
 //     query->orderBy(MessageTable::Timestamp);
 //     QString valid_sql =
-//         "SELECT * FROM messages WHERE id = ? AND chat_id < ? ORDER BY timestamp ASC";
+//         "SELECT * FROM messages WHERE id = ? AND chat_id < ? ORDER BY
+//         timestamp ASC";
 
 //     query->execute();
 //     REQUIRE(executor.lastSql == valid_sql);
@@ -117,8 +120,10 @@
 // struct MockSelectedQuery : public SelectQuery<T> {
 //   using SelectQuery<T>::SelectQuery;
 
-//   // std::string createCacheKey(QString sql, int generation_hash, int params_hash) const {
-//   //   return SelectQuery<T>::createCacheKey(sql, generation_hash, params_hash);
+//   // std::string createCacheKey(QString sql, int generation_hash, int
+//   params_hash) const {
+//   //   return SelectQuery<T>::createCacheKey(sql, generation_hash,
+//   params_hash);
 //   // }
 // };
 
@@ -134,7 +139,8 @@
 //     std::string expected_key = "query_cache:SELECT * FROM users WHERE id =
 //     3:gen=12002:params=1222";
 
-//     std::string created_key = selected_query.createCacheKey(sql, generation_hash, params_hash);
+//     std::string created_key = selected_query.createCacheKey(sql,
+//     generation_hash, params_hash);
 
 //     REQUIRE(created_key == expected_key);
 //   }

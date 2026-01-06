@@ -8,7 +8,7 @@
 #include "interfaces/IEntityBuilder.h"
 
 QSqlDatabase getBenchmarkDb() {
-  static bool         initialized = false;
+  static bool initialized = false;
   static QSqlDatabase db;
 
   if (!initialized) {
@@ -45,9 +45,9 @@ QSqlDatabase getBenchmarkDb() {
   return db;
 }
 
-static void BM_BuildEntity_Dynamic(benchmark::State& state) {
+static void BM_BuildEntity_Dynamic(benchmark::State &state) {
   QSqlDatabase db = getBenchmarkDb();
-  QSqlQuery    query(db);
+  QSqlQuery query(db);
   query.exec("SELECT id, chat_id, sender_id, text, timestamp FROM messages;");
   auto builder = makeBuilder<Message>(BuilderType::Meta);
 
@@ -61,9 +61,9 @@ static void BM_BuildEntity_Dynamic(benchmark::State& state) {
   }
 }
 
-static void BM_BuildEntity_Static(benchmark::State& state) {
+static void BM_BuildEntity_Static(benchmark::State &state) {
   QSqlDatabase db = getBenchmarkDb();
-  QSqlQuery    query(db);
+  QSqlQuery query(db);
   query.exec("SELECT id, chat_id, sender_id, text, timestamp FROM messages;");
 
   for (auto _ : state) {
@@ -71,10 +71,10 @@ static void BM_BuildEntity_Static(benchmark::State& state) {
     std::vector<Message> results;
     while (query.next()) {
       Message entity;
-      entity.id        = query.value(0).toInt();
-      entity.chat_id   = query.value(1).toInt();
+      entity.id = query.value(0).toInt();
+      entity.chat_id = query.value(1).toInt();
       entity.sender_id = query.value(2).toInt();
-      entity.text      = query.value(3).toString().toStdString();
+      entity.text = query.value(3).toString().toStdString();
       entity.timestamp = query.value(4).toInt();
       results.push_back(entity);
     }
@@ -82,9 +82,9 @@ static void BM_BuildEntity_Static(benchmark::State& state) {
   }
 }
 
-static void BM_BuildEntity_Fast(benchmark::State& state) {
+static void BM_BuildEntity_Fast(benchmark::State &state) {
   QSqlDatabase db = getBenchmarkDb();
-  QSqlQuery    query(db);
+  QSqlQuery query(db);
   query.exec("SELECT id, chat_id, sender_id, text, timestamp FROM messages;");
   auto builder = makeBuilder<Message>(BuilderType::Fast);
 
@@ -98,9 +98,9 @@ static void BM_BuildEntity_Fast(benchmark::State& state) {
   }
 }
 
-static void BM_GenericBuildEntity_Fast(benchmark::State& state) {
+static void BM_GenericBuildEntity_Fast(benchmark::State &state) {
   QSqlDatabase db = getBenchmarkDb();
-  QSqlQuery    query(db);
+  QSqlQuery query(db);
   query.exec("SELECT id, chat_id, sender_id, text, timestamp FROM messages;");
   auto builder = makeBuilder<Message>(BuilderType::Generic);
 

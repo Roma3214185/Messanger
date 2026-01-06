@@ -58,14 +58,15 @@
 // TEST_CASE("Test createPrivateChat") {
 //   TestController::TestFixture fix;
 
-//   SECTION("Request without body expected return userError status code and info about issue") {
+//   SECTION("Request without body expected return userError status code and
+//   info about issue") {
 //     fix.controller.createPrivateChat(fix.req, fix.res);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
 //     REQUIRE(fix.res.body == "Missing user_id value");
 //   }
 
-//   SECTION("Request body don't have user_id fiels expected return userError status code and info
-//   about issue") {
+//   SECTION("Request body don't have user_id fiels expected return userError
+//   status code and info about issue") {
 //     fix.req.body = R"({"users_id": 1})";
 //     fix.controller.createPrivateChat(fix.req, fix.res);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
@@ -75,18 +76,21 @@
 //   int other_user_id = 37;
 //   fix.req.body = R"({"user_id": 37})";
 
-//   SECTION("Request body have user_id fiels expected call to network_manager with valid id") {
+//   SECTION("Request body have user_id fiels expected call to network_manager
+//   with valid id") {
 //     fix.controller.createPrivateChat(fix.req, fix.res);
 //     REQUIRE(fix.network_manager.last_user_id == other_user_id);
 //   }
 
-//   SECTION("Network_manager not found user expected userError and output issue") {
+//   SECTION("Network_manager not found user expected userError and output
+//   issue") {
 //     fix.controller.createPrivateChat(fix.req, fix.res);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
 //     REQUIRE(fix.res.body == fix.provider.issueMessages().userNotFound);
 //   }
 
-//   SECTION("Network_manager not found user expected userError and output issue") {
+//   SECTION("Network_manager not found user expected userError and output
+//   issue") {
 //     fix.controller.createPrivateChat(fix.req, fix.res);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
 //     REQUIRE(fix.res.body == fix.provider.issueMessages().userNotFound);
@@ -107,7 +111,8 @@
 //     REQUIRE(fix.manager.last_createPrivateChat.second == other_user_id);
 //   }
 
-//   SECTION("Chat not created expected serverError status code and problem issue") {
+//   SECTION("Chat not created expected serverError status code and problem
+//   issue") {
 //     int before = fix.manager.call_createPrivateChat;
 
 //     fix.controller.createPrivateChat(fix.req, fix.res);
@@ -120,7 +125,8 @@
 //   int chat_id = 12;
 //   fix.manager.mock_chat_id = chat_id;
 
-//   SECTION("Chat created expected success status code and valid json outpit") {
+//   SECTION("Chat created expected success status code and valid json outpit")
+//   {
 //     int before = fix.manager.call_createPrivateChat;
 
 //     fix.controller.createPrivateChat(fix.req, fix.res);
@@ -202,7 +208,8 @@
 //     REQUIRE(fix.res.body == fix.provider.issueMessages().invalidToken);
 //   }
 
-//   SECTION("Chat not found expected statusCode userError and info about issue") {
+//   SECTION("Chat not found expected statusCode userError and info about
+//   issue") {
 //     fix.controller.getChat(fix.req, fix.res, chat_id);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
 //     REQUIRE(fix.res.body == "Chat not found");
@@ -226,7 +233,8 @@
 //   int other_member_id = 123;
 //   fix.manager.mock_other_member_id = other_member_id;
 
-//   SECTION("Not found user profile expected badRequest error and problem issue") {
+//   SECTION("Not found user profile expected badRequest error and problem
+//   issue") {
 //     fix.controller.getChat(fix.req, fix.res, chat_id);
 //     REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
 //     REQUIRE(fix.res.body == "User profile not found");
@@ -303,7 +311,8 @@
 //     CHECK(fix.res.body == "Other user not found for this chat");
 //   }
 
-//   SECTION("Private chat: other user found but user profile missing expected immediate failure") {
+//   SECTION("Private chat: other user found but user profile missing expected
+//   immediate failure") {
 //     fix.manager.mock_chat = private_chat;
 //     fix.manager.mock_other_member_id = 123;
 //     fix.network_manager.mock_user = std::nullopt;
@@ -331,7 +340,8 @@
 //     CHECK(fix.res.body == "Failed to retrieve group member count");
 //   }
 
-//   SECTION("One valid private chat and one valid group chat expected success") {
+//   SECTION("One valid private chat and one valid group chat expected success")
+//   {
 //     fix.auth();
 //     fix.manager.mock_chat_by_id = {
 //         {private_chat.id, private_chat},

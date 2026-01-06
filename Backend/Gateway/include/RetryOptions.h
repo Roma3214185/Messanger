@@ -8,23 +8,24 @@
 #include <thread>
 
 struct RetryOptions {
-  int                       max_attempts = 3;
+  int max_attempts = 3;
   std::chrono::milliseconds retry_delay{200};
-  bool                      exponential_backoff = true;
+  bool exponential_backoff = true;
   std::chrono::milliseconds per_attempt_timeout{2000};
 };
 
 template <typename Func>
-auto retryInvoke(Func func, const RetryOptions& opts) -> std::optional<decltype(func())> {
+auto retryInvoke(Func func, const RetryOptions &opts)
+    -> std::optional<decltype(func())> {
   using namespace std::chrono;
   for (int attempt = 1; attempt <= opts.max_attempts; attempt++) {
     std::optional<decltype(func())> result;
-    bool                            done = false;
+    bool done = false;
 
     std::thread worker([&]() {
       auto r = func();
       result = std::make_optional(std::move(r));
-      done   = true;
+      done = true;
     });
 
     auto start = steady_clock::now();
@@ -38,7 +39,8 @@ auto retryInvoke(Func func, const RetryOptions& opts) -> std::optional<decltype(
       worker.join();
     }
 
-    if (result.has_value()) return result;
+    if (result.has_value())
+      return result;
 
     // no success - retry delay
     if (attempt < opts.max_attempts) {
@@ -53,4 +55,4 @@ auto retryInvoke(Func func, const RetryOptions& opts) -> std::optional<decltype(
   return std::nullopt;
 }
 
-#endif  // RETRYOPTIONS_H
+#endif // RETRYOPTIONS_H

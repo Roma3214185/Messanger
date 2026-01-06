@@ -4,26 +4,25 @@
 #include "Meta.h"
 #include "entities/UserCredentials.h"
 
-template <>
-struct Reflection<UserCredentials> {
+template <> struct Reflection<UserCredentials> {
   static Meta meta() {
     return Meta{
         .table_name = UserCredentialsTable::Table,
-        .fields     = {make_field<UserCredentials, long long>(UserCredentialsTable::UserId,
-                                                          &UserCredentials::user_id),
-                       make_field<UserCredentials, std::string>(UserCredentialsTable::HashPassword,
-                                                            &UserCredentials::hash_password)}};
+        .fields = {make_field<UserCredentials, long long>(
+                       UserCredentialsTable::UserId, &UserCredentials::user_id),
+                   make_field<UserCredentials, std::string>(
+                       UserCredentialsTable::HashPassword,
+                       &UserCredentials::hash_password)}};
   }
 };
 
-template <>
-struct Builder<UserCredentials> {
-  static UserCredentials build(QSqlQuery& query) {
+template <> struct Builder<UserCredentials> {
+  static UserCredentials build(QSqlQuery &query) {
     UserCredentials user_credentials;
-    int             idx = 0;
+    int idx = 0;
 
-    auto assign = [&](auto& field) -> void {
-      using TField         = std::decay_t<decltype(field)>;
+    auto assign = [&](auto &field) -> void {
+      using TField = std::decay_t<decltype(field)>;
       const QVariant value = query.value(idx++);
       if constexpr (std::is_same_v<TField, long long>) {
         field = value.toLongLong();
@@ -45,17 +44,17 @@ struct Builder<UserCredentials> {
   }
 };
 
-template <>
-struct EntityKey<UserCredentials> {
-  static std::string get(const UserCredentials& entity) { return std::to_string(entity.user_id); }
+template <> struct EntityKey<UserCredentials> {
+  static std::string get(const UserCredentials &entity) {
+    return std::to_string(entity.user_id);
+  }
 };
 
 inline constexpr auto UserCredentialsFields =
     std::make_tuple(&UserCredentials::user_id, &UserCredentials::hash_password);
 
-template <>
-struct EntityFields<UserCredentials> {
-  static constexpr auto& fields = UserCredentialsFields;
+template <> struct EntityFields<UserCredentials> {
+  static constexpr auto &fields = UserCredentialsFields;
 };
 
-#endif  // USERCREDENTIALS_H
+#endif // USERCREDENTIALS_H

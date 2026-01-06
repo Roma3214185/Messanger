@@ -4,36 +4,38 @@
 #include <chatservice/interfaces/IChatManager.h>
 
 class MockChatManager : public IChatManager {
- public:
-  int                 last_chat_id;
+public:
+  int last_chat_id;
   std::optional<Chat> mock_chat;
-  std::optional<ID>   mock_chat_id;
-  std::optional<ID>   mock_other_member_id;
-  int                 mock_cht;
-  std::vector<Chat>   mock_chats;
-  std::vector<ID>     mock_members;
-  std::vector<ID>     mock_chat_ids;
-  int                 last_user_id;
+  std::optional<ID> mock_chat_id;
+  std::optional<ID> mock_other_member_id;
+  int mock_cht;
+  std::vector<Chat> mock_chats;
+  std::vector<ID> mock_members;
+  std::vector<ID> mock_chat_ids;
+  int last_user_id;
 
-  int               call_createPrivateChat = 0;
-  int               call_addMembersToChat  = 0;
-  int               call_getMembersOfChat  = 0;
-  int               call_getChatsOfUser    = 0;
-  int               call_getMembersCount   = 0;
-  int               call_getOtherMemberId  = 0;
-  int               call_getChatById       = 0;
+  int call_createPrivateChat = 0;
+  int call_addMembersToChat = 0;
+  int call_getMembersOfChat = 0;
+  int call_getChatsOfUser = 0;
+  int call_getMembersCount = 0;
+  int call_getOtherMemberId = 0;
+  int call_getChatById = 0;
   std::pair<ID, ID> last_createPrivateChat;
 
   std::unordered_map<ID, std::optional<Chat>> mock_chat_by_id;
 
-  std::optional<ID> createPrivateChat(ID first_member, ID second_member) override {
+  std::optional<ID> createPrivateChat(ID first_member,
+                                      ID second_member) override {
     ++call_createPrivateChat;
     last_createPrivateChat = std::make_pair(first_member, second_member);
     return mock_chat_id;
   }
 
   bool should_fail_addMembersToChat = false;
-  bool addMembersToChat(ID chat_id, const std::vector<ID>& members_id) override {
+  bool addMembersToChat(ID chat_id,
+                        const std::vector<ID> &members_id) override {
     last_chat_id = chat_id;
     ++call_addMembersToChat;
     return !should_fail_addMembersToChat;
@@ -80,14 +82,14 @@ class MockChatManager : public IChatManager {
     mock_members.clear();
     mock_chat_ids.clear();
     call_createPrivateChat = 0;
-    call_addMembersToChat  = 0;
-    call_getMembersOfChat  = 0;
-    call_getChatsOfUser    = 0;
-    call_getMembersCount   = 0;
-    call_getOtherMemberId  = 0;
-    call_getChatById       = 0;
+    call_addMembersToChat = 0;
+    call_getMembersOfChat = 0;
+    call_getChatsOfUser = 0;
+    call_getMembersCount = 0;
+    call_getOtherMemberId = 0;
+    call_getChatById = 0;
     mock_chat_by_id.clear();
   }
 };
 
-#endif  // MOCKCHATMANAGER_H
+#endif // MOCKCHATMANAGER_H

@@ -10,17 +10,17 @@ struct User;
 
 class UserUseCase : public QObject {
   Q_OBJECT
- public:
+public:
   using Token = QString;
-  UserUseCase(DataManager*, std::unique_ptr<UserManager>, TokenManager*);
-  void                getUserAsync(long long user_id);
+  UserUseCase(DataManager *, std::unique_ptr<UserManager>, TokenManager *);
+  void getUserAsync(long long user_id);
   std::optional<User> getUser(long long user_id);
-  QList<User>         findUsers(const QString& text);
+  QList<User> findUsers(const QString &text);
 
- private:
+private:
   std::unique_ptr<UserManager> user_manager_;
-  DataManager*  data_manager_;
-  TokenManager* token_manager_;
+  DataManager *data_manager_;
+  TokenManager *token_manager_;
 };
 
-#endif  // USERUSECASE_H
+#endif // USERUSECASE_H

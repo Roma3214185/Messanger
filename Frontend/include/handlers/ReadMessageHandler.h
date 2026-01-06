@@ -10,12 +10,12 @@
 #include "usecases/messageusecase.h"
 
 class ReadMessageHandler : public ISocketResponceHandler {
-  DataManager* data_manager_;
+  DataManager *data_manager_;
 
- public:
-  ReadMessageHandler(DataManager* data_manager) : data_manager_(data_manager) {}
+public:
+  ReadMessageHandler(DataManager *data_manager) : data_manager_(data_manager) {}
 
-  void handle(const QJsonObject& json_object) override {
+  void handle(const QJsonObject &json_object) override {
     if (!json_object.contains("message_id")) {
       LOG_ERROR("ReadMessageHandler doen't have field message_id");
       return;
@@ -27,9 +27,9 @@ class ReadMessageHandler : public ISocketResponceHandler {
     }
 
     long long message_id = json_object["message_id"].toInteger();
-    long long readed_by  = json_object["receiver_id"].toInteger();
+    long long readed_by = json_object["receiver_id"].toInteger();
     data_manager_->readMessage(message_id, readed_by);
   }
 };
 
-#endif  // READMESSAGEHANDLER_H
+#endif // READMESSAGEHANDLER_H
