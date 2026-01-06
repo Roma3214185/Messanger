@@ -19,34 +19,48 @@ jobs:
       security-events: write
 
     steps:
-      # 1️⃣ Checkout repository (with submodules if any)
+      # Checkout repository (with submodules if any)
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # 2️⃣ Install essential build tools
+      # Install essential build tools
       - name: Install build tools
         run: |
           brew update
           brew install cmake ninja
           xcode-select --install || true
 
-      # 3️⃣ Initialize CodeQL
+      # Initialize CodeQL
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: cpp
 
-      # 4️⃣ Configure CMake
+      # Bootstrap vcpkg
+      - name: Bootstrap vcpkg
+        run: ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+      # vcpkg binary cache only
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v4
+        with:
+          path: vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+
+      - name: Setup vcpkg binary cache
+        run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
+
+      # Configure CMake
       - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
 
-      # 5️⃣ Build
+      # Build
       - name: Build
         run: cmake --build build --parallel
 
-      # 6️⃣ Perform CodeQL analysis
+      # Perform CodeQL analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
