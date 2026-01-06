@@ -26,6 +26,7 @@ target_link_libraries(ChatServiceTests
         Qt6::Test
         Qt6::Network
         BackendMocks
+        ProjectOptions
 )
 
 set_target_properties(ChatServiceTests PROPERTIES AUTOMOC ON)

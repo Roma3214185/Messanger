@@ -61,6 +61,12 @@ if (ENABLE_WARNINGS)
     set_project_warnings(ProjectOptions)
 endif()
 
+option(ENABLE_COVERAGE "Enable coverage flags" OFF)
+if(ENABLE_COVERAGE)
+    include(cmake/Tests.cmake)
+    enable_coverage(ProjectOptions)
+endif()
+
 target_include_directories(ProjectOptions
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/common/include

@@ -27,6 +27,7 @@ target_link_libraries(NotificationServiceTests
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test
+        ProjectOptions
         BackendMocks
 )
 

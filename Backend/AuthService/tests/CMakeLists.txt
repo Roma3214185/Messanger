@@ -46,6 +46,7 @@ target_link_libraries(AuthServiceTests
         Qt6::Network
         BackendMocks
         sodium
+        ProjectOptions
 )
 
 include(CTest)
