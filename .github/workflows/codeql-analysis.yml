@@ -29,7 +29,7 @@ jobs:
       - name: Install build tools
         run: |
           brew update
-          brew install cmake ninja autoconf automake libtool pkg-config
+          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c
           xcode-select --install || true
 
       # Initialize CodeQL
