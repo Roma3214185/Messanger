@@ -11,7 +11,7 @@ on:
 jobs:
   analyze:
     name: Analyze C++
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     permissions:
       actions: read
@@ -26,10 +26,11 @@ jobs:
           submodules: recursive
 
       # 2️⃣ Install essential build tools
-      - name: Install dependencies
+      - name: Install build tools
         run: |
-          sudo apt update
-          sudo apt install -y build-essential cmake ninja-build
+          brew update
+          brew install cmake ninja
+          xcode-select --install || true
 
       # 3️⃣ Initialize CodeQL
       - name: Initialize CodeQL
