@@ -39,6 +39,7 @@ target_link_libraries(FrontendServiceTests
         Catch2::Catch2
         Qt6::Widgets
         Qt6::Test
+        ProjectOptions
         #prometheus-cpp::core
         #prometheus-cpp::pull
 )
