@@ -29,7 +29,7 @@ jobs:
       - name: Install build tools
         run: |
           brew update
-          brew install cmake ninja
+          brew install cmake ninja autoconf automake libtool pkg-config
           xcode-select --install || true
 
       # Initialize CodeQL
@@ -55,9 +55,16 @@ jobs:
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
       # Configure CMake
-      - name: Configure CMake
+      - name: Configure CMake for CodeQL
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          rm -rf build
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=arm64-osx \
+            -DTRACY_ENABLE=ON \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -Wno-dev
 
       # Build
       - name: Build
