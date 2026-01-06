@@ -104,12 +104,12 @@ jobs:
             '*tests*' \
             '*build/*' \
             '*main.cpp' \
-            # '*.h' \
-            # '*.hpp' \
+            '*/vcpkg_installed/*' \
             --ignore-errors inconsistent \
             --output-file coverage.info || true
 
-
+      # '*.h' \
+      # '*.hpp' \
       - name: Generate HTML coverage report
         run: |
           if [ -f coverage.info ]; then
