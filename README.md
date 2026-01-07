@@ -334,3 +334,4 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 - **C++ CI:** ![CI](https://github.com/roma3214185/Messanger/actions/workflows/ci.yml/badge.svg)  
 - **Code Coverage (Codecov):** [View on Codecov](https://app.codecov.io/github/roma3214185/Messanger)  
 - **Documentation (OpenAPI):** [View on GitHub Pages](https://roma3214185.github.io/Messanger/)
+- **SonarCloud:** [View on Sonar Cloud](https://sonarcloud.io/summary/overall?id=Roma3214185_Messanger&branch=main)  
