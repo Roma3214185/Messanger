@@ -48,7 +48,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: cpp.
+          languages: cpp
 
       # 5️⃣ Bootstrap vcpkg
       - name: Bootstrap vcpkg
@@ -87,5 +87,5 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
       # Perform CodeQL analysis
-       - name: Perform CodeQL Analysis
-         uses: github/codeql-action/analyze@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
