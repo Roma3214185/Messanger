@@ -22,7 +22,7 @@ auto retryInvoke(Func func, const RetryOptions &opts)
     std::optional<decltype(func())> result;
     bool done = false;
 
-    std::thread worker([&]() {
+    std::thread worker([&result, &done, &func]() mutable {
       auto r = func();
       result = std::make_optional(std::move(r));
       done = true;
