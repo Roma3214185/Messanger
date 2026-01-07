@@ -15,13 +15,9 @@
 class SqlExecutor : public ISqlExecutor {
 public:
   explicit SqlExecutor(IDataBase &database);
-  [[nodiscard]] std::unique_ptr<IQuery>
-  execute(const QString &sql, const QList<QVariant> &values) override;
-  // std::optional<long long> executeReturningId(const QString&         sql,
-  //                                             QSqlQuery& outQuery, const
-  //                                             QList<QVariant>& values = {})
-  //                                             override;
 
+  [[nodiscard]] SqlExecutorResult
+  execute(const QString &sql, const QList<QVariant> &values) override ;
 private:
   IDataBase &database_;
 };
