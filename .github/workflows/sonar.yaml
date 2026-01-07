@@ -62,8 +62,8 @@ jobs:
 
       - name: Install Build Wrapper
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6.0.0
-      - name: Add Build Wrapper to PATH
-        run: echo "$HOME/.sonar/build-wrapper-macosx-x86-64:$PATH" >> $GITHUB_ENV
+      - name: Add Sonar build wrapper to PATH
+        run: echo "PATH=$HOME/.sonar/build-wrapper-macosx-x86-64:$PATH" >> $GITHUB_ENV
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
