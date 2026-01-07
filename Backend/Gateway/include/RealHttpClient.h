@@ -17,7 +17,7 @@ public:
     RetryOptions opts = getOptions(request);
 
     auto result = retryInvoke(
-        [&] {
+        [client = std::move(client), opts, request] {
           return client->Get(request.full_path, request.params,
                              request.headers);
         },
@@ -31,7 +31,7 @@ public:
     RetryOptions opts = getOptions(request);
 
     auto result = retryInvoke(
-        [&] { // todo(roma): url_params??
+        [client = std::move(client), opts, request] { // todo(roma): url_params??
           return client->Delete(request.full_path, request.headers);
         },
         opts);
@@ -44,7 +44,7 @@ public:
     RetryOptions opts = getOptions(request);
 
     auto result = retryInvoke(
-        [&] { // todo(roma): url_params??
+        [client = std::move(client), opts, request] { // todo(roma): url_params??
           return client->Put(request.full_path, request.headers, request.body,
                              request.content_type);
         },
@@ -58,7 +58,7 @@ public:
     RetryOptions opts = getOptions(request);
 
     auto result = retryInvoke(
-        [&] { // todo(roma): url_params??
+        [client = std::move(client), opts, request] { // todo(roma): url_params??
           return client->Post(request.full_path, request.headers, request.body,
                               request.content_type);
         },
