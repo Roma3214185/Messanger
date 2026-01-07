@@ -14,7 +14,7 @@ TEST_CASE("Test") {
   MockCache cache;
   FakeSqlExecutor executor;
   MockIdGenerator generator;
-  GenericRepository repository(db, &executor, cache, &pool);
+  GenericRepository repository(&executor, cache, &pool);
   MessageManager manager(&repository, &executor, &generator, cache);
 
   SECTION("getChatMessages expected create valid sql request") {
@@ -41,10 +41,12 @@ TEST_CASE("Test") {
   SECTION("getMessagesStatus expected create valid sql request") {
     cache.clearCache();
     std::vector<Message> messages;
-    messages.push_back(Message{.id = 1});
-    messages.push_back(Message{.id = 2});
-    messages.push_back(Message{.id = 3});
-    messages.push_back(Message{.id = 4});
+    Message message1, message2, message3, message4;
+    message1.id = 1; message2.id = 2; message3.id = 3; message4.id = 4;
+    messages.push_back(message1);
+    messages.push_back(message2);
+    messages.push_back(message3);
+    messages.push_back(message4);
     int user_id = 5;
     int before = executor.execute_calls;
 

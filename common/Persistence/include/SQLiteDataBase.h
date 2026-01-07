@@ -54,7 +54,7 @@ public:
     auto query = std::make_unique<SQLiteQuery>(db()); // TODO: factory??
     if (!query->prepare(sql)) {
       LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(),
-                query->error());
+                query->error().toStdString());
       return nullptr;
     }
     return query;

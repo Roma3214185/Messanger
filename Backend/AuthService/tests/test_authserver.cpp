@@ -279,16 +279,17 @@ TEST_CASE("findByTag listens GET users/search") {
   }
 
   fix.req.url_params = crow::query_string("?tag=secret-tag");
-  User user1{.id = 1,
-             .username = "1name",
-             .tag = "1tag",
-             .email = "1email",
-             .avatar = "1avatar/path"};
-  User user2{.id = 2,
-             .username = "2name",
-             .tag = "2tag",
-             .email = "2email",
-             .avatar = "2avatar/path"};
+  User user1;user1.id = 1;
+  user1.username = "1name";
+  user1.tag = "1tag";
+  user1.email = "1email";
+  user1.avatar = "1avatar/path";
+  User user2;
+  user2.id = 2;
+  user2.username = "2name";
+  user2.tag = "2tag";
+  user2.email = "2email";
+  user2.avatar = "2avatar/path";
   fix.manager.mock_users = {user1, user2};
 
   SECTION("Valid request expected success code and json") {
@@ -333,11 +334,12 @@ TEST_CASE("handleFindById listens /users/<int>") {
     REQUIRE(fix.res.body == fix.formError("User not found"));
   }
 
-  User user{.id = 123,
-            .username = "3name",
-            .tag = "3tag",
-            .email = "3email",
-            .avatar = "3avatar/path"};
+  User user;
+  user.id = 123;
+  user.username = "3name";
+  user.tag = "3tag";
+  user.email = "3email";
+  user.avatar = "3avatar/path";
   fix.manager.mock_user = user;
 
   SECTION("User found expected success code and valid json message") {

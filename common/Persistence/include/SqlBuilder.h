@@ -12,11 +12,18 @@ struct SqlStatement {
   QList<QVariant> values;
 };
 
-template <EntityJson T> class SqlBuilder {
+class SqlBuilder {
 public:
+  template <EntityJson T>
   SqlStatement buildInsert(const Meta &meta, const T &entity);
+
+  template <EntityJson T>
   static std::any getFieldValue(const QVariant &v, const Field &f);
+
+  template <EntityJson T>
   std::vector<T> buildResults(std::unique_ptr<IQuery> &query) const;
+
+  template <EntityJson T>
   T buildEntity(std::unique_ptr<IQuery> &query, const Meta &meta) const;
 };
 

@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "Meta.h"
+#include "SqlBuilder.h"
 
 template <EntityJson T>
 QVariant toVariant(const Field& f, const T& entity) {
@@ -24,7 +25,7 @@ QVariant toVariant(const Field& f, const T& entity) {
 }
 
 template <EntityJson T>
-std::any SqlBuilder<T>::getFieldValue(const QVariant& v, const Field& f) {
+std::any SqlBuilder::getFieldValue(const QVariant& v, const Field& f) {
   if (!v.isValid()) {
     LOG_ERROR("v.isValid == false");
     return {};
@@ -61,7 +62,7 @@ std::pair<QStringList, QStringList> buildInsertParts(
 }
 
 template<EntityJson T>
-SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity) {
+SqlStatement SqlBuilder::buildInsert(const Meta& meta, const T& entity) {
   SqlStatement res;
   auto values =  QList<QVariant>{};
   auto [columns, placeholders] = buildInsertParts(meta, entity, values);
@@ -77,24 +78,24 @@ SqlStatement SqlBuilder<T>::buildInsert(const Meta& meta, const T& entity) {
 }
 
 template <EntityJson T>
-T SqlBuilder<T>::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const {
+T SqlBuilder::buildEntity(std::unique_ptr<IQuery>& query, const Meta& meta) const {
   if(!query) throw std::runtime_error("Nullptr in buildEntity"); //TODO: make NullptrObject
   T entity;
   for (const auto& f : meta.fields) {
-    std::any val = SqlBuilder<T>::getFieldValue(query->value(f.name), f);
+    std::any val = SqlBuilder::getFieldValue<T>(query->value(f.name), f);
     f.set(&entity, val);
   }
   return entity;
 }
 
 template <EntityJson T>
-std::vector<T> SqlBuilder<T>::buildResults(std::unique_ptr<IQuery>& query) const {
+std::vector<T> SqlBuilder::buildResults(std::unique_ptr<IQuery>& query) const {
   if(!query) return {};
   std::vector<T> results;
   auto meta = Reflection<T>::meta();
 
   while (query->next()) {
-    T entity = buildEntity(query, meta);
+    T entity = buildEntity<T>(query, meta);
     LOG_INFO("Select {}", nlohmann::json(entity).dump());
     results.push_back(std::move(entity));
   }

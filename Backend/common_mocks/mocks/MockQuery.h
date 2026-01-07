@@ -25,6 +25,11 @@ public:
     return mock_variant;
   }
 
+  QString error() override {
+    return mock_error;
+  }
+
+  QString mock_error = "mock_error";
   QVariant mock_variant = QVariant("4");
   bool exec_should_fail = false;
   std::vector<QVariant> bindings;

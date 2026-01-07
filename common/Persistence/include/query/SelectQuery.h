@@ -24,7 +24,7 @@ enum class OrderDirection { ASC, DESC };
 template <EntityJson T> class SelectQuery : public IBaseQuery<T> {
   ICacheService &cache_;
   QString order_;
-  SqlBuilder<T> builder_;
+  SqlBuilder builder_;
 
 public:
   SelectQuery(ISqlExecutor *executor, ICacheService &cache);

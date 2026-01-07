@@ -107,10 +107,10 @@ OptionalUser AuthManager::registerUser(const RegisterRequest &req) {
 
   LOG_INFO("User can be saved");
 
-  User user_to_save{.id = generator_->generateId(),
-                    .username = req.name,
-                    .email = req.email,
-                    .tag = req.tag};
+  User user_to_save(generator_->generateId(),
+                    req.name,
+                    req.email,
+                    req.tag);
 
   LOG_INFO("User_to_save: {}", nlohmann::json(user_to_save).dump());
   if (!rep_.save(user_to_save)) {

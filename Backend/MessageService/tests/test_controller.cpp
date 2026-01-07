@@ -27,7 +27,7 @@ struct SharedFixture {
 
   SharedFixture()
       : mock_routes(MockUtils::getMockRoutes()), provider(),
-        rep(db, &executor, cache, &pool), manager(&rep, &executor, &generator) {
+        rep(&executor, cache, &pool), manager(&rep, &executor, &generator) {
     provider.mock_routes = mock_routes;
   }
 };
@@ -125,8 +125,8 @@ TEST_CASE("Test controller handles saved enitites") {
 
   SECTION(
       "handleSaveMessageStatus expected call to pool and publish to rabitMQ") {
-    MessageStatus message_status{
-        .message_id = 3, .receiver_id = 1234, .is_read = true};
+    MessageStatus message_status(
+        3, 1234, true, utils::time::getCurrentTime());
     int before_publish_call = fix.rabit_client.publish_cnt;
     int before_pool_cnt = fix.pool.call_count;
 

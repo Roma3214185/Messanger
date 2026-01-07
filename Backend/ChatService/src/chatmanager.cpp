@@ -100,9 +100,9 @@ bool ChatManager::addMembersToChat(ID chat_id,
       continue;
     }
     LOG_INFO("Add member with id {} to chat {}", id, chat_id);
-    ChatMember new_member{.chat_id = chat_id,
-                          .user_id = id,
-                          .added_at = QDateTime::currentSecsSinceEpoch()};
+    ChatMember new_member(chat_id,
+                          id,
+                          QDateTime::currentSecsSinceEpoch());
     chat_members.push_back(new_member);
   }
 

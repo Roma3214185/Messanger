@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   ThreadPool pool;
   constexpr int service_id = 3;
   GeneratorId generator(service_id);
-  GenericRepository genetic_rep(bd, &executor, RedisCache::instance(), &pool);
+  GenericRepository genetic_rep(&executor, RedisCache::instance(), &pool);
   MessageManager manager(&genetic_rep, &executor, &generator);
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);

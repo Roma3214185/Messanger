@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   SqlExecutor executor(db);
   constexpr int service_id = 1;
   GeneratorId id_generator(service_id);
-  GenericRepository rep(db, &executor, RedisCache::instance());
+  GenericRepository rep(&executor, RedisCache::instance());
 
   AuthManager manager(rep, &id_generator);
   ProdConfigProvider provider;

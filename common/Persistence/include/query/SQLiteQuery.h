@@ -38,7 +38,7 @@ public:
     return q_.value(field);
   }
 
-  std::string error() { return q_.lastError().text().toStdString(); }
+  QString error() override { return q_.lastError().text(); }
 
 private:
   QSqlQuery q_;

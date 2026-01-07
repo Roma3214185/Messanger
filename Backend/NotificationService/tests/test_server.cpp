@@ -26,7 +26,7 @@ TEST_CASE("handleSocketOnMessage init type registers user") {
   TestServer server(8080, &nm);
   auto socket = std::make_shared<MockSocket>();
 
-  long long now = getCurrentTime();
+  long long now = utils::time::getCurrentTime();
   Message new_message;
   new_message.chat_id = 1;
   new_message.sender_id = 2;

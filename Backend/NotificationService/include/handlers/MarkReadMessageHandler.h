@@ -15,14 +15,11 @@ public:
     message_status.is_read = true;
     message_status.message_id = message_id;
     message_status.receiver_id = read_by;
-    message_status.read_at = getCurrentTime();
+    message_status.read_at = utils::time::getCurrentTime();
     manager.saveMessageStatus(message_status);
     LOG_INFO("[mark_read] Message marked read {}",
              nlohmann::json(message_status).dump());
   }
 };
-
-// todo: now will be bug: 2 times saved read_message, offline and online, i
-// think i need skip if my_id == read_by
 
 #endif // MARKREADMESSAGEHANDLER_H

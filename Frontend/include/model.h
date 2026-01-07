@@ -80,7 +80,7 @@ private:
   std::unique_ptr<MessageUseCase> message_use_case_;
   std::unique_ptr<SessionUseCase> session_use_case_;
 
-  friend class ModelAttorney;
+  //friend class ModelAttorney;
 };
 
 // class ModelAttorney {

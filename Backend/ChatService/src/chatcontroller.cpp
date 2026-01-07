@@ -120,7 +120,10 @@ Response ChatController::createPrivateChat(const RequestDTO &req) {
 
   LOG_INFO("[CreatePrivateChat] Created chat with id '{}'", *chat_id);
 
-  Chat chat{.id = *chat_id, .is_group = 0};
+  Chat chat;
+  chat.id =*chat_id;
+  chat.is_group = 0;
+  chat.name = "test_name";
   auto result = buildChatJson(chat, user, 0);
   return sendResponse(provider_->statusCodes().success, result.dump());
 }

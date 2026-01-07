@@ -14,7 +14,12 @@
 #include "entities/User.h"
 #include "interfaces/IDataBase.h"
 
-class OutboxWorker : public QThread {
+class IOutboxWorker {
+  public:
+    virtual ~IOutboxWorker() = default;
+};
+
+class OutboxWorker : public IOutboxWorker, QThread {
   // Q_OBJECT
 public:
   explicit OutboxWorker(IDataBase &db) : db_(db) {}
@@ -97,7 +102,7 @@ private:
       if (table_triggered == "user_table") {
         LOG_INFO("Triggered user_table");
 
-        const User user =
+        User user =
             nlohmann::json::parse(payload_str.toStdString()); // todo: try catch
         LOG_INFO("User: {}", nlohmann::json(user).dump());
 

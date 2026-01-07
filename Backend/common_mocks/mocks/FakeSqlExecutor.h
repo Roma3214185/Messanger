@@ -18,25 +18,16 @@ public:
   std::vector<std::string> last_sqls;
   MockQuery mock_query;
 
-  std::unique_ptr<IQuery> execute(const QString &sql,
+  SqlExecutorResult execute(const QString &sql,
                                   const QList<QVariant> &values) override {
     ++execute_calls;
     lastSql = sql;
     lastValues = values;
     last_sqls.push_back(lastSql.toStdString());
     if (shouldFail)
-      return nullptr;
-    return std::make_unique<MockQuery>(mock_query);
+      return SqlExecutorResult{.query = nullptr};
+    return SqlExecutorResult{.query = std::make_unique<MockQuery>(mock_query)};
   }
-
-  // virtual std::optional<long long> executeReturningId(const QString& sql,
-  //                                                     QSqlQuery& outQuery,
-  //                                                     const QList<QVariant>&
-  //                                                     values) override {
-  //   ++execute_returning_id_calls;
-  //   if (!execute(sql, outQuery, values)) return std::nullopt;
-  //   return mocked_id;
-  // }
 };
 
 #endif // FAKESQLEXECUTOR_H

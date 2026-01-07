@@ -36,7 +36,7 @@ struct TestAuthManagerProtectedFixture {
   std::string hash_password = "secret-hash-password-123";
 
   TestAuthManagerProtectedFixture()
-      : rep(db, &executor, cache, &pool), manager(rep, &generator) {
+      : rep(&executor, cache, &pool), manager(rep, &generator) {
     user.id = user_id;
     user.email = email;
     user.tag = tag;

@@ -6,9 +6,9 @@ template <EntityJson T>
 QueryResult<T> DeleteQuery<T>::execute() const {
   QString sql = buildQuery();
 
-  auto query = this->executor_->execute(sql, this->values_);
-  if(!query) {
-    LOG_ERROR("query {} failed", sql.toStdString());
+  auto execute_results = this->executor_->execute(sql, this->values_);
+  if(!execute_results.query) {
+    LOG_ERROR("query {} failed, reason - {}", sql.toStdString(), execute_results.error);
     return DeleteResult<T>{ .success = false };
   }
 

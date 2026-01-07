@@ -72,14 +72,14 @@ QueryResult<T> SelectQuery<T>::execute() const {
 
   LOG_INFO("Not hit cache for sql {}", sql.toStdString());
 
-  auto query = this->executor_->execute(sql, this->values_);
-  if(!query) {
-    LOG_ERROR("query {} failed", sql.toStdString());
+  auto execute_results = this->executor_->execute(sql, this->values_);
+  if(!execute_results.query) {
+    LOG_ERROR("query {} failed, reason - {}", sql.toStdString(), execute_results.error);
     return SelectResult<T>{ std::vector<T>{ } };
   }
 
   LOG_INFO("query {} succeed", sql.toStdString());
-  auto results = builder_.buildResults(query);
+  auto results = builder_.buildResults<T>(execute_results.query);
   updateCache(cache_key, results);
 
   LOG_INFO("Results has {} size", results.size());
