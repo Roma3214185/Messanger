@@ -1,4 +1,4 @@
-name: CodeQL
+name: CodeQL analysis
 
 on:
   push:
@@ -20,12 +20,6 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-
-      # Initialize CodeQL
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: cpp
 
       # 2️⃣ Setup ccache
       - uses: hendrikmuhs/ccache-action@v1
@@ -49,6 +43,12 @@ jobs:
       - name: Remove Homebrew protobuf (force vcpkg)
         run: |
           brew uninstall --ignore-dependencies protobuf || true
+
+      # Initialize CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: cpp.
 
       # 5️⃣ Bootstrap vcpkg
       - name: Bootstrap vcpkg
@@ -82,11 +82,10 @@ jobs:
       - name: Build
         run: cmake --build build --parallel
 
+      # 🔟 Run tests
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
       # Perform CodeQL analysis
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
-
-
-
-
+       - name: Perform CodeQL Analysis
+         uses: github/codeql-action/analyze@v3
