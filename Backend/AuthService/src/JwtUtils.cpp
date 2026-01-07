@@ -24,7 +24,7 @@ std::string readFile(const std::string &path) {
 
 namespace JwtUtils {
 
-inline constexpr const char *kIssuer = "auth_service";
+inline constexpr const char * const kIssuer = "auth_service";
 constexpr int kTenYears = 24 * 365 * 10;
 const std::string kPublicKeysDir =
     "/Users/roma/QtProjects/Chat/Backend/shared_keys/";

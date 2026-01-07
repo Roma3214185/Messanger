@@ -27,11 +27,11 @@ std::string readFile(const std::string &path) {
 
 } // namespace
 
-namespace JwtUtils {
-
-const char *kIssuer = "auth_service";
+constexpr const char * const kIssuer = "auth_service";
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
+
+namespace JwtUtils {
 
 std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
   try {
