@@ -5,6 +5,7 @@
 #include "interfaces/ISqlExecutor.h"
 #include "SqlBuilder.h"
 #include "QueryFactory.h"
+#include "GenericRepository.h"
 
 namespace {
 
@@ -40,56 +41,33 @@ inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) co
   return {};
 }
 
+//void updateOutbox()
+// database_.transaction();
+
+// SqlStatement smt_outbox;
+// smt_outbox.query = "INSERT INTO outbox (table_trigered, payload, processed) "
+//                    "VALUES (?, ?, 0)";
+// smt_outbox.values =  QList<QVariant>{ QVariant(meta.table_name), QVariant(QString::fromStdString(entity_json)) };
+
 template <EntityJson T>
 bool GenericRepository::save(const T& entity) {
-  PROFILE_SCOPE("[repository] Save");
-
-  const auto& meta = Reflection<T>::meta();
-  const Field* id_field = meta.find("id");
-  if(id_field) {
-    long long entity_id = toVariant(*id_field, entity).toLongLong();
-    LOG_INFO("In entity id is {}", entity_id);
-    if(entity_id <= 0) {
-      LOG_ERROR("Failed to save {}, id {} is invalid", entity_id, nlohmann::json(entity).dump());
-      return false;
-    }
-  }
-
-  SqlBuilder<T> builder;
-  SqlStatement smt_entity = builder.buildInsert(meta, entity);
-  LOG_INFO("Builded sql {}", smt_entity.query.toStdString());
-  database_.transaction();
-
-  SqlStatement smt_outbox;
-  smt_outbox.query = "INSERT INTO outbox (table_trigered, payload, processed) "
-                     "VALUES (?, ?, 0)";
-
   std::string entity_json = nlohmann::json(entity).dump();
 
-  smt_outbox.values =  QList<QVariant>{ QVariant(meta.table_name), QVariant(QString::fromStdString(entity_json)) };
-  auto main_query = database_.prepare(smt_entity.query);
-  auto outbox_query = database_.prepare( smt_outbox.query);
-
-  if(!main_query || !outbox_query) {
-    database_.rollback();
-    LOG_INFO("Failed to prepare");
+  if(!entity.checkInvariants()) { //todo: DBC_REQUIRE(entity.checkInvariants());
+    LOG_ERROR("checkInvariants failed for entity {}", entity_json);
     return false;
   }
 
-  LOG_INFO("Prepare succed");
+  const auto& meta = Reflection<T>::meta();
 
-  bindToQuery(main_query, smt_entity.values);
-  bindToQuery(outbox_query, smt_outbox.values);
-
-  if (!main_query->exec() || !outbox_query->exec()) {
-    LOG_ERROR("[repository] Save failed for entity: {}", entity_json);
-    database_.rollback();
+  SqlStatement smt_entity = builder_.buildInsert<T>(meta, entity);
+  LOG_INFO("Builded sql {}", smt_entity.query.toStdString());
+  if(auto result = executor_->execute(smt_entity.query, smt_entity.values); !result.query) {
+    LOG_ERROR("Failed to save {}, reason - {}", entity_json, result.error);
     return false;
   }
 
   LOG_INFO("Save succeed for json: {}", entity_json);
-
-  database_.commit();
 
   cache_.set(makeKey<T>(entity), entity_json, std::chrono::seconds(30));
   cache_.incr(std::string("table_generation:") + meta.table_name);
@@ -157,10 +135,8 @@ bool GenericRepository::deleteById(long long entity_id) {
 
   std::string stmKey = meta.table_name + std::string(":deleteById");
 
-  //auto query = database_.prepare(sql);
-  if(!executor_->execute(sql, {entity_id})) {
-    // LOG_ERROR("[repository] SQL error on '{}': {}", meta.table_name,
-    //           query.lastError().text().toStdString());
+  if(auto result = executor_->execute(sql, {entity_id}); !result.query) {
+    LOG_ERROR("Failed to delete by id {}, error {}", entity_id, result.error);
     return false;
   }
 

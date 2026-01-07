@@ -7,6 +7,7 @@
 #include "OutboxWorker.h"
 #include "interfaces/IEntityBuilder.h"
 #include "metaentity/EntityConcept.h"
+#include "SqlBuilder.h"
 
 template <EntityJson T> using ResultList = std::vector<T>;
 template <EntityJson T> using FutureResultList = std::future<std::vector<T>>;
@@ -16,20 +17,19 @@ class ICacheService;
 class IThreadPool;
 
 class GenericRepository {
-  IDataBase &database_;
   ISqlExecutor *executor_;
   ICacheService &cache_;
   IThreadPool *pool_;
-  std::unique_ptr<OutboxWorker> outbox_worker_;
+  SqlBuilder builder_;
+  IOutboxWorker* outbox_worker_;
 
 public:
-  GenericRepository(IDataBase &database, ISqlExecutor *executor,
-                    ICacheService &cache, IThreadPool *pool_ = nullptr);
+  GenericRepository(ISqlExecutor *executor,
+                    ICacheService &cache, IThreadPool *pool_ = nullptr, IOutboxWorker* outbox_worker = nullptr);
   ~GenericRepository();
 
   ICacheService &getCache() { return cache_; }
 
-  IDataBase &getDatabase() { return database_; }
   ISqlExecutor *getExecutor() { return executor_; }
   void clearCache();
 
