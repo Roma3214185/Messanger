@@ -7,9 +7,14 @@
 #include "Fields.h"
 #include "interfaces/entity.h"
 
-struct UserCredentials final : public IEntity {
+struct UserCredentials final {
   long long user_id{0};
   std::string hash_password;
+
+  bool checkInvariants() const {
+    return user_id > 0
+           && !hash_password.empty();
+  }
 };
 
 namespace nlohmann {

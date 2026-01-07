@@ -8,17 +8,33 @@
 
 #include "Fields.h"
 #include "interfaces/entity.h"
+#include "Debug_profiling.h"
+#include "TimestampService.h"
 
-inline long long getCurrentTime() {
-  using namespace std::chrono;
-  return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
-}
-
-struct MessageStatus final : public IEntity {
+struct MessageStatus final {
   long long message_id{0};
   long long receiver_id{0};
   long long read_at{0};
   bool is_read{false};
+
+  MessageStatus() = default;
+
+  MessageStatus(long long message_id,
+              long long receiver_id,
+              bool is_read = false,
+              long long read_at = utils::time::getCurrentTime())
+      : message_id(message_id),
+      receiver_id(receiver_id),
+      read_at(read_at),
+      is_read(is_read)
+  {
+    DBC_REQUIRE(checkInvariants());
+  }
+
+  bool checkInvariants() const {
+    return message_id > 0
+           && receiver_id > 0;
+  }
 };
 
 namespace nlohmann {

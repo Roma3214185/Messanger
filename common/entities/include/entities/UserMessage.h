@@ -5,10 +5,26 @@
 
 #include "Message.h"
 
-struct Reaction final : public IEntity {
+struct Reaction final {
   long long message_id;
   long long user_id;
   int type; // 1 -> like, 2 -> smile, 3 -> dislike, 4 -> heart
+
+  Reaction(long long message_id,
+       long long user_id,
+       int type)
+      : message_id(message_id),
+        user_id(user_id),
+        type(type)
+  {
+    DBC_REQUIRE(checkInvariants());
+  }
+
+  bool checkInvariants() const {
+    return message_id > 0
+           && user_id > 0
+           && type > 0;
+  }
 };
 
 struct UserMessage { // todo: rename UserMessage -> Message

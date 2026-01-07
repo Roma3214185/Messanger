@@ -6,23 +6,51 @@
 #include <string>
 
 #include "interfaces/entity.h"
+#include "Debug_profiling.h"
 
-struct User final : public IEntity {
+struct User final {
   long long id = 0;
   std::string username;
   std::string email;
   std::string tag;
-  std::string avatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
+  std::string avatar;
+
+  User() = default;
+
+  User(long long id,
+       std::string username,
+       std::string email,
+       std::string tag,
+       std::string avatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg")
+      : id(id),
+      username(std::move(username)),
+      email(std::move(email)),
+      tag(std::move(tag)),
+      avatar(std::move(avatar))
+  {
+    DBC_REQUIRE(checkInvariants());
+  }
+
+  bool checkInvariants() const {
+    return id > 0
+           && !username.empty()
+           && !email.empty()
+           && !tag.empty();
+  }
 };
 
 namespace nlohmann {
 
 template <> struct adl_serializer<User> {
   static void from_json(const json &j, User &user) {
-    j.at("id").get_to(user.id);
-    j.at("email").get_to(user.email);
-    j.at("tag").get_to(user.tag);
-    j.at("username").get_to(user.username);
+    user = User{
+        j.at("id").get<long long>(),
+        j.at("username").get<std::string>(),
+        j.at("email").get<std::string>(),
+        j.at("tag").get<std::string>(),
+        j.value("avatar",
+                "/Users/roma/QtProjects/Chat/default_avatar.jpeg")
+    };
   }
 
   static void to_json(json &j, const User &user) {

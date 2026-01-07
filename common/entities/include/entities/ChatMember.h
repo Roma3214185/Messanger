@@ -6,12 +6,29 @@
 
 #include "Fields.h"
 #include "interfaces/entity.h"
+#include "Debug_profiling.h"
+#include "TimestampService.h"
 
-struct ChatMember final : public IEntity {
+struct ChatMember final {
   long long chat_id{0};
   long long user_id{0};
   std::string status;
   long long added_at{0};
+
+  ChatMember() = default;
+
+  ChatMember(long long chat_id, long long user_id,
+             long long added_at = utils::time::getCurrentTime(), std::string status = "test_status")
+      : chat_id(chat_id), user_id(user_id),
+      status(std::move(status)), added_at(added_at)
+  {
+    DBC_REQUIRE(checkInvariants());
+  }
+
+  bool checkInvariants() const {
+    return chat_id > 0
+           && user_id > 0;
+  }
 };
 
 namespace nlohmann {

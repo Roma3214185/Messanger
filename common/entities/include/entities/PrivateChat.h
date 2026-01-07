@@ -6,11 +6,36 @@
 
 #include "Fields.h"
 #include "interfaces/entity.h"
+#include "Debug_profiling.h"
 
-struct PrivateChat final : public IEntity {
+struct PrivateChat final {
   long long chat_id;
   long long first_user;
   long long second_user;
+
+  PrivateChat() = default;
+
+  PrivateChat(long long chat_id,
+           long long first_user,
+           long long second_user)
+      : chat_id(chat_id),
+      first_user(first_user),
+      second_user(second_user)
+  {
+    if(first_user > second_user) {
+      long long temp = first_user;
+      first_user = second_user;
+      second_user = first_user;
+    }
+    DBC_REQUIRE(checkInvariants());
+  }
+
+  bool checkInvariants() const {
+    return chat_id > 0
+           && first_user > 0
+           && second_user > 0
+           && first_user < second_user;
+  }
 };
 
 namespace nlohmann {

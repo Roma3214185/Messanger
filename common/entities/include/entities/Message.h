@@ -12,13 +12,31 @@
 #include "TimestampService.h"
 #include "interfaces/entity.h"
 
-struct Message final : public IEntity {
+struct Message final {
   long long id{0};
   long long chat_id{0};
   long long sender_id{0};
   long long timestamp{0};
   std::string text;
   std::string local_id;
+
+  Message() = default;
+
+  Message(long long id, long long chat_id,
+          long long sender_id, long  long timestamp,
+          std::string text, std::string local_id)
+      : id(id), chat_id(chat_id), sender_id(sender_id), timestamp(timestamp),
+      text(std::move(text)), local_id(std::move(local_id))
+  {
+    DBC_REQUIRE(checkInvariants());
+  }
+
+  bool checkInvariants() const {
+    return id > 0
+        && chat_id > 0
+        && sender_id > 0
+        && !text.empty();
+  }
 };
 
 namespace utils::entities {
