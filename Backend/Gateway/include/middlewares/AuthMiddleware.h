@@ -25,7 +25,7 @@ struct AuthMiddleware {
 
     auto token = fetchToken(req);
     std::optional<long long> id = verifier_->verifyTokenAndGetUserId(token);
-    if (id) {
+    if (id.has_value()) {
       cont.user_id = *id;
       return;
     }
@@ -39,7 +39,11 @@ struct AuthMiddleware {
 
   template <typename ParentCtx>
   void after_handle(const crow::request &req, crow::response &res, context &ctx,
-                    ParentCtx &) {}
+                    ParentCtx &) {
+    // intentionally left empty
+    // This middleware only needs to handle authentication before the main handler.
+    // No post-processing is required after the request is handled.
+  }
 
 private:
   inline static const std::vector<std::string> kNoNeedAuthUrls{
