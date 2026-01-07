@@ -6,7 +6,7 @@
 
 std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
   const std::string path = "/users/" + std::to_string(other_user_id);
-  auto              res  = forward(provider_->ports().userService, "", path, "GET");
+  auto res = forward(provider_->ports().userService, "", path, "GET");
 
   if (res.first != provider_->statusCodes().success) {
     LOG_ERROR("getUserById failed: {}", res.first);
@@ -41,12 +41,14 @@ std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
       return std::nullopt;
     }
 
-    User found_user{
-        .id = obj["id"], .username = obj["name"], .email = obj["email"], .tag = obj["tag"]};
+    User found_user{.id = obj["id"],
+                    .username = obj["name"],
+                    .email = obj["email"],
+                    .tag = obj["tag"]};
 
     LOG_INFO("getUserById success: {}", nlohmann::json(found_user).dump());
     return found_user;
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     LOG_ERROR("JSON parse error in getUserById: {}", e.what());
     return std::nullopt;
   }

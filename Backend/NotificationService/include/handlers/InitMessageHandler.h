@@ -4,10 +4,10 @@
 #include "interfaces/IMessageHandler.h"
 
 class InitMessageHandler : public IMessageHandler {
- public:
-  void handle(const crow::json::rvalue&       message,
-              const std::shared_ptr<ISocket>& socket,
-              NotificationManager&            manager) override {
+public:
+  void handle(const crow::json::rvalue &message,
+              const std::shared_ptr<ISocket> &socket,
+              NotificationManager &manager) override {
     LOG_INFO("Try get user_id");
     auto user_id = [message]() -> std::optional<long long> {
       if (!message.has("user_id")) {
@@ -34,4 +34,4 @@ class InitMessageHandler : public IMessageHandler {
   }
 };
 
-#endif  // INITMESSAGEHANDLER_H
+#endif // INITMESSAGEHANDLER_H

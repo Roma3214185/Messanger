@@ -7,8 +7,8 @@
 #include "entities/User.h"
 
 class IUserNetworkManager : public virtual INetworkManagerBase {
- public:
+public:
   virtual std::optional<User> getUserById(long long other_user_id);
 };
 
-#endif  // IUSERNETWORKMANAGER_H
+#endif // IUSERNETWORKMANAGER_H

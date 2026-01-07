@@ -12,31 +12,35 @@
 
 namespace {
 
-auto getRequestWithToken(QUrl endpoint, const QString& current_token) -> QNetworkRequest {
+auto getRequestWithToken(QUrl endpoint, const QString &current_token)
+    -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", current_token.toUtf8());
   return request;
 }
 
-}  // namespace
+} // namespace
 
-QFuture<std::optional<User>> UserManager::getUser(long long user_id, const QString& current_token) {
+QFuture<std::optional<User>>
+UserManager::getUser(long long user_id, const QString &current_token) {
   LOG_INFO("[getUser] Loading user id={}", user_id);
   PROFILE_SCOPE("UserManager::getUser");
 
-  QUrl  endpoint = url_.resolved(QUrl(QString("/users/%1").arg(user_id)));
-  auto  req      = getRequestWithToken(endpoint, current_token);
-  auto* reply    = network_manager_->get(req);
+  QUrl endpoint = url_.resolved(QUrl(QString("/users/%1").arg(user_id)));
+  auto req = getRequestWithToken(endpoint, current_token);
+  auto *reply = network_manager_->get(req);
 
   return handleReplyWithTimeout<std::optional<User>>(
       reply,
-      [this](const QByteArray& responce_data) { return onGetUser(responce_data); },
-      timeout_ms_,
-      std::nullopt);
+      [this](const QByteArray &responce_data) {
+        return onGetUser(responce_data);
+      },
+      timeout_ms_, std::nullopt);
 }
 
-auto UserManager::onGetUser(const QByteArray& responce_data) const -> optional<User> {
+auto UserManager::onGetUser(const QByteArray &responce_data) const
+    -> optional<User> {
   PROFILE_SCOPE("UserManager::onGetUser");
   // if(!checkReply(reply)) return std::nullopt;
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
@@ -53,23 +57,27 @@ auto UserManager::onGetUser(const QByteArray& responce_data) const -> optional<U
   return user;
 }
 
-QFuture<QList<User>> UserManager::findUsersByTag(const QString& tag, const QString& current_token) {
+QFuture<QList<User>> UserManager::findUsersByTag(const QString &tag,
+                                                 const QString &current_token) {
   PROFILE_SCOPE("UserManager::findUsersByTag");
-  LOG_INFO("[findUsersByTag] Searching for users with tag={}", tag.toStdString());
+  LOG_INFO("[findUsersByTag] Searching for users with tag={}",
+           tag.toStdString());
 
   QUrl endpoint = url_.resolved(QUrl(QString("/users/search?tag=%1").arg(tag)));
-  auto request  = getRequestWithToken(endpoint, current_token);
+  auto request = getRequestWithToken(endpoint, current_token);
 
-  auto* reply = network_manager_->get(request);
+  auto *reply = network_manager_->get(request);
 
   return handleReplyWithTimeout<QList<User>>(
       reply,
-      [this](const QByteArray& responce_data) { return onFindUsersByTag(responce_data); },
-      timeout_ms_,
-      QList<User>{});
+      [this](const QByteArray &responce_data) {
+        return onFindUsersByTag(responce_data);
+      },
+      timeout_ms_, QList<User>{});
 }
 
-QList<User> UserManager::onFindUsersByTag(const QByteArray& responce_data) const {
+QList<User>
+UserManager::onFindUsersByTag(const QByteArray &responce_data) const {
   // if(!checkReply(reply)) return {};
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
@@ -89,11 +97,11 @@ QList<User> UserManager::onFindUsersByTag(const QByteArray& responce_data) const
     return {};
   }
 
-  auto        arr = rootObj["users"].toArray();
+  auto arr = rootObj["users"].toArray();
   QList<User> users;
 
-  for (const auto& value : std::as_const(arr)) {
-    auto obj  = value.toObject();
+  for (const auto &value : std::as_const(arr)) {
+    auto obj = value.toObject();
     auto user = JsonService::getUserFromResponse(obj);
     users.append(user);
   }

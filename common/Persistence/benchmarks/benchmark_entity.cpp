@@ -6,9 +6,9 @@
 #include "ThreadPool.h"
 #include "benchmark/benchmark.h"
 
-static void EntityWithoutCache(benchmark::State& state) {
-  SQLiteDatabase    db;
-  SqlExecutor       executor(db);
+static void EntityWithoutCache(benchmark::State &state) {
+  SQLiteDatabase db;
+  SqlExecutor executor(db);
   GenericRepository rep(db, executor, RedisCache::instance());
   for (auto _ : state) {
     auto results = rep.findOne<Message>(4);
@@ -26,13 +26,13 @@ static void EntityWithoutCache(benchmark::State& state) {
 //   }
 // }
 
-static void EntityWithCacheAsync(benchmark::State& state) {
-  ThreadPool        pool(4);
-  SQLiteDatabase    db;
-  SqlExecutor       executor(db);
+static void EntityWithCacheAsync(benchmark::State &state) {
+  ThreadPool pool(4);
+  SQLiteDatabase db;
+  SqlExecutor executor(db);
   GenericRepository rep(db, executor, RedisCache::instance(), &pool);
   for (auto _ : state) {
-    auto future  = rep.findOneAsync<Message>(4);
+    auto future = rep.findOneAsync<Message>(4);
     auto results = future.get();
     benchmark::DoNotOptimize(results);
   }

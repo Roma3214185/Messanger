@@ -53,16 +53,22 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vcpkg-cache
-          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ hashFiles('vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}
 
       - name: Setup vcpkg binary cache
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
-      # 7️⃣ Auto-format code
-      - name: Run clang-format
-        run: |
-          chmod +x run-clang.sh
-          ./run-clang.sh
+      # # 7️⃣ Auto-format code
+      # - name: Run clang-format
+      #   run: |
+      #     chmod +x run-clang.sh
+      #     ./run-clang.sh
+
+      # -DCMAKE_CXX_FLAGS="--coverage -O0" \
+      # -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
+      # -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
@@ -70,9 +76,7 @@ jobs:
           rm -rf build
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_CXX_FLAGS="--coverage -O0" \
-            -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
-            -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
+            -DENABLE_COVERAGE=ON \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=arm64-osx \
@@ -102,12 +106,12 @@ jobs:
             '*tests*' \
             '*build/*' \
             '*main.cpp' \
-            '*.h' \
-            '*.hpp' \
+            '*/vcpkg_installed/*' \
             --ignore-errors inconsistent \
             --output-file coverage.info || true
 
-
+      # '*.h' \
+      # '*.hpp' \
       - name: Generate HTML coverage report
         run: |
           if [ -f coverage.info ]; then

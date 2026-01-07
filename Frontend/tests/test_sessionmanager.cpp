@@ -14,22 +14,22 @@ const QUrl url_auth_service("http://localhost:8083/");
 const QUrl url_apigate_service("http://localhost:8084");
 
 class TestSessionManager : public SessionManager {
- public:
+public:
   using SessionManager::SessionManager;
 
   int on_reply_finished_calls = 0;
 
-  void onReplyFinished(const QByteArray& responce_data) override {
+  void onReplyFinished(const QByteArray &responce_data) override {
     ++on_reply_finished_calls;
     SessionManager::onReplyFinished(responce_data);
   }
 };
 
 TEST_CASE("Test sign in") {
-  MockReply                mock_reply;
+  MockReply mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  TestSessionManager       session_manager(&network_manager, url_auth_service);
-  LogInRequest             login_request{"user@test.com", "12345"};
+  TestSessionManager session_manager(&network_manager, url_auth_service);
+  LogInRequest login_request{"user@test.com", "12345"};
 
   SECTION("LogInRequestIsSendingWithRightHeader") {
     QUrl resolved_url_auth_service("http://localhost:8083/auth/login");
@@ -39,8 +39,9 @@ TEST_CASE("Test sign in") {
 
   SECTION("LogInRequestIsSendingOnRightUrl") {
     session_manager.signIn(login_request);
-    REQUIRE(network_manager.last_request.header(QNetworkRequest::ContentTypeHeader).toString() ==
-            "application/json");
+    REQUIRE(
+        network_manager.last_request.header(QNetworkRequest::ContentTypeHeader)
+            .toString() == "application/json");
   }
 
   SECTION("LogInRequestWithPostCounterIncreadeByOne") {
@@ -53,7 +54,7 @@ TEST_CASE("Test sign in") {
   SECTION("LogInRequestWithRightJsonDocument") {
     session_manager.signIn(login_request);
     QJsonDocument doc = QJsonDocument::fromJson(network_manager.last_data);
-    QJsonObject   obj = doc.object();
+    QJsonObject obj = doc.object();
     REQUIRE(obj["email"] == login_request.email);
     REQUIRE(obj["password"] == login_request.password);
   }
@@ -75,11 +76,13 @@ TEST_CASE("Test sign in") {
 }
 
 TEST_CASE("Test sign up") {
-  MockReply                mock_reply;
+  MockReply mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  TestSessionManager       session_manager(&network_manager, url_auth_service);
-  SignUpRequest            signup_request{
-                 .email = "user@test.com", .password = "12345678", .tag = "roma228", .name = "roma"};
+  TestSessionManager session_manager(&network_manager, url_auth_service);
+  SignUpRequest signup_request{.email = "user@test.com",
+                               .password = "12345678",
+                               .tag = "roma228",
+                               .name = "roma"};
 
   SECTION("SignUpRequestIsSendingOnRightUrl") {
     QUrl resolved_url_auth_service("http://localhost:8083/auth/register");
@@ -89,8 +92,9 @@ TEST_CASE("Test sign up") {
 
   SECTION("SignUpRequestIsSendingWithRightHeader") {
     session_manager.signUp(signup_request);
-    REQUIRE(network_manager.last_request.header(QNetworkRequest::ContentTypeHeader).toString() ==
-            "application/json");
+    REQUIRE(
+        network_manager.last_request.header(QNetworkRequest::ContentTypeHeader)
+            .toString() == "application/json");
   }
 
   SECTION("SignUpRequestWithPostCounterIncreadeByOne") {
@@ -103,7 +107,7 @@ TEST_CASE("Test sign up") {
   SECTION("SignUpRequestWithRightJsonDocument") {
     session_manager.signUp(signup_request);
     QJsonDocument doc = QJsonDocument::fromJson(network_manager.last_data);
-    QJsonObject   obj = doc.object();
+    QJsonObject obj = doc.object();
     REQUIRE(obj["email"] == signup_request.email);
     REQUIRE(obj["password"] == signup_request.password);
     REQUIRE(obj["tag"] == signup_request.tag);
@@ -127,10 +131,10 @@ TEST_CASE("Test sign up") {
 }
 
 TEST_CASE("Test authenticateWithToken") {
-  MockReply                mock_reply;
+  MockReply mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  TestSessionManager       session_manager(&network_manager, url_auth_service);
-  const QString&           token = "secret-token123";
+  TestSessionManager session_manager(&network_manager, url_auth_service);
+  const QString &token = "secret-token123";
 
   SECTION("authenticateWithTokenExpecteedRightUrl") {
     QUrl resolved_url_auth_service("http://localhost:8083/auth/me");
@@ -140,13 +144,15 @@ TEST_CASE("Test authenticateWithToken") {
 
   SECTION("authenticateWithTokenExpectedRightHeader") {
     session_manager.authenticateWithToken(token);
-    REQUIRE(network_manager.last_request.header(QNetworkRequest::ContentTypeHeader).toString() ==
-            "application/json");
+    REQUIRE(
+        network_manager.last_request.header(QNetworkRequest::ContentTypeHeader)
+            .toString() == "application/json");
   }
 
   SECTION("authenticateWithTokenExpectedRightRawHeader") {
     session_manager.authenticateWithToken(token);
-    QByteArray header_value = network_manager.last_request.rawHeader("Authorization");
+    QByteArray header_value =
+        network_manager.last_request.rawHeader("Authorization");
 
     REQUIRE(header_value == token.toUtf8());
   }
@@ -157,7 +163,8 @@ TEST_CASE("Test authenticateWithToken") {
     REQUIRE(network_manager.get_counter == before_post_count + 1);
   }
 
-  SECTION("authenticateWithTokenFinishesExpectedEmittingOnAuthenticateWithToken") {
+  SECTION(
+      "authenticateWithTokenFinishesExpectedEmittingOnAuthenticateWithToken") {
     auto reply = new MockReply();
     network_manager.setReply(reply);
 
@@ -174,18 +181,19 @@ TEST_CASE("Test authenticateWithToken") {
 }
 
 TEST_CASE("Test onSignInFinished") {
-  MockReply                mock_reply;
+  MockReply mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
-  TestSessionManager       session_manager(&network_manager, url_auth_service);
+  TestSessionManager session_manager(&network_manager, url_auth_service);
 
   SECTION("ExpectedEmittingUserCreated") {
-    auto*      reply = new MockReply();
+    auto *reply = new MockReply();
     QByteArray json_data =
         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
     reply->setData(json_data);
 
-    QSignalSpy spyUserCreated(&session_manager, &TestSessionManager::userCreated);
-    int        before = spyUserCreated.count();
+    QSignalSpy spyUserCreated(&session_manager,
+                              &TestSessionManager::userCreated);
+    int before = spyUserCreated.count();
 
     session_manager.onReplyFinished(reply->readAll());
 
@@ -194,13 +202,14 @@ TEST_CASE("Test onSignInFinished") {
 
   SECTION("ExpectedEmittingUserCreatedWithRightData") {
     qRegisterMetaType<User>("User");
-    auto*      reply = new MockReply();
+    auto *reply = new MockReply();
     QByteArray json_data =
         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
     reply->setData(json_data);
 
-    QSignalSpy spyUserCreated(&session_manager, &TestSessionManager::userCreated);
-    int        before = spyUserCreated.count();
+    QSignalSpy spyUserCreated(&session_manager,
+                              &TestSessionManager::userCreated);
+    int before = spyUserCreated.count();
 
     session_manager.onReplyFinished(reply->readAll());
 
@@ -210,7 +219,7 @@ TEST_CASE("Test onSignInFinished") {
 
     QList<QVariant> arguments = spyUserCreated.takeFirst();
 
-    User    user  = arguments.at(0).value<User>();
+    User user = arguments.at(0).value<User>();
     QString token = arguments.at(1).toString();
 
     REQUIRE(user.name == "ROMA");

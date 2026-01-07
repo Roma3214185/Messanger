@@ -12,23 +12,23 @@ class ISocket;
 using SocketPtr = std::shared_ptr<ISocket>;
 
 class Server {
- public:
-  Server(int port, NotificationManager* notification_manager);
+public:
+  Server(int port, NotificationManager *notification_manager);
   void run();
 
- protected:
-  void handleSocketOnMessage(const SocketPtr& socket, const std::string& data);
+protected:
+  void handleSocketOnMessage(const SocketPtr &socket, const std::string &data);
 
- private:
+private:
   void initRoutes();
   void initHanlers();
   void handleSocketRoutes();
 
-  crow::SimpleApp                                                   app_;
-  NotificationManager*                                              notification_manager_;
-  const int                                                         notification_port_;
+  crow::SimpleApp app_;
+  NotificationManager *notification_manager_;
+  const int notification_port_;
   std::unordered_map<std::string, std::unique_ptr<IMessageHandler>> handlers_;
-  SocketRepository                                                  active_sockets_;
+  SocketRepository active_sockets_;
 };
 
-#endif  // BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_
+#endif // BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_

@@ -13,7 +13,7 @@
 #include "authservice/authmanager.h"
 #include "authservice/server.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   QCoreApplication a(argc, argv);
   initLogger("AuthService");
 
@@ -28,18 +28,18 @@ int main(int argc, char* argv[]) {
     qFatal("Cannot initialise DB");
   }
 
-  SqlExecutor       executor(db);
-  constexpr int     service_id = 1;
-  GeneratorId       id_generator(service_id);
+  SqlExecutor executor(db);
+  constexpr int service_id = 1;
+  GeneratorId id_generator(service_id);
   GenericRepository rep(db, &executor, RedisCache::instance());
 
-  AuthManager        manager(rep, &id_generator);
+  AuthManager manager(rep, &id_generator);
   ProdConfigProvider provider;
-  RealAuthoritizer   authoritizer;
-  JwtGenerator       generator;
-  AuthController     controller(&manager, &authoritizer, &generator);
-  crow::SimpleApp    app;
-  Server             server(app, provider.ports().authService, &controller);
+  RealAuthoritizer authoritizer;
+  JwtGenerator generator;
+  AuthController controller(&manager, &authoritizer, &generator);
+  crow::SimpleApp app;
+  Server server(app, provider.ports().authService, &controller);
 
   // if(!server.generateKeys()) {
   //   qFatal("Cannot generate keys");

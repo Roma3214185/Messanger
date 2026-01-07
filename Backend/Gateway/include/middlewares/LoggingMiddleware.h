@@ -10,57 +10,54 @@
 struct LoggingMiddleware {
   struct context {
     std::chrono::steady_clock::time_point start_time;
-    std::string                           request_id;
+    std::string request_id;
   };
 
   inline static std::atomic<uint64_t> global_request_counter{0};
 
   std::string generateRequestId() {
-    const uint64_t    id = global_request_counter.fetch_add(1, std::memory_order_relaxed);
+    const uint64_t id =
+        global_request_counter.fetch_add(1, std::memory_order_relaxed);
     std::stringstream sstream;
     sstream << "req-" << std::setw(6) << std::setfill('0') << id;
     return sstream.str();
   }
 
   template <typename ParentCtx>
-  void before_handle(const crow::request& req,
-                     crow::response& /*res*/,
-                     context& ctx,
-                     ParentCtx& /*parent_ctx*/) {
+  void before_handle(const crow::request &req, crow::response & /*res*/,
+                     context &ctx, ParentCtx & /*parent_ctx*/) {
     ctx.start_time = std::chrono::steady_clock::now();
     ctx.request_id = generateRequestId();
 
     nlohmann::json json;
     json["request_id"] = ctx.request_id;
-    json["event"]      = "request_received";
-    json["method"]     = crow::method_name(req.method);
-    json["url"]        = req.url;
-    json["client_ip"]  = req.remote_ip_address;
+    json["event"] = "request_received";
+    json["method"] = crow::method_name(req.method);
+    json["url"] = req.url;
+    json["client_ip"] = req.remote_ip_address;
 
     LOG_INFO("REQ: {}", json.dump());
   }
 
   template <typename ParentCtx>
-  void after_handle(const crow::request& req,
-                    crow::response&      res,
-                    context&             ctx,
-                    ParentCtx& /*unused*/) {
+  void after_handle(const crow::request &req, crow::response &res, context &ctx,
+                    ParentCtx & /*unused*/) {
     using namespace std::chrono;
     auto duration = steady_clock::now() - ctx.start_time;
-    auto ms       = duration_cast<milliseconds>(duration).count();
+    auto ms = duration_cast<milliseconds>(duration).count();
 
     nlohmann::json json;
-    json["request_id"]  = ctx.request_id;
-    json["event"]       = "response_sent";
-    json["method"]      = crow::method_name(req.method);
-    json["url"]         = req.url;
+    json["request_id"] = ctx.request_id;
+    json["event"] = "response_sent";
+    json["method"] = crow::method_name(req.method);
+    json["url"] = req.url;
     json["status_code"] = res.code;
-    json["responce"]    = res.body;
-    json["client_ip"]   = req.remote_ip_address;
+    json["responce"] = res.body;
+    json["client_ip"] = req.remote_ip_address;
     json["duration_ms"] = ms;
 
     LOG_INFO("RES: {}", json.dump());
   }
 };
 
-#endif  // LOGGINGMIDDLEWARE_H
+#endif // LOGGINGMIDDLEWARE_H

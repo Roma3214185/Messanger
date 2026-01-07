@@ -5,4 +5,4 @@
 #include "MarkReadMessageHandler.h"
 #include "SendMessageHandler.h"
 
-#endif  // MESSAGEHANLDLERS_H
+#endif // MESSAGEHANLDLERS_H

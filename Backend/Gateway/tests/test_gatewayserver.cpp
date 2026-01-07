@@ -8,34 +8,34 @@
 #include "mocks/gateway/GatewayMocks.h"
 
 struct TestGatewayServerFixrute {
-  GatewayApp         app;
-  MockApiCache       cache;
-  MockClient         client;
+  GatewayApp app;
+  MockApiCache cache;
+  MockClient client;
   MockConfigProvider provider;
-  crow::request      req;
-  crow::response     res;
-  GatewayServer      server;
-  MockMetrics        metrics;
-  std::string        mock_client_ans  = "TEST FORWARD";
-  int                mock_client_code = 1356;
-  MockVerifier       verifier;
-  MockRateLimiter    rate_limiter;
-  MockThreadPool     pool;
-  MockRabitMQClient  rabiq_client;
-  int                user_id = 123;
+  crow::request req;
+  crow::response res;
+  GatewayServer server;
+  MockMetrics metrics;
+  std::string mock_client_ans = "TEST FORWARD";
+  int mock_client_code = 1356;
+  MockVerifier verifier;
+  MockRateLimiter rate_limiter;
+  MockThreadPool pool;
+  MockRabitMQClient rabiq_client;
+  int user_id = 123;
 
   TestGatewayServerFixrute()
       : provider(MockUtils::getMockPorts()),
         server(app, &client, &cache, &pool, &provider, &rabiq_client) {
     app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
-    app.get_middleware<CacheMiddleware>().cache_   = &cache;
+    app.get_middleware<CacheMiddleware>().cache_ = &cache;
     app.get_middleware<LoggingMiddleware>();
     app.get_middleware<RateLimitMiddleware>().rate_limiter_ = &rate_limiter;
-    app.get_middleware<MetricsMiddleware>().metrics_        = &metrics;
+    app.get_middleware<MetricsMiddleware>().metrics_ = &metrics;
 
     provider.mock_codes = MockUtils::getMockCodes();
 
-    verifier.mock_ans    = user_id;
+    verifier.mock_ans = user_id;
     client.mock_response = std::make_pair(mock_client_code, mock_client_ans);
 
     server.registerRoutes();
@@ -51,8 +51,8 @@ struct TestGatewayServerFixrute {
 TEST_CASE("Test apigate POST method") {
   TestGatewayServerFixrute fix;
   fix.req.method = "POST"_method;
-  fix.req.url    = "/auth/login";
-  fix.req.body   = R"({"email":"a","passwords":"b"})";
+  fix.req.url = "/auth/login";
+  fix.req.body = R"({"email":"a","passwords":"b"})";
 
   SECTION("Check server works with rabiq_mq and right create path") {
     int before_call_publish = fix.rabiq_client.publish_cnt;
@@ -73,10 +73,12 @@ TEST_CASE("Test apigate POST method") {
             "localhost:" + std::to_string(fix.provider.ports().authService));
   }
 
-  SECTION("Response received from client expected responce with 202 status code and request_id") {
+  SECTION("Response received from client expected responce with 202 status "
+          "code and request_id") {
     fix.makeCall();
 
-    REQUIRE(fix.res.code == 202);  // TODO: make 202 in provider and extract generatorRequestId
+    REQUIRE(fix.res.code ==
+            202); // TODO: make 202 in provider and extract generatorRequestId
     // REQUIRE(fix.res.body == fix.mock_client_ans);
   }
 }
@@ -84,8 +86,8 @@ TEST_CASE("Test apigate POST method") {
 TEST_CASE("Test apigate GET method") {
   TestGatewayServerFixrute fix;
   fix.req.method = "GET"_method;
-  int chat_id    = 12;
-  fix.req.url    = fmt::format("/messages/{}", chat_id);
+  int chat_id = 12;
+  fix.req.url = fmt::format("/messages/{}", chat_id);
 
   SECTION("Send forward request has to have valid port, method and request") {
     int before_forward_cnt = fix.client.call_get;
@@ -113,7 +115,7 @@ TEST_CASE("Test apigate GET method") {
 TEST_CASE("Test simple base_path request") {
   TestGatewayServerFixrute fix;
   fix.req.method = "GET"_method;
-  fix.req.url    = "/chats";
+  fix.req.url = "/chats";
 
   // SECTION("Check server enqueue work in pool") {
   //   int before_call_pool = fix.pool.call_count;
@@ -138,14 +140,14 @@ TEST_CASE("Test apigate healthz endpoint") {
   TestGatewayServerFixrute fix;
   fix.app.validate();
   fix.req.method = "GET"_method;
-  fix.req.url    = "/healthz";
+  fix.req.url = "/healthz";
 
   fix.makeCall();
 
   auto r = crow::json::load(fix.res.body);
 
   CHECK(r["status"].s() == "ok");
-  long long ts  = r["timestamp"].i();
+  long long ts = r["timestamp"].i();
   long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
                       std::chrono::system_clock::now().time_since_epoch())
                       .count();

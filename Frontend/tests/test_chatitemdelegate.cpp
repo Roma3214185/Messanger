@@ -10,7 +10,7 @@ struct TestChatItemDelegate : public ChatItemDelegate {
 };
 
 TEST_CASE("ChatItemDelegate::refactorLastMessage") {
-  ChatItemStyle        style;
+  ChatItemStyle style;
   TestChatItemDelegate delegate(nullptr, style);
 
   SECTION("empty message returns default text") {
@@ -23,7 +23,7 @@ TEST_CASE("ChatItemDelegate::refactorLastMessage") {
 
   SECTION("long message is truncated") {
     QString long_msg = "This is a very long message that should be truncated";
-    QString result   = delegate.refactorLastMessage(long_msg);
+    QString result = delegate.refactorLastMessage(long_msg);
     REQUIRE(result.length() <= 25);
     REQUIRE(result.endsWith("..."));
   }
@@ -33,16 +33,17 @@ TEST_CASE("ChatItemDelegate::extractChatData") {
   TestChatItemDelegate delegate;
 
   QStandardItemModel model;
-  QStandardItem*     item = new QStandardItem();
+  QStandardItem *item = new QStandardItem();
   item->setData("Chat Title", ChatModel::TitleRole);
   item->setData("Last message", ChatModel::LastMessageRole);
   item->setData("avatar.png", ChatModel::AvatarRole);
-  item->setData(QDateTime(QDate(2025, 11, 12), QTime(12, 0)), ChatModel::LastMessageTimeRole);
+  item->setData(QDateTime(QDate(2025, 11, 12), QTime(12, 0)),
+                ChatModel::LastMessageTimeRole);
   item->setData(3, ChatModel::UnreadRole);
   model.appendRow(item);
 
-  QModelIndex  index = model.index(0, 0);
-  ChatDrawData data  = delegate.extractChatData(index);
+  QModelIndex index = model.index(0, 0);
+  ChatDrawData data = delegate.extractChatData(index);
 
   REQUIRE(data.title == "Chat Title");
   REQUIRE(data.last_message == "Last message");
@@ -53,7 +54,7 @@ TEST_CASE("ChatItemDelegate::extractChatData") {
 
 TEST_CASE("ChatItemDelegate sizeHint returns configured size") {
   ChatItemStyle style;
-  style.chat_item_width  = 300;
+  style.chat_item_width = 300;
   style.chat_item_height = 80;
   ChatItemDelegate delegate(nullptr, style);
 

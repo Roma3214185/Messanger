@@ -6,12 +6,12 @@
 
 namespace JwtUtils {
 
-extern const char*       kIssuer;
+extern const char *kIssuer;
 extern const std::string kKeysDir;
 extern const std::string kPublicKeyFile;
 
-std::optional<long long> verifyTokenAndGetUserId(const std::string& token);
+std::optional<long long> verifyTokenAndGetUserId(const std::string &token);
 
-}  // namespace JwtUtils
+} // namespace JwtUtils
 
 #endif

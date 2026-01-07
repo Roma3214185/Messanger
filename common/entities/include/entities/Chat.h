@@ -8,18 +8,17 @@
 #include "interfaces/entity.h"
 
 struct Chat final : public IEntity {
-  long long   id{0};
-  int         is_group{0};
+  long long id{0};
+  int is_group{0};
   std::string name;
   std::string avatar;
-  long long   created_at{0};
+  long long created_at{0};
 };
 
 namespace nlohmann {
 
-template <>
-struct adl_serializer<Chat> {
-  static void to_json(nlohmann::json& json_chat, const Chat& chat) {
+template <> struct adl_serializer<Chat> {
+  static void to_json(nlohmann::json &json_chat, const Chat &chat) {
     json_chat = nlohmann::json{{ChatTable::Id, chat.id},
                                {ChatTable::IsGroup, chat.is_group},
                                {ChatTable::Name, chat.name},
@@ -27,7 +26,7 @@ struct adl_serializer<Chat> {
                                {ChatTable::CreatedAt, chat.created_at}};
   }
 
-  static void from_json(const nlohmann::json& json_chat, Chat& chat) {
+  static void from_json(const nlohmann::json &json_chat, Chat &chat) {
     json_chat.at(ChatTable::Id).get_to(chat.id);
     json_chat.at(ChatTable::IsGroup).get_to(chat.is_group);
     json_chat.at(ChatTable::Name).get_to(chat.name);
@@ -36,6 +35,6 @@ struct adl_serializer<Chat> {
   }
 };
 
-}  // namespace nlohmann
+} // namespace nlohmann
 
-#endif  // BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_
+#endif // BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_

@@ -4,27 +4,28 @@
 #include "Meta.h"
 #include "entities/ChatMember.h"
 
-template <>
-struct Reflection<ChatMember> {
+template <> struct Reflection<ChatMember> {
   static Meta meta() {
     return Meta{
         .table_name = ChatMemberTable::Table,
-        .fields     = {
-            make_field<ChatMember, long long>(ChatMemberTable::ChatId, &ChatMember::chat_id),
-            make_field<ChatMember, long long>(ChatMemberTable::UserId, &ChatMember::user_id),
-            make_field<ChatMember, std::string>(ChatMemberTable::Status, &ChatMember::status),
-            make_field<ChatMember, long long>(ChatMemberTable::AddedAt, &ChatMember::added_at)}};
+        .fields = {make_field<ChatMember, long long>(ChatMemberTable::ChatId,
+                                                     &ChatMember::chat_id),
+                   make_field<ChatMember, long long>(ChatMemberTable::UserId,
+                                                     &ChatMember::user_id),
+                   make_field<ChatMember, std::string>(ChatMemberTable::Status,
+                                                       &ChatMember::status),
+                   make_field<ChatMember, long long>(ChatMemberTable::AddedAt,
+                                                     &ChatMember::added_at)}};
   }
 };
 
-template <>
-struct Builder<ChatMember> {
-  static ChatMember build(QSqlQuery& query) {
+template <> struct Builder<ChatMember> {
+  static ChatMember build(QSqlQuery &query) {
     ChatMember chat_member;
-    int        idx = 0;
+    int idx = 0;
 
-    auto assign = [&](auto& field) -> void {
-      using TField         = std::decay_t<decltype(field)>;
+    auto assign = [&](auto &field) -> void {
+      using TField = std::decay_t<decltype(field)>;
       const QVariant value = query.value(idx++);
       if constexpr (std::is_same_v<TField, long long>) {
         field = value.toLongLong();
@@ -48,19 +49,19 @@ struct Builder<ChatMember> {
   }
 };
 
-inline constexpr auto ChatMemberFields = std::make_tuple(
-    &ChatMember::chat_id, &ChatMember::user_id, &ChatMember::status, &ChatMember::added_at);
+inline constexpr auto ChatMemberFields =
+    std::make_tuple(&ChatMember::chat_id, &ChatMember::user_id,
+                    &ChatMember::status, &ChatMember::added_at);
 
-template <>
-struct EntityFields<ChatMember> {
-  static constexpr auto& fields = ChatMemberFields;
+template <> struct EntityFields<ChatMember> {
+  static constexpr auto &fields = ChatMemberFields;
 };
 
-template <>
-struct EntityKey<ChatMember> {
-  static std::string get(const ChatMember& entity) {
-    return std::to_string(entity.chat_id) + ", " + std::to_string(entity.user_id);
+template <> struct EntityKey<ChatMember> {
+  static std::string get(const ChatMember &entity) {
+    return std::to_string(entity.chat_id) + ", " +
+           std::to_string(entity.user_id);
   }
 };
 
-#endif  // METAENTITY_CHATMEMBER_H
+#endif // METAENTITY_CHATMEMBER_H

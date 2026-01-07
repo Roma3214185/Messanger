@@ -12,53 +12,54 @@
 namespace Test {
 
 struct TestFixture {
-  crow::SimpleApp    app;
-  MockAuthManager    manager;
-  int                port         = 100;
-  std::string        secret_token = "Secret-token-123";
-  crow::request      req;
-  crow::response     res;
-  int                user_id = 13;
-  Server             server;
-  AuthController     controller;
-  MockAutoritizer    authoritizer;
+  crow::SimpleApp app;
+  MockAuthManager manager;
+  int port = 100;
+  std::string secret_token = "Secret-token-123";
+  crow::request req;
+  crow::response res;
+  int user_id = 13;
+  Server server;
+  AuthController controller;
+  MockAutoritizer authoritizer;
   MockConfigProvider provider;
-  User               user;
-  std::string        token = "secret-test-token";
+  User user;
+  std::string token = "secret-test-token";
   MockTokenGenerator generator;
 
   TestFixture()
-      : controller(&manager, &authoritizer, &generator, &provider), server(app, port, &controller) {
+      : controller(&manager, &authoritizer, &generator, &provider),
+        server(app, port, &controller) {
     authoritizer.mock_user_id = user_id;
-    provider.mock_codes       = MockUtils::getMockCodes();
-    user.id                   = user_id;
-    user.username             = "Test_username";
-    user.tag                  = "test_tag";
-    user.email                = "test_email";
-    user.avatar               = "test/avatar/path";
-    generator.mock_token      = token;
+    provider.mock_codes = MockUtils::getMockCodes();
+    user.id = user_id;
+    user.username = "Test_username";
+    user.tag = "test_tag";
+    user.email = "test_email";
+    user.avatar = "test/avatar/path";
+    generator.mock_token = token;
     server.initRoutes();
 
     // provider.mock_issue_message.invalidToken = "test_invalid_token2";
   }
 
-  std::string formError(const std::string& text) {
+  std::string formError(const std::string &text) {
     nlohmann::json json;
     json["error"] = text;
     return json.dump();
   }
 };
 
-}  // namespace Test
+} // namespace Test
 
 TEST_CASE("handleMe listens on GET /auth/me") {
   Test::TestFixture fix;
   SECTION("Invalid token expected ") {
     fix.authoritizer.need_fail = true;
     fix.app.validate();
-    fix.req.method          = "GET"_method;
-    fix.req.url             = "/auth/me";
-    int before_auth_call    = fix.authoritizer.call_autoritize;
+    fix.req.method = "GET"_method;
+    fix.req.url = "/auth/me";
+    int before_auth_call = fix.authoritizer.call_autoritize;
     int before_call_manager = fix.manager.call_getUser;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -66,17 +67,18 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.call_autoritize == before_auth_call + 1);
     REQUIRE(fix.manager.call_getUser == before_call_manager);
     REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
-    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
+    REQUIRE(fix.res.body ==
+            fix.formError(fix.provider.issueMessages().invalidToken));
   }
   fix.req.add_header("Authorization", fix.token);
 
   SECTION("User not found expected notFound error code") {
     fix.app.validate();
-    fix.req.method                = "GET"_method;
-    fix.req.url                   = "/auth/me";
-    int before_auth_call          = fix.authoritizer.call_autoritize;
-    int before_call_manager       = fix.manager.call_getUser;
-    fix.manager.mock_user         = std::nullopt;
+    fix.req.method = "GET"_method;
+    fix.req.url = "/auth/me";
+    int before_auth_call = fix.authoritizer.call_autoritize;
+    int before_call_manager = fix.manager.call_getUser;
+    fix.manager.mock_user = std::nullopt;
     fix.authoritizer.mock_user_id = fix.user_id;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -86,16 +88,17 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.last_token == fix.token);
     REQUIRE(fix.manager.last_user_id == fix.user_id);
     REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
-    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().userNotFound));
+    REQUIRE(fix.res.body ==
+            fix.formError(fix.provider.issueMessages().userNotFound));
   }
 
   SECTION("Expected return valid status code and form json") {
     fix.app.validate();
-    fix.req.method                = "GET"_method;
-    fix.req.url                   = "/auth/me";
-    int before_auth_call          = fix.authoritizer.call_autoritize;
-    int before_call_manager       = fix.manager.call_getUser;
-    fix.manager.mock_user         = fix.user;
+    fix.req.method = "GET"_method;
+    fix.req.url = "/auth/me";
+    int before_auth_call = fix.authoritizer.call_autoritize;
+    int before_call_manager = fix.manager.call_getUser;
+    fix.manager.mock_user = fix.user;
     fix.authoritizer.mock_user_id = fix.user.id;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -119,7 +122,7 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
   SECTION("Request without body expected badRequest error") {
     fix.app.validate();
     fix.req.method = "POST"_method;
-    fix.req.url    = "/auth/login";
+    fix.req.url = "/auth/login";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -130,8 +133,8 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
   SECTION("Request without email or password expected badRequest error") {
     fix.app.validate();
     fix.req.method = "POST"_method;
-    fix.req.url    = "/auth/login";
-    fix.req.body   = R"({"email":"a","passwords":"b"})";
+    fix.req.url = "/auth/login";
+    fix.req.body = R"({"email":"a","passwords":"b"})";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -143,8 +146,8 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
 
   SECTION("Manager not loggin user expected unauthorized error") {
     fix.app.validate();
-    fix.req.method        = "POST"_method;
-    fix.req.url           = "/auth/login";
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/login";
     fix.manager.mock_user = std::nullopt;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -157,8 +160,8 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
 
   SECTION("User log in expected success code and valid json") {
     fix.app.validate();
-    fix.req.method        = "POST"_method;
-    fix.req.url           = "/auth/login";
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/login";
     fix.manager.mock_user = fix.user;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -181,7 +184,7 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
   SECTION("Request without body expected badRequest error") {
     fix.app.validate();
     fix.req.method = "POST"_method;
-    fix.req.url    = "/auth/register";
+    fix.req.url = "/auth/register";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -192,8 +195,8 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
   SECTION("Request without password expected badRequest error") {
     fix.app.validate();
     fix.req.method = "POST"_method;
-    fix.req.url    = "/auth/register";
-    fix.req.body   = R"({"email":"a", "name":"a", "tag":"a"})";
+    fix.req.url = "/auth/register";
+    fix.req.body = R"({"email":"a", "name":"a", "tag":"a"})";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -206,7 +209,7 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
   SECTION("Valid register request expected no badRequest error") {
     fix.app.validate();
     fix.req.method = "POST"_method;
-    fix.req.url    = "/auth/register";
+    fix.req.url = "/auth/register";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -215,8 +218,8 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
   SECTION("Manager not register user expected unauthorized error") {
     fix.app.validate();
-    fix.req.method        = "POST"_method;
-    fix.req.url           = "/auth/register";
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/register";
     fix.manager.mock_user = std::nullopt;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -231,8 +234,8 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
   SECTION("Valid request expected success code and valid json") {
     fix.app.validate();
-    fix.req.method        = "POST"_method;
-    fix.req.url           = "/auth/register";
+    fix.req.method = "POST"_method;
+    fix.req.url = "/auth/register";
     fix.manager.mock_user = fix.user;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -252,10 +255,11 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
 TEST_CASE("findByTag listens GET users/search") {
   Test::TestFixture fix;
-  SECTION("Request without tag expected badRequest and Missing tag parametr error") {
+  SECTION("Request without tag expected badRequest and Missing tag parametr "
+          "error") {
     fix.app.validate();
     fix.req.method = "GET"_method;
-    fix.req.url    = "/users/search";
+    fix.req.url = "/users/search";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -265,8 +269,8 @@ TEST_CASE("findByTag listens GET users/search") {
 
   SECTION("Request with tag expected request to manager with given tag") {
     fix.app.validate();
-    fix.req.method     = "GET"_method;
-    fix.req.url        = "/users/search";
+    fix.req.method = "GET"_method;
+    fix.req.url = "/users/search";
     fix.req.url_params = crow::query_string("?tag=secret-tag");
 
     fix.app.handle_full(fix.req, fix.res);
@@ -275,16 +279,22 @@ TEST_CASE("findByTag listens GET users/search") {
   }
 
   fix.req.url_params = crow::query_string("?tag=secret-tag");
-  User user1{
-      .id = 1, .username = "1name", .tag = "1tag", .email = "1email", .avatar = "1avatar/path"};
-  User user2{
-      .id = 2, .username = "2name", .tag = "2tag", .email = "2email", .avatar = "2avatar/path"};
+  User user1{.id = 1,
+             .username = "1name",
+             .tag = "1tag",
+             .email = "1email",
+             .avatar = "1avatar/path"};
+  User user2{.id = 2,
+             .username = "2name",
+             .tag = "2tag",
+             .email = "2email",
+             .avatar = "2avatar/path"};
   fix.manager.mock_users = {user1, user2};
 
   SECTION("Valid request expected success code and json") {
     fix.app.validate();
     fix.req.method = "GET"_method;
-    fix.req.url    = "/users/search";
+    fix.req.url = "/users/search";
 
     fix.app.handle_full(fix.req, fix.res);
 
@@ -313,7 +323,7 @@ TEST_CASE("handleFindById listens /users/<int>") {
 
   SECTION("User not found expected notFound code and User not found message") {
     fix.app.validate();
-    fix.req.method        = "GET"_method;
+    fix.req.method = "GET"_method;
     fix.manager.mock_user = std::nullopt;
 
     fix.app.handle_full(fix.req, fix.res);
@@ -323,8 +333,11 @@ TEST_CASE("handleFindById listens /users/<int>") {
     REQUIRE(fix.res.body == fix.formError("User not found"));
   }
 
-  User user{
-      .id = 123, .username = "3name", .tag = "3tag", .email = "3email", .avatar = "3avatar/path"};
+  User user{.id = 123,
+            .username = "3name",
+            .tag = "3tag",
+            .email = "3email",
+            .avatar = "3avatar/path"};
   fix.manager.mock_user = user;
 
   SECTION("User found expected success code and valid json message") {

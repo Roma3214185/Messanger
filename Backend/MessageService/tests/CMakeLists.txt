@@ -25,6 +25,7 @@ target_link_libraries(MessageServiceTests
         Qt6::Test
         Qt6::Network
         BackendMocks
+        ProjectOptions
 )
 
 set_target_properties(MessageServiceTests PROPERTIES AUTOMOC ON)

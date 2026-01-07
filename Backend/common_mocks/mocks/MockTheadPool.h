@@ -4,14 +4,14 @@
 #include "interfaces/IThreadPool.h"
 
 class MockThreadPool : public IThreadPool {
- public:
+public:
   int call_count = 0;
 
- protected:
+protected:
   void enqueueTask(std::function<void()> task) override {
     ++call_count;
     task();
   }
 };
 
-#endif  // MOCKTHEADPOOL_H
+#endif // MOCKTHEADPOOL_H

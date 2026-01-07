@@ -6,22 +6,24 @@
 #include "Debug_profiling.h"
 #include "dto/Message.h"
 
-SocketUseCase::SocketUseCase(std::unique_ptr<SocketManager> socket_manager) : socket_manager_(std::move(socket_manager)) {
-  connect(socket_manager_.get(),
-          &SocketManager::newTextFromSocket,
-          this,
-          &SocketUseCase::onMessageReceived);  // todo: onResponce from server in use cases or in
-                                               // managers (???)
+SocketUseCase::SocketUseCase(std::unique_ptr<SocketManager> socket_manager)
+    : socket_manager_(std::move(socket_manager)) {
+  connect(socket_manager_.get(), &SocketManager::newTextFromSocket, this,
+          &SocketUseCase::onMessageReceived); // todo: onResponce from server in
+                                              // use cases or in managers (???)
 }
 
-void SocketUseCase::initSocket(long long user_id) { socket_manager_->initSocket(user_id); }
+void SocketUseCase::initSocket(long long user_id) {
+  socket_manager_->initSocket(user_id);
+}
 
-void SocketUseCase::onMessageReceived(const QString& msg) {
+void SocketUseCase::onMessageReceived(const QString &msg) {
   PROFILE_SCOPE("Model::onMessageReceived");
-  LOG_INFO("[onMessageReceived] Message received from user {}: ", msg.toStdString());
+  LOG_INFO("[onMessageReceived] Message received from user {}: ",
+           msg.toStdString());
 
   QJsonParseError parseError;
-  auto            doc = QJsonDocument::fromJson(msg.toUtf8(), &parseError);
+  auto doc = QJsonDocument::fromJson(msg.toUtf8(), &parseError);
 
   if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
     LOG_ERROR("[onMessageReceived] Failed JSON parse: '{}'",
@@ -36,11 +38,12 @@ void SocketUseCase::onMessageReceived(const QString& msg) {
 
 void SocketUseCase::connectSocket() { socket_manager_->connectSocket(); }
 
-void SocketUseCase::sendMessage(const Message& msg) {
+void SocketUseCase::sendMessage(const Message &msg) {
   PROFILE_SCOPE("Model::sendMessage");
 
   if (msg.text.trimmed().isEmpty()) {
-    LOG_WARN("Empty message skipped. chatId={}, senderId={}", msg.chat_id, msg.sender_id);
+    LOG_WARN("Empty message skipped. chatId={}, senderId={}", msg.chat_id,
+             msg.sender_id);
     return;
   }
 
@@ -51,19 +54,19 @@ void SocketUseCase::sendMessage(const Message& msg) {
                           {"timestamp", msg.timestamp.toString()},
                           {"local_id", msg.local_id}};
 
-  socket_manager_->sendText(
-      QString(QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact))));
+  socket_manager_->sendText(QString(
+      QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact))));
   LOG_INFO("[sendMessage] To send message to chatId={} from user {}: '{}'",
-           msg.chat_id,
-           msg.sender_id,
-           msg.text.toStdString());
+           msg.chat_id, msg.sender_id, msg.text.toStdString());
 }
 
-void SocketUseCase::sendReadMessageEvent(const Message& message, long long current_user_id) {
+void SocketUseCase::sendReadMessageEvent(const Message &message,
+                                         long long current_user_id) {
   // todo: maybe pass only id, not full Message
-  auto json = QJsonObject{
-      {"type", "read_message"}, {"message_id", message.id}, {"readed_by", current_user_id}};
+  auto json = QJsonObject{{"type", "read_message"},
+                          {"message_id", message.id},
+                          {"readed_by", current_user_id}};
 
-  socket_manager_->sendText(
-      QString(QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact))));
+  socket_manager_->sendText(QString(
+      QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact))));
 }

@@ -7,14 +7,14 @@
 #include "Debug_profiling.h"
 
 class TokenManager {
-  std::optional<QString>   token_;
+  std::optional<QString> token_;
   std::optional<long long> current_id_;
 
- public:
-  void setData(const QString& token, long long current_id) {
+public:
+  void setData(const QString &token, long long current_id) {
     DBC_REQUIRE(!token.isEmpty());
     DBC_REQUIRE(current_id > 0);
-    token_      = token;
+    token_ = token;
     current_id_ = current_id;
   }
 
@@ -34,4 +34,4 @@ class TokenManager {
   }
 };
 
-#endif  // TOKENMANAGER_H
+#endif // TOKENMANAGER_H

@@ -17,8 +17,8 @@
 //   SocketsManager socket_manager;
 //   MockNetworkManager network_manager;
 //   NetworkFacade network_facade = NetworkFactory::create(&network_manager);
-//   NotificationManager notification_manager(&mock_rabit_client, &socket_manager, network_facade);
-//   int user_id = 4;
+//   NotificationManager notification_manager(&mock_rabit_client,
+//   &socket_manager, network_facade); int user_id = 4;
 
 //   SECTION("Send message to user expected socket receive message") {
 //     auto socket = std::make_shared<MockSocket>();
@@ -28,7 +28,8 @@
 //     auto expected_json = nlohmann::json(message_to_send);
 //     expected_json["type"] = "new_message";
 
-//     bool result = notification_manager.notifyMember(user_id, message_to_send, "new_message");
+//     bool result = notification_manager.notifyMember(user_id, message_to_send,
+//     "new_message");
 
 //     REQUIRE(result);
 //     REQUIRE(socket->send_text_calls == 1);
@@ -37,7 +38,8 @@
 
 //   SECTION("User offline expected socket don't receive sended text") {
 //     Message message_to_send;
-//     bool result = notification_manager.notifyMember(user_id, message_to_send, "new_message");
+//     bool result = notification_manager.notifyMember(user_id, message_to_send,
+//     "new_message");
 
 //     REQUIRE_FALSE(result);
 //   }
@@ -70,8 +72,8 @@
 //   provider.mock_routes = mock_routes;
 
 //   NetworkFacade network_facade = NetworkFactory::create(&network_manager);
-//   TestNotificationManager notification_manager(&mock_rabit_client, &socket_manager,
-//   network_facade, &provider); MockSocket socket;
+//   TestNotificationManager notification_manager(&mock_rabit_client,
+//   &socket_manager, network_facade, &provider); MockSocket socket;
 
 //   Message message;
 //   message.id = 1;
@@ -80,10 +82,14 @@
 //   SECTION("Subscribing to rabitMQ expected rabit handles input data") {
 //     notification_manager.subscribeMessageSaved();
 
-//     CHECK(mock_rabit_client.last_subscribe_request.exchange == mock_routes.exchange);
-//     CHECK(mock_rabit_client.last_subscribe_request.exchange_type == mock_routes.exchangeType);
-//     CHECK(mock_rabit_client.last_subscribe_request.queue == mock_routes.messageSavedQueue);
-//     CHECK(mock_rabit_client.last_subscribe_request.routing_key == mock_routes.messageSaved);
+//     CHECK(mock_rabit_client.last_subscribe_request.exchange ==
+//     mock_routes.exchange);
+//     CHECK(mock_rabit_client.last_subscribe_request.exchange_type ==
+//     mock_routes.exchangeType);
+//     CHECK(mock_rabit_client.last_subscribe_request.queue ==
+//     mock_routes.messageSavedQueue);
+//     CHECK(mock_rabit_client.last_subscribe_request.routing_key ==
+//     mock_routes.messageSaved);
 //   }
 
 //   SECTION("Subscribing to rabitMQ expected call expected callback") {
@@ -93,7 +99,8 @@
 //     mock_rabit_client.callLastCallback(nlohmann::json(message).dump());
 
 //     REQUIRE(notification_manager.handlerCalled == before_calls + 1);
-//     REQUIRE(notification_manager.lastPayload == nlohmann::json(message).dump());
+//     REQUIRE(notification_manager.lastPayload ==
+//     nlohmann::json(message).dump());
 //   }
 
 //   SECTION("On send message expected publish data in rabitMQ") {
@@ -101,10 +108,14 @@
 //     auto expected_json = nlohmann::json(message);
 //     expected_json["event"] = "save_message";
 
-//     CHECK(mock_rabit_client.last_publish_request.exchange == mock_routes.exchange);
-//     CHECK(mock_rabit_client.last_publish_request.exchange_type == mock_routes.exchangeType);
-//     CHECK(mock_rabit_client.last_publish_request.message == expected_json.dump());
-//     CHECK(mock_rabit_client.last_publish_request.routing_key == mock_routes.saveMessage);
+//     CHECK(mock_rabit_client.last_publish_request.exchange ==
+//     mock_routes.exchange);
+//     CHECK(mock_rabit_client.last_publish_request.exchange_type ==
+//     mock_routes.exchangeType);
+//     CHECK(mock_rabit_client.last_publish_request.message ==
+//     expected_json.dump());
+//     CHECK(mock_rabit_client.last_publish_request.routing_key ==
+//     mock_routes.saveMessage);
 //   }
 
 // }
@@ -121,8 +132,8 @@
 //   MockNetworkManager network_manager;
 
 //   NetworkFacade network_facade = NetworkFactory::create(&network_manager);
-//   TestNotificationManager1 notification_manager(&mock_rabit_client, &socket_manager,
-//   network_facade);
+//   TestNotificationManager1 notification_manager(&mock_rabit_client,
+//   &socket_manager, network_facade);
 
 //   auto socket1 = std::make_shared<MockSocket>();
 //   auto socket2 = std::make_shared<MockSocket>();
@@ -151,7 +162,8 @@
 //   message.chat_id = chat_id;
 //   message.text = "hi";
 
-//   SECTION("Handle message all online expected socket receive to sending all messages") {
+//   SECTION("Handle message all online expected socket receive to sending all
+//   messages") {
 //     Message message_to_save;
 //     message_to_save.id = 1;
 //     message_to_save.chat_id = chat_id;
@@ -165,8 +177,8 @@
 //     REQUIRE(socket4->send_text_calls == 1);
 //   }
 
-//   SECTION("Handle message all online expect one expected socket receive to sending all messages -
-//   1") {
+//   SECTION("Handle message all online expect one expected socket receive to
+//   sending all messages - 1") {
 //     socket_manager.deleteConnections(socket0);
 
 //     notification_manager.handleMessageSaved(nlohmann::json(message).dump());
@@ -178,7 +190,8 @@
 //     REQUIRE(socket4->send_text_calls == 1);
 //   }
 
-//   SECTION("Handle message receive invalid payload expected not sending any message") {
+//   SECTION("Handle message receive invalid payload expected not sending any
+//   message") {
 //     int before_cnt = mock_rabit_client.publish_cnt;
 
 //     notification_manager.handleMessageSaved("invalid payload");
@@ -186,7 +199,8 @@
 //     REQUIRE(mock_rabit_client.publish_cnt == before_cnt);
 //   }
 
-//   SECTION("Handle message all online expected all publishing to save message_status in RabiqMQ")
+//   SECTION("Handle message all online expected all publishing to save
+//   message_status in RabiqMQ")
 //   {
 //     int before = mock_rabit_client.getPublishCnt("save_message_status");
 //     int before_cnt = mock_rabit_client.publish_cnt;
@@ -196,8 +210,8 @@
 //     REQUIRE(mock_rabit_client.publish_cnt == before_cnt + user_ids.size());
 //   }
 
-//   SECTION("Handle message all online except one expected all publishing to save message_status in
-//   RabiqMQ") {
+//   SECTION("Handle message all online except one expected all publishing to
+//   save message_status in RabiqMQ") {
 //     socket_manager.deleteConnections(socket0);
 //     int before = mock_rabit_client.getPublishCnt("save_message_status");
 //     int before_cnt = mock_rabit_client.publish_cnt;

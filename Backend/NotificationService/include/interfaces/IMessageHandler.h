@@ -6,12 +6,12 @@
 #include "notificationservice/managers/notificationmanager.h"
 
 class IMessageHandler {
- public:
+public:
   virtual ~IMessageHandler() = default;
 
-  virtual void handle(const crow::json::rvalue&       message,
-                      const std::shared_ptr<ISocket>& socket,
-                      NotificationManager&            manager) = 0;
+  virtual void handle(const crow::json::rvalue &message,
+                      const std::shared_ptr<ISocket> &socket,
+                      NotificationManager &manager) = 0;
 };
 
-#endif  // IMESSAGEHANDLER_H
+#endif // IMESSAGEHANDLER_H

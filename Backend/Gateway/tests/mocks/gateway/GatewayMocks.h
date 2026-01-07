@@ -7,4 +7,4 @@
 #include "MockRateLimiter.h"
 #include "MockVerifier.h"
 
-#endif  // GATEWAYMOCKS_H
+#endif // GATEWAYMOCKS_H

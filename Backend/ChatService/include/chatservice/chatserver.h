@@ -9,11 +9,11 @@ class ChatController;
 class NetworkManager;
 
 class ChatServer {
- public:
-  ChatServer(crow::SimpleApp& app, int port, ChatController* controller);
+public:
+  ChatServer(crow::SimpleApp &app, int port, ChatController *controller);
   void run();
 
- private:
+private:
   void initRoutes();
 
   void handleCreatingPrivateChat();
@@ -21,9 +21,9 @@ class ChatServer {
   void handleGetChat();
   void handleGetAllChatsMembers();
 
-  int              port_;
-  crow::SimpleApp& app_;
-  ChatController*  controller_;
+  int port_;
+  crow::SimpleApp &app_;
+  ChatController *controller_;
 };
 
-#endif  // BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_
+#endif // BACKEND_CHATSERVICE_SRC_SERVER_SERVER_H_

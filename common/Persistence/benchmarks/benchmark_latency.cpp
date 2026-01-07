@@ -47,8 +47,8 @@
 //     sendFunc();  // your message sending function
 //     auto end = std::chrono::high_resolution_clock::now();
 
-//     double ms = std::chrono::duration<double, std::milli>(end - start).count();
-//     latencies_ms.push_back(ms);
+//     double ms = std::chrono::duration<double, std::milli>(end -
+//     start).count(); latencies_ms.push_back(ms);
 //   }
 
 //   std::sort(latencies_ms.begin(), latencies_ms.end());
@@ -63,7 +63,7 @@
 //   std::cout << "P99: " << p99 << " ms\n";
 // }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   QCoreApplication app(argc, argv);
 
   //   SQLiteDatabase db;

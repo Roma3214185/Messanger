@@ -7,4 +7,4 @@
 #include "MetricsMiddleware.h"
 #include "RateLimitMiddleware.h"
 
-#endif  // MIDDLEWARES_H
+#endif // MIDDLEWARES_H

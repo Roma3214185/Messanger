@@ -22,6 +22,7 @@ target_link_libraries(GatewayTests
         Catch2::Catch2
         Qt6::Test
         BackendMocks
+        ProjectOptions
 )
 
 set_target_properties(GatewayTests PROPERTIES AUTOMOC ON)

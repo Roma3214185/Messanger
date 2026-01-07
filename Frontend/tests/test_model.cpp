@@ -95,15 +95,16 @@
 
 //   SECTION("SignInExpectedUserCreatedEmitted") {
 //     QByteArray jsonData =
-//         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
+//         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1},
+//         "token":"12345"})";
 //     auto* reply = new MockReply();
 //     reply->setData(jsonData);
 //     netManager.setReply(reply);
 
 //     QSignalSpy spyUserCreated(&model, &Model::userCreated);
 //     int before = spyUserCreated.count();
-//     LogInRequest login_request{ .email = "romanlobach1911@gmail.com", .password = "12345678"};
-//     model.signIn(login_request);
+//     LogInRequest login_request{ .email = "romanlobach1911@gmail.com",
+//     .password = "12345678"}; model.signIn(login_request);
 //     reply->emitFinished();
 
 //     REQUIRE(spyUserCreated.count() == before + 1);
@@ -111,15 +112,16 @@
 
 //   SECTION("SignInExpectedUserCreatedWithSameInfo") {
 //     QByteArray jsonData =
-//         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
+//         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1},
+//         "token":"12345"})";
 //     auto* reply = new MockReply();
 //     reply->setData(jsonData);
 //     netManager.setReply(reply);
 
 //     QSignalSpy spyUserCreated(&model, &Model::userCreated);
 //     int before = spyUserCreated.count();
-//     LogInRequest login_request{ .email = "romanlobach1911@gmail.com", .password = "12345678"};
-//     model.signIn(login_request);
+//     LogInRequest login_request{ .email = "romanlobach1911@gmail.com",
+//     .password = "12345678"}; model.signIn(login_request);
 //     reply->emitFinished();
 
 //     QList<QVariant> args = spyUserCreated.takeFirst();
@@ -132,7 +134,8 @@
 
 //   SECTION("SignUpExpectedUserCreatedEmitted") {
 //     QByteArray jsonData =
-//         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
+//         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1},
+//         "token":"12345"})";
 //     auto* reply = new MockReply();
 //     reply->setData(jsonData);
 //     netManager.setReply(reply);

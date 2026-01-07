@@ -6,29 +6,30 @@
 #include "interfaces/IUserNetworkManager.h"
 
 class NetworkFacade {
- public:
-  NetworkFacade(IUserNetworkManager* user, IMessageNetworkManager* msg, IChatNetworkManager* chat)
+public:
+  NetworkFacade(IUserNetworkManager *user, IMessageNetworkManager *msg,
+                IChatNetworkManager *chat)
       : user_(user), message_(msg), chat_(chat) {}
 
-  IUserNetworkManager&    user() { return *user_; }
-  IMessageNetworkManager& msg() { return *message_; }
-  IChatNetworkManager&    chat() { return *chat_; }
+  IUserNetworkManager &user() { return *user_; }
+  IMessageNetworkManager &msg() { return *message_; }
+  IChatNetworkManager &chat() { return *chat_; }
 
- private:
-  IUserNetworkManager*    user_;
-  IMessageNetworkManager* message_;
-  IChatNetworkManager*    chat_;
+private:
+  IUserNetworkManager *user_;
+  IMessageNetworkManager *message_;
+  IChatNetworkManager *chat_;
 };
 
 class NetworkFactory {
- public:
-  static NetworkFacade create(INetworkManagerBase* base) {
-    auto* u = dynamic_cast<IUserNetworkManager*>(base);
-    auto* m = dynamic_cast<IMessageNetworkManager*>(base);
-    auto* c = dynamic_cast<IChatNetworkManager*>(base);
+public:
+  static NetworkFacade create(INetworkManagerBase *base) {
+    auto *u = dynamic_cast<IUserNetworkManager *>(base);
+    auto *m = dynamic_cast<IMessageNetworkManager *>(base);
+    auto *c = dynamic_cast<IChatNetworkManager *>(base);
 
     return NetworkFacade(u, m, c);
   }
 };
 
-#endif  // NETWORKFACADE_H
+#endif // NETWORKFACADE_H

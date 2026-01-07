@@ -5,8 +5,8 @@
 #include <QNetworkReply>
 
 class MockReply : public QNetworkReply {
- public:
-  MockReply(QObject* parent = nullptr) : QNetworkReply(parent) {
+public:
+  MockReply(QObject *parent = nullptr) : QNetworkReply(parent) {
     open(ReadOnly | Unbuffered);
     setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     setFinished(true);
@@ -14,21 +14,21 @@ class MockReply : public QNetworkReply {
     setUrl(QUrl("http://mock.url"));
   }
 
-  QString                     mock_str  = "Mock network error";
+  QString mock_str = "Mock network error";
   QNetworkReply::NetworkError mock_code = ConnectionRefusedError;
 
-  void setMockError(QNetworkReply::NetworkError code, const QString& str) {
+  void setMockError(QNetworkReply::NetworkError code, const QString &str) {
     setError(code, str);
-    mock_str  = str;
+    mock_str = str;
     mock_code = code;
   }
 
   void abort() override {}
-  void setData(const QByteArray& data) { this->data = data; }
+  void setData(const QByteArray &data) { this->data = data; }
 
   QByteArray data;
 
- public Q_SLOTS:
+public Q_SLOTS:
   void emitFinished() {
     setFinished(true);
     setError(NoError, {});
@@ -42,8 +42,8 @@ class MockReply : public QNetworkReply {
     Q_EMIT finished();
   }
 
- protected:
-  qint64 readData(char* buffer, qint64 maxlen) override {
+protected:
+  qint64 readData(char *buffer, qint64 maxlen) override {
     qint64 len = std::min(maxlen, qint64(data.size()));
     memcpy(buffer, data.constData(), len);
     data.remove(0, len);
@@ -51,4 +51,4 @@ class MockReply : public QNetworkReply {
   }
 };
 
-#endif  // TESTS_MOCKS_MOCKREPLY_H
+#endif // TESTS_MOCKS_MOCKREPLY_H

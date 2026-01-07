@@ -12,14 +12,15 @@
 #include "interfaces/IClient.h"
 
 class ProxyClient {
-  IClient* client_;
+  IClient *client_;
 
- public:
-  ProxyClient(IClient* client) : client_(client) {}
-  NetworkResponse forward(const RequestDTO&, const int port);
+public:
+  ProxyClient(IClient *client) : client_(client) {}
+  NetworkResponse forward(const RequestDTO &, const int port);
 
- private:
-  NetworkResponse makeRequest(const ForwardRequestDTO&, const std::string& method);
+private:
+  NetworkResponse makeRequest(const ForwardRequestDTO &,
+                              const std::string &method);
 };
 
-#endif  // BACKEND_APIGATEWAY_SRC_PROXYCLIENT_PROXYCLIENT_H_
+#endif // BACKEND_APIGATEWAY_SRC_PROXYCLIENT_PROXYCLIENT_H_

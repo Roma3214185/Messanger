@@ -30,14 +30,15 @@
 //     int calls_onGetMessagesFromChat = 0;
 //     int last_chat_id;
 
-//     void onGetMessagesFromChat(const crow::request& req, long long chat_id, crow::response& res)
-//     override {
+//     void onGetMessagesFromChat(const crow::request& req, long long chat_id,
+//     crow::response& res) override {
 //       ++calls_onGetMessagesFromChat;
 //       last_chat_id = chat_id;
 //     }
 // };
 
-// TEST_CASE("Server listens on /messages/<int> and calls onGetMessagesFromChat") {
+// TEST_CASE("Server listens on /messages/<int> and calls
+// onGetMessagesFromChat") {
 //   TestFixture fix;
 //   TestServer server(fix.app, fix.port, &fix.controller, &fix.provider);
 
@@ -60,7 +61,8 @@
 //     std::optional<long long> mock_user_id_ans;
 //     int calls_getUserIdFromToken = 0;
 
-//     std::optional<long long> getUserIdFromToken(const std::string &token) override {
+//     std::optional<long long> getUserIdFromToken(const std::string &token)
+//     override {
 //       ++calls_getUserIdFromToken;
 //       last_token = token;
 //       return mock_user_id_ans;
@@ -92,7 +94,8 @@
 //     REQUIRE(server.last_token == secret_token);
 //   }
 
-//   SECTION("Token invalid or expired expected return error code and test about problem") {
+//   SECTION("Token invalid or expired expected return error code and test about
+//   problem") {
 //     server.mock_user_id_ans = std::nullopt;
 //     fix.app.handle_full(fix.req, fix.res);
 
@@ -157,7 +160,8 @@
 //   CHECK(r[1]["readed_by_me"].b() == false);
 // }
 
-// TEST_CASE("formMessageListJson got vectors of different sizes expected return empty JSON array")
+// TEST_CASE("formMessageListJson got vectors of different sizes expected return
+// empty JSON array")
 // {
 //   TestFixture fix;
 //   TestServer2 server(fix.app, fix.port, &fix.controller, &fix.provider);

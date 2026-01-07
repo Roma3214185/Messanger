@@ -7,11 +7,12 @@
 #include "interfaces/INetworkManagerBase.h"
 
 class IMessageNetworkManager : public virtual INetworkManagerBase {
- public:
+public:
   std::optional<long long> getChatIdOfMessage(long long message_id) {
     const std::string path = "/message/" + std::to_string(message_id);
-    auto              res  = forward(provider_->ports().messageService, "", path, "GET");
-    LOG_INFO("getChatIdOfMessage reveived {} and body {}", res.first, res.second);
+    auto res = forward(provider_->ports().messageService, "", path, "GET");
+    LOG_INFO("getChatIdOfMessage reveived {} and body {}", res.first,
+             res.second);
     if (res.first != provider_->statusCodes().success) {
       LOG_ERROR("getChatIdOfMessage failed: {}", res.first);
       return std::nullopt;
@@ -33,11 +34,11 @@ class IMessageNetworkManager : public virtual INetworkManagerBase {
       long long chat_id = obj.at("chat_id").get<long long>();
       LOG_INFO("For message id {} chat id is {}", message_id, chat_id);
       return chat_id;
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
       LOG_ERROR("JSON parse error in getChatIdOfMessage: {}", e.what());
       return std::nullopt;
     }
   }
 };
 
-#endif  // IMESSAGENETWORKMANAGER_H
+#endif // IMESSAGENETWORKMANAGER_H

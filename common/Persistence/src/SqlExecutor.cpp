@@ -1,8 +1,9 @@
 #include "SqlExecutor.h"
 
-SqlExecutor::SqlExecutor(IDataBase& database) : database_(database) {}
+SqlExecutor::SqlExecutor(IDataBase &database) : database_(database) {}
 
-std::unique_ptr<IQuery> SqlExecutor::execute(const QString& sql, const QList<QVariant>& values) {
+std::unique_ptr<IQuery> SqlExecutor::execute(const QString &sql,
+                                             const QList<QVariant> &values) {
   PROFILE_SCOPE("[SqlExecutor] Execute");
 
   auto outQuery = database_.prepare(sql);
@@ -11,7 +12,8 @@ std::unique_ptr<IQuery> SqlExecutor::execute(const QString& sql, const QList<QVa
     return nullptr;
   }
 
-  for (int i = 0; i < values.size(); ++i) outQuery->bind(values[i]);
+  for (int i = 0; i < values.size(); ++i)
+    outQuery->bind(values[i]);
 
   LOG_INFO("[SqlExecutor] Executing SQL: {}", sql.toStdString());
 
@@ -24,9 +26,11 @@ std::unique_ptr<IQuery> SqlExecutor::execute(const QString& sql, const QList<QVa
   return outQuery;
 }
 
-// std::optional<long long> SqlExecutor::executeReturningId(const QString&         sql,
-//                                                          QSqlQuery&             outQuery,
-//                                                          const QList<QVariant>& values) {
+// std::optional<long long> SqlExecutor::executeReturningId(const QString& sql,
+//                                                          QSqlQuery& outQuery,
+//                                                          const
+//                                                          QList<QVariant>&
+//                                                          values) {
 //   if (!execute(sql, outQuery, values)) return std::nullopt;
 
 //   if (!outQuery.next()) {
