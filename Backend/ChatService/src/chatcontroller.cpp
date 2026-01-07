@@ -91,7 +91,7 @@ Response ChatController::createPrivateChat(const RequestDTO &req) {
     return std::nullopt;
   }();
 
-  if (!user_id) {
+  if (!user_id.has_value()) {
     LOG_ERROR("Can't get 'user_id' from json");
     return sendResponse(provider_->statusCodes().badRequest,
                         formErrorResponce("User_id invalid"));
@@ -111,7 +111,7 @@ Response ChatController::createPrivateChat(const RequestDTO &req) {
 
   std::optional<long long> chat_id =
       manager_->createPrivateChat(*my_id, *user_id);
-  if (!chat_id) {
+  if (!chat_id.has_value()) {
     LOG_ERROR("Failed to create private chat for users '{}, {}'", *my_id,
               *user_id);
     return sendResponse(provider_->statusCodes().serverError,
@@ -135,7 +135,7 @@ std::optional<long long> ChatController::autoritize(const std::string &token) {
 Response ChatController::getAllChats(const RequestDTO &req) {
   LOG_INFO("Get all chats, req is {}", req.body);
   auto user_id = autoritize(req.token);
-  if (!user_id) {
+  if (!user_id.has_value()) {
     return sendResponse(
         provider_->statusCodes().userError,
         formErrorResponce(provider_->issueMessages().invalidToken));
@@ -168,7 +168,7 @@ Response ChatController::getAllChats(const RequestDTO &req) {
 Response ChatController::getChat(const RequestDTO &req,
                                  const std::string &chat_id_str) {
   auto user_id = autoritize(req.token);
-  if (!user_id) {
+  if (!user_id.has_value()) {
     return sendResponse(
         provider_->statusCodes().unauthorized,
         formErrorResponce(provider_->issueMessages().invalidToken));
@@ -176,7 +176,7 @@ Response ChatController::getChat(const RequestDTO &req,
 
   LOG_INFO("chat_id_str = {}", chat_id_str);
   auto chat_id = getIdFromStr(chat_id_str);
-  if (!chat_id) {
+  if (!chat_id.has_value()) {
     return sendResponse(provider_->statusCodes().badRequest,
                         formErrorResponce("Invaid id"));
   }
@@ -224,7 +224,7 @@ Response ChatController::getAllChatMembers(const RequestDTO & /*req*/,
                                            const std::string &chat_id_str) {
   LOG_INFO("chat_id_str = {}", chat_id_str);
   std::optional<long long> chat_id = getIdFromStr(chat_id_str);
-  if (!chat_id) {
+  if (!chat_id.has_value()) {
     return sendResponse(provider_->statusCodes().badRequest,
                         formErrorResponce("Invalid id"));
   }

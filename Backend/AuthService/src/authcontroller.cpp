@@ -99,7 +99,7 @@ Response AuthController::loginUser(const RequestDTO &req) {
 
 Response AuthController::handleMe(const RequestDTO &req) {
   auto user_id = verifyToken(req.token);
-  if (!user_id) {
+  if (!user_id.has_value()) {
     LOG_ERROR("Invalid token");
     return sendResponse(provider_->statusCodes().unauthorized,
                         provider_->issueMessages().invalidToken, true);
@@ -143,7 +143,7 @@ Response AuthController::findByTag(const RequestDTO &req) {
 Response AuthController::findById(const RequestDTO & /*req*/,
                                   const std::string &user_id_str) {
   std::optional<long long> user_id = getIdFromStr(user_id_str);
-  if (!user_id) {
+  if (!user_id.has_value()) {
     return sendResponse(provider_->statusCodes().badRequest, "Invalid user_id",
                         true);
   }
