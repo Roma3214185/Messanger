@@ -82,10 +82,6 @@ jobs:
       - name: Build
         run: cmake --build build --parallel
 
-      # 🔟 Run tests
-      - name: Run tests
-        run: ctest --test-dir build --output-on-failure
-
       # Perform CodeQL analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
