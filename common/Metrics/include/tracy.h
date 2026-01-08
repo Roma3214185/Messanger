@@ -73,8 +73,12 @@ public:
     const double duration_seconds =
         std::chrono::duration<double>(end - start_).count();
 
-    // span_->End();
-    spdlog::info("{} took {:.3f} s", name_, duration_seconds);
+    try {
+      // span_->End();
+      spdlog::info("{} took {:.3f} s", name_, duration_seconds);
+    } catch(...) {
+
+    }
   }
 };
 
