@@ -27,7 +27,7 @@ public:
       return std::nullopt;
     }();
 
-    if (user_id) {
+    if (user_id.has_value()) {
       manager.userConnected(*user_id, socket);
       LOG_INFO("[init] Socket registered for userId '{}'", *user_id);
     }

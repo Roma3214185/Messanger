@@ -95,9 +95,10 @@ TEST_CASE("Get user expected create valid sql") {
 
   fix.manager.getUser(fix.user_id);
 
+  REQUIRE(fix.executor.execute_calls == before_execute_calls + 1);
   REQUIRE(fix.executor.lastSql.toStdString() == expected_sql);
-  REQUIRE(fix.executor.lastValues.size() == 1);
-  REQUIRE(fix.executor.lastValues[0] == fix.user_id);
+  CHECK(fix.executor.lastValues.size() == 1);
+  CHECK(fix.executor.lastValues[0] == fix.user_id);
 }
 
 TEST_CASE("Test AUthManager::login") {
@@ -167,43 +168,42 @@ TEST_CASE("Test AuthManager::register") {
     REQUIRE(res == std::nullopt);
   }
 
-  // SECTION("Save fails expected return std::nullopt") {
-  //   fix.executor.shouldFail = true;
-  //   fix.generator.mocked_id = 13424;
-  //   std::string expected_sql = "INSERT OR REPLACE INTO users (id, username,
-  //   tag, email) VALUES
-  //   (?, ?, ?, ?)"; auto res = fix.manager.registerUser(reg_req);
+  SECTION("Save user fails expected return std::nullopt") {
+    fix.executor.shouldFail = true;
+    fix.generator.mocked_id = 13424;
+    std::string expected_sql = "INSERT OR REPLACE INTO users (id, username, tag, email) VALUES (?, ?, ?, ?);";
+    auto res = fix.manager.registerUser(reg_req);
 
-  //   // REQUIRE(fix.executor.lastSql.toStdString() == expected_sql);
-  //   // REQUIRE(fix.executor.lastValues.size() == 4);
-  //   // CHECK(fix.executor.lastValues[0].toInt() == fix.generator.mocked_id);
-  //   // CHECK(fix.executor.lastValues[1].toString().toStdString() ==
-  //   reg_req.name);
-  //   // CHECK(fix.executor.lastValues[2].toString().toStdString() ==
-  //   reg_req.tag);
-  //   // CHECK(fix.executor.lastValues[3].toString().toStdString() ==
-  //   reg_req.email); REQUIRE(res == std::nullopt);
-  // }
+    REQUIRE(fix.executor.lastSql.trimmed().toStdString() == expected_sql);
+    REQUIRE(fix.executor.lastValues.size() == 4);
+    CHECK(fix.executor.lastValues[0].toInt() == fix.generator.mocked_id);
+    CHECK(fix.executor.lastValues[1].toString().toStdString() ==
+    reg_req.name);
+    CHECK(fix.executor.lastValues[2].toString().toStdString() ==
+    reg_req.tag);
+    CHECK(fix.executor.lastValues[3].toString().toStdString() ==
+    reg_req.email);
+    REQUIRE(res == std::nullopt);
+  }
 
-  // SECTION("Save fails axpected return std::nullopt") {
-  //   fix.manager.mock_hash_password = fix.hash_password;
-  //   std::string expected_sql = "INSERT OR REPLACE INTO credentials (user_id,
-  //   hash_password) VALUES (?, ?)"; auto res =
-  //   fix.manager.registerUser(reg_req);
+  SECTION("Save user_credentials fails expected return std::nullopt") {
+    fix.manager.mock_hash_password = fix.hash_password;
+    std::string expected_sql = "INSERT OR REPLACE INTO credentials (user_id, hash_password) VALUES (?, ?); ";
+    auto res = fix.manager.registerUser(reg_req);
 
-  //   REQUIRE(fix.executor.lastSql.toStdString() == expected_sql);
-  //   REQUIRE(fix.executor.lastValues.size() == 2);
-  //   REQUIRE(res != std::nullopt);
-  //   CHECK(fix.executor.lastValues[0].toInt() == fix.user.id);
-  //   CHECK(fix.executor.lastValues[1].toString().toStdString() ==
-  //   fix.hash_password);
+    REQUIRE(fix.executor.lastSql.toStdString() == expected_sql);
+    REQUIRE(fix.executor.lastValues.size() == 2);
+    REQUIRE(res != std::nullopt);
+    CHECK(fix.executor.lastValues[0].toInt() == fix.user.id);
+    CHECK(fix.executor.lastValues[1].toString().toStdString() ==
+    fix.hash_password);
 
-  //   CHECK(res->id == fix.user.id);
-  //   //CHECK(res->avatar == fix.user.avatar);
-  //   CHECK(res->username == fix.user.username);
-  //   CHECK(res->tag == fix.user.tag);
-  //   CHECK(res->email == fix.user.email);
-  // }
+    CHECK(res->id == fix.user.id);
+    //CHECK(res->avatar == fix.user.avatar);
+    CHECK(res->username == fix.user.username);
+    CHECK(res->tag == fix.user.tag);
+    CHECK(res->email == fix.user.email);
+  }
 }
 
 TEST_CASE("Test AuthManager::FingUsersByTag") {

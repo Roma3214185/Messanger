@@ -137,7 +137,7 @@ void NotificationManager::onMessageStatusSaved(const std::string &payload) {
   // get chat_id by message_id;
   std::optional<long long> chat_id =
       getChatIdOfMessage(message_status.message_id);
-  if (!chat_id) {
+  if (!chat_id.has_value()) {
     LOG_ERROR("Chat id for message {} not founded", message_status.message_id);
     return;
   }

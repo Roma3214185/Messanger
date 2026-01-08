@@ -29,8 +29,6 @@ public:
     mp.clear();
   }
 
-  void clearPrefix(const std::string &prefix) override {}
-
   int set_calls = 0;
   int set_pipeline_calls = 0;
   std::optional<std::string> mock_get_string = std::nullopt;

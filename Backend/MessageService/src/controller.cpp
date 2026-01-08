@@ -202,7 +202,7 @@ Controller::getUserIdFromToken(const std::string &token) {
 Response Controller::updateMessage(const RequestDTO &request_pack,
                                    const std::string &message_id_str) {
   auto id_opt = getIdFromStr(message_id_str);
-  if (!id_opt) {
+  if (!id_opt.has_value()) {
     return std::make_pair(provider_->statusCodes().badRequest,
                           formErrorResponse("Invalid id"));
   }
@@ -212,7 +212,7 @@ Response Controller::updateMessage(const RequestDTO &request_pack,
 
   std::optional<long long> optional_user_id =
       getUserIdFromToken(request_pack.token);
-  if (!optional_user_id) {
+  if (!optional_user_id.has_value()) {
     return std::make_pair(
         provider_->statusCodes().badRequest,
         formErrorResponse(provider_->issueMessages().invalidToken));
@@ -269,7 +269,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack,
 
   std::optional<long long> optional_user_id =
       getUserIdFromToken(request_pack.token);
-  if (!optional_user_id) {
+  if (!optional_user_id.has_value()) {
     return std::make_pair(
         provider_->statusCodes().badRequest,
         formErrorResponse(provider_->issueMessages().invalidToken));
@@ -317,7 +317,7 @@ Response Controller::getMessageById(const std::string &message_id_str) {
   LOG_INFO("getMessageById {}", message_id_str);
 
   std::optional<long long> message_id = getIdFromStr(message_id_str);
-  if (!message_id)
+  if (!message_id.has_value())
     return std::make_pair(400, formErrorResponse("Invalid message_id"));
   auto message_opt = manager_->getMessage(*message_id);
   return message_opt ? std::make_pair(200, nlohmann::json(*message_opt).dump())
@@ -327,14 +327,14 @@ Response Controller::getMessageById(const std::string &message_id_str) {
 Response Controller::getMessagesFromChat(const RequestDTO &request_pack,
                                          const std::string &chat_id_str) {
   std::optional<long long> user_id = getUserIdFromToken(request_pack.token);
-  if (!user_id) {
+  if (!user_id.has_value()) {
     return std::make_pair(
         provider_->statusCodes().userError,
         formErrorResponse(provider_->issueMessages().invalidToken));
   }
 
   std::optional<long long> chat_id = getIdFromStr(chat_id_str);
-  if (!chat_id) {
+  if (!chat_id.has_value()) {
     return std::make_pair(provider_->statusCodes().badRequest,
                           formErrorResponse("Invalid chat_id"));
   }

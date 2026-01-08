@@ -33,16 +33,18 @@ public:
   Response getMessagesFromChat(const RequestDTO &request_pack,
                                const std::string &chat_id_str);
 
-protected:
+ protected:
+  virtual void handleSaveMessage(const std::string &payload);
+  virtual void handleSaveMessageStatus(const std::string &payload);
+  void subscribeToSaveMessage();
+  void subscribeToSaveMessageStatus();
+
+ private:
   std::vector<Message> getMessages(const GetMessagePack &);
   std::vector<MessageStatus>
   getMessagesStatus(const std::vector<Message> &messages,
                     long long receiver_id);
   std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
-  void subscribeToSaveMessage();
-  void subscribeToSaveMessageStatus();
-  virtual void handleSaveMessage(const std::string &payload);
-  virtual void handleSaveMessageStatus(const std::string &payload);
   std::optional<long long> getUserIdFromToken(const std::string &token);
 
   MessageManager *manager_;

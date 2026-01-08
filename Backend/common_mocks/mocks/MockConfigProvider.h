@@ -5,7 +5,7 @@
 
 class MockConfigProvider : public IConfigProvider {
 public:
-  MockConfigProvider() {}
+  MockConfigProvider() = default;
   explicit MockConfigProvider(Ports ports) : mock_ports(ports) {}
   explicit MockConfigProvider(StatusCodes codes) : mock_codes(codes) {}
 
