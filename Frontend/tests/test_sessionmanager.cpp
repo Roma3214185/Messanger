@@ -60,8 +60,8 @@ TEST_CASE("Test sign in") {
   }
 
   SECTION("LogInFinishesWithEmittingOnSignInFinished") {
-    auto reply = new MockReply();
-    network_manager.setReply(reply);
+    auto reply = std::make_unique<MockReply>();
+    network_manager.setReply(reply.get());
 
     int before_calls = session_manager.on_reply_finished_calls;
     session_manager.signIn(login_request);
@@ -70,8 +70,6 @@ TEST_CASE("Test sign in") {
     QCoreApplication::processEvents();
 
     REQUIRE(session_manager.on_reply_finished_calls == before_calls + 1);
-
-    delete reply;
   }
 }
 
@@ -115,8 +113,8 @@ TEST_CASE("Test sign up") {
   }
 
   SECTION("SignUpFinishesExpectedEmittingOnSignUpFinished") {
-    auto reply = new MockReply();
-    network_manager.setReply(reply);
+    auto reply = std::make_unique<MockReply>();
+    network_manager.setReply(reply.get());
 
     int before_calls = session_manager.on_reply_finished_calls;
     session_manager.signUp(signup_request);
@@ -125,8 +123,6 @@ TEST_CASE("Test sign up") {
     QCoreApplication::processEvents();
 
     REQUIRE(session_manager.on_reply_finished_calls == before_calls + 1);
-
-    delete reply;
   }
 }
 
@@ -165,8 +161,8 @@ TEST_CASE("Test authenticateWithToken") {
 
   SECTION(
       "authenticateWithTokenFinishesExpectedEmittingOnAuthenticateWithToken") {
-    auto reply = new MockReply();
-    network_manager.setReply(reply);
+    auto reply = std::make_unique<MockReply>();
+    network_manager.setReply(reply.get());
 
     int before_calls = session_manager.on_reply_finished_calls;
     session_manager.authenticateWithToken(token);
@@ -175,8 +171,6 @@ TEST_CASE("Test authenticateWithToken") {
     QCoreApplication::processEvents();
 
     REQUIRE(session_manager.on_reply_finished_calls == before_calls + 1);
-
-    delete reply;
   }
 }
 
@@ -186,7 +180,7 @@ TEST_CASE("Test onSignInFinished") {
   TestSessionManager session_manager(&network_manager, url_auth_service);
 
   SECTION("ExpectedEmittingUserCreated") {
-    auto *reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     QByteArray json_data =
         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
     reply->setData(json_data);
@@ -202,7 +196,7 @@ TEST_CASE("Test onSignInFinished") {
 
   SECTION("ExpectedEmittingUserCreatedWithRightData") {
     qRegisterMetaType<User>("User");
-    auto *reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     QByteArray json_data =
         R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
     reply->setData(json_data);
@@ -227,8 +221,6 @@ TEST_CASE("Test onSignInFinished") {
     REQUIRE(user.tag == "r");
     REQUIRE(user.id == 1);
     REQUIRE(token == "12345");
-
-    delete reply;
   }
 }
 

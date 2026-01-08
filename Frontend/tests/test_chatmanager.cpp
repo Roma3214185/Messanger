@@ -13,18 +13,9 @@
 class TestChatManager : public ChatManager {
 public:
   using ChatManager::ChatManager;
-
-  QList<ChatPtr> onLoadChats(QNetworkReply *reply) {
-    return ChatManager::onLoadChats(reply->readAll());
-  }
-
-  ChatPtr onChatLoaded(QNetworkReply *reply) {
-    return ChatManager::onChatLoaded(reply->readAll());
-  }
-
-  ChatPtr onCreatePrivateChat(QNetworkReply *reply) {
-    return ChatManager::onCreatePrivateChat(reply->readAll());
-  }
+  using ChatManager::onLoadChats;
+  using ChatManager::onChatLoaded;
+  using ChatManager::onCreatePrivateChat;
 };
 
 TEST_CASE("Test ChatManager loadChats") {
@@ -63,10 +54,10 @@ TEST_CASE("Test ChatManager loadChats") {
   }
 
   SECTION("Error reply returns empty list and emits proper error") {
-    auto reply_with_error = new MockReply();
+    auto reply_with_error = std::make_unique<MockReply>();
     reply_with_error->setMockError(QNetworkReply::AuthenticationRequiredError,
                                    "auth failed");
-    network_manager.setReply(reply_with_error);
+    network_manager.setReply(reply_with_error.get());
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     network_manager.shouldFail = true;
@@ -83,9 +74,9 @@ TEST_CASE("Test ChatManager loadChats") {
   }
 
   SECTION("Valid response returns proper chats") {
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(valid_json_data);
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChats("token");
@@ -100,9 +91,9 @@ TEST_CASE("Test ChatManager loadChats") {
 
   SECTION("Invalid JSON returns empty list with error") {
     QByteArray invalid_json = "not json";
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(invalid_json);
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);
@@ -137,10 +128,10 @@ TEST_CASE("Test ChatManager loadChat") {
   }
 
   SECTION("Error reply returns nullptr and emits error") {
-    auto reply_with_error = new MockReply();
+    auto reply_with_error = std::make_unique<MockReply>();
     reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError,
                                    "connection refused");
-    network_manager.setReply(reply_with_error);
+    network_manager.setReply(reply_with_error.get());
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     network_manager.shouldFail = true;
@@ -157,9 +148,9 @@ TEST_CASE("Test ChatManager loadChat") {
   }
 
   SECTION("Valid response returns proper chat object") {
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(valid_json);
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.loadChat("token", 42);
@@ -171,9 +162,9 @@ TEST_CASE("Test ChatManager loadChat") {
   }
 
   SECTION("Invalid JSON returns nullptr and emits error") {
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData("not json");
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);
@@ -208,10 +199,10 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   }
 
   SECTION("Error reply returns nullptr and emits error") {
-    auto reply_with_error = new MockReply();
+    auto reply_with_error = std::make_unique<MockReply>();
     reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError,
                                    "connection refused");
-    network_manager.setReply(reply_with_error);
+    network_manager.setReply(reply_with_error.get());
 
     QSignalSpy spyError(&chat_manager, &ChatManager::errorOccurred);
     // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
@@ -224,9 +215,9 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   }
 
   SECTION("Valid private chat response returns chat object") {
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(valid_json);
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);
 
     auto future = chat_manager.createPrivateChat("token", 5);
@@ -239,9 +230,9 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   }
 
   SECTION("Invalid JSON returns nullptr and emits error") {
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData("not json");
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
 
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
     int before = spyError.count();
@@ -258,9 +249,9 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   SECTION("Chat type is not PRIVATE returns nullptr and emits error") {
     QJsonObject invalid_chat_obj{
         {"chat_id", 102}, {"chat_type", "GROUP"}, {"name", "GroupChat"}};
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(QJsonDocument(invalid_chat_obj).toJson());
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
     QSignalSpy spyError(&chat_manager, &BaseManager::errorOccurred);
 
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);

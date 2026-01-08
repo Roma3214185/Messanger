@@ -17,7 +17,7 @@ public:
     last_sended_message = msg;
   }
 
-  void disconnect() override { ++disconnect_calls; }
+  void disconnectSocket() override { ++disconnect_calls; }
 
   void close() override { ++close_calls; }
 

@@ -13,10 +13,7 @@
 class TestMessageManager : public MessageManager {
 public:
   using MessageManager::MessageManager;
-
-  QList<Message> onGetChatMessages(const QByteArray &responce_data) {
-    return MessageManager::onGetChatMessages(responce_data);
-  }
+  using MessageManager::onGetChatMessages;
 };
 
 TEST_CASE("Test MessageManager getChatMessages") {
@@ -61,10 +58,10 @@ TEST_CASE("Test MessageManager getChatMessages") {
   }
 
   SECTION("Error reply returns empty list and emits proper error") {
-    auto reply_with_error = new MockReply();
+    auto reply_with_error = std::make_unique<MockReply>();
     reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError,
                                    "connection refused");
-    network_manager.setReply(reply_with_error);
+    network_manager.setReply(reply_with_error.get());
     network_manager.shouldFail = true;
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
@@ -83,9 +80,9 @@ TEST_CASE("Test MessageManager getChatMessages") {
 
   SECTION("Invalid JSON (not array) returns empty list and emits error") {
     QByteArray invalid_json = R"({"message": "not an array"})";
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(invalid_json);
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);
@@ -102,9 +99,9 @@ TEST_CASE("Test MessageManager getChatMessages") {
   }
 
   SECTION("Valid response returns proper message list") {
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(valid_json);
-    network_manager.setReply(reply);
+    network_manager.setReply(reply.get());
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
     // QTimer::singleShot(0, reply, &MockReply::emitFinished);
@@ -131,7 +128,7 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   TestMessageManager message_manager(&network_manager, url, timeout_ms);
 
   SECTION("Invalid JSON emits error and returns empty list") {
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData("not valid json");
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
@@ -146,7 +143,7 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   SECTION("Valid JSON returns correct message list") {
     QJsonArray arr{QJsonObject{
         {"id", 10}, {"sender_id", 1}, {"text", "msg"}, {"timestamp", "t"}}};
-    auto reply = new MockReply();
+    auto reply = std::make_unique<MockReply>();
     reply->setData(QJsonDocument(arr).toJson());
 
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);

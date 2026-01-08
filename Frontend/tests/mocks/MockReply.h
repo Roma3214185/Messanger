@@ -6,8 +6,8 @@
 
 class MockReply : public QNetworkReply {
 public:
-  MockReply(QObject *parent = nullptr) : QNetworkReply(parent) {
-    open(ReadOnly | Unbuffered);
+  explicit MockReply(QObject *parent = nullptr) : QNetworkReply(parent) {
+    QIODevice::open(ReadOnly | Unbuffered);
     setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     setFinished(true);
     setAttribute(QNetworkRequest::HttpStatusCodeAttribute, 200);
@@ -23,7 +23,10 @@ public:
     mock_code = code;
   }
 
-  void abort() override {}
+  int abort_calls = 0;
+  void abort() override {
+    ++abort_calls;
+  }
   void setData(const QByteArray &data) { this->data = data; }
 
   QByteArray data;
