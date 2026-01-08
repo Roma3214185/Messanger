@@ -107,7 +107,7 @@ jobs:
         run: |
           sonar-scanner \
             -Dsonar.organization=roma3214185 \
-            -Dsonar.projectKey=roma3214185 \
+            -Dsonar.projectKey=Roma3214185_Messanger \
             -Dsonar.sources=. \
             -Dsonar.cfamily.build-wrapper-output=bw-output \
             -Dsonar.coverageReportPaths=coverage.xml \
