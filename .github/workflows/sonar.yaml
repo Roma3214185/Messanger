@@ -61,7 +61,7 @@ jobs:
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
       - name: Install Sonar build-wrapper (macOS)
-       run: |
+        run: |
          mkdir -p $HOME/.sonar
          cd $HOME/.sonar
 
@@ -72,7 +72,7 @@ jobs:
          chmod +x build-wrapper-macosx-x86-64
 
       - name: Add Sonar build wrapper to PATH
-       run: echo "PATH=$HOME/.sonar:$PATH" >> $GITHUB_ENV
+        run: echo "PATH=$HOME/.sonar:$PATH" >> $GITHUB_ENV
 
       - name: Verify build-wrapper
         run: |
