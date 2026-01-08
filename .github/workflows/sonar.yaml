@@ -38,7 +38,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format rabbitmq-c
+          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format rabbitmq-c wget unzip
 
       - name: Remove Homebrew protobuf (force vcpkg)
         run: |
@@ -60,24 +60,11 @@ jobs:
       - name: Setup vcpkg binary cache
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
-      - name: Install Sonar build-wrapper (macOS)
+      - name: Download Build Wrapper
         run: |
-         mkdir -p $HOME/.sonar
-         cd $HOME/.sonar
-
-         curl -sSLo bw.zip \
-           https://sonarcloud.io/static/cpp/build-wrapper-macosx-x86.zip
-
-         unzip -o bw.zip
-         chmod +x build-wrapper-macosx-x86-64
-
-      - name: Add Sonar build wrapper to PATH
-        run: echo "PATH=$HOME/.sonar:$PATH" >> $GITHUB_ENV
-
-      - name: Verify build-wrapper
-        run: |
-          which build-wrapper-macosx-x86-64
-          build-wrapper-macosx-x86-64 --help
+         wget https://binaries.sonarsource.com/Distribution/sonar-cpp/build-wrapper-macosx-x86.zip -O bw.zip
+         unzip bw.zip -d $HOME/.sonar
+         chmod +x $HOME/.sonar/build-wrapper-macosx-x86/build-wrapper-macosx-x86
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
@@ -92,9 +79,8 @@ jobs:
             -DTRACY_ENABLE=ON \
             -Wno-dev
 
-      - name: Build with SonarCloud Build Wrapper
-        run: |
-          build-wrapper-macosx-x86-64 --out-dir bw-output cmake --build build --parallel
+      - name: Build project with Build Wrapper
+        run: $HOME/.sonar/build-wrapper-macosx-x86/build-wrapper-macosx-x86 --out-dir bw-output cmake --build build -- -j$(sysctl -n hw.ncpu)
 
       # 🔟 Run tests
       - name: Run tests
