@@ -60,14 +60,24 @@ jobs:
       - name: Setup vcpkg binary cache
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
-      - name: Install Build Wrapper
-        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6.0.0
+      - name: Install Sonar build-wrapper (macOS)
+       run: |
+         mkdir -p $HOME/.sonar
+         cd $HOME/.sonar
+
+         curl -sSLo bw.zip \
+           https://sonarcloud.io/static/cpp/build-wrapper-macosx-x86.zip
+
+         unzip -o bw.zip
+         chmod +x build-wrapper-macosx-x86-64
+
       - name: Add Sonar build wrapper to PATH
-        run: echo "PATH=$HOME/.sonar/build-wrapper:$PATH" >> $GITHUB_ENV
-      - name: Debug Sonar build wrapper
+       run: echo "PATH=$HOME/.sonar:$PATH" >> $GITHUB_ENV
+
+      - name: Verify build-wrapper
         run: |
-          ls -la $HOME/.sonar/build-wrapper
           which build-wrapper-macosx-x86-64
+          build-wrapper-macosx-x86-64 --help
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
