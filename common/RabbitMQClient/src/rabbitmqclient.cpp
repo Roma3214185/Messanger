@@ -6,7 +6,7 @@ RabbitMQClient::RabbitMQClient(const RabbitMQConfig &rabit_mq_config,
                                IThreadPool *pool)
     : pool_(pool), rabit_mq_config_(rabit_mq_config) {}
 
-RabbitMQClient::~RabbitMQClient() { stop(); }
+RabbitMQClient::~RabbitMQClient() { RabbitMQClient::stop(); }
 
 void RabbitMQClient::declareExchange(const std::string &exchange,
                                      const std::string &type, bool durable) {

@@ -46,7 +46,9 @@ public:
     return prepare(QString::fromStdString(sql));
   }
 
-  void rollback() override {}
+  void rollback() override {
+    db().rollback();
+  }
 
   bool transaction() override { return db().transaction(); }
 
