@@ -48,9 +48,10 @@ Q_SIGNALS:
   void messageAdded(const Message &message);
   void messageDeleted(const Message &message);
 
-protected:
+ protected:
   [[nodiscard]] int getNumberOfExistingUsers() const noexcept;
 
+ private:
   ChatMap chats_by_id_;
   UserMap users_by_id_;
   ListMessage messages_;

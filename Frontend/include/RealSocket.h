@@ -9,7 +9,7 @@ class RealSocket : public ISocket {
   QWebSocket *socket_;
 
 public:
-  RealSocket(QWebSocket *socket) : socket_(socket) {
+  explicit RealSocket(QWebSocket *socket) : socket_(socket) {
     connect(socket_, &QWebSocket::connected, this, &ISocket::connected);
     connect(socket_, &QWebSocket::textMessageReceived, this,
             &ISocket::textMessageReceived);
@@ -20,7 +20,7 @@ public:
     socket_->sendTextMessage(msg);
   }
   void close() override { socket_->close(); }
-  void disconnect() override { socket_->disconnect(); }
+  void disconnectSocket() override { socket_->disconnect(); }
 };
 
 #endif // REALSOCKET_H

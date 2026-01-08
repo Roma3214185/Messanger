@@ -122,30 +122,45 @@ void MessageUseCase::getChatMessagesAsync(long long chat_id) {
   PROFILE_SCOPE("MessageUseCase::getChatMessagesAsync");
   DBC_REQUIRE(chat_id > 0);
 
-  auto watcher = new QFutureWatcher<QList<Message>>(this);
+  // auto watcher = new QFutureWatcher<QList<Message>>(this);
 
-  connect(
-      watcher, &QFutureWatcher<QList<Message>>::finished, this,
-      [this, watcher, chat_id]() {
-        try {
-          auto chat_messages = watcher->result();
-          LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages",
-                   chat_id, chat_messages.size());
-          for (auto &message : chat_messages) { // todo(roma): make pipeline
-            addMessageToChat(message);
-          }
+  // connect(
+  //     watcher, &QFutureWatcher<QList<Message>>::finished, this,
+  //     [this, watcher, chat_id]() {
+  //       try {
+  //         auto chat_messages = watcher->result();
+  //         LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages",
+  //                  chat_id, chat_messages.size());
+  //         for (auto &message : chat_messages) { // todo(roma): make pipeline
+  //           addMessageToChat(message);
+  //         }
 
-        } catch (...) {
-          LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id);
+  //       } catch (...) {
+  //         LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id);
+  //       }
+
+  //       watcher->deleteLater();
+  //     });
+
+  // QFuture<QList<Message>> future = QtConcurrent::run([this, chat_id]() {
+  //   return getChatMessages(
+  //       chat_id); // todo: make manager_->getChatMessagesAsync(?)
+  // });
+
+  // watcher->setFuture(future);
+
+  QtConcurrent::run([this, chat_id]() {
+    return getChatMessages(chat_id);
+  })
+      .then(this, [this, chat_id](QList<Message> chat_messages) {
+        LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages",
+                 chat_id, chat_messages.size());
+
+        for (auto& message : chat_messages) {
+          addMessageToChat(message);
         }
-
-        watcher->deleteLater();
+      })
+      .onFailed(this, [chat_id]() {
+        LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id);
       });
-
-  QFuture<QList<Message>> future = QtConcurrent::run([this, chat_id]() {
-    return getChatMessages(
-        chat_id); // todo: make manager_->getChatMessagesAsync(?)
-  });
-
-  watcher->setFuture(future);
 }

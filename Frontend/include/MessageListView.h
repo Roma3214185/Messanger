@@ -31,7 +31,7 @@ public:
     QListView::setModel(model);
   }
 
-  void scrollToBottom() override {
+  void scrollListToBottom() override {
     QTimer::singleShot(20, this, [this]() {
       setMessageScrollBarValue(getMaximumMessageScrollBar());
     });

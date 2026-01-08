@@ -16,7 +16,6 @@ QT_END_NAMESPACE
 
 class Presenter;
 class ChatBase;
-class User;
 class QListView;
 class ITheme;
 class MessageListView;
@@ -86,14 +85,14 @@ private:
   QModelIndex findIndexByMessageId(QAbstractItemModel *model, long long id);
 
   std::unique_ptr<ITheme> current_theme_;
-  Ui::MainWindow *ui_;
+  std::unique_ptr<Ui::MainWindow> ui_;
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
 
   std::optional<Message>
       editable_message_; // todo: make Page to set in currentPage, in which
                          // Message will be
-  QStandardItemModel *searchResultsModel_;
+  std::unique_ptr<QStandardItemModel> searchResultsModel_;
 };
 
 #endif // MAINWINDOW_H

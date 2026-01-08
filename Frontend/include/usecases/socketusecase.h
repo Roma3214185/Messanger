@@ -10,7 +10,7 @@ struct Message;
 class SocketUseCase : public QObject {
   Q_OBJECT
 public:
-  SocketUseCase(std::unique_ptr<SocketManager> socket_manager);
+  explicit SocketUseCase(std::unique_ptr<SocketManager> socket_manager);
   void initSocket(long long user_id);
   void connectSocket();
   void sendMessage(const Message &msg);

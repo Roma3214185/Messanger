@@ -24,13 +24,13 @@ enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
 }
 
 MainWindow::MainWindow(Model *model, QWidget *parent)
-    : QMainWindow(parent), ui_(new Ui::MainWindow),
+    : QMainWindow(parent), ui_(std::make_unique<Ui::MainWindow>()),
       presenter_(std::make_unique<Presenter>(this, model)),
-      searchResultsModel_(new QStandardItemModel(this)) {
+      searchResultsModel_(std::make_unique<QStandardItemModel>(this)),
+      message_list_view_(std::make_unique<MessageListView>()) {
   ui_->setupUi(this);
 
-  message_list_view_ = std::make_unique<MessageListView>();
-  ui_->serch_messages_list_view->setModel(searchResultsModel_);
+  ui_->serch_messages_list_view->setModel(searchResultsModel_.get());
   ui_->serch_messages_list_view->sizeHintForRow(0);
   ui_->serch_messages_list_view->frameWidth();
   presenter_->setMessageListView(message_list_view_.get());
@@ -105,7 +105,7 @@ void MainWindow::setMessageListView(QListView *list_view) {
   list_view->setItemDelegate(message_delegate);
 }
 
-MainWindow::~MainWindow() { delete ui_; }
+MainWindow::~MainWindow() = default;
 
 void MainWindow::on_upSubmitButton_clicked() {
   SignUpRequest signup_request;

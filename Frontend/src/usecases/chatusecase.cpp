@@ -78,24 +78,33 @@ auto ChatUseCase::createPrivateChat(long long user_id) -> ChatPtr {
 }
 
 void ChatUseCase::loadChatsAsync() {
-  auto watcher = new QFutureWatcher<QList<ChatPtr>>(this);
+  // auto watcher = std::make_unique<QFutureWatcher<QList<ChatPtr>>>(this);
 
-  connect(watcher, &QFutureWatcher<QList<ChatPtr>>::finished, this,
-          [this, watcher]() {
-            try {
-              QList<ChatPtr> chats = watcher->result();
+  // connect(watcher.get(), &QFutureWatcher<QList<ChatPtr>>::finished, this,
+  //         [this, &watcher]() {
+  //           try {
+  //             QList<ChatPtr> chats = watcher->result();
 
-              for (const auto &chat : chats) {
-                addChat(chat); // todo(roma): make pipeline
-              }
-            } catch (...) {
-              LOG_ERROR("Something failed in loading chats");
-            }
+  //             for (const auto &chat : chats) {
+  //               addChat(chat); // todo(roma): make pipeline
+  //             }
+  //           } catch (...) {
+  //             LOG_ERROR("Something failed in loading chats");
+  //           }
 
-            watcher->deleteLater();
-          });
+  //           watcher->deleteLater();
+  //         });
 
-  watcher->setFuture(chat_manager_->loadChats(token_manager_->getToken()));
+  // watcher->setFuture(chat_manager_->loadChats(token_manager_->getToken()));
+  chat_manager_->loadChats(token_manager_->getToken())
+      .then(this, [this](QList<ChatPtr> chats) {
+        for (const auto& chat : chats) {
+          addChat(chat);
+        }
+      })
+      .onFailed(this, [] {
+        LOG_ERROR("Something failed in loading chats");
+      });
 }
 
 auto ChatUseCase::getNumberOfExistingChats() const -> int {

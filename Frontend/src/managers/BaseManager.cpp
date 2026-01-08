@@ -6,7 +6,7 @@ BaseManager::BaseManager(INetworkAccessManager *network_manager,
     : QObject(parent), network_manager_(network_manager), url_(base_url),
       timeout_ms_(timeout_ms) {}
 
-BaseManager::~BaseManager() {}
+BaseManager::~BaseManager() = default;
 
 bool BaseManager::checkReply(QNetworkReply *reply) {
   if (!reply || reply->error() != QNetworkReply::NoError) {

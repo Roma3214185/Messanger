@@ -8,7 +8,7 @@
 
 class RedisClient : public ICache {
 public:
-  RedisClient(std::string url) : redis(url) {}
+  explicit RedisClient(std::string url) : redis(url) {}
 
   OptionalToken get(const Key &key) override {
     try {

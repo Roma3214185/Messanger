@@ -12,7 +12,7 @@ public:
   virtual void open(const QUrl &url) = 0;
   virtual void sendTextMessage(const QString &msg) = 0;
   virtual void close() = 0;
-  virtual void disconnect() = 0;
+  virtual void disconnectSocket() = 0;
 
 Q_SIGNALS:
   void connected();

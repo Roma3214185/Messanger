@@ -27,7 +27,7 @@ void SocketManager::initSocket(long long user_id) {
 void SocketManager::connectSocket() { socket_->open(url_); }
 
 void SocketManager::close() {
-  socket_->disconnect();
+  socket_->disconnectSocket();
   socket_->close();
 }
 

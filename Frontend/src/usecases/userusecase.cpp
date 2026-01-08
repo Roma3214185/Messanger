@@ -2,6 +2,7 @@
 
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QtConcurrent/QtConcurrent>
 
 #include "dto/User.h"
 #include "managers/TokenManager.h"
@@ -36,27 +37,41 @@ auto UserUseCase::getUser(long long user_id) -> std::optional<User> {
 }
 
 void UserUseCase::getUserAsync(long long user_id) {
-  if (data_manager_->getUser(user_id))
+  if (auto user = data_manager_->getUser(user_id); user.has_value())
     return;
 
-  QFuture<std::optional<User>> future =
-      user_manager_->getUser(user_id, token_manager_->getToken());
+  // QFuture<std::optional<User>> future =
+  //     user_manager_->getUser(user_id, token_manager_->getToken());
 
-  auto *watcher = new QFutureWatcher<std::optional<User>>(this);
-  QObject::connect(watcher, &QFutureWatcherBase::finished, this,
-                   [this, watcher, user_id]() {
-                     auto userOpt = watcher->result();
-                     watcher->deleteLater();
+  // auto *watcher = new QFutureWatcher<std::optional<User>>(this);
+  // QObject::connect(watcher, &QFutureWatcherBase::finished, this,
+  //                  [this, watcher, user_id]() {
+  //                    auto userOpt = watcher->result();
+  //                    watcher->deleteLater();
 
-                     if (!userOpt) {
-                       LOG_ERROR("Can't get info about user {}", user_id);
-                       return;
-                     }
+  //                    if (!userOpt) {
+  //                      LOG_ERROR("Can't get info about user {}", user_id);
+  //                      return;
+  //                    }
 
-                     data_manager_->saveUser(*userOpt);
-                   });
+  //                    data_manager_->saveUser(*userOpt);
+  //                  });
 
-  watcher->setFuture(future);
+  // watcher->setFuture(future);
+  auto future = user_manager_->getUser(user_id, token_manager_->getToken());
+
+  future
+      .then(this, [this, user_id](std::optional<User> userOpt) {
+        if (!userOpt) {
+          LOG_ERROR("Can't get info about user {}", user_id);
+          return;
+        }
+
+        data_manager_->saveUser(*userOpt);
+      })
+      .onFailed(this, [user_id]() {
+        LOG_ERROR("Error in getUserAsync for user_id {}", user_id);
+      });
 }
 
 QList<User> UserUseCase::findUsers(const QString &text) {

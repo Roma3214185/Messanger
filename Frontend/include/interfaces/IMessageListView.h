@@ -14,7 +14,7 @@ public:
 
   virtual void setMessageModel(MessageModel *model) = 0;
 
-  virtual void scrollToBottom() = 0;
+  virtual void scrollListToBottom() = 0;
   virtual int getMaximumMessageScrollBar() const = 0;
   virtual int getMessageScrollBarValue() const = 0;
   virtual void setMessageScrollBarValue(int value) = 0;
