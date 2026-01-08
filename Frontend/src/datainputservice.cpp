@@ -47,7 +47,7 @@ inline void loadDomains(const Config &cfg) {
   }
 }
 
-static bool isValidDomain(const QString &domain, const Config &cfg) {
+static bool domainIsAllowedList(const QString &domain, const Config &cfg) {
   loadDomains(cfg);
   const QString normalized = domain.toLower();
   return cfg.kDomains.contains(normalized);
@@ -106,68 +106,8 @@ ValidationResult emailValidDetailed(const QString &email, const Config &cfg) {
   const QString local = email.left(at_pos);
   const QString domain = email.mid(at_pos + 1);
 
-  if (local.isEmpty())
-    return {false, "Local part is empty"};
-  if (std::cmp_less(local.size(), cfg.kMinEmailLocalPartLength))
-    return {.valid = false, .message = "Local part too short"};
-  if (std::cmp_greater(local.size(), cfg.kMaxEmailLocalPartLength))
-    return {.valid = false, .message = "Local part too long"};
-
-  const bool is_quoted =
-      (local.size() >= 2 && local.front() == '"' && local.back() == '"');
-  if (!is_quoted) {
-    if (local.startsWith('.') || local.endsWith('.'))
-      return {false, "Local part starts/ends with dot"};
-
-    for (int i = 0; i < local.size(); ++i) {
-      const QChar c = local[i];
-      if (c.unicode() < 0x20)
-        return {.valid = false,
-                .message = "Local part contains control characters"};
-
-      if (c == '.') {
-        if (i + 1 < local.size() && local[i + 1] == '.')
-          return {.valid = false, .message = "Local part has consecutive dots"};
-        continue;
-      }
-
-      static const QString kAllowedSymbols =
-          QStringLiteral("!#$%&'*+-/=?^_`{|}~");
-      if (c.isLetterOrNumber() || kAllowedSymbols.contains(c) || c == '+')
-        continue;
-
-      return {.valid = false,
-              .message = "Local part contains invalid character"};
-    }
-  }
-
-  if (domain.isEmpty())
-    return {.valid = false, .message = "Domain is empty"};
-
-  if (!isValidDomain(domain, cfg))
-    return {.valid = false, .message = "Invalid domain"};
-
-  // if (domain.startsWith('[') && domain.endsWith(']')) {
-  //   const QString inside = domain.mid(1, domain.size() - 2);
-  //   if (inside.isEmpty())
-  //     return {false, "Empty IP literal"};
-  //   for (const QChar &c : inside) {
-  //     if (!c.isDigit() && c != '.' && c != ':')
-  //       return {false, "IP literal contains invalid character"};
-  //   }
-  //   return {true, "Email is valid"};
-  // }
-
-  // if (domain.size() > 255)
-  //   return {false, "Domain too long"};
-
-  // const QStringList labels = domain.split('.');
-  // for (const QString &label : labels) {
-  //   if (label.isEmpty())
-  //     return {false, "Domain contains empty label"};
-  //   if (label.startsWith('-') || label.endsWith('-'))
-  //     return {false, "Label starts or ends with '-' character"};
-  // }
+  if(auto res = DataInputService::details::checkLocalPart(local, cfg); !res.valid) return res;
+  if(auto res = DataInputService::details::checkDomainPart(domain, cfg); !res.valid) return res;
 
   return {.valid = true, .message = "Email is valid"};
 }
@@ -240,36 +180,114 @@ ValidationResult tagValidDetailed(const QString &tag, const Config &cfg) {
 
 ValidationResult validateRegistrationUserInput(const SignUpRequest &input,
                                                const Config &cfg) {
-  ValidationResult r = nameValidDetailed(input.name, cfg);
-  if (!r.valid)
+  if (auto r = nameValidDetailed(input.name, cfg); !r.valid) {
     return r;
+  }
 
-  r = emailValidDetailed(input.email, cfg);
-  if (!r.valid)
+  if (auto r = emailValidDetailed(input.email, cfg); !r.valid) {
     return r;
+  }
 
-  r = passwordValidDetailed(input.password, cfg);
-  if (!r.valid)
+  if (auto r = passwordValidDetailed(input.password, cfg); !r.valid) {
     return r;
+  }
 
-  r = tagValidDetailed(input.tag, cfg);
-  if (!r.valid)
+  if (auto r = tagValidDetailed(input.tag, cfg); !r.valid) {
     return r;
+  }
 
   return {.valid = true, .message = "All fields valid"};
 }
 
 ValidationResult validateLoginUserInput(const LogInRequest &input,
                                         const Config &cfg) {
-  ValidationResult r = emailValidDetailed(input.email, cfg);
-  if (!r.valid)
+  if (auto r = emailValidDetailed(input.email, cfg); !r.valid)
     return r;
 
-  r = passwordValidDetailed(input.password, cfg);
-  if (!r.valid)
+  if (auto r = passwordValidDetailed(input.password, cfg); !r.valid)
     return r;
 
   return {.valid = true, .message = "All fields valid"};
 }
 
-} // namespace DataInputService
+}  // namespace DataInputService
+
+namespace DataInputService::details {
+
+ValidationResult checkLocalPart(const QString& local, const Config &cfg) {
+  if (local.isEmpty())
+    return {false, "Local part is empty"};
+
+  if (std::cmp_less(local.size(), cfg.kMinEmailLocalPartLength))
+    return {.valid = false, .message = "Local part too short"};
+
+  if (std::cmp_greater(local.size(), cfg.kMaxEmailLocalPartLength))
+    return {.valid = false, .message = "Local part too long"};
+
+  const bool is_quoted =
+      (local.size() >= 2 && local.front() == '"' && local.back() == '"');
+
+  if (is_quoted)  return {.valid = true,
+            .message = "Local part is good"};
+
+  if (local.startsWith('.') || local.endsWith('.'))
+    return {false, "Local part starts/ends with dot"};
+
+  for (int i = 0; i < local.size(); ++i) {
+    const QChar c = local[i];
+    if (c.unicode() < 0x20)
+      return {.valid = false,
+              .message = "Local part contains control characters"};
+
+    if (c == '.' && i + 1 < local.size() && local[i + 1] == '.') {
+      return {.valid = false, .message = "Local part has consecutive dots"};
+    }
+
+    static const QString kAllowedSymbols =
+        QStringLiteral("!#$%&'*+-/=?^_`{|}~");
+
+    if (!c.isLetterOrNumber() && !kAllowedSymbols.contains(c) && c != '+') {
+      return {.valid = false,
+            .message = "Local part contains invalid character"};
+    }
+  }
+
+  return {.valid = true,
+          .message = "Local part is valid"};
+}
+
+ValidationResult checkDomainPart(const QString& domain, const Config &cfg) {
+  if (domain.isEmpty())
+    return {.valid = false, .message = "Domain is empty"};
+
+  if (domain.size() > 255)
+    return {false, "Domain too long"};
+
+  if (!domainIsAllowedList(domain, cfg))
+    return {.valid = false, .message = "Invalid domain"};
+
+  // if (domain.startsWith('[') && domain.endsWith(']')) {
+  //   const QString inside = domain.mid(1, domain.size() - 2);
+  //   if (inside.isEmpty())
+  //     return {false, "Empty IP literal"};
+  //   for (const QChar &c : inside) {
+  //     if (!c.isDigit() && c != '.' && c != ':')
+  //       return {false, "IP literal contains invalid character"};
+  //   }
+  //   return {true, "Email is valid"};
+  // }
+
+
+  // const QStringList labels = domain.split('.');
+  // for (const QString &label : labels) {
+  //   if (label.isEmpty())
+  //     return {false, "Domain contains empty label"};
+  //   if (label.startsWith('-') || label.endsWith('-'))
+  //     return {false, "Label starts or ends with '-' character"};
+  // }
+
+  return {.valid = true,
+          .message = "Domain part is good"};
+}
+
+} // namespace DataInputService::details

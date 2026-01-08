@@ -49,4 +49,14 @@ ValidationResult validateLoginUserInput(const LogInRequest &input,
 
 } // namespace DataInputService
 
+namespace DataInputService::details {
+
+ValidationResult checkLocalPart(const QString &local,
+                                   const Config &cfg = Config());
+
+ValidationResult checkDomainPart(const QString &domain,
+                                const Config &cfg = Config());
+
+} // namespace DataInputService::details
+
 #endif // DATAINPUTSERVICE_H
