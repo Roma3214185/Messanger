@@ -18,6 +18,14 @@ struct Field {
   std::function<void(void *, const std::any &)> set;
 };
 
+// template <typename T>
+// struct Field {
+//     const char *name;
+//     const std::type_info &type;
+//     std::function<std::any(const T *)> get;
+//     std::function<void(T *, const std::any &)> set;
+// };
+
 struct Meta {
   const char *name;
   const char *table_name;
@@ -42,16 +50,7 @@ template <class T, class M> Field make_field(const char *name, M T::*member) {
                .set =
                    [member](void *obj, const std::any &val) {
                      auto *element = static_cast<T *>(obj);
-
-                     // if constexpr (std::is_same_v<M, std::string>) {
-                     //    if (val.type() == typeid(const char*)) {
-                     //     (element->*member) = std::string(std::any_cast<const
-                     //     char*>(val));
-                     //    }
-                     //    else
                      (element->*member) = std::any_cast<M>(val);
-                     //} /
-                     //}
                    }};
 }
 

@@ -21,7 +21,6 @@ public:
   void incr(const std::string &key) override;
   void remove(const std::string &key) override;
   void clearCache() override;
-  void clearPrefix(const std::string &prefix) override;
 
   void
   setPipelines(const std::vector<std::string> &keys,
@@ -37,14 +36,7 @@ private:
   std::unique_ptr<sw::redis::Redis> redis_;
   std::mutex init_mutex_;
 
-  // template <typename T>
-  // std::string buildEntityKey(const T& entity, std::string table_name) const;
-
-  // template <typename T>
-  // long long getEntityId(const T& entity) const;
-
   sw::redis::Redis &getRedis();
-
   int getTtlWithJitter(std::chrono::seconds ttl);
 
   RedisCache() = default;

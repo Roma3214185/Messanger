@@ -21,7 +21,7 @@ private:
   std::thread flush_thread_;
 
 public:
-  SaverBatcher(
+  explicit SaverBatcher(
       GenericRepository &repository, int batch_size = 500,
       std::chrono::milliseconds interval = std::chrono::milliseconds(100),
       int thread_pool_size = 4)
@@ -99,7 +99,7 @@ private:
   std::thread flush_thread_;
 
 public:
-  DeleterBatcher(
+  explicit  DeleterBatcher(
       GenericRepository &repository, int batch_size = 500,
       std::chrono::milliseconds interval = std::chrono::milliseconds(100),
       int thread_pool_size = 4)

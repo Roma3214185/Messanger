@@ -35,14 +35,6 @@ template <typename Duration> std::chrono::seconds getRangedTtl(Duration ttl) {
 
 } // namespace
 
-void RedisCache::clearPrefix(const std::string &prefix) {
-  std::vector<std::string> keys;
-  getRedis().keys(prefix + "*", std::back_inserter(keys));
-  for (const auto &key : keys) {
-    getRedis().del(key);
-  }
-}
-
 void RedisCache::remove(const std::string &key) {
   try {
     getRedis().del(key);
