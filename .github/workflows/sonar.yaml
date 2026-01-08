@@ -60,13 +60,13 @@ jobs:
       - name: Setup vcpkg binary cache
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
-    - name: Install Sonar build-wrapper (macOS)
-      run: |
-        mkdir -p $HOME/sonar
-        cd $HOME/sonar
-        curl -fL -o bw.zip https://sonarcloud.io/static/cpp/build-wrapper-macosx-x86.zip
-        unzip -q bw.zip
-        chmod +x build-wrapper-macosx-x86/build-wrapper-macosx-x86
+      - name: Install Sonar build-wrapper (macOS)
+        run: |
+          mkdir -p $HOME/sonar
+          cd $HOME/sonar
+          curl -fL -o bw.zip https://sonarcloud.io/static/cpp/build-wrapper-macosx-x86.zip
+          unzip -q bw.zip
+          chmod +x build-wrapper-macosx-x86/build-wrapper-macosx-x86
 
       - name: Debug Sonar build wrapper
         run: |
