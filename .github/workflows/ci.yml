@@ -38,7 +38,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c
+          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format rabbitmq-c
 
       - name: Remove Homebrew protobuf (force vcpkg)
         run: |
@@ -59,16 +59,6 @@ jobs:
 
       - name: Setup vcpkg binary cache
         run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
-
-      # # 7️⃣ Auto-format code
-      # - name: Run clang-format
-      #   run: |
-      #     chmod +x run-clang.sh
-      #     ./run-clang.sh
-
-      # -DCMAKE_CXX_FLAGS="--coverage -O0" \
-      # -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
-      # -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
 
       # 8️⃣ Configure CMake
       - name: Configure CMake

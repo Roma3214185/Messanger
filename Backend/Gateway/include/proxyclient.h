@@ -15,7 +15,7 @@ class ProxyClient {
   IClient *client_;
 
 public:
-  ProxyClient(IClient *client) : client_(client) {}
+  explicit ProxyClient(IClient *client) : client_(client) {}
   NetworkResponse forward(const RequestDTO &, const int port);
 
 private:

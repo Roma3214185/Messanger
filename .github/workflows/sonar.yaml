@@ -38,7 +38,7 @@ jobs:
         run: |
           set -eux
           brew update
-          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format openssl@3 rabbitmq-c
+          brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format rabbitmq-c
 
       - name: Remove Homebrew protobuf (force vcpkg)
         run: |
@@ -63,7 +63,11 @@ jobs:
       - name: Install Build Wrapper
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6.0.0
       - name: Add Sonar build wrapper to PATH
-        run: echo "PATH=$HOME/.sonar/build-wrapper-macosx-x86-64:$PATH" >> $GITHUB_ENV
+        run: echo "PATH=$HOME/.sonar/build-wrapper:$PATH" >> $GITHUB_ENV
+      - name: Debug Sonar build wrapper
+        run: |
+          ls -la $HOME/.sonar/build-wrapper
+          which build-wrapper-macosx-x86-64
 
       # 8️⃣ Configure CMake
       - name: Configure CMake
@@ -71,7 +75,7 @@ jobs:
           rm -rf build
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DENABLE_COVERAGE=ON \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=arm64-osx \

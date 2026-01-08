@@ -23,7 +23,11 @@ struct RateLimitMiddleware {
 
   template <typename ParentCtx>
   void after_handle(const crow::request & /*req*/, crow::response & /*res*/,
-                    context & /*ctx*/, ParentCtx & /*unused*/) {}
+                    context & /*ctx*/, ParentCtx & /*unused*/) {
+    // intentionally left empty
+    // This middleware only needs to handle ratelimit before the main handler.
+    // No post-processing is required after the request is handled.
+  }
 
 private:
   static std::string getIP(const crow::request &req) {
