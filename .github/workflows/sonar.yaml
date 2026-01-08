@@ -63,6 +63,11 @@ jobs:
       - name: Install Sonar Build Wrapper
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6
 
+      - name: Debug Sonar build wrapper
+        run: |
+          echo "BUILD_WRAPPER_HOME=$BUILD_WRAPPER_HOME"
+          ls -R $BUILD_WRAPPER_HOME
+
       # 8️⃣ Configure CMake
       - name: Configure CMake
         run: |
@@ -79,7 +84,7 @@ jobs:
 
       - name: Build project with Build Wrapper
         run: |
-          $BUILD_WRAPPER_OUT_DIR/build-wrapper-macosx-arm64 \
+          $BUILD_WRAPPER_HOME/build-wrapper-macosx-arm64/build-wrapper-macosx-arm64 \
             --out-dir bw-output \
             cmake --build build -- -j$(sysctl -n hw.ncpu)
 
