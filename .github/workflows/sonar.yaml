@@ -104,15 +104,14 @@ jobs:
 
       # 5️⃣ Run SonarCloud scan
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          organization: "roma3214185"
-          projectKey: "roma3214185"
-          projectBaseDir: .
-          token: ${{ secrets.SONAR_TOKEN }}
-          extraProperties: |
-            sonar.cfamily.build-wrapper-output=bw-output
-            sonar.coverageReportPaths=coverage.xml
+        run: |
+          sonar-scanner \
+            -Dsonar.organization=roma3214185 \
+            -Dsonar.projectKey=roma3214185 \
+            -Dsonar.sources=. \
+            -Dsonar.cfamily.build-wrapper-output=bw-output \
+            -Dsonar.coverageReportPaths=coverage.xml \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
 
 
