@@ -1,6 +1,6 @@
 # Messenger App
 
-A modern, secure, and high-performance C++ messaging application designed for real-time communication. This project focuses on reliability, scalability, and maintainable code architecture.
+This is a full-stack messenger application built with C++ backend microservices and a Qt frontend. It supports real-time messaging, asynchronous request handling, and high-throughput performance. The backend uses Crow framework, RabbitMQ, Redis, and a custom SQLite ORM. All services are containerized with Docker, monitored via Prometheus & Grafana, and integrated with a CI/CD pipeline for testing, code quality, and documentation.
 
 ## Table of Contents
 - [Features](#features)
