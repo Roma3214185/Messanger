@@ -31,8 +31,6 @@ secrets/*.key
 .qt
 *.qrc
 *.jpeg
-.clang-tidy
-.clang-format
 .clang-tidy.save
 
 vcpkg_installed/
