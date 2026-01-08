@@ -79,7 +79,7 @@ jobs:
 
       - name: Build project with Build Wrapper
         run: |
-          $HOME/.sonar/build-wrapper-macosx-arm64/build-wrapper-macosx-arm64 \
+          $BUILD_WRAPPER_OUT_DIR/build-wrapper-macosx-arm64 \
             --out-dir bw-output \
             cmake --build build -- -j$(sysctl -n hw.ncpu)
 
