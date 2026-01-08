@@ -137,8 +137,9 @@ constexpr bool kLogEnabled = true;
 // #define LOG_INFO(...) logInfo(__FILE__, __LINE__, __func__, __VA_ARGS__)
 // #endif
 
+template <typename Func>
 inline void measureNetworkCall(const std::string &name,
-                               const std::function<void()> &func) {
+                               Func&& func) {
   auto start = std::chrono::high_resolution_clock::now();
   func();
   auto end = std::chrono::high_resolution_clock::now();
