@@ -22,4 +22,4 @@ concept Entity = requires(const T &t) {
 template <typename T>
 concept EntityJson = Entity<T> && JsonRoundTrip<T>;
 
-#endif // ENTITYCONCEPT_H
+#endif  // ENTITYCONCEPT_H

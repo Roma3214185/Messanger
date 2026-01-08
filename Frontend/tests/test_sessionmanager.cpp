@@ -14,7 +14,7 @@ const QUrl url_auth_service("http://localhost:8083/");
 const QUrl url_apigate_service("http://localhost:8084");
 
 class TestSessionManager : public SessionManager {
-public:
+ public:
   using SessionManager::SessionManager;
 
   int on_reply_finished_calls = 0;
@@ -39,9 +39,7 @@ TEST_CASE("Test sign in") {
 
   SECTION("LogInRequestIsSendingOnRightUrl") {
     session_manager.signIn(login_request);
-    REQUIRE(
-        network_manager.last_request.header(QNetworkRequest::ContentTypeHeader)
-            .toString() == "application/json");
+    REQUIRE(network_manager.last_request.header(QNetworkRequest::ContentTypeHeader).toString() == "application/json");
   }
 
   SECTION("LogInRequestWithPostCounterIncreadeByOne") {
@@ -77,10 +75,7 @@ TEST_CASE("Test sign up") {
   MockReply mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
   TestSessionManager session_manager(&network_manager, url_auth_service);
-  SignUpRequest signup_request{.email = "user@test.com",
-                               .password = "12345678",
-                               .tag = "roma228",
-                               .name = "roma"};
+  SignUpRequest signup_request{.email = "user@test.com", .password = "12345678", .tag = "roma228", .name = "roma"};
 
   SECTION("SignUpRequestIsSendingOnRightUrl") {
     QUrl resolved_url_auth_service("http://localhost:8083/auth/register");
@@ -90,9 +85,7 @@ TEST_CASE("Test sign up") {
 
   SECTION("SignUpRequestIsSendingWithRightHeader") {
     session_manager.signUp(signup_request);
-    REQUIRE(
-        network_manager.last_request.header(QNetworkRequest::ContentTypeHeader)
-            .toString() == "application/json");
+    REQUIRE(network_manager.last_request.header(QNetworkRequest::ContentTypeHeader).toString() == "application/json");
   }
 
   SECTION("SignUpRequestWithPostCounterIncreadeByOne") {
@@ -140,15 +133,12 @@ TEST_CASE("Test authenticateWithToken") {
 
   SECTION("authenticateWithTokenExpectedRightHeader") {
     session_manager.authenticateWithToken(token);
-    REQUIRE(
-        network_manager.last_request.header(QNetworkRequest::ContentTypeHeader)
-            .toString() == "application/json");
+    REQUIRE(network_manager.last_request.header(QNetworkRequest::ContentTypeHeader).toString() == "application/json");
   }
 
   SECTION("authenticateWithTokenExpectedRightRawHeader") {
     session_manager.authenticateWithToken(token);
-    QByteArray header_value =
-        network_manager.last_request.rawHeader("Authorization");
+    QByteArray header_value = network_manager.last_request.rawHeader("Authorization");
 
     REQUIRE(header_value == token.toUtf8());
   }
@@ -159,8 +149,7 @@ TEST_CASE("Test authenticateWithToken") {
     REQUIRE(network_manager.get_counter == before_post_count + 1);
   }
 
-  SECTION(
-      "authenticateWithTokenFinishesExpectedEmittingOnAuthenticateWithToken") {
+  SECTION("authenticateWithTokenFinishesExpectedEmittingOnAuthenticateWithToken") {
     auto reply = std::make_unique<MockReply>();
     network_manager.setReply(reply.get());
 
@@ -181,12 +170,10 @@ TEST_CASE("Test onSignInFinished") {
 
   SECTION("ExpectedEmittingUserCreated") {
     auto reply = std::make_unique<MockReply>();
-    QByteArray json_data =
-        R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
+    QByteArray json_data = R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
     reply->setData(json_data);
 
-    QSignalSpy spyUserCreated(&session_manager,
-                              &TestSessionManager::userCreated);
+    QSignalSpy spyUserCreated(&session_manager, &TestSessionManager::userCreated);
     int before = spyUserCreated.count();
 
     session_manager.onReplyFinished(reply->readAll());
@@ -197,12 +184,10 @@ TEST_CASE("Test onSignInFinished") {
   SECTION("ExpectedEmittingUserCreatedWithRightData") {
     qRegisterMetaType<User>("User");
     auto reply = std::make_unique<MockReply>();
-    QByteArray json_data =
-        R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
+    QByteArray json_data = R"({"user":{"name":"ROMA","email":"roma@gmail.com","tag":"r","id":1}, "token":"12345"})";
     reply->setData(json_data);
 
-    QSignalSpy spyUserCreated(&session_manager,
-                              &TestSessionManager::userCreated);
+    QSignalSpy spyUserCreated(&session_manager, &TestSessionManager::userCreated);
     int before = spyUserCreated.count();
 
     session_manager.onReplyFinished(reply->readAll());

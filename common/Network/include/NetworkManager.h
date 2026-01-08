@@ -5,8 +5,6 @@
 #include "interfaces/IMessageNetworkManager.h"
 #include "interfaces/IUserNetworkManager.h"
 
-class NetworkManager : public IUserNetworkManager,
-                       public IMessageNetworkManager,
-                       public IChatNetworkManager {};
+class NetworkManager : public IUserNetworkManager, public IMessageNetworkManager, public IChatNetworkManager {};
 
-#endif // NETWORKMANAGER_H
+#endif  // NETWORKMANAGER_H

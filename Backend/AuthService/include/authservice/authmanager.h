@@ -17,24 +17,23 @@ class IIdGenerator;
 using OptionalUser = std::optional<User>;
 
 class AuthManager : public IAuthManager {
-public:
+ public:
   AuthManager(GenericRepository &repository, IIdGenerator *generator);
   OptionalUser getUser(long long user_id) override;
   OptionalUser loginUser(const LoginRequest &login_request) override;
   OptionalUser registerUser(const RegisterRequest &req) override;
   std::vector<User> findUsersByTag(const std::string &tag) override;
 
-protected:
+ protected:
   virtual OptionalUser findUserByEmail(const std::string &email);
   virtual std::optional<UserCredentials> findUserCredentials(long long user_id);
-  virtual bool passwordIsValid(const std::string &password_to_check,
-                               const std::string &hash_password);
+  virtual bool passwordIsValid(const std::string &password_to_check, const std::string &hash_password);
   virtual std::string getHashPassword(const std::string &raw_passport);
   virtual std::optional<User> findUserWithSameTag(const std::string &tag);
 
-private:
+ private:
   GenericRepository &rep_;
   IIdGenerator *generator_;
 };
 
-#endif // BACKEND_AUTHSERVICE_SRC_AUTHMANAGER_AUTHMANAGER_H_
+#endif  // BACKEND_AUTHSERVICE_SRC_AUTHMANAGER_AUTHMANAGER_H_

@@ -8,6 +8,6 @@ namespace JwtUtils {
 
 std::optional<long long> verifyTokenAndGetUserId(const std::string &token);
 
-} // namespace JwtUtils
+}  // namespace JwtUtils
 
-#endif // MESSAGE_SERVICE_HEADERS_JWTUTILS_H
+#endif  // MESSAGE_SERVICE_HEADERS_JWTUTILS_H

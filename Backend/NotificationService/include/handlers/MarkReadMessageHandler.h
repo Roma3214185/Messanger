@@ -4,9 +4,8 @@
 #include "interfaces/IMessageHandler.h"
 
 class MarkReadMessageHandler : public IMessageHandler {
-public:
-  void handle(const crow::json::rvalue &message,
-              const std::shared_ptr<ISocket> &socket,
+ public:
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
               NotificationManager &manager) override {
     long long read_by = static_cast<long long>(message["readed_by"].d());
     long long message_id = static_cast<long long>(message["message_id"].d());
@@ -17,9 +16,8 @@ public:
     message_status.receiver_id = read_by;
     message_status.read_at = utils::time::getCurrentTime();
     manager.saveMessageStatus(message_status);
-    LOG_INFO("[mark_read] Message marked read {}",
-             nlohmann::json(message_status).dump());
+    LOG_INFO("[mark_read] Message marked read {}", nlohmann::json(message_status).dump());
   }
 };
 
-#endif // MARKREADMESSAGEHANDLER_H
+#endif  // MARKREADMESSAGEHANDLER_H

@@ -31,7 +31,7 @@ inline std::string timestampToISO8601(std::time_t timestamp) {
   return ss.str();
 }
 
-} // namespace TimestampService
+}  // namespace TimestampService
 
 namespace utils::time {
 
@@ -40,6 +40,6 @@ inline long long getCurrentTime() {
   return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
 }
 
-}
+}  // namespace utils::time
 
-#endif // TIMESTAMPSERVICE_H
+#endif  // TIMESTAMPSERVICE_H

@@ -27,9 +27,7 @@ struct TestFixture {
   std::string token = "secret-test-token";
   MockTokenGenerator generator;
 
-  TestFixture()
-      : controller(&manager, &authoritizer, &generator, &provider),
-        server(app, port, &controller) {
+  TestFixture() : controller(&manager, &authoritizer, &generator, &provider), server(app, port, &controller) {
     authoritizer.mock_user_id = user_id;
     provider.mock_codes = MockUtils::getMockCodes();
     user.id = user_id;
@@ -50,7 +48,7 @@ struct TestFixture {
   }
 };
 
-} // namespace Test
+}  // namespace Test
 
 TEST_CASE("handleMe listens on GET /auth/me") {
   Test::TestFixture fix;
@@ -67,8 +65,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.call_autoritize == before_auth_call + 1);
     REQUIRE(fix.manager.call_getUser == before_call_manager);
     REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
-    REQUIRE(fix.res.body ==
-            fix.formError(fix.provider.issueMessages().invalidToken));
+    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
   }
   fix.req.add_header("Authorization", fix.token);
 
@@ -88,8 +85,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.last_token == fix.token);
     REQUIRE(fix.manager.last_user_id == fix.user_id);
     REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
-    REQUIRE(fix.res.body ==
-            fix.formError(fix.provider.issueMessages().userNotFound));
+    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().userNotFound));
   }
 
   SECTION("Expected return valid status code and form json") {
@@ -255,8 +251,9 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
 TEST_CASE("findByTag listens GET users/search") {
   Test::TestFixture fix;
-  SECTION("Request without tag expected badRequest and Missing tag parametr "
-          "error") {
+  SECTION(
+      "Request without tag expected badRequest and Missing tag parametr "
+      "error") {
     fix.app.validate();
     fix.req.method = "GET"_method;
     fix.req.url = "/users/search";
@@ -279,7 +276,8 @@ TEST_CASE("findByTag listens GET users/search") {
   }
 
   fix.req.url_params = crow::query_string("?tag=secret-tag");
-  User user1;user1.id = 1;
+  User user1;
+  user1.id = 1;
   user1.username = "1name";
   user1.tag = "1tag";
   user1.email = "1email";

@@ -9,7 +9,7 @@ struct Message;
 
 class SocketUseCase : public QObject {
   Q_OBJECT
-public:
+ public:
   explicit SocketUseCase(std::unique_ptr<SocketManager> socket_manager);
   void initSocket(long long user_id);
   void connectSocket();
@@ -17,15 +17,15 @@ public:
   void sendReadMessageEvent(const Message &message, long long current_user_id);
   void close() { socket_manager_->close(); }
 
-Q_SIGNALS:
+ Q_SIGNALS:
   // void chatAdded(long long id);
   void errorOccurred(const QString &error);
   void newResponce(QJsonObject &message);
 
-private:
+ private:
   void onMessageReceived(const QString &msg);
 
   std::unique_ptr<SocketManager> socket_manager_;
 };
 
-#endif // SOCKETUSECASE_H
+#endif  // SOCKETUSECASE_H

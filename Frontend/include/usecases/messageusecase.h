@@ -12,15 +12,13 @@ struct User;
 
 class MessageUseCase : public QObject {
   Q_OBJECT
-public:
+ public:
   using MessageModelPtr = std::shared_ptr<MessageModel>;
   using Token = QString;
 
-  MessageUseCase(DataManager *, std::unique_ptr<MessageManager> message_manager,
-                 TokenManager *token_manager);
+  MessageUseCase(DataManager *, std::unique_ptr<MessageManager> message_manager, TokenManager *token_manager);
   [[nodiscard]] MessageModel *getMessageModel(long long chat_id);
-  [[nodiscard]] QList<Message> getChatMessages(long long chat_id,
-                                               int limit = 20);
+  [[nodiscard]] QList<Message> getChatMessages(long long chat_id, int limit = 20);
   void getChatMessagesAsync(long long chat_id);
   void addMessageToChat(Message &msg);
   void updateMessage(Message &msg);
@@ -28,10 +26,10 @@ public:
   void logout();
   void clearAllMessages();
 
-Q_SIGNALS:
+ Q_SIGNALS:
   void messageAdded(const Message &);
 
-private:
+ private:
   void onMessageReceived(const QString &message_text);
   void setupConnections();
 
@@ -40,4 +38,4 @@ private:
   TokenManager *token_manager_;
 };
 
-#endif // MESSAGEUSECASE_H
+#endif  // MESSAGEUSECASE_H

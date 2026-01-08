@@ -43,9 +43,9 @@ class ModelAttorney;
 class Model : public QObject {
   Q_OBJECT
 
-public:
-  explicit Model(const QUrl &url, INetworkAccessManager *net_manager,
-                 ICache *cache, ISocket *socket, DataManager *data_manager);
+ public:
+  explicit Model(const QUrl &url, INetworkAccessManager *net_manager, ICache *cache, ISocket *socket,
+                 DataManager *data_manager);
 
   ChatModel *getChatModel() const noexcept { return chat_model_.get(); }
   UserModel *getUserModel() const noexcept { return user_model_.get(); }
@@ -65,7 +65,7 @@ public:
   TokenManager *tokenManager() const noexcept { return token_manager_.get(); }
   SocketUseCase *socket() const noexcept { return socket_use_case_.get(); }
 
-private:
+ private:
   ICache *cache_;
 
   std::unique_ptr<ChatModel> chat_model_;
@@ -80,7 +80,7 @@ private:
   std::unique_ptr<MessageUseCase> message_use_case_;
   std::unique_ptr<SessionUseCase> session_use_case_;
 
-  //friend class ModelAttorney;
+  // friend class ModelAttorney;
 };
 
 // class ModelAttorney {
@@ -98,4 +98,4 @@ private:
 //     Presenter;
 // };
 
-#endif // MODEL_H
+#endif  // MODEL_H

@@ -11,39 +11,33 @@ namespace {
 
 std::string readFile(const std::string &path) {
   std::ifstream file(path);
-  if (!file.is_open())
-    throw std::runtime_error("Cannot open file " + path);
-  auto key = std::string((std::istreambuf_iterator<char>(file)),
-                         std::istreambuf_iterator<char>());
+  if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
+  auto key = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   LOG_INFO("Private key first 40 chars:\n{}", key.substr(0, 40));
   LOG_INFO("Private key last 40 chars:\n{}", key.substr(key.size() - 40, 40));
   return key;
 }
 
-} // namespace
+}  // namespace
 
 namespace JwtUtils {
 
-inline constexpr const char * const kIssuer = "auth_service";
+inline constexpr const char *const kIssuer = "auth_service";
 constexpr int kTenYears = 24 * 365 * 10;
-const std::string kPublicKeysDir =
-    "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-const std::string kPtivateKeysDir =
-    "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
+const std::string kPublicKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+const std::string kPtivateKeysDir = "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
 const std::string kPrivateKeyFile = kPtivateKeysDir + "private_key.pem";
 const std::string kPublicKeyFile = kPublicKeysDir + "public_key.pem";
 
 std::string generateToken(UserId user_id) {
   auto private_key = readFile(kPrivateKeyFile);
   try {
-    auto token =
-        jwt::create()
-            .set_type("JWT")
-            .set_payload_claim("sub", jwt::claim(std::to_string(user_id)))
-            .set_issuer(kIssuer)
-            .set_expires_at(std::chrono::system_clock::now() +
-                            std::chrono::hours(kTenYears))
-            .sign(jwt::algorithm::rs256("", private_key, ""));
+    auto token = jwt::create()
+                     .set_type("JWT")
+                     .set_payload_claim("sub", jwt::claim(std::to_string(user_id)))
+                     .set_issuer(kIssuer)
+                     .set_expires_at(std::chrono::system_clock::now() + std::chrono::hours(kTenYears))
+                     .sign(jwt::algorithm::rs256("", private_key, ""));
     LOG_INFO("JWT signing succeessed: {}", token);
     return token;
   } catch (const std::exception &e) {
@@ -57,13 +51,9 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
     auto decoded = jwt::decode(token);
     const std::string public_key = readFile(kPublicKeyFile);
 
-    auto verifier =
-        jwt::verify()
-            .allow_algorithm(jwt::algorithm::rs256(public_key, "", "", ""))
-            .with_issuer(kIssuer);
+    auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::rs256(public_key, "", "", "")).with_issuer(kIssuer);
     verifier.verify(decoded);
-    long long user_id =
-        std::stoll(decoded.get_payload_claim("sub").as_string());
+    long long user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
     LOG_INFO("Token is verified, id is '{}'", user_id);
     return user_id;
   } catch (const std::exception &e) {
@@ -85,8 +75,7 @@ std::pair<std::string, std::string> generateRsaKeys(int bits) {
   EVP_PKEY_assign_RSA(pkey, rsa);
 
   BIO *priv_bio = BIO_new(BIO_s_mem());
-  if (!PEM_write_bio_PrivateKey(priv_bio, pkey, nullptr, nullptr, 0, nullptr,
-                                nullptr)) {
+  if (!PEM_write_bio_PrivateKey(priv_bio, pkey, nullptr, nullptr, 0, nullptr, nullptr)) {
     BIO_free_all(priv_bio);
     EVP_PKEY_free(pkey);
     BN_free(e);
@@ -111,4 +100,4 @@ std::pair<std::string, std::string> generateRsaKeys(int bits) {
   return {private_key, public_key};
 }
 
-} // namespace JwtUtils
+}  // namespace JwtUtils

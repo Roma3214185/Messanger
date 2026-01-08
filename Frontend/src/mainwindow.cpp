@@ -24,7 +24,8 @@ enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
 }
 
 MainWindow::MainWindow(Model *model, QWidget *parent)
-    : QMainWindow(parent), ui_(std::make_unique<Ui::MainWindow>()),
+    : QMainWindow(parent),
+      ui_(std::make_unique<Ui::MainWindow>()),
       presenter_(std::make_unique<Presenter>(this, model)),
       searchResultsModel_(std::make_unique<QStandardItemModel>(this)),
       message_list_view_(std::make_unique<MessageListView>()) {
@@ -70,9 +71,7 @@ void MainWindow::setDelegators() {
   ui_->userListView->setItemDelegate(user_delegate);
 }
 
-void MainWindow::setChatModel(ChatModel *model) {
-  ui_->chatListView->setModel(model);
-}
+void MainWindow::setChatModel(ChatModel *model) { ui_->chatListView->setModel(model); }
 
 void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
   DBC_REQUIRE(chat->chat_id > 0);
@@ -84,15 +83,11 @@ void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
   const QString name = chat->title;
   QPixmap avatar(chat->avatar_path);
   constexpr int kAvatarSize = 40;
-  const QString kDefaultAvatar =
-      "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
+  const QString kDefaultAvatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
   if (!avatar.isNull()) {
-    ui_->avatarTitle->setPixmap(avatar.scaled(kAvatarSize, kAvatarSize,
-                                              Qt::KeepAspectRatio,
-                                              Qt::SmoothTransformation));
+    ui_->avatarTitle->setPixmap(avatar.scaled(kAvatarSize, kAvatarSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   } else {
-    ui_->avatarTitle->setPixmap(
-        QPixmap(kDefaultAvatar).scaled(kAvatarSize, kAvatarSize));
+    ui_->avatarTitle->setPixmap(QPixmap(kDefaultAvatar).scaled(kAvatarSize, kAvatarSize));
   }
   ui_->nameTitle->setText(name);
 }
@@ -149,15 +144,13 @@ void MainWindow::setUserModel(UserModel *user_model) {
 }
 
 void MainWindow::on_userTextEdit_textChanged(const QString &text) {
-  if (!text.isEmpty())
-    presenter_->findUserRequest(text);
+  if (!text.isEmpty()) presenter_->findUserRequest(text);
 }
 
 void MainWindow::on_textEdit_textChanged() {
   constexpr int kMinTextEditHeight = 200;
   constexpr int kAdditionalSpace = 10;
-  const int docHeight =
-      static_cast<int>(ui_->textEdit->document()->size().height());
+  const int docHeight = static_cast<int>(ui_->textEdit->document()->size().height());
   const int new_height = qMin(kMinTextEditHeight, docHeight + kAdditionalSpace);
   ui_->textEdit->setFixedHeight(new_height);
 }
@@ -204,30 +197,24 @@ void MainWindow::clearUpInput() {
 }
 
 void MainWindow::seupConnections() {
-  connect(ui_->chatListView, &QListView::clicked, this,
-          [this](const QModelIndex &index) -> void {
-            long long chat_id = index.data(ChatModel::ChatIdRole).toLongLong();
-            presenter_->onChatClicked(chat_id);
-          });
+  connect(ui_->chatListView, &QListView::clicked, this, [this](const QModelIndex &index) -> void {
+    long long chat_id = index.data(ChatModel::ChatIdRole).toLongLong();
+    presenter_->onChatClicked(chat_id);
+  });
 
-  connect(ui_->userListView, &QListView::clicked, this,
-          [this](const QModelIndex &index) -> void {
-            long long user_id = index.data(UserModel::UserIdRole).toLongLong();
-            presenter_->onUserClicked(user_id);
-          });
+  connect(ui_->userListView, &QListView::clicked, this, [this](const QModelIndex &index) -> void {
+    long long user_id = index.data(UserModel::UserIdRole).toLongLong();
+    presenter_->onUserClicked(user_id);
+  });
 
-  connect(ui_->SignInButton, &QPushButton::clicked, this,
-          &MainWindow::setSignInPage);
-  connect(ui_->signUpButton, &QPushButton::clicked, this,
-          &MainWindow::setSignUpPage);
+  connect(ui_->SignInButton, &QPushButton::clicked, this, &MainWindow::setSignInPage);
+  connect(ui_->signUpButton, &QPushButton::clicked, this, &MainWindow::setSignUpPage);
 
   DBC_REQUIRE(message_list_view_ != nullptr);
   message_list_view_->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(message_list_view_.get(), &QListView::customContextMenuRequested,
-          this, &MainWindow::onMessageContextMenu);
+  connect(message_list_view_.get(), &QListView::customContextMenuRequested, this, &MainWindow::onMessageContextMenu);
 
-  connect(presenter_.get(), &Presenter::userSetted, this,
-          &MainWindow::setMainWindow);
+  connect(presenter_.get(), &Presenter::userSetted, this, &MainWindow::setMainWindow);
 
   // connect(searchResultsModel_, &QAbstractItemModel::rowsInserted,
   //         this, &MainWindow::adjustSearchResultsHeight);
@@ -263,9 +250,7 @@ void MainWindow::setupUI() {
   setTheme(std::make_unique<LightTheme>());
 }
 
-void MainWindow::setCurrentChatIndex(QModelIndex chat_idx) {
-  ui_->chatListView->setCurrentIndex(chat_idx);
-}
+void MainWindow::setCurrentChatIndex(QModelIndex chat_idx) { ui_->chatListView->setCurrentIndex(chat_idx); }
 
 void MainWindow::setTheme(std::unique_ptr<ITheme> theme) {
   DBC_REQUIRE(theme != nullptr);
@@ -275,14 +260,12 @@ void MainWindow::setTheme(std::unique_ptr<ITheme> theme) {
 }
 
 void MainWindow::on_pushButton_clicked(bool checked) {
-  checked ? setTheme(std::make_unique<DarkTheme>())
-          : setTheme(std::make_unique<LightTheme>());
+  checked ? setTheme(std::make_unique<DarkTheme>()) : setTheme(std::make_unique<LightTheme>());
 }
 
 void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QModelIndex index = message_list_view_->indexAt(pos);
-  if (!index.isValid())
-    return;
+  if (!index.isValid()) return;
 
   Message msg = index.data(MessageModel::Roles::FullMessage).value<Message>();
 
@@ -292,17 +275,14 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QAction *editAction = menu.addAction("Edit");
   QAction *deleteAction = menu.addAction("Delete");
 
-  if (msg.id <= 0 ||
-      !msg.is_mine) { // message still offline, todo: add if it's your message
-                      // and if u are admin in this chat
+  if (msg.id <= 0 || !msg.is_mine) {  // message still offline, todo: add if it's your message
+                                      // and if u are admin in this chat
     editAction->setEnabled(false);
     deleteAction->setEnabled(false);
   }
 
-  QAction *selected =
-      menu.exec(message_list_view_->viewport()->mapToGlobal(pos));
-  if (!selected)
-    return;
+  QAction *selected = menu.exec(message_list_view_->viewport()->mapToGlobal(pos));
+  if (!selected) return;
 
   if (selected == copyAction) {
     copyMessage(msg);
@@ -313,9 +293,7 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   }
 }
 
-void MainWindow::copyMessage(const Message &message) {
-  qDebug() << "Copy " << message.toString();
-}
+void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << message.toString(); }
 
 void MainWindow::editMessage(const Message &message) {
   qDebug() << "Edit " << message.toString();
@@ -323,8 +301,7 @@ void MainWindow::editMessage(const Message &message) {
 
   QString text_to_edit = message.text;
   DBC_REQUIRE(!text_to_edit.isEmpty());
-  if (text_to_edit.isEmpty())
-    return;
+  if (text_to_edit.isEmpty()) return;
 
   ui_->inputEditStackedWidget->setCurrentIndex(1);
   ui_->editTextEdit->setText(text_to_edit);
@@ -358,16 +335,12 @@ void MainWindow::on_editTextEdit_textChanged() {
   ui_->okEditButton->setEnabled(!current_text.isEmpty());
 }
 
-void MainWindow::setWriteMode() {
-  ui_->inputEditStackedWidget->setCurrentIndex(0);
-}
+void MainWindow::setWriteMode() { ui_->inputEditStackedWidget->setCurrentIndex(0); }
 
-QModelIndex MainWindow::findIndexByMessageId(QAbstractItemModel *model,
-                                             long long id) {
+QModelIndex MainWindow::findIndexByMessageId(QAbstractItemModel *model, long long id) {
   for (int row = 0; row < model->rowCount(); ++row) {
     QModelIndex idx = model->index(row, 0);
-    if (idx.data(MessageModel::MessageIdRole).toLongLong() == id)
-      return idx;
+    if (idx.data(MessageModel::MessageIdRole).toLongLong() == id) return idx;
   }
   return {};
 }
@@ -377,13 +350,11 @@ void MainWindow::setSearchMessageMode() {
   ui_->serch_messages_list_view->setEnabled(false);
 }
 
-void MainWindow::setTitleChatMode() {
-  ui_->chat_title_stacked_widget->setCurrentIndex(0);
-}
+void MainWindow::setTitleChatMode() { ui_->chat_title_stacked_widget->setCurrentIndex(0); }
 
-void MainWindow::on_serch_in_chat_button_clicked() { // todo: remove this func
-                                                     // and make just connect to
-                                                     // setSearchMessageMode
+void MainWindow::on_serch_in_chat_button_clicked() {  // todo: remove this func
+                                                      // and make just connect to
+                                                      // setSearchMessageMode
   setSearchMessageMode();
 }
 
@@ -394,8 +365,7 @@ void MainWindow::on_cancel_search_messages_button_clicked() {
   // todo: clear all
 }
 
-void MainWindow::on_search_messages_line_edit_textChanged(
-    const QString &prefix) {
+void MainWindow::on_search_messages_line_edit_textChanged(const QString &prefix) {
   // ui_->search_messages_line_edit->clear();
   searchResultsModel_->clear();
   if (prefix.isEmpty()) {
@@ -405,8 +375,7 @@ void MainWindow::on_search_messages_line_edit_textChanged(
 
   ui_->serch_messages_list_view->setEnabled(true);
 
-  auto list_of_message = presenter_->getListOfMessagesBySearch(
-      prefix); // current_open_id is in presenter;
+  auto list_of_message = presenter_->getListOfMessagesBySearch(prefix);  // current_open_id is in presenter;
 
   if (list_of_message.empty()) {
     // resultsModel_.setTitle("No results");
@@ -425,18 +394,15 @@ void MainWindow::on_search_messages_line_edit_textChanged(
 }
 
 void MainWindow::on_serch_messages_list_view_clicked(const QModelIndex &index) {
-  if (!index.isValid())
-    return;
+  if (!index.isValid()) return;
 
   long long messageId = index.data(MessageModel::MessageIdRole).toLongLong();
 
   qDebug() << "Clicked " << messageId;
 
-  QModelIndex target =
-      findIndexByMessageId(message_list_view_->model(), messageId);
+  QModelIndex target = findIndexByMessageId(message_list_view_->model(), messageId);
 
-  if (!target.isValid())
-    return;
+  if (!target.isValid()) return;
 
   message_list_view_->scrollTo(target, QAbstractItemView::PositionAtCenter);
 

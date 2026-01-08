@@ -11,10 +11,10 @@
 #include "mocks/MockAccessManager.h"
 
 class TestUserManager : public UserManager {
-public:
-  using UserManager::UserManager;
-  using UserManager::onGetUser;
+ public:
   using UserManager::onFindUsersByTag;
+  using UserManager::onGetUser;
+  using UserManager::UserManager;
 };
 
 TEST_CASE("Test user manager") {
@@ -28,23 +28,14 @@ TEST_CASE("Test user manager") {
   int user_id{4};
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
-  User user{.id = 1,
-            .name = "roma",
-            .email = "roma@gmail.com",
-            .tag = "roma229",
-            .avatarPath = "path/to/avatar"};
+  User user{.id = 1, .name = "roma", .email = "roma@gmail.com", .tag = "roma229", .avatarPath = "path/to/avatar"};
 
-  QJsonObject obj{{"id", user.id},
-                  {"name", user.name},
-                  {"email", user.email},
-                  {"tag", user.tag},
-                  {"avatar_path", user.avatarPath}};
+  QJsonObject obj{
+      {"id", user.id}, {"name", user.name}, {"email", user.email}, {"tag", user.tag}, {"avatar_path", user.avatarPath}};
   QJsonDocument doc(obj);
   QByteArray json_data = doc.toJson();
   QString token = "secret-token-123";
-  auto doGetUser = [&]() -> QFuture<std::optional<User>> {
-    return user_manager.getUser(user_id, token);
-  };
+  auto doGetUser = [&]() -> QFuture<std::optional<User>> { return user_manager.getUser(user_id, token); };
 
   SECTION("GetUserExpectedRightUrlCreated") {
     QUrl resolved_url("http://localhost:8083/users/4");
@@ -68,8 +59,7 @@ TEST_CASE("Test user manager") {
     QSignalSpy spyErrorOccured(&user_manager, &BaseManager::errorOccurred);
     int before_calls = spyErrorOccured.count();
     auto mock_reply = std::make_unique<MockReply>();
-    mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError,
-                             "error");
+    mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError, "error");
     network_manager.setReply(mock_reply.get());
 
     network_manager.shouldFail = true;
@@ -78,14 +68,12 @@ TEST_CASE("Test user manager") {
 
     REQUIRE(spyErrorOccured.count() == before_calls + 1);
     auto arguments = spyErrorOccured.takeFirst();
-    REQUIRE(arguments.at(0).toString().toStdString() ==
-            "Error occurred: error");
+    REQUIRE(arguments.at(0).toString().toStdString() == "Error occurred: error");
   }
 
   SECTION("ErrorReplyExpectedReturnedNullopt") {
     auto mock_reply = std::make_unique<MockReply>();
-    mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError,
-                             "error");
+    mock_reply->setMockError(QNetworkReply::AuthenticationRequiredError, "error");
     network_manager.setReply(mock_reply.get());
 
     // QTimer::singleShot(0, mock_reply, &MockReply::emitFinished);
@@ -131,17 +119,10 @@ TEST_CASE("Test user manager") {
 }
 
 TEST_CASE("Test onGetUser") {
-  User user{.id = 1,
-            .name = "roma",
-            .email = "roma@gmail.com",
-            .tag = "roma229",
-            .avatarPath = "path/to/avatar"};
+  User user{.id = 1, .name = "roma", .email = "roma@gmail.com", .tag = "roma229", .avatarPath = "path/to/avatar"};
 
-  QJsonObject obj{{"id", user.id},
-                  {"name", user.name},
-                  {"email", user.email},
-                  {"tag", user.tag},
-                  {"avatar_path", user.avatarPath}};
+  QJsonObject obj{
+      {"id", user.id}, {"name", user.name}, {"email", user.email}, {"tag", user.tag}, {"avatar_path", user.avatarPath}};
   QJsonDocument doc(obj);
   QByteArray valid_json_data = doc.toJson();
   MockReply mock_reply;
@@ -248,11 +229,7 @@ TEST_CASE("Test findUsersByTag") {
   network_manager.setReply(reply.get());
 
   QList<User> users;
-  User user{.id = 1,
-            .name = "roma",
-            .email = "roma@gmail.com",
-            .tag = "roma229",
-            .avatarPath = "path/to/avatar"};
+  User user{.id = 1, .name = "roma", .email = "roma@gmail.com", .tag = "roma229", .avatarPath = "path/to/avatar"};
 
   users.push_back(user);
   users.push_back(user);
@@ -280,8 +257,7 @@ TEST_CASE("Test findUsersByTag") {
   SECTION("ExpectedFucntionCreateRightUrl") {
     user_manager.findUsersByTag(tag, currect_token);
 
-    REQUIRE(network_manager.last_request.url() ==
-            QUrl("http://localhost:8083/users/search?tag=roma222"));
+    REQUIRE(network_manager.last_request.url() == QUrl("http://localhost:8083/users/search?tag=roma222"));
   }
 
   SECTION("ExpectedGetRequestSended") {
@@ -298,8 +274,7 @@ TEST_CASE("Test findUsersByTag") {
     auto future = user_manager.findUsersByTag(tag, currect_token);
     std::string expected_responce = "Server didn't respond";
 
-    QTRY_COMPARE_WITH_TIMEOUT(spyErrorOccurred.count(), before_calls + 1,
-                              times_out + delay);
+    QTRY_COMPARE_WITH_TIMEOUT(spyErrorOccurred.count(), before_calls + 1, times_out + delay);
 
     auto arguments = spyErrorOccurred.takeFirst();
     REQUIRE(arguments.at(0).toString().toStdString() == expected_responce);
@@ -311,43 +286,40 @@ TEST_CASE("Test findUsersByTag") {
     network_manager.shouldReturnResponce = false;
     auto future = user_manager.findUsersByTag(tag, currect_token);
 
-    QTRY_COMPARE_WITH_TIMEOUT(spyErrorOccurred.count(), before_calls + 1,
-                              times_out + delay);
+    QTRY_COMPARE_WITH_TIMEOUT(spyErrorOccurred.count(), before_calls + 1, times_out + delay);
     REQUIRE(future.result().isEmpty());
   }
 
   SECTION("ReturnedErrorFromServerEmpectedEmittedError") {
     auto reply_with_error = std::make_unique<MockReply>();
-    reply_with_error->setMockError(QNetworkReply::AuthenticationRequiredError,
-                                   "there is no authentification");
-     network_manager.setReply(reply_with_error.get());
-     QSignalSpy spyErrorOccurred(&user_manager, &BaseManager::errorOccurred);
-     int before_calls = spyErrorOccurred.count();
-     network_manager.shouldFail = true;
+    reply_with_error->setMockError(QNetworkReply::AuthenticationRequiredError, "there is no authentification");
+    network_manager.setReply(reply_with_error.get());
+    QSignalSpy spyErrorOccurred(&user_manager, &BaseManager::errorOccurred);
+    int before_calls = spyErrorOccurred.count();
+    network_manager.shouldFail = true;
 
-     // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
-     auto future = user_manager.findUsersByTag(tag, currect_token);
-     QCoreApplication::processEvents();
+    // QTimer::singleShot(0, reply_with_error, &MockReply::emitFinished);
+    auto future = user_manager.findUsersByTag(tag, currect_token);
+    QCoreApplication::processEvents();
 
-     REQUIRE(spyErrorOccurred.count() == before_calls + 1);
-     auto arguments = spyErrorOccurred.takeFirst();
-     REQUIRE(arguments.at(0).toString().toStdString() ==
-             "Error occurred: there is no authentification");
-   }
+    REQUIRE(spyErrorOccurred.count() == before_calls + 1);
+    auto arguments = spyErrorOccurred.takeFirst();
+    REQUIRE(arguments.at(0).toString().toStdString() == "Error occurred: there is no authentification");
+  }
 
-   SECTION("ValidReplyExpectedNotEmittedError") {
-     auto reply = std::make_unique<MockReply>();
-     reply->setData(json_data);
-     network_manager.setReply(reply.get());
-     QSignalSpy spyErrorOccurred(&user_manager, &UserManager::errorOccurred);
-     int before_calls = spyErrorOccurred.count();
+  SECTION("ValidReplyExpectedNotEmittedError") {
+    auto reply = std::make_unique<MockReply>();
+    reply->setData(json_data);
+    network_manager.setReply(reply.get());
+    QSignalSpy spyErrorOccurred(&user_manager, &UserManager::errorOccurred);
+    int before_calls = spyErrorOccurred.count();
 
-     QTimer::singleShot(0, reply.get(), &MockReply::emitFinished);
-     auto future = user_manager.findUsersByTag(tag, currect_token);
-     QCoreApplication::processEvents();
+    QTimer::singleShot(0, reply.get(), &MockReply::emitFinished);
+    auto future = user_manager.findUsersByTag(tag, currect_token);
+    QCoreApplication::processEvents();
 
-     REQUIRE(spyErrorOccurred.count() == before_calls);
-   }
+    REQUIRE(spyErrorOccurred.count() == before_calls);
+  }
 }
 
 TEST_CASE("Tests onUserFindedByTag") {
@@ -361,11 +333,7 @@ TEST_CASE("Tests onUserFindedByTag") {
   network_manager.setReply(reply.get());
 
   QList<User> users;
-  User user{.id = 1,
-            .name = "roma",
-            .email = "roma@gmail.com",
-            .tag = "roma229",
-            .avatarPath = "path/to/avatar"};
+  User user{.id = 1, .name = "roma", .email = "roma@gmail.com", .tag = "roma229", .avatarPath = "path/to/avatar"};
 
   users.push_back(user);
   users.push_back(user);
@@ -401,13 +369,12 @@ TEST_CASE("Tests onUserFindedByTag") {
   }
 
   SECTION("GivenInvalidJsonExpectedErrorOccurred") {
-    QJsonObject   emptyObj;
+    QJsonObject emptyObj;
     QJsonDocument emptyDoc(emptyObj);
-    QByteArray    empty_json_data = emptyDoc.toJson();
-
+    QByteArray empty_json_data = emptyDoc.toJson();
 
     QSignalSpy spyErrorOccurred(&user_manager, &UserManager::errorOccurred);
-    int        before_calls = spyErrorOccurred.count();
+    int before_calls = spyErrorOccurred.count();
 
     user_manager.onFindUsersByTag(empty_json_data);
 
@@ -435,8 +402,7 @@ TEST_CASE("UserManager onFindUsersByTag invalid JSON handling") {
 
     REQUIRE(spyErrorOccured.count() == 1);
     auto arguments = spyErrorOccured.takeFirst();
-    REQUIRE(arguments.at(0).toString() ==
-            "Invalid JSON: expected object at root");
+    REQUIRE(arguments.at(0).toString() == "Invalid JSON: expected object at root");
   }
 
   SECTION("JSON root is an array instead of object") {
@@ -449,13 +415,12 @@ TEST_CASE("UserManager onFindUsersByTag invalid JSON handling") {
 
     REQUIRE(spyErrorOccured.count() == 1);
     auto arguments = spyErrorOccured.takeFirst();
-    REQUIRE(arguments.at(0).toString() ==
-            "Invalid JSON: expected object at root");
+    REQUIRE(arguments.at(0).toString() == "Invalid JSON: expected object at root");
   }
 
   SECTION("JSON object missing 'users' key expected error occurred") {
     QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
-    auto       mock_reply = std::make_unique<MockReply>();
+    auto mock_reply = std::make_unique<MockReply>();
     mock_reply->setData(R"({"wrong_key": []})");
 
     auto users = user_manager.onFindUsersByTag(mock_reply->readAll());

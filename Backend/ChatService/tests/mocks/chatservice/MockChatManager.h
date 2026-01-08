@@ -4,7 +4,7 @@
 #include <chatservice/interfaces/IChatManager.h>
 
 class MockChatManager : public IChatManager {
-public:
+ public:
   int last_chat_id;
   std::optional<Chat> mock_chat;
   std::optional<ID> mock_chat_id;
@@ -26,16 +26,14 @@ public:
 
   std::unordered_map<ID, std::optional<Chat>> mock_chat_by_id;
 
-  std::optional<ID> createPrivateChat(ID first_member,
-                                      ID second_member) override {
+  std::optional<ID> createPrivateChat(ID first_member, ID second_member) override {
     ++call_createPrivateChat;
     last_createPrivateChat = std::make_pair(first_member, second_member);
     return mock_chat_id;
   }
 
   bool should_fail_addMembersToChat = false;
-  bool addMembersToChat(ID chat_id,
-                        const std::vector<ID> &members_id) override {
+  bool addMembersToChat(ID chat_id, const std::vector<ID> &members_id) override {
     last_chat_id = chat_id;
     ++call_addMembersToChat;
     return !should_fail_addMembersToChat;
@@ -92,4 +90,4 @@ public:
   }
 };
 
-#endif // MOCKCHATMANAGER_H
+#endif  // MOCKCHATMANAGER_H

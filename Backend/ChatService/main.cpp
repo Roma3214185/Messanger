@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   constexpr int service_id = 2;
   GeneratorId generator(service_id);
   GenericRepository genetic_rep(&executor, RedisCache::instance());
-  ChatManager manager(&genetic_rep, &generator); // TODO: pass executor to mock
+  ChatManager manager(&genetic_rep, &generator);  // TODO: pass executor to mock
   NetworkManager network_manager;
   ProdConfigProvider provider;
   NetworkFacade facade = NetworkFactory::create(&network_manager);

@@ -4,17 +4,18 @@
 #include "interfaces/IBaseQuery.h"
 #include "metaentity/EntityConcept.h"
 
-template <EntityJson T> class DeleteQuery : public IBaseQuery<T> {
+template <EntityJson T>
+class DeleteQuery : public IBaseQuery<T> {
   ICacheService &cache_;
 
-public:
+ public:
   DeleteQuery(ISqlExecutor *executor, ICacheService &cache);
   QueryResult<T> execute() const override;
 
-private:
+ private:
   QString buildQuery() const override;
 };
 
 #include "DeleteQuery.inl"
 
-#endif // DELETEQUERY_H
+#endif  // DELETEQUERY_H

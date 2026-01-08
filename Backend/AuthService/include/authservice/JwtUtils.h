@@ -18,6 +18,6 @@ std::pair<std::string, std::string> generateRsaKeys(int bits = 2048);
 std::string generateToken(UserId);
 OptionalUserId verifyTokenAndGetUserId(const std::string &token);
 
-} // namespace JwtUtils
+}  // namespace JwtUtils
 
-#endif // BACKEND_AUTHSERVICE_SRC_HEADERS_JWTUTILS_H_
+#endif  // BACKEND_AUTHSERVICE_SRC_HEADERS_JWTUTILS_H_

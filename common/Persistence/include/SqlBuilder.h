@@ -13,7 +13,7 @@ struct SqlStatement {
 };
 
 class SqlBuilder {
-public:
+ public:
   template <EntityJson T>
   SqlStatement buildInsert(const Meta &meta, const T &entity);
 
@@ -29,4 +29,4 @@ public:
 
 #include "SqlBuilder.inl"
 
-#endif // SQLBUILDER_H
+#endif  // SQLBUILDER_H

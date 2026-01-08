@@ -8,7 +8,7 @@
 #include "entities/User.h"
 
 class IAuthManager {
-public:
+ public:
   using OptionalResponce = std::optional<AuthResponce>;
   using OptionalUser = std::optional<User>;
 
@@ -19,4 +19,4 @@ public:
   virtual ~IAuthManager() = default;
 };
 
-#endif // IAUTHMANAGER_H
+#endif  // IAUTHMANAGER_H

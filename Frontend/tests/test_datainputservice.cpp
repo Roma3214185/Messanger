@@ -111,9 +111,10 @@ TEST_CASE("Tag validation - mixed patterns, boundaries, unicode", "[tag]") {
   }
 }
 
-TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, "
-          "boundaries",
-          "[email]") {
+TEST_CASE(
+    "Email validation - aliases, subdomains, IP literals, quoted local, "
+    "boundaries",
+    "[email]") {
   Config cfg;
   cfg.kMinEmailLocalPartLength = 1;
   cfg.kMaxEmailLocalPartLength = 64;
@@ -173,20 +174,16 @@ TEST_CASE("Chained validation - form level", "[form]") {
   cfg.kDomains = {"gmail.com"};
 
   SECTION("Good request expected result is valid") {
-    SignUpRequest good_request{.name = "John Doe",
-                               .email = "john+dev@gmail.com",
-                               .password = "GoodP@ss1",
-                               .tag = "dev_tag"};
+    SignUpRequest good_request{
+        .name = "John Doe", .email = "john+dev@gmail.com", .password = "GoodP@ss1", .tag = "dev_tag"};
     auto r = validateRegistrationUserInput(good_request, cfg);
     LOG_WARN("Message: {}", r.message.toStdString());
     REQUIRE(r.valid);
   }
 
   SECTION("Request with invalid name expected valid error message") {
-    SignUpRequest bad_name_request{.name = "",
-                                   .email = "john+dev@example.com",
-                                   .password = "GoodP@ss1",
-                                   .tag = "dev_tag"};
+    SignUpRequest bad_name_request{
+        .name = "", .email = "john+dev@example.com", .password = "GoodP@ss1", .tag = "dev_tag"};
     auto r2 = validateRegistrationUserInput(bad_name_request, cfg);
     REQUIRE(!r2.valid);
     LOG_WARN("Message: {}", r2.message.toStdString());
@@ -194,10 +191,8 @@ TEST_CASE("Chained validation - form level", "[form]") {
   }
 
   SECTION("Request with invalid email expected valid error message") {
-    SignUpRequest bad_email_request{.name = "John Doe",
-                                    .email = "invalidemail",
-                                    .password = "GoodP@ss1",
-                                    .tag = "dev_tag"};
+    SignUpRequest bad_email_request{
+        .name = "John Doe", .email = "invalidemail", .password = "GoodP@ss1", .tag = "dev_tag"};
     auto r3 = validateRegistrationUserInput(bad_email_request, cfg);
     REQUIRE(!r3.valid);
     LOG_WARN("Message: {}", r3.message.toStdString());
@@ -205,10 +200,8 @@ TEST_CASE("Chained validation - form level", "[form]") {
   }
 
   SECTION("Request with invalid password expected valid error message") {
-    SignUpRequest bad_password_request{.name = "John Doe",
-                                       .email = "john@gmail.com",
-                                       .password = "short",
-                                       .tag = "dev_tag"};
+    SignUpRequest bad_password_request{
+        .name = "John Doe", .email = "john@gmail.com", .password = "short", .tag = "dev_tag"};
     auto r4 = validateRegistrationUserInput(bad_password_request, cfg);
     REQUIRE(!r4.valid);
     LOG_WARN("Message: {}", r4.message.toStdString());
@@ -216,10 +209,8 @@ TEST_CASE("Chained validation - form level", "[form]") {
   }
 
   SECTION("Request with invalid tag expected valid error message") {
-    SignUpRequest bad_tag_request{.name = "John Doe",
-                                  .email = "john@gmail.com",
-                                  .password = "GoodP@ss1",
-                                  .tag = "_tag"};
+    SignUpRequest bad_tag_request{
+        .name = "John Doe", .email = "john@gmail.com", .password = "GoodP@ss1", .tag = "_tag"};
     auto r5 = validateRegistrationUserInput(bad_tag_request, cfg);
     REQUIRE(!r5.valid);
     LOG_WARN("Message from tag: {}", r5.message.toStdString());
@@ -233,8 +224,7 @@ TEST_CASE("Parameterized invalid passwords", "[password][param]") {
   cfg.kMaxPasswordLength = 12;
   cfg.kDomains = {"gmail.com"};
 
-  auto password_sample =
-      GENERATE("short", "has space", "bad|char", "\nnewline");
+  auto password_sample = GENERATE("short", "has space", "bad|char", "\nnewline");
   auto r = passwordValidDetailed(password_sample, cfg);
   REQUIRE(!r.valid);
 }

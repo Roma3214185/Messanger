@@ -25,8 +25,7 @@ struct TestGatewayServerFixrute {
   int user_id = 123;
 
   TestGatewayServerFixrute()
-      : provider(MockUtils::getMockPorts()),
-        server(app, &client, &cache, &pool, &provider, &rabiq_client) {
+      : provider(MockUtils::getMockPorts()), server(app, &client, &cache, &pool, &provider, &rabiq_client) {
     app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
     app.get_middleware<CacheMiddleware>().cache_ = &cache;
     app.get_middleware<LoggingMiddleware>();
@@ -69,16 +68,15 @@ TEST_CASE("Test apigate POST method") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_post == before_post_calls + 1);
-    REQUIRE(fix.client.last_request.host_with_port ==
-            "localhost:" + std::to_string(fix.provider.ports().authService));
+    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().authService));
   }
 
-  SECTION("Response received from client expected responce with 202 status "
-          "code and request_id") {
+  SECTION(
+      "Response received from client expected responce with 202 status "
+      "code and request_id") {
     fix.makeCall();
 
-    REQUIRE(fix.res.code ==
-            202); // TODO: make 202 in provider and extract generatorRequestId
+    REQUIRE(fix.res.code == 202);  // TODO: make 202 in provider and extract generatorRequestId
     // REQUIRE(fix.res.body == fix.mock_client_ans);
   }
 }
@@ -95,8 +93,7 @@ TEST_CASE("Test apigate GET method") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_get == before_forward_cnt + 1);
-    CHECK(fix.client.last_request.host_with_port ==
-          "localhost:" + std::to_string(fix.provider.ports().messageService));
+    CHECK(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().messageService));
     CHECK(fix.client.last_request.body == fix.req.body);
     CHECK(fix.client.last_request.full_path == fix.req.url);
   }
@@ -131,8 +128,7 @@ TEST_CASE("Test simple base_path request") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_get == before_post_calls + 1);
-    REQUIRE(fix.client.last_request.host_with_port ==
-            "localhost:" + std::to_string(fix.provider.ports().chatService));
+    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().chatService));
   }
 }
 
@@ -148,9 +144,9 @@ TEST_CASE("Test apigate healthz endpoint") {
 
   CHECK(r["status"].s() == "ok");
   long long ts = r["timestamp"].i();
-  long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                      std::chrono::system_clock::now().time_since_epoch())
-                      .count();
+  long long now =
+      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+          .count();
 
   CHECK(std::llabs(now - ts) < 1000);
   CHECK(fix.res.get_header_value("Content-Type") == "application/json");

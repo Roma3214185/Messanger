@@ -20,8 +20,7 @@ using std::string;
 namespace {
 
 inline long long getCurrentTime() {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::system_clock::now().time_since_epoch())
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
       .count();
 }
 
@@ -35,8 +34,7 @@ inline std::string generateRequestID() {
 
 std::string getContentType(const crow::request &req) {
   string content_type = req.get_header_value("content-type");
-  if (content_type.empty())
-    content_type = "application/json";
+  if (content_type.empty()) content_type = "application/json";
   return content_type;
 }
 
@@ -60,22 +58,18 @@ RequestDTO getRequestInfo(const crow::request &req, const std::string &path) {
   return request_info;
 }
 
-} // namespace
+}  // namespace
 
-GatewayServer::GatewayServer(GatewayApp &app, IClient *client,
-                             ICacheService *cache, IThreadPool *pool,
+GatewayServer::GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool,
                              IConfigProvider *provider, IRabitMQClient *queue)
-    : app_(app), provider_(provider), cache_(cache), proxy_(client),
-      pool_(pool), queue_(queue) {}
+    : app_(app), provider_(provider), cache_(cache), proxy_(client), pool_(pool), queue_(queue) {}
 
 void GatewayServer::run() {
-  LOG_INFO("Starting API Gateway on port {}",
-           provider_->ports().apigateService);
+  LOG_INFO("Starting API Gateway on port {}", provider_->ports().apigateService);
   app_.port(provider_->ports().apigateService).multithreaded().run();
 }
 
-void GatewayServer::sendResponse(crow::response &res, int res_code,
-                                 const std::string &message) {
+void GatewayServer::sendResponse(crow::response &res, int res_code, const std::string &message) {
   res.code = res_code;
   res.write(message);
   res.end();
@@ -96,8 +90,7 @@ void GatewayServer::registerRoutes() {
 void GatewayServer::registerRoute(const std::string &base_path, int port) {
   app_.route_dynamic(base_path + "/<path>")
       .methods("GET"_method, crow::HTTPMethod::DELETE, crow::HTTPMethod::PUT)(
-          [this, port, base_path](const crow::request &req, crow::response &res,
-                                  std::string path) {
+          [this, port, base_path](const crow::request &req, crow::response &res, std::string path) {
             // pool_->enqueue([this, req = std::move(req), &res, port,
             // base_path, path]() mutable {
             handleProxyRequest(req, res, port, base_path + "/" + path);
@@ -107,9 +100,7 @@ void GatewayServer::registerRoute(const std::string &base_path, int port) {
           });
 
   app_.route_dynamic(base_path + "/<path>")
-      .methods("POST"_method)([this, port, base_path](const crow::request &req,
-                                                      crow::response &res,
-                                                      std::string path) {
+      .methods("POST"_method)([this, port, base_path](const crow::request &req, crow::response &res, std::string path) {
         // pool_->enqueue([this, req = std::move(req), &res, port, base_path,
         // path]() mutable {
         handlePostRequest(req, res, port, base_path + "/" + path);
@@ -118,8 +109,7 @@ void GatewayServer::registerRoute(const std::string &base_path, int port) {
         //  });
       });
 
-  app_.route_dynamic(base_path).methods("GET"_method, crow::HTTPMethod::DELETE,
-                                        crow::HTTPMethod::PUT)(
+  app_.route_dynamic(base_path).methods("GET"_method, crow::HTTPMethod::DELETE, crow::HTTPMethod::PUT)(
       [this, port, base_path](const crow::request &req, crow::response &res) {
         // pool_->enqueue([this, req = std::move(req), &res, port, base_path]()
         // mutable {
@@ -136,8 +126,7 @@ void GatewayServer::registerRoute(const std::string &base_path, int port) {
       });
 }
 
-void GatewayServer::handleProxyRequest(const crow::request &req,
-                                       crow::response &res, const int port,
+void GatewayServer::handleProxyRequest(const crow::request &req, crow::response &res, const int port,
                                        const std::string &path) {
   RequestDTO request_info = getRequestInfo(req, path);
 
@@ -146,21 +135,18 @@ void GatewayServer::handleProxyRequest(const crow::request &req,
 }
 
 void GatewayServer::handlePostRequest(
-    const crow::request
-        &req, // todo: make handlers and unordered_map<request, handler>
+    const crow::request &req,  // todo: make handlers and unordered_map<request, handler>
     crow::response &res, const int port, const std::string &path) {
   RequestDTO request_info = getRequestInfo(req, path);
-  cache_->set("request:" + request_info.request_id,
-              "{ \"status\": \"queued\" }", std::chrono::seconds(30));
+  cache_->set("request:" + request_info.request_id, "{ \"status\": \"queued\" }", std::chrono::seconds(30));
   auto json = nlohmann::json(request_info);
   json["port"] = port;
 
-  const PublishRequest publish_request{
-      // todo: make PublishRequest and RequestDTO immutable
-      .exchange = provider_->routes().exchange,
-      .routing_key = provider_->routes().sendRequest,
-      .message = json.dump(),
-      .exchange_type = "direct"};
+  const PublishRequest publish_request{// todo: make PublishRequest and RequestDTO immutable
+                                       .exchange = provider_->routes().exchange,
+                                       .routing_key = provider_->routes().sendRequest,
+                                       .message = json.dump(),
+                                       .exchange_type = "direct"};
 
   queue_->publish(publish_request);
   nlohmann::json responce;
@@ -172,73 +158,58 @@ void GatewayServer::handlePostRequest(
 void GatewayServer::subscribeOnNewRequest() {
   SubscribeRequest subscribe_request{.queue = provider_->routes().sendRequest,
                                      .exchange = provider_->routes().exchange,
-                                     .routing_key =
-                                         provider_->routes().sendRequest,
+                                     .routing_key = provider_->routes().sendRequest,
                                      .exchange_type = "direct"};
 
-  queue_->subscribe(subscribe_request, [this](const std::string &event,
-                                              const std::string &payload) {
+  queue_->subscribe(subscribe_request, [this](const std::string &event, const std::string &payload) {
     LOG_INFO("I in subscribe with event {} and payload {}", event, payload);
-    auto request_info_port =
-        [payload]() -> std::optional<std::pair<RequestDTO, int>> {
+    auto request_info_port = [payload]() -> std::optional<std::pair<RequestDTO, int>> {
       try {
         auto json = nlohmann::json::parse(payload);
         RequestDTO dto = json.get<RequestDTO>();
         const int port = json.at("port").get<int>();
         return std::make_pair(dto, port);
       } catch (const std::exception &e) {
-        LOG_ERROR("Can't parse RequestDTO from payload {}: {}", payload,
-                  e.what());
+        LOG_ERROR("Can't parse RequestDTO from payload {}: {}", payload, e.what());
         return std::nullopt;
       } catch (...) {
-        LOG_ERROR("Unknown error while parsing RequestDTO from payload {}",
-                  payload);
+        LOG_ERROR("Unknown error while parsing RequestDTO from payload {}", payload);
         return std::nullopt;
       }
     }();
 
-    if (!request_info_port)
-      return;
+    if (!request_info_port) return;
     auto [request_info, port] = *request_info_port;
     auto result = proxy_.forward(request_info, port);
-    LOG_INFO("Finished result in queue_->subscribe, request_info->request_id = "
-             "{}, status_code = "
-             "{}, body = {}",
-             request_info.request_id, std::to_string(result.first),
-             result.second.substr(0, result.second.length()));
+    LOG_INFO(
+        "Finished result in queue_->subscribe, request_info->request_id = "
+        "{}, status_code = "
+        "{}, body = {}",
+        request_info.request_id, std::to_string(result.first), result.second.substr(0, result.second.length()));
 
-    cache_->set("request:" + request_info.request_id,
-                "{\"status\":\"finished\"}", std::chrono::seconds(30));
-    cache_->set("request_id:" + request_info.request_id,
-                std::to_string(result.first), std::chrono::seconds(30));
+    cache_->set("request:" + request_info.request_id, "{\"status\":\"finished\"}", std::chrono::seconds(30));
+    cache_->set("request_id:" + request_info.request_id, std::to_string(result.first), std::chrono::seconds(30));
     cache_->set("request_body:" + request_info.request_id,
-                result.second.substr(0, result.second.length() - 1) +
-                    ",\"status\":\"finished\"}",
-                std::chrono::seconds(
-                    30)); // todo: fully refactor server responce JsonObject,
-                          //  return ["error"], ["body"], maybe ["code"]
+                result.second.substr(0, result.second.length() - 1) + ",\"status\":\"finished\"}",
+                std::chrono::seconds(30));  // todo: fully refactor server responce JsonObject,
+                                            //  return ["error"], ["body"], maybe ["code"]
   });
 }
 
 void GatewayServer::registerRequestRoute() {
   CROW_ROUTE(app_, "/request/<string>/status")
-      .methods("GET"_method)([this](const crow::request & /*req*/,
-                                    crow::response &res, std::string task_id) {
+      .methods("GET"_method)([this](const crow::request & /*req*/, crow::response &res, std::string task_id) {
         LOG_INFO("Request id = {}", task_id);
         std::optional<std::string> status = cache_->get("request:" + task_id);
         nlohmann::json responce;
         std::optional<std::string> id = cache_->get("request_id:" + task_id);
-        std::optional<std::string> body =
-            cache_->get("request_body:" + task_id);
+        std::optional<std::string> body = cache_->get("request_body:" + task_id);
 
         if (!status || !id || !body) {
           responce["status"] = "not_found";
-          if (!status)
-            LOG_INFO("Not found status");
-          if (!id)
-            LOG_INFO("Not found id");
-          if (!body)
-            LOG_INFO("Not found body");
+          if (!status) LOG_INFO("Not found status");
+          if (!id) LOG_INFO("Not found id");
+          if (!body) LOG_INFO("Not found body");
           sendResponse(res, 404, responce.dump());
         } else {
           LOG_INFO("Status found, return {}", *body);
@@ -248,8 +219,7 @@ void GatewayServer::registerRequestRoute() {
 }
 
 void GatewayServer::registerWebSocketRoutes() {
-  std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws",
-                                        provider_->ports().notificationService);
+  std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws", provider_->ports().notificationService);
   auto ws_bridge = std::make_shared<WebSocketBridge>(backend_url);
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
@@ -257,13 +227,11 @@ void GatewayServer::registerWebSocketRoutes() {
         ws_bridge->onClientConnect(client);
         // metrics_->userConnected();
       })
-      .onmessage([ws_bridge, this](crow::websocket::connection &client,
-                                   const std::string &data, bool) {
+      .onmessage([ws_bridge, this](crow::websocket::connection &client, const std::string &data, bool) {
         ws_bridge->onClientMessage(client, data);
         // metrics_->newMessage(client.get_remote_ip());
       })
-      .onclose([ws_bridge, this](crow::websocket::connection &client,
-                                 const std::string &reason, uint16_t code) {
+      .onclose([ws_bridge, this](crow::websocket::connection &client, const std::string &reason, uint16_t code) {
         ws_bridge->onClientClose(client, reason, code);
         // metrics_->userDisconnected();
       });

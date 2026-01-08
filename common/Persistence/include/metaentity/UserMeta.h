@@ -4,25 +4,26 @@
 #include "Meta.h"
 #include "entities/User.h"
 
-template <> struct Reflection<User> {
+template <>
+struct Reflection<User> {
   static Meta meta() {
-    return {
-        .table_name = "users",
-        .fields = {make_field<User, long long>("id", &User::id),
-                   make_field<User, std::string>("username", &User::username),
-                   make_field<User, std::string>("tag", &User::tag),
-                   make_field<User, std::string>("email", &User::email)}};
+    return {.table_name = "users",
+            .fields = {make_field<User, long long>("id", &User::id),
+                       make_field<User, std::string>("username", &User::username),
+                       make_field<User, std::string>("tag", &User::tag),
+                       make_field<User, std::string>("email", &User::email)}};
   }
 };
 
-inline constexpr auto UserFields =
-    std::make_tuple(&User::id, &User::email, &User::tag, &User::username);
+inline constexpr auto UserFields = std::make_tuple(&User::id, &User::email, &User::tag, &User::username);
 
-template <> struct EntityFields<User> {
+template <>
+struct EntityFields<User> {
   static constexpr auto &fields = UserFields;
 };
 
-template <> struct Builder<User> {
+template <>
+struct Builder<User> {
   static User build(QSqlQuery &query) {
     User user;
     int i = 0;
@@ -51,4 +52,4 @@ template <> struct Builder<User> {
   }
 };
 
-#endif // METAENTITY_USER_H
+#endif  // METAENTITY_USER_H

@@ -19,12 +19,10 @@ struct TestFixture {
   ChatManager manager;
   MockIdGenerator generator;
 
-  TestFixture()
-      : repository(&executor, cache, &pool),
-        manager(&repository, &generator) {}
+  TestFixture() : repository(&executor, cache, &pool), manager(&repository, &generator) {}
 };
 
-} // namespace TestChatManager
+}  // namespace TestChatManager
 
 TEST_CASE("Test chatManager::createPrivateChat") {
   TestChatManager::TestFixture fix;
@@ -40,8 +38,9 @@ TEST_CASE("Test chatManager::createPrivateChat") {
     REQUIRE(fix.executor.execute_calls == before_calls + 1);
   }
 
-  SECTION("Private chat is already created expected 1 call to exsecute and "
-          "returned this chat") {
+  SECTION(
+      "Private chat is already created expected 1 call to exsecute and "
+      "returned this chat") {
     int before_calls = fix.executor.execute_calls;
 
     auto res = fix.manager.createPrivateChat(4, 5);

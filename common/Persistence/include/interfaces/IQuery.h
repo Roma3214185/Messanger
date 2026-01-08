@@ -13,4 +13,4 @@ struct IQuery {
   virtual QVariant value(const std::string &field) const = 0;
 };
 
-#endif // IQUERY_H
+#endif  // IQUERY_H

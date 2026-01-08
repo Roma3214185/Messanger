@@ -17,15 +17,14 @@ const QString kServerNotRespondError = "Server didn't respond";
 
 namespace {
 
-auto getRequestWithToken(QUrl endpoint, const QString &current_token)
-    -> QNetworkRequest {
+auto getRequestWithToken(QUrl endpoint, const QString &current_token) -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", current_token.toUtf8());
   return request;
 }
 
-} // namespace
+}  // namespace
 
 QFuture<QList<ChatPtr>> ChatManager::loadChats(const QString &current_token) {
   PROFILE_SCOPE("Model::loadChats");
@@ -34,15 +33,11 @@ QFuture<QList<ChatPtr>> ChatManager::loadChats(const QString &current_token) {
 
   auto *reply = network_manager_->get(req);
   return handleReplyWithTimeout<QList<ChatPtr>>(
-      reply,
-      [this](const QByteArray &responce_data) {
-        return onLoadChats(responce_data);
-      },
-      timeout_ms_, QList<ChatPtr>{});
+      reply, [this](const QByteArray &responce_data) { return onLoadChats(responce_data); }, timeout_ms_,
+      QList<ChatPtr>{});
 }
 
-auto ChatManager::onLoadChats(const QByteArray &responce_data)
-    -> QList<ChatPtr> {
+auto ChatManager::onLoadChats(const QByteArray &responce_data) -> QList<ChatPtr> {
   PROFILE_SCOPE("Model::onLoadChats");
   // if(!checkReply(reply)) return {};
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
@@ -52,8 +47,7 @@ auto ChatManager::onLoadChats(const QByteArray &responce_data)
   // responce_data.size(), responce_data.toStdString());
 
   auto doc = QJsonDocument::fromJson(responce_data);
-  if (!doc.isObject() || !doc.object().contains("chats") ||
-      !doc.object()["chats"].isArray()) {
+  if (!doc.isObject() || !doc.object().contains("chats") || !doc.object()["chats"].isArray()) {
     LOG_ERROR("LoadChats: invalid JSON");
     Q_EMIT errorOccurred("LoadChats: invalid JSON");
     return {};
@@ -72,19 +66,14 @@ auto ChatManager::onLoadChats(const QByteArray &responce_data)
   return chats;
 }
 
-QFuture<ChatPtr> ChatManager::loadChat(const QString &current_token,
-                                       long long chat_id) {
+QFuture<ChatPtr> ChatManager::loadChat(const QString &current_token, long long chat_id) {
   PROFILE_SCOPE("Model::loadChat");
   QUrl endpoint = url_.resolved(QUrl(QString("/chats/%1").arg(chat_id)));
   auto req = getRequestWithToken(endpoint, current_token);
 
   auto *reply = network_manager_->get(req);
   return handleReplyWithTimeout<ChatPtr>(
-      reply,
-      [this](const QByteArray &responce_data) {
-        return onChatLoaded(responce_data);
-      },
-      timeout_ms_, nullptr);
+      reply, [this](const QByteArray &responce_data) { return onChatLoaded(responce_data); }, timeout_ms_, nullptr);
 }
 
 ChatPtr ChatManager::onChatLoaded(const QByteArray &responce_data) {
@@ -103,8 +92,7 @@ ChatPtr ChatManager::onChatLoaded(const QByteArray &responce_data) {
   return chat;
 }
 
-QFuture<ChatPtr> ChatManager::createPrivateChat(const QString &current_token,
-                                                long long user_id) {
+QFuture<ChatPtr> ChatManager::createPrivateChat(const QString &current_token, long long user_id) {
   PROFILE_SCOPE("Model::createPrivateChat");
   auto endpoint = url_.resolved(QUrl("/chats/private"));
   auto req = getRequestWithToken(endpoint, current_token);
@@ -113,15 +101,11 @@ QFuture<ChatPtr> ChatManager::createPrivateChat(const QString &current_token,
   };
   auto reply = network_manager_->post(req, QJsonDocument(body).toJson());
   return handleReplyWithTimeout<ChatPtr>(
-      reply,
-      [this](const QByteArray &responce_data) {
-        return onCreatePrivateChat(responce_data);
-      },
-      timeout_ms_, nullptr);
+      reply, [this](const QByteArray &responce_data) { return onCreatePrivateChat(responce_data); }, timeout_ms_,
+      nullptr);
 }
 
-auto ChatManager::onCreatePrivateChat(const QByteArray &responce_data)
-    -> ChatPtr {
+auto ChatManager::onCreatePrivateChat(const QByteArray &responce_data) -> ChatPtr {
   PROFILE_SCOPE("Model::onCreatePrivateChat");
   // if(!checkReply(reply)) return nullptr;
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
@@ -136,8 +120,7 @@ auto ChatManager::onCreatePrivateChat(const QByteArray &responce_data)
 
   auto responseObj = doc.object();
   if (responseObj["type"].toString() != "private") {
-    Q_EMIT errorOccurred(
-        "Error in model create private chat returned group chat");
+    Q_EMIT errorOccurred("Error in model create private chat returned group chat");
     return nullptr;
   }
 

@@ -9,4 +9,4 @@
 #include "socketmanager.h"
 #include "usermanager.h"
 
-#endif // MANAGERS_H
+#endif  // MANAGERS_H

@@ -23,8 +23,7 @@ RabbitMQConfig getConfig(const ProdConfigProvider &provider) {
   return config;
 }
 
-std::unique_ptr<RabbitMQClient>
-createRabbitMQClient(const RabbitMQConfig config, IThreadPool *pool) {
+std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config, IThreadPool *pool) {
   try {
     return std::make_unique<RabbitMQClient>(config, pool);
   } catch (const AmqpClient::AmqpLibraryException &e) {
@@ -50,8 +49,7 @@ int main(int argc, char *argv[]) {
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
   auto mq = createRabbitMQClient(config, &pool);
-  if (!mq)
-    throw std::runtime_error("Cannot connect to RabbitMQ");
+  if (!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
 
   Controller controller(mq.get(), &manager, &pool);
   crow::SimpleApp app;

@@ -12,14 +12,14 @@ class ISocket;
 using SocketPtr = std::shared_ptr<ISocket>;
 
 class Server {
-public:
+ public:
   Server(int port, NotificationManager *notification_manager);
   void run();
 
-protected:
+ protected:
   void handleSocketOnMessage(const SocketPtr &socket, const std::string &data);
 
-private:
+ private:
   void initRoutes();
   void initHanlers();
   void handleSocketRoutes();
@@ -31,4 +31,4 @@ private:
   SocketRepository active_sockets_;
 };
 
-#endif // BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_
+#endif  // BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_

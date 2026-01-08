@@ -15,8 +15,7 @@ struct RetryOptions {
 };
 
 template <typename Func>
-auto retryInvoke(Func func, const RetryOptions &opts)
-    -> std::optional<decltype(func())> {
+auto retryInvoke(Func func, const RetryOptions &opts) -> std::optional<decltype(func())> {
   using namespace std::chrono;
   for (int attempt = 1; attempt <= opts.max_attempts; attempt++) {
     std::optional<decltype(func())> result;
@@ -39,8 +38,7 @@ auto retryInvoke(Func func, const RetryOptions &opts)
       worker.join();
     }
 
-    if (result.has_value())
-      return result;
+    if (result.has_value()) return result;
 
     // no success - retry delay
     if (attempt < opts.max_attempts) {
@@ -55,4 +53,4 @@ auto retryInvoke(Func func, const RetryOptions &opts)
   return std::nullopt;
 }
 
-#endif // RETRYOPTIONS_H
+#endif  // RETRYOPTIONS_H

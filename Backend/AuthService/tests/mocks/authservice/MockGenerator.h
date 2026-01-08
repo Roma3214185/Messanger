@@ -4,7 +4,7 @@
 #include "authservice/interfaces/IGenerator.h"
 
 class MockTokenGenerator : public IGenerator {
-public:
+ public:
   long long last_user_id;
   std::string mock_token;
   bool should_fail_generateKeys = false;
@@ -17,4 +17,4 @@ public:
   }
 };
 
-#endif // MOCKGENERATOR_H
+#endif  // MOCKGENERATOR_H

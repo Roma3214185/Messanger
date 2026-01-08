@@ -19,13 +19,12 @@ struct SubscribeRequest {
 };
 
 class IRabitMQClient {
-public:
-  using EventCallback =
-      std::function<void(const std::string &event, const std::string &payload)>;
+ public:
+  using EventCallback = std::function<void(const std::string &event, const std::string &payload)>;
   virtual ~IRabitMQClient() = default;
   virtual void publish(const PublishRequest &) = 0;
   virtual void subscribe(const SubscribeRequest &, const EventCallback &) = 0;
   virtual void stop() = 0;
 };
 
-#endif // IRABITMQCLIENT_H
+#endif  // IRABITMQCLIENT_H

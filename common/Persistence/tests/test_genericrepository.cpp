@@ -52,9 +52,7 @@ TEST_CASE("Test saving entity in database") {
   auto timepoint = QDateTime::currentMSecsSinceEpoch();
   message_status.read_at = timepoint;
 
-  SECTION("Save message_status expected true") {
-    REQUIRE(rep.save(message_status));
-  }
+  SECTION("Save message_status expected true") { REQUIRE(rep.save(message_status)); }
 
   SECTION("Save message_status expected any fields is changed") {
     REQUIRE(message_status.receiver_id == 3);

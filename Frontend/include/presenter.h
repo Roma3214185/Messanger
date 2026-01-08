@@ -7,7 +7,7 @@
 #include "MessageListView.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
-#include "delegators/userdelegate.h" //todo(roma): make forward declarations
+#include "delegators/userdelegate.h"  //todo(roma): make forward declarations
 #include "interfaces/ISocketResponceHandler.h"
 
 class ChatModel;
@@ -19,14 +19,14 @@ class UserModel;
 class User;
 class QJsonObject;
 
-template <typename T> using Optional = std::optional<T>;
+template <typename T>
+using Optional = std::optional<T>;
 using OptionalId = std::optional<long long>;
 
 class Presenter : public QObject {
   Q_OBJECT
-public:
-  using SocketHandlersMap =
-      std::unordered_map<std::string, std::unique_ptr<ISocketResponceHandler>>;
+ public:
+  using SocketHandlersMap = std::unordered_map<std::string, std::unique_ptr<ISocketResponceHandler>>;
 
   Presenter(IMainWindow *window, Model *manager);
 
@@ -50,10 +50,10 @@ public:
 
   std::vector<Message> getListOfMessagesBySearch(const QString &prefix);
 
-Q_SIGNALS:
+ Q_SIGNALS:
   void userSetted();
 
-protected:
+ protected:
   void setCurrentChatId(long long chat_id);
   void newMessage(Message &message);
   void onNewResponce(QJsonObject &json_object);
@@ -62,7 +62,7 @@ protected:
   OptionalId current_opened_chat_id_;
   std::optional<User> current_user_;
 
-private:
+ private:
   void initialConnections();
   void setUser(const User &user, const QString &token);
   void openChat(long long chat_id);
@@ -79,4 +79,4 @@ private:
   std::unique_ptr<ChatItemDelegate> chat_delegate_;
 };
 
-#endif // PRESENTER_H
+#endif  // PRESENTER_H

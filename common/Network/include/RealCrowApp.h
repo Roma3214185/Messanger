@@ -6,7 +6,7 @@
 #include "interfaces/IApp.h"
 
 class CrowAppWrapper : public IApp {
-public:
+ public:
   explicit CrowAppWrapper(crow::SimpleApp &app) : app_(app) {}
 
   IApp &port(int p) override {
@@ -21,8 +21,8 @@ public:
 
   void run() override { app_.run(); }
 
-private:
+ private:
   crow::SimpleApp &app_;
 };
 
-#endif // CROWAPPWRAPPER_H
+#endif  // CROWAPPWRAPPER_H

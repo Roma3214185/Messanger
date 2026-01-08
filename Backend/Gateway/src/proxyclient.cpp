@@ -33,35 +33,25 @@ httplib::Headers getHeaders(const RequestDTO &request_info) {
   return headers;
 }
 
-std::string get_host_with_port(int port) {
-  return "localhost:" + to_string(port);
-}
+std::string get_host_with_port(int port) { return "localhost:" + to_string(port); }
 
-httplib::Params
-getParams(const std::unordered_map<std::string, std::string> &map) {
+httplib::Params getParams(const std::unordered_map<std::string, std::string> &map) {
   httplib::Params params;
-  for (auto [k, v] : map)
-    params.emplace(k, v);
+  for (auto [k, v] : map) params.emplace(k, v);
   return params;
 }
 
-} // namespace
+}  // namespace
 
-NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO &request,
-                                         const std::string &method) {
-  if (method == "GET")
-    return client_->Get(request);
-  if (method == "DELETE")
-    return client_->Delete(request);
-  if (method == "PUT")
-    return client_->Put(request);
-  if (method == "POST")
-    return client_->Post(request);
+NetworkResponse ProxyClient::makeRequest(const ForwardRequestDTO &request, const std::string &method) {
+  if (method == "GET") return client_->Get(request);
+  if (method == "DELETE") return client_->Delete(request);
+  if (method == "PUT") return client_->Put(request);
+  if (method == "POST") return client_->Post(request);
   return {kBadGatewayCode, kBadGatewayMessage};
 }
 
-NetworkResponse ProxyClient::forward(const RequestDTO &request_info,
-                                     const int port) {
+NetworkResponse ProxyClient::forward(const RequestDTO &request_info, const int port) {
   ForwardRequestDTO forward_request;
   forward_request.host_with_port = get_host_with_port(port);
   forward_request.headers = getHeaders(request_info);

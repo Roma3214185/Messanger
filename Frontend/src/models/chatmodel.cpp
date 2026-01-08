@@ -11,27 +11,26 @@ int ChatModel::rowCount(const QModelIndex &parent) const {
 
 QVariant ChatModel::data(const QModelIndex &index, int role) const {
   // DBC_REQUIRE(index.isValid() && index.row() < chats_.size());
-  if (!index.isValid() || index.row() >= chats_.size() || index.row() < 0)
-    return QVariant();
+  if (!index.isValid() || index.row() >= chats_.size() || index.row() < 0) return QVariant();
 
   const auto &chat = chats_.at(index.row());
 
   switch (role) {
-  case ChatIdRole:
-    return chat->chat_id;
-  case TitleRole:
-    return chat->title;
-  case LastMessageRole:
-    return chat->last_message;
-  case UnreadRole:
-    return chat->unread;
-  case LastMessageTimeRole:
-    return chat->last_message_time;
-  case AvatarRole:
-    return chat->avatar_path;
-  default:
-    DBC_UNREACHABLE();
-    return QVariant();
+    case ChatIdRole:
+      return chat->chat_id;
+    case TitleRole:
+      return chat->title;
+    case LastMessageRole:
+      return chat->last_message;
+    case UnreadRole:
+      return chat->unread;
+    case LastMessageTimeRole:
+      return chat->last_message_time;
+    case AvatarRole:
+      return chat->avatar_path;
+    default:
+      DBC_UNREACHABLE();
+      return QVariant();
   }
 }
 
@@ -59,33 +58,27 @@ void ChatModel::addChat(const ChatPtr &chat) {
 
 void ChatModel::sortChats() {
   beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
-  std::sort(chats_.begin(), chats_.end(),
-            [&](const auto &chat1, const auto &chat2) {
-              // if(Private) return for created time
-              //  else retunr for joined time
-              return chat1->last_message_time > chat2->last_message_time;
-            });
+  std::sort(chats_.begin(), chats_.end(), [&](const auto &chat1, const auto &chat2) {
+    // if(Private) return for created time
+    //  else retunr for joined time
+    return chat1->last_message_time > chat2->last_message_time;
+  });
   endInsertRows();
 }
 
-void ChatModel::updateChatInfo(const long long chat_id,
-                               const std::optional<Message> &message
+void ChatModel::updateChatInfo(const long long chat_id, const std::optional<Message> &message
                                /*, TODO: int unread = 0,*/) {
-  if (message == std::nullopt)
-    return;
+  if (message == std::nullopt) return;
   DBC_REQUIRE(chat_id > 0);
 
-  auto it = std::find_if(chats_.begin(), chats_.end(), [&](const auto &chat) {
-    return chat->chat_id == chat_id;
-  });
-  if (it == chats_.end())
-    return;
+  auto it = std::find_if(chats_.begin(), chats_.end(), [&](const auto &chat) { return chat->chat_id == chat_id; });
+  if (it == chats_.end()) return;
   // todo: make copy-asigned constructor
   (*it)->last_message = message->text;
-  (*it)->unread = 0; // unread++;
+  (*it)->unread = 0;  // unread++;
   (*it)->last_message_time = message->timestamp;
 
-  sortChats(); // if delete was??? // what about focus???
+  sortChats();  // if delete was??? // what about focus???
   // QModelIndex idx = index(i);
   // Q_EMIT dataChanged(idx, idx);
   Q_EMIT chatUpdated(chat_id);

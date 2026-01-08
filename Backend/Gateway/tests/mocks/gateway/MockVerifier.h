@@ -4,7 +4,7 @@
 #include "interfaces/IVerifier.h"
 
 class MockVerifier : public IVerifier {
-public:
+ public:
   std::string last_token;
   int call_verify = 0;
   std::optional<long long> mock_ans;
@@ -16,4 +16,4 @@ public:
   }
 };
 
-#endif // MOCKVERIFIER_H
+#endif  // MOCKVERIFIER_H

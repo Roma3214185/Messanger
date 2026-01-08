@@ -5,7 +5,7 @@
 #include <QNetworkReply>
 
 class MockReply : public QNetworkReply {
-public:
+ public:
   explicit MockReply(QObject *parent = nullptr) : QNetworkReply(parent) {
     QIODevice::open(ReadOnly | Unbuffered);
     setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -24,14 +24,12 @@ public:
   }
 
   int abort_calls = 0;
-  void abort() override {
-    ++abort_calls;
-  }
+  void abort() override { ++abort_calls; }
   void setData(const QByteArray &data) { this->data = data; }
 
   QByteArray data;
 
-public Q_SLOTS:
+ public Q_SLOTS:
   void emitFinished() {
     setFinished(true);
     setError(NoError, {});
@@ -45,7 +43,7 @@ public Q_SLOTS:
     Q_EMIT finished();
   }
 
-protected:
+ protected:
   qint64 readData(char *buffer, qint64 maxlen) override {
     qint64 len = std::min(maxlen, qint64(data.size()));
     memcpy(buffer, data.constData(), len);
@@ -54,4 +52,4 @@ protected:
   }
 };
 
-#endif // TESTS_MOCKS_MOCKREPLY_H
+#endif  // TESTS_MOCKS_MOCKREPLY_H

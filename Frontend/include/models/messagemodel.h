@@ -16,7 +16,7 @@ using MessagesByChatId = std::unordered_map<ChatId, ListOfMessages>;
 class MessageModel : public QAbstractListModel {
   Q_OBJECT
 
-public:
+ public:
   enum Roles {
     MessageIdRole = Qt::UserRole + 1,
     TextRole,
@@ -40,11 +40,11 @@ public:
   std::optional<Message> getOldestMessage() const;
   [[nodiscard]] ListOfMessages messages() const noexcept { return messages_; }
 
-private:
+ private:
   void sortMessagesByTimestamp();
 
   std::mutex messages_mutex_;
   ListOfMessages messages_;
 };
 
-#endif // MESSAGEMODEL_H
+#endif  // MESSAGEMODEL_H

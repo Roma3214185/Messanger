@@ -15,13 +15,11 @@ namespace {
 
 std::string readFile(const std::string &path) {
   std::ifstream file(path);
-  if (!file.is_open())
-    throw std::runtime_error("Cannot open file " + path);
-  return std::string((std::istreambuf_iterator<char>(file)),
-                     std::istreambuf_iterator<char>());
+  if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
+  return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 }
 
-} // namespace
+}  // namespace
 
 namespace JwtUtils {
 
@@ -30,10 +28,7 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
     auto decoded = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
 
-    auto verifier =
-        jwt::verify()
-            .allow_algorithm(jwt::algorithm::rs256(public_key, "", "", ""))
-            .with_issuer(kIssuer);
+    auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::rs256(public_key, "", "", "")).with_issuer(kIssuer);
     verifier.verify(decoded);
     int user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
     LOG_INFO("Token is verified, id is '{}'", user_id);
@@ -47,6 +42,6 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
   }
 }
 
-} // namespace JwtUtils
+}  // namespace JwtUtils
 
-#endif // NOTIFICATION_SERVICE_HEADERS_JWTUTILS_H
+#endif  // NOTIFICATION_SERVICE_HEADERS_JWTUTILS_H

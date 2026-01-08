@@ -4,7 +4,7 @@
 #include "interfaces/IMessageListView.h"
 
 class MockMessageListView : public IMessageListView {
-public:
+ public:
   MockMessageListView(int value, int max) : value_(value), max_(max) {}
   int value_;
   int max_;
@@ -21,11 +21,10 @@ public:
   void setMessageScrollBarValue(int value) override {}
 
   int call_preserveFocusWhile = 0;
-  void preserveFocusWhile(MessageModel *message_model,
-                          std::function<void()> updateModel) override {
+  void preserveFocusWhile(MessageModel *message_model, std::function<void()> updateModel) override {
     ++call_preserveFocusWhile;
     updateModel();
   }
 };
 
-#endif // MOCKMESSAGELISTVIEW_H
+#endif  // MOCKMESSAGELISTVIEW_H

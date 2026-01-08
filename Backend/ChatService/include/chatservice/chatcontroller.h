@@ -15,17 +15,16 @@ using ResponceBody = std::string;
 using Response = std::pair<StatusCode, ResponceBody>;
 
 class ChatController {
-public:
+ public:
   ChatController(IChatManager *manager, NetworkFacade *network_facade,
                  IConfigProvider *provider = &ProdConfigProvider::instance());
 
   Response createPrivateChat(const RequestDTO &req);
   Response getAllChats(const RequestDTO &req);
   Response getChat(const RequestDTO &req, const std::string &chat_id_str);
-  Response getAllChatMembers(const RequestDTO &req,
-                             const std::string &chat_id_str);
+  Response getAllChatMembers(const RequestDTO &req, const std::string &chat_id_str);
 
-private:
+ private:
   std::optional<long long> authorizeUser(const RequestDTO &req);
   virtual std::optional<User> getUserById(long long id);
   std::optional<long long> autoritize(const std::string &token);
@@ -35,4 +34,4 @@ private:
   IConfigProvider *provider_;
 };
 
-#endif // CHATCONTROLLER_H
+#endif  // CHATCONTROLLER_H

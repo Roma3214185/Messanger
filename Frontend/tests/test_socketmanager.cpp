@@ -25,8 +25,7 @@ TEST_CASE("Test socket") {
   }
 
   SECTION("NewMessageExpectedEmittedOnNewMessage") {
-    QSignalSpy spyNewMessage(&socket_manager,
-                             &SocketManager::newTextFromSocket);
+    QSignalSpy spyNewMessage(&socket_manager, &SocketManager::newTextFromSocket);
     int before = spyNewMessage.count();
     QString message_to_send = "Hi Roma";
     // socket_manager.connectSocket(20);
@@ -52,8 +51,7 @@ TEST_CASE("Test socket") {
     auto sended_message = fakesocket.last_sended_message;
 
     QJsonParseError parseError;
-    QJsonDocument doc =
-        QJsonDocument::fromJson(sended_message.toUtf8(), &parseError);
+    QJsonDocument doc = QJsonDocument::fromJson(sended_message.toUtf8(), &parseError);
 
     REQUIRE(parseError.error == QJsonParseError::NoError);
     REQUIRE(doc.isObject());

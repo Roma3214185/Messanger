@@ -11,25 +11,26 @@
 
 namespace {
 
-template <typename T> T waitForFuture(QFuture<T> &future) {
+template <typename T>
+T waitForFuture(QFuture<T> &future) {
   QFutureWatcher<T> watcher;
   watcher.setFuture(future);
 
   QEventLoop loop;
-  QObject::connect(&watcher, &QFutureWatcher<T>::finished, &loop,
-                   &QEventLoop::quit);
+  QObject::connect(&watcher, &QFutureWatcher<T>::finished, &loop, &QEventLoop::quit);
   loop.exec();
 
   return future.result();
 }
 
-} // namespace
+}  // namespace
 
-ChatUseCase::ChatUseCase(std::unique_ptr<ChatManager> chat_manager,
-                         DataManager *data_manager, ChatModel *chat_model,
+ChatUseCase::ChatUseCase(std::unique_ptr<ChatManager> chat_manager, DataManager *data_manager, ChatModel *chat_model,
                          TokenManager *token_manager)
-    : chat_manager_(std::move(chat_manager)), data_manager_(data_manager),
-      chat_model_(chat_model), token_manager_(token_manager) {
+    : chat_manager_(std::move(chat_manager)),
+      data_manager_(data_manager),
+      chat_model_(chat_model),
+      token_manager_(token_manager) {
   // QObject::connect(data_manager_, &DataManager::chatAdded, this, [&](const
   // ChatPtr& chat){
   //   chat_model_->addChat(chat);
@@ -60,21 +61,18 @@ ChatPtr ChatUseCase::loadChat(long long chat_id) {
 auto ChatUseCase::getPrivateChatWithUser(long long user_id) -> ChatPtr {
   PROFILE_SCOPE("ChatUseCase::getPrivateChatWithUser");
   auto chat_ptr = data_manager_->getPrivateChatWithUser(user_id);
-  if (chat_ptr)
-    return chat_ptr;
+  if (chat_ptr) return chat_ptr;
 
   LOG_INFO("Private chat for this user '{}' not found", user_id);
   auto chat = createPrivateChat(user_id);
-  LOG_INFO("Private chat for this user '{}' is created, id '{}'", chat->chat_id,
-           user_id);
-  addChat(chat); // (!) emit chatAdded -> load chat history if exist
+  LOG_INFO("Private chat for this user '{}' is created, id '{}'", chat->chat_id, user_id);
+  addChat(chat);  // (!) emit chatAdded -> load chat history if exist
   return chat;
 }
 
 auto ChatUseCase::createPrivateChat(long long user_id) -> ChatPtr {
-  auto future =
-      chat_manager_->createPrivateChat(token_manager_->getToken(), user_id);
-  return waitForFuture(future); // todo: create but not saved now (??)
+  auto future = chat_manager_->createPrivateChat(token_manager_->getToken(), user_id);
+  return waitForFuture(future);  // todo: create but not saved now (??)
 }
 
 void ChatUseCase::loadChatsAsync() {
@@ -97,14 +95,13 @@ void ChatUseCase::loadChatsAsync() {
 
   // watcher->setFuture(chat_manager_->loadChats(token_manager_->getToken()));
   chat_manager_->loadChats(token_manager_->getToken())
-      .then(this, [this](QList<ChatPtr> chats) {
-        for (const auto& chat : chats) {
-          addChat(chat);
-        }
-      })
-      .onFailed(this, [] {
-        LOG_ERROR("Something failed in loading chats");
-      });
+      .then(this,
+            [this](QList<ChatPtr> chats) {
+              for (const auto &chat : chats) {
+                addChat(chat);
+              }
+            })
+      .onFailed(this, [] { LOG_ERROR("Something failed in loading chats"); });
 }
 
 auto ChatUseCase::getNumberOfExistingChats() const -> int {
@@ -132,9 +129,7 @@ void ChatUseCase::addChat(const ChatPtr &chat) {
   // chat_model_->addChat(chat);
 }
 
-ChatPtr ChatUseCase::getChat(long long chat_id) {
-  return data_manager_->getChat(chat_id);
-}
+ChatPtr ChatUseCase::getChat(long long chat_id) { return data_manager_->getChat(chat_id); }
 
 void ChatUseCase::createChat(long long chat_id) {
   PROFILE_SCOPE("ChatUseCase::createChat");

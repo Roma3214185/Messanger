@@ -4,9 +4,8 @@
 #include "interfaces/IMessageHandler.h"
 
 class SendMessageHandler : public IMessageHandler {
-public:
-  void handle(const crow::json::rvalue &message,
-              const std::shared_ptr<ISocket> &socket,
+ public:
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
               NotificationManager &manager) override {
     auto msg = utils::entities::from_crow_json(message);
     manager.onSendMessage(msg);
@@ -14,4 +13,4 @@ public:
   }
 };
 
-#endif // SENDMESSAGEHANDLER_H
+#endif  // SENDMESSAGEHANDLER_H

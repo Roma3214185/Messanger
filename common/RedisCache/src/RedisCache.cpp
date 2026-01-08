@@ -17,7 +17,8 @@
 
 namespace {
 
-template <typename Duration> std::chrono::seconds getRangedTtl(Duration ttl) {
+template <typename Duration>
+std::chrono::seconds getRangedTtl(Duration ttl) {
   using namespace std::chrono;
 
   const auto base_ms = duration_cast<seconds>(ttl).count();
@@ -26,14 +27,13 @@ template <typename Duration> std::chrono::seconds getRangedTtl(Duration ttl) {
   static std::random_device rd;
   static std::mt19937 gen(rd());
   std::uniform_int_distribution<int> dist(-30 * 60 * 1000,
-                                          30 * 60 * 1000); // +-30 min in ms
+                                          30 * 60 * 1000);  // +-30 min in ms
   const int jitter_ms = dist(gen);
 
-  return seconds(
-      std::max(static_cast<int>(base_ms + jitter_ms), kMinTimeOfTtl));
+  return seconds(std::max(static_cast<int>(base_ms + jitter_ms), kMinTimeOfTtl));
 }
 
-} // namespace
+}  // namespace
 
 void RedisCache::remove(const std::string &key) {
   try {
@@ -62,8 +62,7 @@ sw::redis::Redis &RedisCache::getRedis() {
   return *redis_;
 }
 
-void RedisCache::set(const std::string &key, const std::string &value,
-                     std::chrono::seconds ttl) {
+void RedisCache::set(const std::string &key, const std::string &value, std::chrono::seconds ttl) {
   try {
     auto ranged_ttl = getRangedTtl(ttl);
     getRedis().set(key, value, ranged_ttl);
@@ -90,8 +89,7 @@ std::optional<std::string> RedisCache::get(const std::string &key) {
   return std::nullopt;
 }
 
-void RedisCache::setPipelines(const std::vector<std::string> &keys,
-                              const std::vector<std::string> &results,
+void RedisCache::setPipelines(const std::vector<std::string> &keys, const std::vector<std::string> &results,
                               std::chrono::seconds ttl) {
   try {
     assert(keys.size() == results.size() || keys.size() == 1);

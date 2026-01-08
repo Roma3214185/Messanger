@@ -4,10 +4,10 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
-#include "Fields.h"
-#include "interfaces/entity.h"
-#include "TimestampService.h"
 #include "Debug_profiling.h"
+#include "Fields.h"
+#include "TimestampService.h"
+#include "interfaces/entity.h"
 
 struct Chat final {
   long long id{0};
@@ -18,23 +18,19 @@ struct Chat final {
 
   Chat() = default;
 
-  Chat(long long id, int is_group,
-             std::string name, std::string avatar, long long created_at = utils::time::getCurrentTime())
-      : id(id), is_group(is_group), name(std::move(name)),
-      avatar(std::move(avatar)), created_at(created_at)
-  {
+  Chat(long long id, int is_group, std::string name, std::string avatar,
+       long long created_at = utils::time::getCurrentTime())
+      : id(id), is_group(is_group), name(std::move(name)), avatar(std::move(avatar)), created_at(created_at) {
     DBC_REQUIRE(checkInvariants());
   }
 
-  bool checkInvariants() const {
-    return id > 0
-        && !name.empty();
-  }
+  bool checkInvariants() const { return id > 0 && !name.empty(); }
 };
 
 namespace nlohmann {
 
-template <> struct adl_serializer<Chat> {
+template <>
+struct adl_serializer<Chat> {
   static void to_json(nlohmann::json &json_chat, const Chat &chat) {
     json_chat = nlohmann::json{{ChatTable::Id, chat.id},
                                {ChatTable::IsGroup, chat.is_group},
@@ -52,6 +48,6 @@ template <> struct adl_serializer<Chat> {
   }
 };
 
-} // namespace nlohmann
+}  // namespace nlohmann
 
-#endif // BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_
+#endif  // BACKEND_CHATSERVICE_SRC_HEADERS_CHAT_H_

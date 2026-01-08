@@ -26,16 +26,17 @@ struct SharedFixture {
   MockIdGenerator generator;
 
   SharedFixture()
-      : mock_routes(MockUtils::getMockRoutes()), provider(),
-        rep(&executor, cache, &pool), manager(&rep, &executor, &generator) {
+      : mock_routes(MockUtils::getMockRoutes()),
+        provider(),
+        rep(&executor, cache, &pool),
+        manager(&rep, &executor, &generator) {
     provider.mock_routes = mock_routes;
   }
 };
 
 TEST_CASE("Test cotroller works with rabitMQ") {
   SharedFixture fix;
-  TestController controller(&fix.rabit_client, &fix.manager, &fix.pool,
-                            &fix.provider);
+  TestController controller(&fix.rabit_client, &fix.manager, &fix.pool, &fix.provider);
 
   SECTION("Subscrive on message to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
@@ -49,8 +50,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
     CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessage);
   }
 
-  SECTION(
-      "Subscrive on message to save expected call valid callback function") {
+  SECTION("Subscrive on message to save expected call valid callback function") {
     Message test_message;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
     controller.subscribeToSaveMessage();
@@ -75,8 +75,9 @@ TEST_CASE("Test cotroller works with rabitMQ") {
     CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessageStatus);
   }
 
-  SECTION("Subscrive on message_status to save expected call valid callback "
-          "function") {
+  SECTION(
+      "Subscrive on message_status to save expected call valid callback "
+      "function") {
     MessageStatus test_message_status;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
     controller.subscribeToSaveMessageStatus();
@@ -84,18 +85,15 @@ TEST_CASE("Test cotroller works with rabitMQ") {
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
     int before_callback_call = controller.call_save_message_status;
 
-    fix.rabit_client.callLastCallback(
-        nlohmann::json(test_message_status).dump());
+    fix.rabit_client.callLastCallback(nlohmann::json(test_message_status).dump());
     REQUIRE(controller.call_save_message_status == before_callback_call + 1);
-    REQUIRE(controller.last_payload ==
-            nlohmann::json(test_message_status).dump());
+    REQUIRE(controller.last_payload == nlohmann::json(test_message_status).dump());
   }
 }
 
 TEST_CASE("Test controller handles saved enitites") {
   SharedFixture fix;
-  SecondTestController controller(&fix.rabit_client, &fix.manager, &fix.pool,
-                                  &fix.provider);
+  SecondTestController controller(&fix.rabit_client, &fix.manager, &fix.pool, &fix.provider);
 
   // SECTION("handleSaveMessage expected call to pool and publish to rabitMQ") {
   //   Message message{.id = 2, .local_id = "121", .sender_id = 12};
@@ -111,9 +109,10 @@ TEST_CASE("Test controller handles saved enitites") {
   //   REQUIRE(last_publish_request.message == nlohmann::json(message).dump());
   // }
 
-  SECTION("handleSaveMessage receive invalid payload expected no call to pool "
-          "and no publish to "
-          "rabitMQ") {
+  SECTION(
+      "handleSaveMessage receive invalid payload expected no call to pool "
+      "and no publish to "
+      "rabitMQ") {
     int before_publish_call = fix.rabit_client.publish_cnt;
     int before_pool_cnt = fix.pool.call_count;
 
@@ -123,10 +122,8 @@ TEST_CASE("Test controller handles saved enitites") {
     REQUIRE(fix.rabit_client.publish_cnt == before_publish_call);
   }
 
-  SECTION(
-      "handleSaveMessageStatus expected call to pool and publish to rabitMQ") {
-    MessageStatus message_status(
-        3, 1234, true, utils::time::getCurrentTime());
+  SECTION("handleSaveMessageStatus expected call to pool and publish to rabitMQ") {
+    MessageStatus message_status(3, 1234, true, utils::time::getCurrentTime());
     int before_publish_call = fix.rabit_client.publish_cnt;
     int before_pool_cnt = fix.pool.call_count;
 
@@ -136,13 +133,13 @@ TEST_CASE("Test controller handles saved enitites") {
     REQUIRE(fix.rabit_client.publish_cnt == before_publish_call + 1);
 
     auto last_publish_request = fix.rabit_client.last_publish_request;
-    REQUIRE(last_publish_request.message ==
-            nlohmann::json(message_status).dump());
+    REQUIRE(last_publish_request.message == nlohmann::json(message_status).dump());
   }
 
-  SECTION("handleSaveMessageStatus receive invalid payload expected no call to "
-          "pool and no publish to "
-          "rabitMQ") {
+  SECTION(
+      "handleSaveMessageStatus receive invalid payload expected no call to "
+      "pool and no publish to "
+      "rabitMQ") {
     int before_publish_call = fix.rabit_client.publish_cnt;
     int before_pool_cnt = fix.pool.call_count;
 

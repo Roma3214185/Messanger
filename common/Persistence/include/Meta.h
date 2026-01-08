@@ -33,14 +33,14 @@ struct Meta {
 
   [[nodiscard]] const Field *find(const std::string &field_name_to_find) const {
     for (const auto &field : fields) {
-      if (field_name_to_find == field.name)
-        return &field;
+      if (field_name_to_find == field.name) return &field;
     }
     return nullptr;
   }
 };
 
-template <class T, class M> Field make_field(const char *name, M T::*member) {
+template <class T, class M>
+Field make_field(const char *name, M T::*member) {
   return Field{.name = name,
                .type = typeid(M),
                .get = [member](const void *obj) -> std::any {
@@ -54,7 +54,8 @@ template <class T, class M> Field make_field(const char *name, M T::*member) {
                    }};
 }
 
-template <typename T, typename FieldTuple> struct FastBuilder {
+template <typename T, typename FieldTuple>
+struct FastBuilder {
   static T build(QSqlQuery &query, const FieldTuple &fields) {
     T entity;
     int i = 0;
@@ -80,14 +81,22 @@ template <typename T, typename FieldTuple> struct FastBuilder {
   }
 };
 
-template <typename T> struct Reflection { static Meta meta(); };
+template <typename T>
+struct Reflection {
+  static Meta meta();
+};
 
-template <typename T> struct Builder { T build(QSqlQuery &query); };
+template <typename T>
+struct Builder {
+  T build(QSqlQuery &query);
+};
 
-template <typename T> struct EntityFields;
+template <typename T>
+struct EntityFields;
 
-template <typename T> struct EntityKey {
+template <typename T>
+struct EntityKey {
   static std::string get(const T &entity) { return std::to_string(entity.id); }
 };
 
-#endif // BACKEND_GENERICREPOSITORY_META_H_
+#endif  // BACKEND_GENERICREPOSITORY_META_H_

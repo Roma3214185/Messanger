@@ -41,10 +41,7 @@ std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
       return std::nullopt;
     }
 
-    User found_user(obj["id"],
-                    obj["name"],
-                    obj["email"],
-                    obj["tag"]);
+    User found_user(obj["id"], obj["name"], obj["email"], obj["tag"]);
 
     LOG_INFO("getUserById success: {}", nlohmann::json(found_user).dump());
     return found_user;

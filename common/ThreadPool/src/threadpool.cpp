@@ -8,8 +8,7 @@ ThreadPool::ThreadPool(size_t num_threads) {
         {
           std::unique_lock<std::mutex> lock(queue_mutex_);
           condition_.wait(lock, [this]() { return stop_ || !tasks_.empty(); });
-          if (stop_ && tasks_.empty())
-            return;
+          if (stop_ && tasks_.empty()) return;
           task = std::move(tasks_.front());
           tasks_.pop();
           ++active_tasks_;
@@ -32,15 +31,13 @@ ThreadPool::~ThreadPool() {
   }
   condition_.notify_all();
   for (auto &worker : workers_) {
-    if (worker.joinable())
-      worker.join();
+    if (worker.joinable()) worker.join();
   }
 }
 
 void ThreadPool::waitAll() {
   std::unique_lock<std::mutex> lock(queue_mutex_);
-  done_condition_.wait(
-      lock, [this]() { return tasks_.empty() && active_tasks_ == 0; });
+  done_condition_.wait(lock, [this]() { return tasks_.empty() && active_tasks_ == 0; });
 }
 
 void ThreadPool::enqueueTask(std::function<void()> task) {

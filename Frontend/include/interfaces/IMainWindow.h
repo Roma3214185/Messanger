@@ -9,7 +9,7 @@
 #include "models/messagemodel.h"
 
 class IMainWindow {
-public:
+ public:
   virtual void setChatWindow(std::shared_ptr<ChatBase> chat) = 0;
   virtual void setChatModel(ChatModel *model) = 0;
   virtual void setUserModel(UserModel *user_model) = 0;
@@ -19,4 +19,4 @@ public:
   virtual void setCurrentChatIndex(QModelIndex idx) = 0;
 };
 
-#endif // IMAINWINDOW_H
+#endif  // IMAINWINDOW_H

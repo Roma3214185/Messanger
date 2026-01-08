@@ -15,19 +15,17 @@ namespace {
 
 std::string readFile(const std::string &path) {
   std::ifstream file(path);
-  if (!file.is_open())
-    throw std::runtime_error("Cannot open file " + path);
+  if (!file.is_open()) throw std::runtime_error("Cannot open file " + path);
 
-  std::string key((std::istreambuf_iterator<char>(file)),
-                  std::istreambuf_iterator<char>());
+  std::string key((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   LOG_INFO("Key first 40 chars:\n{}", key.substr(0, 40));
   LOG_INFO("Key last 40 chars:\n{}", key.substr(key.size() - 40, 40));
   return key;
 }
 
-} // namespace
+}  // namespace
 
-constexpr const char * const kIssuer = "auth_service";
+constexpr const char *const kIssuer = "auth_service";
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
 
@@ -38,14 +36,10 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
     auto decoded = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
 
-    auto verifier =
-        jwt::verify()
-            .allow_algorithm(jwt::algorithm::rs256(public_key, "", "", ""))
-            .with_issuer(kIssuer);
+    auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::rs256(public_key, "", "", "")).with_issuer(kIssuer);
     verifier.verify(decoded);
 
-    long long user_id =
-        std::stoll(decoded.get_payload_claim("sub").as_string());
+    long long user_id = std::stoll(decoded.get_payload_claim("sub").as_string());
     LOG_INFO("Token is verified, id is '{}'", user_id);
     return user_id;
 
@@ -58,4 +52,4 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
   }
 }
 
-} // namespace JwtUtils
+}  // namespace JwtUtils

@@ -11,9 +11,9 @@
 struct DummyParentCtx {
   MetricsMiddleware::context metrics_ctx;
 
-  template <typename MW> auto &get() {
-    static_assert(std::is_same_v<MW, MetricsMiddleware>,
-                  "Only MetricsMiddleware supported in this dummy");
+  template <typename MW>
+  auto &get() {
+    static_assert(std::is_same_v<MW, MetricsMiddleware>, "Only MetricsMiddleware supported in this dummy");
     return metrics_ctx;
   }
 };
@@ -58,17 +58,13 @@ struct TestGatewayMiddlewaresFixrute {
 
 TEST_CASE("Test Authmiddleware") {
   TestGatewayMiddlewaresFixrute fix;
-  fix.req.url = "/auth/me"; // url that needs verification
+  fix.req.url = "/auth/me";  // url that needs verification
 
   auto doCallBefore = [&]() {
-    fix.auth_middleware.before_handle(fix.req, fix.res, fix.auth_ctx,
-                                      fix.dummy_parent_ctx);
+    fix.auth_middleware.before_handle(fix.req, fix.res, fix.auth_ctx, fix.dummy_parent_ctx);
   };
 
-  auto doCallAfter = [&]() {
-    fix.auth_middleware.after_handle(fix.req, fix.res, fix.auth_ctx,
-                                     fix.dummy_parent_ctx);
-  };
+  auto doCallAfter = [&]() { fix.auth_middleware.after_handle(fix.req, fix.res, fix.auth_ctx, fix.dummy_parent_ctx); };
 
   SECTION("Url that no need auth expected return") {
     fix.req.url = "/auth/login";
@@ -82,8 +78,9 @@ TEST_CASE("Test Authmiddleware") {
     REQUIRE_FALSE(fix.res.is_completed());
   }
 
-  SECTION("Token not verifies expected unauthorized code and message about "
-          "invalid token") {
+  SECTION(
+      "Token not verifies expected unauthorized code and message about "
+      "invalid token") {
     doCallBefore();
     REQUIRE(fix.res.is_completed());
     REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
@@ -97,17 +94,16 @@ TEST_CASE("Test RateLimitMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
 
   auto doCallBefore = [&]() {
-    fix.rate_limit_middleware.before_handle(fix.req, fix.res, fix.rate_ctx,
-                                            fix.dummy_parent_ctx);
+    fix.rate_limit_middleware.before_handle(fix.req, fix.res, fix.rate_ctx, fix.dummy_parent_ctx);
   };
 
   auto doCallAfter = [&]() {
-    fix.rate_limit_middleware.after_handle(fix.req, fix.res, fix.rate_ctx,
-                                           fix.dummy_parent_ctx);
+    fix.rate_limit_middleware.after_handle(fix.req, fix.res, fix.rate_ctx, fix.dummy_parent_ctx);
   };
 
-  SECTION("Section rate_limit not allowed expected return ratelimitexceed code "
-          "and message") {
+  SECTION(
+      "Section rate_limit not allowed expected return ratelimitexceed code "
+      "and message") {
     doCallBefore();
 
     REQUIRE(fix.res.is_completed());
@@ -130,18 +126,14 @@ TEST_CASE("Test LogMiddleware") {
   TestGatewayMiddlewaresFixrute fix;
 
   auto doCallBefore = [&]() {
-    fix.logging_middleware.before_handle(fix.req, fix.res, fix.log_ctx,
-                                         fix.dummy_parent_ctx);
+    fix.logging_middleware.before_handle(fix.req, fix.res, fix.log_ctx, fix.dummy_parent_ctx);
   };
 
   auto doCallAfter = [&]() {
-    fix.logging_middleware.after_handle(fix.req, fix.res, fix.log_ctx,
-                                        fix.dummy_parent_ctx);
+    fix.logging_middleware.after_handle(fix.req, fix.res, fix.log_ctx, fix.dummy_parent_ctx);
   };
 
-  SECTION("Before handle expected no throw") {
-    REQUIRE_NOTHROW(doCallBefore());
-  }
+  SECTION("Before handle expected no throw") { REQUIRE_NOTHROW(doCallBefore()); }
 
   SECTION("After handle expected no throw") { REQUIRE_NOTHROW(doCallAfter()); }
 }
@@ -151,13 +143,11 @@ TEST_CASE("Test cacheMiddleware") {
   fix.req.method = "GET"_method;
 
   auto doCallBefore = [&]() {
-    fix.cache_middleware.before_handle(fix.req, fix.res, fix.cache_ctx,
-                                       fix.dummy_parent_ctx);
+    fix.cache_middleware.before_handle(fix.req, fix.res, fix.cache_ctx, fix.dummy_parent_ctx);
   };
 
   auto doCallAfter = [&]() {
-    fix.cache_middleware.after_handle(fix.req, fix.res, fix.cache_ctx,
-                                      fix.dummy_parent_ctx);
+    fix.cache_middleware.after_handle(fix.req, fix.res, fix.cache_ctx, fix.dummy_parent_ctx);
   };
 
   SECTION("Method not GET expected res is not completed") {
@@ -173,9 +163,10 @@ TEST_CASE("Test cacheMiddleware") {
     REQUIRE_FALSE(fix.res.is_completed());
   }
 
-  SECTION("Cache returned expected res is completed and success status code "
-          "and res.body == value from "
-          "cache") {
+  SECTION(
+      "Cache returned expected res is completed and success status code "
+      "and res.body == value from "
+      "cache") {
     std::string value_from_cache = "cached_value_from_cache";
     fix.cache.mock_answer = value_from_cache;
     doCallBefore();
@@ -211,8 +202,7 @@ TEST_CASE("Test cacheMiddleware") {
     doCallAfter();
 
     REQUIRE(fix.cache.call_set == before_call_cache_set + 1);
-    REQUIRE(fix.cache.last_set_key ==
-            "cache:GET:/test/auth|user=2|body=user=2");
+    REQUIRE(fix.cache.last_set_key == "cache:GET:/test/auth|user=2|body=user=2");
     REQUIRE(fix.cache.last_set_value == fix.res.body);
   }
 }
@@ -221,15 +211,13 @@ TEST_CASE("Test metrics middlewares") {
   TestGatewayMiddlewaresFixrute fix;
 
   auto doCallBefore = [&]() {
-    fix.metrics_middleware.before_handle(fix.req, fix.res, fix.metrics_ctx,
-                                         fix.dummy_parent_ctx);
+    fix.metrics_middleware.before_handle(fix.req, fix.res, fix.metrics_ctx, fix.dummy_parent_ctx);
   };
 
   auto doCallAfter = [&]() {
     MetricsMiddleware::context metrics_ctx;
     metrics_ctx.tracker.startTimer(&fix.metrics);
-    fix.metrics_middleware.after_handle(fix.req, fix.res, metrics_ctx,
-                                        fix.dummy_parent_ctx);
+    fix.metrics_middleware.after_handle(fix.req, fix.res, metrics_ctx, fix.dummy_parent_ctx);
   };
 
   SECTION("Expected before_handle call new request") {

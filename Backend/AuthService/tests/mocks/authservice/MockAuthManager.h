@@ -4,7 +4,7 @@
 #include "authservice/interfaces/IAuthManager.h"
 
 class MockAuthManager : public IAuthManager {
-public:
+ public:
   int call_getUser = 0;
   int call_loginUser = 0;
   int call_registerUser = 0;
@@ -42,4 +42,4 @@ public:
   }
 };
 
-#endif // MOCKAUTHMANAGER_H
+#endif  // MOCKAUTHMANAGER_H

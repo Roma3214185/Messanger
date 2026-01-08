@@ -8,8 +8,7 @@ static void BM_SaveEntityIndividually(benchmark::State &state) {
   std::vector<Message> entities;
 
   for (int i = 0; i < state.range(0); ++i) {
-    entities.push_back(Message{
-        .id = i, .text = "Name_" + std::to_string(i), .sender_id = i + 12});
+    entities.push_back(Message{.id = i, .text = "Name_" + std::to_string(i), .sender_id = i + 12});
   }
 
   for (auto _ : state) {

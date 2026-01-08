@@ -6,16 +6,15 @@
 #include "interfaces/IQuery.h"
 
 struct SqlExecutorResult {
-    std::unique_ptr<IQuery> query;
-    std::string error;
+  std::unique_ptr<IQuery> query;
+  std::string error;
 };
 
 class ISqlExecutor {
-public:
+ public:
   virtual ~ISqlExecutor() = default;
 
-  [[nodiscard]]
-  virtual SqlExecutorResult execute(const QString &sql, const QList<QVariant> &values = {}) = 0;
+  [[nodiscard]] virtual SqlExecutorResult execute(const QString &sql, const QList<QVariant> &values = {}) = 0;
 };
 
-#endif // ISQLEXECUTOR_H
+#endif  // ISQLEXECUTOR_H

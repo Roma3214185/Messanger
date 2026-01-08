@@ -4,7 +4,7 @@
 #include "interfaces/IConfigProvider.h"
 
 class ProdConfigProvider : public IConfigProvider {
-public:
+ public:
   static ProdConfigProvider &instance() {
     static ProdConfigProvider inst;
     return inst;
@@ -14,19 +14,15 @@ public:
 
   [[nodiscard]] const Routes &routes() const override { return routes_; }
 
-  [[nodiscard]] const StatusCodes &statusCodes() const override {
-    return codes_;
-  }
+  [[nodiscard]] const StatusCodes &statusCodes() const override { return codes_; }
 
-  [[nodiscard]] const IssueMessages &issueMessages() const override {
-    return messages_;
-  }
+  [[nodiscard]] const IssueMessages &issueMessages() const override { return messages_; }
 
-private:
+ private:
   Ports ports_;
   Routes routes_;
   StatusCodes codes_;
   IssueMessages messages_;
 };
 
-#endif // PRODCONFIGPROVIDER_H
+#endif  // PRODCONFIGPROVIDER_H

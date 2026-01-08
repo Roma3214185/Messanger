@@ -11,7 +11,7 @@
 #include "interfaces/ICacheService.h"
 
 class RedisCache : public ICacheService {
-public:
+ public:
   static RedisCache &instance();
   RedisCache(const RedisCache &) = delete;
   RedisCache &operator=(const RedisCache &) = delete;
@@ -22,17 +22,15 @@ public:
   void remove(const std::string &key) override;
   void clearCache() override;
 
-  void
-  setPipelines(const std::vector<std::string> &keys,
-               const std::vector<std::string> &results,
-               std::chrono::seconds ttl = std::chrono::seconds(5)) override;
+  void setPipelines(const std::vector<std::string> &keys, const std::vector<std::string> &results,
+                    std::chrono::seconds ttl = std::chrono::seconds(5)) override;
 
   void set(const std::string &key, const std::string &value,
            std::chrono::seconds ttl = std::chrono::seconds(5)) override;
 
   std::optional<std::string> get(const std::string &key) override;
 
-private:
+ private:
   std::unique_ptr<sw::redis::Redis> redis_;
   std::mutex init_mutex_;
 
@@ -43,4 +41,4 @@ private:
   ~RedisCache() = default;
 };
 
-#endif // BACKEND_REDISCACHE_REDISCACHE_H_
+#endif  // BACKEND_REDISCACHE_REDISCACHE_H_

@@ -2,7 +2,7 @@
 #define ENTITY_H
 
 struct IEntity {
-    virtual bool checkInvariants() {}
+  virtual bool checkInvariants() {}
 };
 
-#endif // ENTITY_H
+#endif  // ENTITY_H

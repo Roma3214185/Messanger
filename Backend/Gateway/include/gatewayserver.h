@@ -18,22 +18,19 @@ class IClient;
 class IMetrics;
 
 using GatewayApp =
-    crow::App<LoggingMiddleware, RateLimitMiddleware, MetricsMiddleware,
-              AuthMiddleware, CacheMiddleware>;
+    crow::App<LoggingMiddleware, RateLimitMiddleware, MetricsMiddleware, AuthMiddleware, CacheMiddleware>;
 
 class GatewayServer {
-public:
-  GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache,
-                IThreadPool *pool, IConfigProvider *provider,
+ public:
+  GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool, IConfigProvider *provider,
                 IRabitMQClient *queue);
   void run();
   void registerRoutes();
 
-protected:
-  virtual void sendResponse(crow::response &res, int res_code,
-                            const std::string &message);
+ protected:
+  virtual void sendResponse(crow::response &res, int res_code, const std::string &message);
 
-private:
+ private:
   GatewayApp &app_;
   IConfigProvider *provider_;
   ICacheService *cache_;
@@ -41,15 +38,13 @@ private:
   IThreadPool *pool_;
   IRabitMQClient *queue_;
 
-  void handleProxyRequest(const crow::request &, crow::response &,
-                          const int service_port, const std::string &path);
-  void handlePostRequest(const crow::request &req, crow::response &res,
-                         const int port, const std::string &path);
+  void handleProxyRequest(const crow::request &, crow::response &, const int service_port, const std::string &path);
+  void handlePostRequest(const crow::request &req, crow::response &res, const int port, const std::string &path);
   void registerRequestRoute();
   void registerRoute(const std::string &basePath, int proxy);
   void registerHealthCheck();
   void registerWebSocketRoutes();
-  void subscribeOnNewRequest(); // TODO: worker class ?
+  void subscribeOnNewRequest();  // TODO: worker class ?
 };
 
-#endif // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_
+#endif  // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_

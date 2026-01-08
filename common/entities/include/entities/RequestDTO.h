@@ -13,7 +13,7 @@ struct RequestDTO {
   std::string method;
   std::string body;
   std::string request_id;
-  std::string content_type; // todo: req.get_context<AuthMiddleware>().user_id;
+  std::string content_type;  // todo: req.get_context<AuthMiddleware>().user_id;
   std::vector<std::pair<std::string, std::string>> headers;
   std::string token;
   std::unordered_map<std::string, std::string> url_params;
@@ -26,16 +26,13 @@ inline std::string getContentType(const crow::request &req) {
   return content_type.empty() ? "application/json" : content_type;
 }
 
-inline std::string extractToken(const crow::request &req) {
-  return req.get_header_value("Authorization");
-}
+inline std::string extractToken(const crow::request &req) { return req.get_header_value("Authorization"); }
 
-} // namespace utils::details
+}  // namespace utils::details
 
 namespace utils {
 
-inline RequestDTO getDTO(const crow::request &req, const std::string &path,
-                         const int request_id = -1) {
+inline RequestDTO getDTO(const crow::request &req, const std::string &path, const int request_id = -1) {
   RequestDTO request_info;
   request_info.method = crow::method_name(req.method);
   request_info.path = path;
@@ -56,11 +53,12 @@ inline RequestDTO getDTO(const crow::request &req, const std::string &path,
   return request_info;
 }
 
-} // namespace utils
+}  // namespace utils
 
 namespace nlohmann {
 
-template <> struct adl_serializer<RequestDTO> {
+template <>
+struct adl_serializer<RequestDTO> {
   static void to_json(json &j, const RequestDTO &r) {
     j = json{{"path", r.path},
              {"method", r.method},
@@ -82,6 +80,6 @@ template <> struct adl_serializer<RequestDTO> {
   }
 };
 
-} // namespace nlohmann
+}  // namespace nlohmann
 
-#endif // REQUESTDTO_H
+#endif  // REQUESTDTO_H

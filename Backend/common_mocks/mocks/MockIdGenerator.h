@@ -8,4 +8,4 @@ struct MockIdGenerator : public IIdGenerator {
   long long generateId() override { return mocked_id; }
 };
 
-#endif // MOCKIDGENERATOR_H
+#endif  // MOCKIDGENERATOR_H

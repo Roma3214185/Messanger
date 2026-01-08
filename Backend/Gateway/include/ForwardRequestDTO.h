@@ -18,4 +18,4 @@ struct ForwardRequestDTO {
   std::chrono::milliseconds timeout{2000};
 };
 
-#endif // FORWARDREQUESTDTO_H
+#endif  // FORWARDREQUESTDTO_H

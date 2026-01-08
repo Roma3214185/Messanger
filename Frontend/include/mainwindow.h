@@ -23,7 +23,7 @@ class MessageListView;
 class MainWindow : public QMainWindow, public IMainWindow {
   Q_OBJECT
 
-public:
+ public:
   explicit MainWindow(Model *model, QWidget *parent = nullptr);
   ~MainWindow();
 
@@ -38,7 +38,7 @@ public:
 
   void setTheme(std::unique_ptr<ITheme> theme);
 
-private Q_SLOTS:
+ private Q_SLOTS:
   void on_upSubmitButton_clicked();
   void on_inSubmitButton_clicked();
   void on_userTextEdit_textChanged(const QString &text);
@@ -64,7 +64,7 @@ private Q_SLOTS:
 
   void on_serch_messages_list_view_clicked(const QModelIndex &index);
 
-private:
+ private:
   void setMainWindow();
   void setSignInPage();
   void setSignUpPage();
@@ -89,10 +89,9 @@ private:
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
 
-  std::optional<Message>
-      editable_message_; // todo: make Page to set in currentPage, in which
-                         // Message will be
+  std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
+                                             // Message will be
   std::unique_ptr<QStandardItemModel> searchResultsModel_;
 };
 
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

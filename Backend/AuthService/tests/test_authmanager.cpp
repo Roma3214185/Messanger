@@ -31,14 +31,12 @@ struct TestAuthManager : public AuthManager {
     return mock_user_by_email;
   }
 
-  std::optional<UserCredentials>
-  findUserCredentials(long long user_id) override {
+  std::optional<UserCredentials> findUserCredentials(long long user_id) override {
     last_user_id = user_id;
     return mock_credentials;
   }
 
-  bool passwordIsValid(const std::string &password_to_check,
-                       const std::string &hash_password) override {
+  bool passwordIsValid(const std::string &password_to_check, const std::string &hash_password) override {
     last_password_to_check = password_to_check;
     last_hash_password = hash_password;
     return !should_fail;
@@ -74,8 +72,7 @@ struct TestAuthManagerFixture {
   std::string avatar = "test_path_to_avatar";
   std::string hash_password = "secret-hash-password-123";
 
-  TestAuthManagerFixture()
-      : rep(&executor, cache, &pool), manager(rep, &generator) {
+  TestAuthManagerFixture() : rep(&executor, cache, &pool), manager(rep, &generator) {
     user.id = user_id;
     user.email = email;
     user.tag = tag;
@@ -107,8 +104,7 @@ TEST_CASE("Test AUthManager::login") {
   fix.manager.mock_user_by_email = fix.user;
   fix.manager.mock_credentials = fix.user_credentials;
 
-  SECTION(
-      "User with same email not found expected expected return std::nullopt") {
+  SECTION("User with same email not found expected expected return std::nullopt") {
     fix.manager.mock_user_by_email = std::nullopt;
     auto res = fix.manager.loginUser(log_req);
     REQUIRE(fix.manager.last_email == fix.email);
@@ -125,8 +121,7 @@ TEST_CASE("Test AUthManager::login") {
   SECTION("UserCredentials not valid expected return std::nullopt") {
     fix.manager.should_fail = true;
     auto res = fix.manager.loginUser(log_req);
-    REQUIRE(fix.manager.last_hash_password ==
-            fix.manager.mock_credentials->hash_password);
+    REQUIRE(fix.manager.last_hash_password == fix.manager.mock_credentials->hash_password);
     REQUIRE(fix.manager.last_password_to_check == fix.password);
     REQUIRE(res == std::nullopt);
   }
@@ -143,10 +138,7 @@ TEST_CASE("Test AUthManager::login") {
 
 TEST_CASE("Test AuthManager::register") {
   TestAuthManagerFixture fix;
-  RegisterRequest reg_req{.email = fix.email,
-                          .password = fix.password,
-                          .name = fix.username,
-                          .tag = fix.tag};
+  RegisterRequest reg_req{.email = fix.email, .password = fix.password, .name = fix.username, .tag = fix.tag};
   fix.manager.mock_user_by_email = std::nullopt;
   fix.manager.mock_user_by_tag = std::nullopt;
 
@@ -177,12 +169,9 @@ TEST_CASE("Test AuthManager::register") {
     REQUIRE(fix.executor.lastSql.trimmed().toStdString() == expected_sql);
     REQUIRE(fix.executor.lastValues.size() == 4);
     CHECK(fix.executor.lastValues[0].toInt() == fix.generator.mocked_id);
-    CHECK(fix.executor.lastValues[1].toString().toStdString() ==
-    reg_req.name);
-    CHECK(fix.executor.lastValues[2].toString().toStdString() ==
-    reg_req.tag);
-    CHECK(fix.executor.lastValues[3].toString().toStdString() ==
-    reg_req.email);
+    CHECK(fix.executor.lastValues[1].toString().toStdString() == reg_req.name);
+    CHECK(fix.executor.lastValues[2].toString().toStdString() == reg_req.tag);
+    CHECK(fix.executor.lastValues[3].toString().toStdString() == reg_req.email);
     REQUIRE(res == std::nullopt);
   }
 
@@ -195,11 +184,10 @@ TEST_CASE("Test AuthManager::register") {
     REQUIRE(fix.executor.lastValues.size() == 2);
     REQUIRE(res != std::nullopt);
     CHECK(fix.executor.lastValues[0].toInt() == fix.user.id);
-    CHECK(fix.executor.lastValues[1].toString().toStdString() ==
-    fix.hash_password);
+    CHECK(fix.executor.lastValues[1].toString().toStdString() == fix.hash_password);
 
     CHECK(res->id == fix.user.id);
-    //CHECK(res->avatar == fix.user.avatar);
+    // CHECK(res->avatar == fix.user.avatar);
     CHECK(res->username == fix.user.username);
     CHECK(res->tag == fix.user.tag);
     CHECK(res->email == fix.user.email);

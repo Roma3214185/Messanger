@@ -26,8 +26,7 @@ struct BenchmarkGatewayServerFixrute {
   int user_id = 123;
 
   BenchmarkGatewayServerFixrute()
-      : provider(MockUtils::getMockPorts()),
-        server(app, &client, &cache, &pool, &provider, &rabit_mq) {
+      : provider(MockUtils::getMockPorts()), server(app, &client, &cache, &pool, &provider, &rabit_mq) {
     app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
     app.get_middleware<CacheMiddleware>().cache_ = &cache;
     app.get_middleware<LoggingMiddleware>();

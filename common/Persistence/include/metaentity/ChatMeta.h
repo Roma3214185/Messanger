@@ -4,21 +4,20 @@
 #include "Meta.h"
 #include "entities/Chat.h"
 
-template <> struct Reflection<Chat> {
+template <>
+struct Reflection<Chat> {
   static Meta meta() {
-    return Meta{
-        .table_name = ChatTable::Table,
-        .fields = {
-            make_field<Chat, long long>(ChatTable::Id, &Chat::id),
-            make_field<Chat, int>(ChatTable::IsGroup, &Chat::is_group),
-            make_field<Chat, std::string>(ChatTable::Name, &Chat::name),
-            make_field<Chat, std::string>(ChatTable::Avatar, &Chat::avatar),
-            make_field<Chat, long long>(ChatTable::CreatedAt,
-                                        &Chat::created_at)}};
+    return Meta{.table_name = ChatTable::Table,
+                .fields = {make_field<Chat, long long>(ChatTable::Id, &Chat::id),
+                           make_field<Chat, int>(ChatTable::IsGroup, &Chat::is_group),
+                           make_field<Chat, std::string>(ChatTable::Name, &Chat::name),
+                           make_field<Chat, std::string>(ChatTable::Avatar, &Chat::avatar),
+                           make_field<Chat, long long>(ChatTable::CreatedAt, &Chat::created_at)}};
   }
 };
 
-template <> struct Builder<Chat> {
+template <>
+struct Builder<Chat> {
   static Chat build(QSqlQuery &query) {
     Chat chat;
     int idx = 0;
@@ -49,11 +48,12 @@ template <> struct Builder<Chat> {
   }
 };
 
-inline constexpr auto ChatFields = std::make_tuple(
-    &Chat::id, &Chat::is_group, &Chat::name, &Chat::avatar, &Chat::created_at);
+inline constexpr auto ChatFields =
+    std::make_tuple(&Chat::id, &Chat::is_group, &Chat::name, &Chat::avatar, &Chat::created_at);
 
-template <> struct EntityFields<Chat> {
+template <>
+struct EntityFields<Chat> {
   static constexpr auto &fields = ChatFields;
 };
 
-#endif // METAENTITY_CHAT_H
+#endif  // METAENTITY_CHAT_H

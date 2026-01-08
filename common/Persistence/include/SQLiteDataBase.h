@@ -11,12 +11,11 @@
 class SQLiteDatabase : public IDataBase {
   QString db_name_;
 
-public:
+ public:
   explicit SQLiteDatabase(QString db_name) : db_name_(std::move(db_name)) {}
 
   [[nodiscard]] QSqlDatabase db() const {
-    const QString conn = QString("%1_%2").arg(db_name_).arg(
-        reinterpret_cast<quintptr>(QThread::currentThreadId()));
+    const QString conn = QString("%1_%2").arg(db_name_).arg(reinterpret_cast<quintptr>(QThread::currentThreadId()));
 
     if (!QSqlDatabase::contains(conn)) {
       auto db = QSqlDatabase::addDatabase("QSQLITE", conn);
@@ -34,29 +33,23 @@ public:
     QSqlQuery q(db());
     LOG_INFO("To execute {}", sql.toStdString());
     if (!q.exec(sql)) {
-      LOG_ERROR("For sql {} execute failed: {}", sql.toStdString(),
-                q.lastError().text().toStdString());
+      LOG_ERROR("For sql {} execute failed: {}", sql.toStdString(), q.lastError().text().toStdString());
       return false;
     }
     LOG_INFO("Execute succced, affected : {} rows", q.numRowsAffected());
     return true;
   }
 
-  std::unique_ptr<IQuery> prepare(const std::string &sql) override {
-    return prepare(QString::fromStdString(sql));
-  }
+  std::unique_ptr<IQuery> prepare(const std::string &sql) override { return prepare(QString::fromStdString(sql)); }
 
-  void rollback() override {
-    db().rollback();
-  }
+  void rollback() override { db().rollback(); }
 
   bool transaction() override { return db().transaction(); }
 
   std::unique_ptr<IQuery> prepare(const QString &sql) override {
-    auto query = std::make_unique<SQLiteQuery>(db()); // TODO: factory??
+    auto query = std::make_unique<SQLiteQuery>(db());  // TODO: factory??
     if (!query->prepare(sql)) {
-      LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(),
-                query->error().toStdString());
+      LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(), query->error().toStdString());
       return nullptr;
     }
     return query;
@@ -69,8 +62,8 @@ public:
   bool tableExists(QSqlDatabase db, const QString &table_name);
   bool deleteTable(QSqlDatabase db, const QString &name);
 
-protected:
+ protected:
   bool executeSql(QSqlDatabase db, const QString &sql);
 };
 
-#endif // SQLITEDATABASE_H
+#endif  // SQLITEDATABASE_H

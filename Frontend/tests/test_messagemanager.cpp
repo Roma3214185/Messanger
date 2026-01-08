@@ -11,7 +11,7 @@
 #include "mocks/MockAccessManager.h"
 
 class TestMessageManager : public MessageManager {
-public:
+ public:
   using MessageManager::MessageManager;
   using MessageManager::onGetChatMessages;
 };
@@ -23,34 +23,26 @@ TEST_CASE("Test MessageManager getChatMessages") {
   std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{30};
   TestMessageManager message_manager(&network_manager, url, timeout_ms);
 
-  QJsonArray messages_array{QJsonObject{{"id", 1},
-                                        {"sender_id", 10},
-                                        {"text", "Hello"},
-                                        {"timestamp", "2025-11-03T12:00:00Z"}},
-                            QJsonObject{{"id", 2},
-                                        {"sender_id", 11},
-                                        {"text", "Hi"},
-                                        {"timestamp", "2025-11-03T12:01:00Z"}}};
+  QJsonArray messages_array{
+      QJsonObject{{"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}},
+      QJsonObject{{"id", 2}, {"sender_id", 11}, {"text", "Hi"}, {"timestamp", "2025-11-03T12:01:00Z"}}};
   QByteArray valid_json = QJsonDocument(messages_array).toJson();
 
   SECTION("Expected correct endpoint URL with query params") {
     message_manager.getChatMessages("token_abc", 42, 100, 50);
     auto last_url = network_manager.last_request.url();
-    REQUIRE(
-        last_url.toString().startsWith("http://localhost:8081/messages/42"));
+    REQUIRE(last_url.toString().startsWith("http://localhost:8081/messages/42"));
     REQUIRE(last_url.query().contains("limit=50"));
     REQUIRE(last_url.query().contains("before_id=100"));
   }
 
-  SECTION(
-      "No response from server emits timeout error and returns empty list") {
+  SECTION("No response from server emits timeout error and returns empty list") {
     QSignalSpy spyError(&message_manager, &MessageManager::errorOccurred);
     network_manager.shouldReturnResponce = false;
 
     auto future = message_manager.getChatMessages("token", 77, 0, 10);
     std::chrono::milliseconds timeout_wait_ms{5};
-    QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1,
-                              timeout_ms + timeout_wait_ms);
+    QTRY_COMPARE_WITH_TIMEOUT(spyError.count(), 1, timeout_ms + timeout_wait_ms);
 
     REQUIRE(future.result().isEmpty());
     auto args = spyError.takeFirst();
@@ -59,8 +51,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
 
   SECTION("Error reply returns empty list and emits proper error") {
     auto reply_with_error = std::make_unique<MockReply>();
-    reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError,
-                                   "connection refused");
+    reply_with_error->setMockError(QNetworkReply::ConnectionRefusedError, "connection refused");
     network_manager.setReply(reply_with_error.get());
     network_manager.shouldFail = true;
 
@@ -74,8 +65,7 @@ TEST_CASE("Test MessageManager getChatMessages") {
     REQUIRE(future.result().isEmpty());
 
     auto args = spyError.takeFirst();
-    REQUIRE(args.at(0).toString().toStdString() ==
-            "Error occurred: connection refused");
+    REQUIRE(args.at(0).toString().toStdString() == "Error occurred: connection refused");
   }
 
   SECTION("Invalid JSON (not array) returns empty list and emits error") {
@@ -141,8 +131,7 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   }
 
   SECTION("Valid JSON returns correct message list") {
-    QJsonArray arr{QJsonObject{
-        {"id", 10}, {"sender_id", 1}, {"text", "msg"}, {"timestamp", "t"}}};
+    QJsonArray arr{QJsonObject{{"id", 10}, {"sender_id", 1}, {"text", "msg"}, {"timestamp", "t"}}};
     auto reply = std::make_unique<MockReply>();
     reply->setData(QJsonDocument(arr).toJson());
 
