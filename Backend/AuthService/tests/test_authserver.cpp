@@ -3,11 +3,10 @@
 #include "authservice/authcontroller.h"
 #include "authservice/server.h"
 #include "mocks/MockAutoritizer.h"
-#include "mocks/MockConfigProvider.h"
 #include "mocks/MockIdGenerator.h"
-#include "mocks/MockUtils.h"
 #include "mocks/authservice/MockAuthManager.h"
 #include "mocks/authservice/MockGenerator.h"
+#include "codes.h"
 
 namespace Test {
 
@@ -22,14 +21,12 @@ struct TestFixture {
   Server server;
   AuthController controller;
   MockAutoritizer authoritizer;
-  MockConfigProvider provider;
   User user;
   std::string token = "secret-test-token";
   MockTokenGenerator generator;
 
   TestFixture() : controller(&manager, &authoritizer, &generator), server(app, port, &controller) {
     authoritizer.mock_user_id = user_id;
-    provider.mock_codes = MockUtils::getMockCodes();
     user.id = user_id;
     user.username = "Test_username";
     user.tag = "test_tag";
@@ -37,8 +34,6 @@ struct TestFixture {
     user.avatar = "test/avatar/path";
     generator.mock_token = token;
     server.initRoutes();
-
-    // provider.mock_issue_message.invalidToken = "test_invalid_token2";
   }
 
   std::string formError(const std::string &text) {
@@ -65,7 +60,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.call_autoritize == before_auth_call + 1);
     REQUIRE(fix.manager.call_getUser == before_call_manager);
     REQUIRE(fix.res.code == StatusCodes::unauthorized);
-    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
+    REQUIRE(fix.res.body == fix.formError(IssueMessages::invalidToken));
   }
   fix.req.add_header("Authorization", fix.token);
 
@@ -85,7 +80,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.last_token == fix.token);
     REQUIRE(fix.manager.last_user_id == fix.user_id);
     REQUIRE(fix.res.code == StatusCodes::notFound);
-    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().userNotFound));
+    REQUIRE(fix.res.body == fix.formError(IssueMessages::userNotFound));
   }
 
   SECTION("Expected return valid status code and form json") {

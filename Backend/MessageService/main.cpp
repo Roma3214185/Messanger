@@ -4,7 +4,6 @@
 #include "Debug_profiling.h"
 #include "GeneratorId.h"
 #include "GenericRepository.h"
-#include "ProdConfigProvider.h"
 #include "RabbitMQClient.h"
 #include "SQLiteDataBase.h"
 #include "SqlExecutor.h"
@@ -13,11 +12,12 @@
 #include "messageservice/managers/MessageManager.h"
 #include "messageservice/server.h"
 #include "threadpool.h"
+#include "ports.h"
 
-RabbitMQConfig getConfig(const ProdConfigProvider &provider) {
+RabbitMQConfig getConfig() {
   RabbitMQConfig config;
   config.host = "localhost";
-  config.port = provider.ports().rabitMQ;
+  config.port = Ports::rabitMQ;
   config.password = "guest";
   config.user = "guest";
   return config;
@@ -46,14 +46,13 @@ int main(int argc, char *argv[]) {
   GeneratorId generator(service_id);
   GenericRepository genetic_rep(&executor, RedisCache::instance(), &pool);
   MessageManager manager(&genetic_rep, &executor, &generator);
-  ProdConfigProvider provider;
-  RabbitMQConfig config = getConfig(provider);
+  RabbitMQConfig config = getConfig();
   auto mq = createRabbitMQClient(config, &pool);
   if (!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
 
   Controller controller(mq.get(), &manager, &pool);
   crow::SimpleApp app;
-  Server server(app, provider.ports().messageService, &controller);
+  Server server(app, Ports::messageService, &controller);
   server.run();
 
   return a.exec();

@@ -1,14 +1,11 @@
 #include <catch2/catch_all.hpp>
 
 #include "NetworkFacade.h"
-#include "ProdConfigProvider.h"
 #include "chatservice/AutoritizerProvider.h"
 #include "chatservice/chatcontroller.h"
 #include "chatservice/chatserver.h"
 #include "mocks/MockAutoritizer.h"
-#include "mocks/MockConfigProvider.h"
 #include "mocks/MockNetworkManager.h"
-#include "mocks/MockUtils.h"
 #include "mocks/chatservice/MockChatManager.h"
 
 namespace TestServer {

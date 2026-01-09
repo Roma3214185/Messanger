@@ -10,6 +10,5 @@
 #include "mocks/MockQuery.h"
 #include "mocks/MockRabitMQClient.h"
 #include "mocks/MockTheadPool.h"
-#include "mocks/MockUtils.h"
 
 #endif  // MOCKS_H

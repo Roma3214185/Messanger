@@ -2,9 +2,9 @@
 
 #include "Debug_profiling.h"
 #include "NetworkFacade.h"
-#include "interfaces/IConfigProvider.h"
 #include "interfaces/IRabitMQClient.h"
 #include "notificationservice/managers/socketmanager.h"
+#include "Routes.h"
 
 namespace {
 

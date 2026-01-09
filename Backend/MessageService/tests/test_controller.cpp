@@ -12,13 +12,13 @@
 #include "mocks.h"
 #include "mocks/messageservice/SecondTestController.h"
 #include "mocks/messageservice/TestController.h"
+#include "Routes.h"
 
 struct SharedFixture {
   MockRabitMQClient rabit_client;
   MockDatabase db;
   FakeSqlExecutor executor;
   MockCache cache;
-  Routes mock_routes;
   GenericRepository rep;
   MessageManager manager;
   MockThreadPool pool;
@@ -39,10 +39,10 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
-    CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageQueue);
-    CHECK(last_subscribe_data.exchange_type == fix.mock_routes.exchangeType);
-    CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessage);
+    CHECK(last_subscribe_data.exchange == Routes::exchange);
+    CHECK(last_subscribe_data.queue == Routes::saveMessageQueue);
+    CHECK(last_subscribe_data.exchange_type == Routes::exchangeType);
+    CHECK(last_subscribe_data.routing_key == Routes::saveMessage);
   }
 
   SECTION("Subscrive on message to save expected call valid callback function") {
@@ -64,10 +64,10 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
-    CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageStatusQueue);
-    CHECK(last_subscribe_data.exchange_type == fix.mock_routes.exchangeType);
-    CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessageStatus);
+    CHECK(last_subscribe_data.exchange == Routes::exchange);
+    CHECK(last_subscribe_data.queue == Routes::saveMessageStatusQueue);
+    CHECK(last_subscribe_data.exchange_type == Routes::exchangeType);
+    CHECK(last_subscribe_data.routing_key == Routes::saveMessageStatus);
   }
 
   SECTION(

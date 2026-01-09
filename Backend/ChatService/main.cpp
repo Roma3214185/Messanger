@@ -7,7 +7,6 @@
 #include "GenericRepository.h"
 #include "NetworkFacade.h"
 #include "NetworkManager.h"
-#include "ProdConfigProvider.h"
 #include "RedisCache.h"
 #include "SQLiteDataBase.h"
 #include "SqlExecutor.h"
@@ -49,11 +48,10 @@ int main(int argc, char *argv[]) {
   GenericRepository genetic_rep(&executor, RedisCache::instance());
   ChatManager manager(&genetic_rep, &generator);  // TODO: pass executor to mock
   NetworkManager network_manager;
-  ProdConfigProvider provider;
   NetworkFacade facade = NetworkFactory::create(&network_manager);
   crow::SimpleApp app;
   ChatController controller(&manager, &facade);
-  ChatServer server(app, provider.ports().chatService, &controller);
-  LOG_INFO("Chat service on port '{}'", provider.ports().chatService);
+  ChatServer server(app, Ports::chatService, &controller);
+  LOG_INFO("Chat service on port '{}'", Ports::chatService);
   server.run();
 }
