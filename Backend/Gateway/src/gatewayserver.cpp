@@ -14,6 +14,8 @@
 #include "interfaces/IThreadPool.h"
 #include "middlewares/Middlewares.h"
 #include "websocketbridge.h"
+#include "ports.h"
+#include "Routes.h"
 
 using std::string;
 
@@ -60,13 +62,12 @@ RequestDTO getRequestInfo(const crow::request &req, const std::string &path) {
 
 }  // namespace
 
-GatewayServer::GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool,
-                             IConfigProvider *provider, IRabitMQClient *queue)
-    : app_(app), provider_(provider), cache_(cache), proxy_(client), pool_(pool), queue_(queue) {}
+GatewayServer::GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool, IRabitMQClient *queue)
+    : app_(app), cache_(cache), proxy_(client), pool_(pool), queue_(queue) {}
 
 void GatewayServer::run() {
-  LOG_INFO("Starting API Gateway on port {}", provider_->ports().apigateService);
-  app_.port(provider_->ports().apigateService).multithreaded().run();
+  LOG_INFO("Starting API Gateway on port {}", Ports::apigateService);
+  app_.port(Ports::apigateService).multithreaded().run();
 }
 
 void GatewayServer::sendResponse(crow::response &res, int res_code, const std::string &message) {
@@ -76,11 +77,11 @@ void GatewayServer::sendResponse(crow::response &res, int res_code, const std::s
 }
 
 void GatewayServer::registerRoutes() {
-  registerRoute("/auth", provider_->ports().authService);
-  registerRoute("/users", provider_->ports().authService);
-  registerRoute("/chats", provider_->ports().chatService);
-  registerRoute("/messages", provider_->ports().messageService);
-  registerRoute("/notification", provider_->ports().notificationService);
+  registerRoute("/auth", Ports::authService);
+  registerRoute("/users", Ports::authService);
+  registerRoute("/chats", Ports::chatService);
+  registerRoute("/messages", Ports::messageService);
+  registerRoute("/notification", Ports::notificationService);
   registerRequestRoute();
   registerHealthCheck();
   registerWebSocketRoutes();
@@ -143,8 +144,8 @@ void GatewayServer::handlePostRequest(
   json["port"] = port;
 
   const PublishRequest publish_request{// todo: make PublishRequest and RequestDTO immutable
-                                       .exchange = provider_->routes().exchange,
-                                       .routing_key = provider_->routes().sendRequest,
+                                       .exchange = Routes::exchange,
+                                       .routing_key = Routes::sendRequest,
                                        .message = json.dump(),
                                        .exchange_type = "direct"};
 
@@ -152,13 +153,13 @@ void GatewayServer::handlePostRequest(
   nlohmann::json responce;
   responce["status"] = "queued";
   responce["request_id"] = request_info.request_id;
-  sendResponse(res, provider_->statusCodes().accepted, responce.dump());
+  sendResponse(res, StatusCodes::accepted, responce.dump());
 }
 
 void GatewayServer::subscribeOnNewRequest() {
-  SubscribeRequest subscribe_request{.queue = provider_->routes().sendRequest,
-                                     .exchange = provider_->routes().exchange,
-                                     .routing_key = provider_->routes().sendRequest,
+  SubscribeRequest subscribe_request{.queue = Routes::sendRequest,
+                                     .exchange = Routes::exchange,
+                                     .routing_key = Routes::sendRequest,
                                      .exchange_type = "direct"};
 
   queue_->subscribe(subscribe_request, [this](const std::string &event, const std::string &payload) {
@@ -219,7 +220,7 @@ void GatewayServer::registerRequestRoute() {
 }
 
 void GatewayServer::registerWebSocketRoutes() {
-  std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws", provider_->ports().notificationService);
+  std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws", Ports::notificationService);
   auto ws_bridge = std::make_shared<WebSocketBridge>(backend_url);
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
@@ -242,6 +243,6 @@ void GatewayServer::registerHealthCheck() {
   ([this](const crow::request &, crow::response &res) {
     nlohmann::json info = {{"status", "ok"}, {"timestamp", getCurrentTime()}};
     res.set_header("Content-Type", "application/json");
-    sendResponse(res, provider_->statusCodes().success, info.dump());
+    sendResponse(res, StatusCodes::success, info.dump());
   });
 }

@@ -6,7 +6,6 @@
 
 #include <string>
 
-#include "ProdConfigProvider.h"
 #include "interfaces/IMetrics.h"
 #include "middlewares/Middlewares.h"
 #include "proxyclient.h"
@@ -22,8 +21,7 @@ using GatewayApp =
 
 class GatewayServer {
  public:
-  GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool, IConfigProvider *provider,
-                IRabitMQClient *queue);
+  GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool, IRabitMQClient *queue);
   void run();
   void registerRoutes();
 
@@ -32,7 +30,6 @@ class GatewayServer {
 
  private:
   GatewayApp &app_;
-  IConfigProvider *provider_;
   ICacheService *cache_;
   ProxyClient proxy_;
   IThreadPool *pool_;

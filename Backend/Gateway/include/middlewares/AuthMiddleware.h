@@ -6,16 +6,14 @@
 #include <algorithm>
 
 #include "Debug_profiling.h"
-#include "ProdConfigProvider.h"
-#include "interfaces/IConfigProvider.h"
 #include "interfaces/IVerifier.h"
+#include "codes.h"
 
 struct AuthMiddleware {
   struct context {
     long long user_id = -1;
   } cont;
   IVerifier *verifier_;
-  IConfigProvider *provider = &ProdConfigProvider::instance();
 
   template <typename ParentCtx>
   void before_handle(const crow::request &req, crow::response &res, context &ctx, ParentCtx &parent_ctx) {
@@ -30,8 +28,8 @@ struct AuthMiddleware {
 
     LOG_INFO("Unautoritized {}", req.url);
 
-    res.code = provider->statusCodes().unauthorized;
-    res.write(provider->issueMessages().invalidToken);
+    res.code = StatusCodes::unauthorized;
+    res.write(IssueMessages::invalidToken);
     res.end();
   }
 

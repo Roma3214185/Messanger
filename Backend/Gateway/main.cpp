@@ -1,6 +1,5 @@
 #include "GatewayMetrics.h"
 #include "JWTVerifier.h"
-#include "ProdConfigProvider.h"
 #include "RabbitMQClient.h"
 #include "RealHttpClient.h"
 #include "RedisCache.h"
@@ -9,6 +8,7 @@
 #include "mocks/MockRabitMQClient.h"  //TODO: remove mocks from cmake and here
 #include "ratelimiter.h"
 #include "threadpool.h"
+#include "ports.h"
 
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
@@ -16,12 +16,11 @@ const std::string kIssuer = "auth_service";
 
 int main() {
   initLogger("Gateway");
-  ProdConfigProvider provider;
 
   JWTVerifier verifier(kPublicKeyFile, kIssuer);
   RedisCache &cache = RedisCache::instance();
   RateLimiter rate_limiter;
-  GatewayMetrics metrics(provider.ports().metrics);
+  GatewayMetrics metrics(Ports::metrics);
 
   GatewayApp app;
   app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
@@ -33,7 +32,7 @@ int main() {
   RealHttpClient client;
   ThreadPool pool(8);
   MockRabitMQClient rabbit_client;
-  GatewayServer server(app, &client, &cache, &pool, &provider, &rabbit_client);
+  GatewayServer server(app, &client, &cache, &pool, &rabbit_client);
   server.registerRoutes();
   server.run();
   return 0;
