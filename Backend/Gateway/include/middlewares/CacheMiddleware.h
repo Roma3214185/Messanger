@@ -7,7 +7,7 @@
 
 #include "MetricsMiddleware.h"
 #include "interfaces/ICacheService.h"
-#include "codes.h"
+#include "config/codes.h"
 
 struct CacheMiddleware {
   ICacheService *cache_;
@@ -28,7 +28,7 @@ struct CacheMiddleware {
     if (!val) return;
 
     ctx.cached = val;
-    res.code = StatusCodes::success;
+    res.code = Config::StatusCodes::success;
     res.write(val.value());
     auto &metrics_ctx = parent_ctx.template get<MetricsMiddleware>();
     metrics_ctx.hit_cache = true;

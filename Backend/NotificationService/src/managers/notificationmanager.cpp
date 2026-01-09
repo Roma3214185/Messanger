@@ -4,7 +4,7 @@
 #include "NetworkFacade.h"
 #include "interfaces/IRabitMQClient.h"
 #include "notificationservice/managers/socketmanager.h"
-#include "Routes.h"
+#include "config/Routes.h"
 
 namespace {
 
@@ -31,10 +31,10 @@ NotificationManager::NotificationManager(IRabitMQClient *mq_client, SocketsManag
 
 void NotificationManager::subscribeMessageSaved() {
   SubscribeRequest request;
-  request.queue = Routes::messageSavedQueue;
-  request.exchange = Routes::exchange;
-  request.routing_key = Routes::messageSaved;
-  request.exchange_type = Routes::exchangeType;
+  request.queue = Config::Routes::messageSavedQueue;
+  request.exchange = Config::Routes::exchange;
+  request.routing_key = Config::Routes::messageSaved;
+  request.exchange_type = Config::Routes::exchangeType;
 
   mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
     LOG_INFO(
@@ -47,10 +47,10 @@ void NotificationManager::subscribeMessageSaved() {
 
 void NotificationManager::subscribeMessageDeleted() {
   SubscribeRequest request;
-  request.queue = Routes::messageDeleted;
-  request.exchange = Routes::exchange;
-  request.routing_key = Routes::messageDeleted;
-  request.exchange_type = Routes::exchangeType;
+  request.queue = Config::Routes::messageDeleted;
+  request.exchange = Config::Routes::exchange;
+  request.routing_key = Config::Routes::messageDeleted;
+  request.exchange_type = Config::Routes::exchangeType;
 
   mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
     LOG_INFO(
@@ -63,10 +63,10 @@ void NotificationManager::subscribeMessageDeleted() {
 
 void NotificationManager::subscribeMessageStatusSaved() {
   SubscribeRequest request;
-  request.queue = Routes::messageStatusSaved;
-  request.exchange = Routes::exchange;
-  request.routing_key = Routes::messageStatusSaved;
-  request.exchange_type = Routes::exchangeType;
+  request.queue = Config::Routes::messageStatusSaved;
+  request.exchange = Config::Routes::exchange;
+  request.routing_key = Config::Routes::messageStatusSaved;
+  request.exchange_type = Config::Routes::exchangeType;
 
   mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
     LOG_INFO("Subscribe on message status saved received: event {} and payload {}", event, payload);
@@ -103,10 +103,10 @@ void NotificationManager::onSendMessage(Message &message) {
   to_save["event"] = "save_message";
 
   mq_client_->publish(PublishRequest{// TODO: Factory(?)
-                                     .exchange = Routes::exchange,
-                                     .routing_key = Routes::saveMessage,
+                                     .exchange = Config::Routes::exchange,
+                                     .routing_key = Config::Routes::saveMessage,
                                      .message = to_save.dump(),
-                                     .exchange_type = Routes::exchangeType});
+                                     .exchange_type = Config::Routes::exchangeType});
 }
 
 void NotificationManager::onMessageStatusSaved(const std::string &payload) {
@@ -148,10 +148,10 @@ void NotificationManager::onMessageSaved(const std::string &payload) {
 }
 
 void NotificationManager::saveMessageStatus(MessageStatus &status) {
-  mq_client_->publish(PublishRequest{.exchange = Routes::exchange,
-                                     .routing_key = Routes::saveMessageStatus,
+  mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
+                                     .routing_key = Config::Routes::saveMessageStatus,
                                      .message = nlohmann::json(status).dump(),
-                                     .exchange_type = Routes::exchangeType});
+                                     .exchange_type = Config::Routes::exchangeType});
 }
 
 std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {

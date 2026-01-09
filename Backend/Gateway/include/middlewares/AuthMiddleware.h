@@ -7,7 +7,7 @@
 
 #include "Debug_profiling.h"
 #include "interfaces/IVerifier.h"
-#include "codes.h"
+#include "config/codes.h"
 
 struct AuthMiddleware {
   struct context {
@@ -28,8 +28,8 @@ struct AuthMiddleware {
 
     LOG_INFO("Unautoritized {}", req.url);
 
-    res.code = StatusCodes::unauthorized;
-    res.write(IssueMessages::invalidToken);
+    res.code = Config::StatusCodes::unauthorized;
+    res.write(Config::IssueMessages::invalidToken);
     res.end();
   }
 
@@ -49,12 +49,6 @@ struct AuthMiddleware {
     LOG_INFO("Check to auth url {}", url);
     return std::none_of(kNoNeedAuthUrls.begin(), kNoNeedAuthUrls.end(),
                         [&](const auto &prefix) { return url.starts_with(prefix); });
-
-    // for(const auto &need_auth_url : kNoNeedAuthUrls) {
-    //   if(url.substr(0, need_auth_url.length()) == need_auth_url) return
-    //   false;
-    // }
-    // return true;
   }
 };
 

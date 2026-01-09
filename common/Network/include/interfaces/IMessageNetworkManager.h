@@ -5,16 +5,16 @@
 
 #include "Debug_profiling.h"
 #include "interfaces/INetworkManagerBase.h"
-#include "ports.h"
-#include "codes.h"
+#include "config/ports.h"
+#include "config/codes.h"
 
 class IMessageNetworkManager : public virtual INetworkManagerBase {
  public:
   std::optional<long long> getChatIdOfMessage(long long message_id) {
     const std::string path = "/message/" + std::to_string(message_id);
-    auto res = forward(Ports::messageService, "", path, "GET");
+    auto res = forward(Config::Ports::messageService, "", path, "GET");
     LOG_INFO("getChatIdOfMessage reveived {} and body {}", res.first, res.second);
-    if (res.first != StatusCodes::success) {
+    if (res.first != Config::StatusCodes::success) {
       LOG_ERROR("getChatIdOfMessage failed: {}", res.first);
       return std::nullopt;
     }

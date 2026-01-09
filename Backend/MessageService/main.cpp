@@ -12,12 +12,12 @@
 #include "messageservice/managers/MessageManager.h"
 #include "messageservice/server.h"
 #include "threadpool.h"
-#include "ports.h"
+#include "config/ports.h"
 
 RabbitMQConfig getConfig() {
   RabbitMQConfig config;
   config.host = "localhost";
-  config.port = Ports::rabitMQ;
+  config.port = Config::Ports::rabitMQ;
   config.password = "guest";
   config.user = "guest";
   return config;
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
   Controller controller(mq.get(), &manager, &pool);
   crow::SimpleApp app;
-  Server server(app, Ports::messageService, &controller);
+  Server server(app, Config::Ports::messageService, &controller);
   server.run();
 
   return a.exec();

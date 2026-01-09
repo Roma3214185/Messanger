@@ -14,8 +14,8 @@
 #include "interfaces/IThreadPool.h"
 #include "middlewares/Middlewares.h"
 #include "websocketbridge.h"
-#include "ports.h"
-#include "Routes.h"
+#include "config/ports.h"
+#include "config/Routes.h"
 
 using std::string;
 
@@ -66,8 +66,8 @@ GatewayServer::GatewayServer(GatewayApp &app, IClient *client, ICacheService *ca
     : app_(app), cache_(cache), proxy_(client), pool_(pool), queue_(queue) {}
 
 void GatewayServer::run() {
-  LOG_INFO("Starting API Gateway on port {}", Ports::apigateService);
-  app_.port(Ports::apigateService).multithreaded().run();
+  LOG_INFO("Starting API Gateway on port {}", Config::Ports::apigateService);
+  app_.port(Config::Ports::apigateService).multithreaded().run();
 }
 
 void GatewayServer::sendResponse(crow::response &res, int res_code, const std::string &message) {
@@ -77,11 +77,11 @@ void GatewayServer::sendResponse(crow::response &res, int res_code, const std::s
 }
 
 void GatewayServer::registerRoutes() {
-  registerRoute("/auth", Ports::authService);
-  registerRoute("/users", Ports::authService);
-  registerRoute("/chats", Ports::chatService);
-  registerRoute("/messages", Ports::messageService);
-  registerRoute("/notification", Ports::notificationService);
+  registerRoute("/auth", Config::Ports::authService);
+  registerRoute("/users", Config::Ports::authService);
+  registerRoute("/chats", Config::Ports::chatService);
+  registerRoute("/messages", Config::Ports::messageService);
+  registerRoute("/notification", Config::Ports::notificationService);
   registerRequestRoute();
   registerHealthCheck();
   registerWebSocketRoutes();
@@ -144,8 +144,8 @@ void GatewayServer::handlePostRequest(
   json["port"] = port;
 
   const PublishRequest publish_request{// todo: make PublishRequest and RequestDTO immutable
-                                       .exchange = Routes::exchange,
-                                       .routing_key = Routes::sendRequest,
+                                       .exchange = Config::Routes::exchange,
+                                       .routing_key = Config::Routes::sendRequest,
                                        .message = json.dump(),
                                        .exchange_type = "direct"};
 
@@ -153,13 +153,13 @@ void GatewayServer::handlePostRequest(
   nlohmann::json responce;
   responce["status"] = "queued";
   responce["request_id"] = request_info.request_id;
-  sendResponse(res, StatusCodes::accepted, responce.dump());
+  sendResponse(res, Config::StatusCodes::accepted, responce.dump());
 }
 
 void GatewayServer::subscribeOnNewRequest() {
-  SubscribeRequest subscribe_request{.queue = Routes::sendRequest,
-                                     .exchange = Routes::exchange,
-                                     .routing_key = Routes::sendRequest,
+  SubscribeRequest subscribe_request{.queue = Config::Routes::sendRequest,
+                                     .exchange = Config::Routes::exchange,
+                                     .routing_key = Config::Routes::sendRequest,
                                      .exchange_type = "direct"};
 
   queue_->subscribe(subscribe_request, [this](const std::string &event, const std::string &payload) {
@@ -220,7 +220,7 @@ void GatewayServer::registerRequestRoute() {
 }
 
 void GatewayServer::registerWebSocketRoutes() {
-  std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws", Ports::notificationService);
+  std::string backend_url = fmt::format("ws://127.0.0.1:{}/ws", Config::Ports::notificationService);
   auto ws_bridge = std::make_shared<WebSocketBridge>(backend_url);
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
@@ -243,6 +243,6 @@ void GatewayServer::registerHealthCheck() {
   ([this](const crow::request &, crow::response &res) {
     nlohmann::json info = {{"status", "ok"}, {"timestamp", getCurrentTime()}};
     res.set_header("Content-Type", "application/json");
-    sendResponse(res, StatusCodes::success, info.dump());
+    sendResponse(res, Config::StatusCodes::success, info.dump());
   });
 }

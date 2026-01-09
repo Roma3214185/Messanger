@@ -12,7 +12,7 @@
 RabbitMQConfig getConfig() {
   RabbitMQConfig config;
   config.host = "localhost";
-  config.port = Ports::rabitMQ;
+  config.port = Config::Ports::rabitMQ;
   config.user = "guest";
   config.password = "guest";
   return config;
@@ -27,6 +27,6 @@ int main() {
   NetworkManager network_manager;
   NetworkFacade net_repository = NetworkFactory::create(&network_manager);
   NotificationManager notifManager(&mq, &sockManager, net_repository);
-  Server server(Ports::notificationService, &notifManager);
+  Server server(Config::Ports::notificationService, &notifManager);
   server.run();
 }

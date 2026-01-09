@@ -3,7 +3,7 @@
 #include <httplib.h>
 
 #include "Debug_profiling.h"
-#include "codes.h"
+#include "config/codes.h"
 
 using std::pair;
 using std::string;
@@ -33,7 +33,7 @@ pair<int, string> INetworkManagerBase::forward(int port, const string &body,
   }();
 
   if (!res) {
-    return {StatusCodes::serverError, "Bad Gateway: downstream no response"};
+    return {Config::StatusCodes::serverError, "Bad Gateway: downstream no response"};
   }
 
   return {res->status, res->body};

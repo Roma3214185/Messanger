@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace Config {
+
 struct StatusCodes {  // todo: namespace
   static constexpr int success = 200;
   static constexpr int accepted = 202;
@@ -20,5 +22,7 @@ struct IssueMessages {
   static constexpr const char *invalidToken = "Invalid or expired token";
   static constexpr const char *rateLimitExceed = "Rate limit exceeded";
 };
+
+}  //namespace Config
 
 #endif  // CODES_H

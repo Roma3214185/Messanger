@@ -4,7 +4,7 @@
 #include <crow.h>
 
 #include "interfaces/IRateLimiter.h"
-#include "codes.h"
+#include "config/codes.h"
 
 struct RateLimitMiddleware {
   struct context {};
@@ -13,8 +13,8 @@ struct RateLimitMiddleware {
   template <typename ParentCtx>
   void before_handle(const crow::request &req, crow::response &res, context & /*ctx*/, ParentCtx & /*parent_ctx*/) {
     if (!rate_limiter_->allow(getIP(req))) {
-      res.code = StatusCodes::rateLimit;
-      res.write(IssueMessages::rateLimitExceed);
+      res.code = Config::StatusCodes::rateLimit;
+      res.write(Config::IssueMessages::rateLimitExceed);
       res.end();
     }
   }

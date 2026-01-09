@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
   NetworkFacade facade = NetworkFactory::create(&network_manager);
   crow::SimpleApp app;
   ChatController controller(&manager, &facade);
-  ChatServer server(app, Ports::chatService, &controller);
-  LOG_INFO("Chat service on port '{}'", Ports::chatService);
+  ChatServer server(app, Config::Ports::chatService, &controller);
+  LOG_INFO("Chat service on port '{}'", Config::Ports::chatService);
   server.run();
 }

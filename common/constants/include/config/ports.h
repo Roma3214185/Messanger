@@ -1,6 +1,8 @@
 #ifndef PORTS_H
 #define PORTS_H
 
+namespace Config {
+
 struct Ports {
   static constexpr int authService = 8083;
   static constexpr int userService = 8083;
@@ -11,5 +13,7 @@ struct Ports {
   static constexpr int rabitMQ = 5672;
   static constexpr int metrics = 8089;
 };
+
+}  //namespace Config
 
 #endif  // PORTS_H

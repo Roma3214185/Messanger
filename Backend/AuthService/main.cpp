@@ -11,7 +11,7 @@
 #include "authservice/authcontroller.h"
 #include "authservice/authmanager.h"
 #include "authservice/server.h"
-#include "ports.h"
+#include "config/ports.h"
 
 int main(int argc, char *argv[]) {
   QCoreApplication a(argc, argv);
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
   JwtGenerator generator;
   AuthController controller(&manager, &authoritizer, &generator);
   crow::SimpleApp app;
-  Server server(app, Ports::authService, &controller);
+  Server server(app, Config::Ports::authService, &controller);
 
   // if(!server.generateKeys()) {
   //   qFatal("Cannot generate keys");

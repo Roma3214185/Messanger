@@ -51,8 +51,8 @@ TEST_CASE("handleCreatingPrivateChat listens on POST /chats/private") {
     fix.app.handle_full(fix.req, fix.res);
 
     REQUIRE(fix.manager.call_getChatsOfUser == before);
-    REQUIRE(fix.res.code == StatusCodes::userError);
-    REQUIRE(fix.res.body == fix.formError(IssueMessages::invalidToken));
+    REQUIRE(fix.res.code == Config::StatusCodes::userError);
+    REQUIRE(fix.res.body == fix.formError(Config::IssueMessages::invalidToken));
   }
 
   fix.req.add_header("Authorization", fix.secret_token);
@@ -149,8 +149,8 @@ TEST_CASE(
     REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
     REQUIRE(fix.mock_autoritized->last_token == "");
     REQUIRE(fix.manager.call_getChatsOfUser == before);
-    REQUIRE(fix.res.code == StatusCodes::userError);
-    REQUIRE(fix.res.body == fix.formError(IssueMessages::invalidToken));
+    REQUIRE(fix.res.code == Config::StatusCodes::userError);
+    REQUIRE(fix.res.body == fix.formError(Config::IssueMessages::invalidToken));
   }
 
   SECTION("Token is setted expected call") {
@@ -188,6 +188,6 @@ TEST_CASE(
 
   REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
   REQUIRE(fix.manager.call_getChatsOfUser == before);
-  REQUIRE(fix.res.code == StatusCodes::userError);
-  REQUIRE(fix.res.body == fix.formError(IssueMessages::invalidToken));
+  REQUIRE(fix.res.code == Config::StatusCodes::userError);
+  REQUIRE(fix.res.body == fix.formError(Config::IssueMessages::invalidToken));
 }

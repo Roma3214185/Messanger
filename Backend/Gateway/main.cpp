@@ -8,7 +8,7 @@
 #include "mocks/MockRabitMQClient.h"  //TODO: remove mocks from cmake and here
 #include "ratelimiter.h"
 #include "threadpool.h"
-#include "ports.h"
+#include "config/ports.h"
 
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
@@ -20,7 +20,7 @@ int main() {
   JWTVerifier verifier(kPublicKeyFile, kIssuer);
   RedisCache &cache = RedisCache::instance();
   RateLimiter rate_limiter;
-  GatewayMetrics metrics(Ports::metrics);
+  GatewayMetrics metrics(Config::Ports::metrics);
 
   GatewayApp app;
   app.get_middleware<AuthMiddleware>().verifier_ = &verifier;

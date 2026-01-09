@@ -4,7 +4,7 @@
 #include "mocks/MockRabitMQClient.h"
 #include "mocks/MockTheadPool.h"
 #include "mocks/gateway/GatewayMocks.h"
-#include "ports.h"
+#include "config/ports.h"
 
 struct TestGatewayServerFixrute {
   GatewayApp app;
@@ -64,7 +64,7 @@ TEST_CASE("Test apigate POST method") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_post == before_post_calls + 1);
-    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Ports::authService));
+    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Config::Ports::authService));
   }
 
   SECTION(
@@ -89,7 +89,7 @@ TEST_CASE("Test apigate GET method") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_get == before_forward_cnt + 1);
-    CHECK(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Ports::messageService));
+    CHECK(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Config::Ports::messageService));
     CHECK(fix.client.last_request.body == fix.req.body);
     CHECK(fix.client.last_request.full_path == fix.req.url);
   }
@@ -124,7 +124,7 @@ TEST_CASE("Test simple base_path request") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_get == before_post_calls + 1);
-    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Ports::chatService));
+    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Config::Ports::chatService));
   }
 }
 

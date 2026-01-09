@@ -12,7 +12,7 @@
 #include "mocks.h"
 #include "mocks/messageservice/SecondTestController.h"
 #include "mocks/messageservice/TestController.h"
-#include "Routes.h"
+#include "config/Routes.h"
 
 struct SharedFixture {
   MockRabitMQClient rabit_client;
@@ -39,10 +39,10 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    CHECK(last_subscribe_data.exchange == Routes::exchange);
-    CHECK(last_subscribe_data.queue == Routes::saveMessageQueue);
-    CHECK(last_subscribe_data.exchange_type == Routes::exchangeType);
-    CHECK(last_subscribe_data.routing_key == Routes::saveMessage);
+    CHECK(last_subscribe_data.exchange == Config::Routes::exchange);
+    CHECK(last_subscribe_data.queue == Config::Routes::saveMessageQueue);
+    CHECK(last_subscribe_data.exchange_type == Config::Routes::exchangeType);
+    CHECK(last_subscribe_data.routing_key == Config::Routes::saveMessage);
   }
 
   SECTION("Subscrive on message to save expected call valid callback function") {
@@ -64,10 +64,10 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    CHECK(last_subscribe_data.exchange == Routes::exchange);
-    CHECK(last_subscribe_data.queue == Routes::saveMessageStatusQueue);
-    CHECK(last_subscribe_data.exchange_type == Routes::exchangeType);
-    CHECK(last_subscribe_data.routing_key == Routes::saveMessageStatus);
+    CHECK(last_subscribe_data.exchange == Config::Routes::exchange);
+    CHECK(last_subscribe_data.queue == Config::Routes::saveMessageStatusQueue);
+    CHECK(last_subscribe_data.exchange_type == Config::Routes::exchangeType);
+    CHECK(last_subscribe_data.routing_key == Config::Routes::saveMessageStatus);
   }
 
   SECTION(

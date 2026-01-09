@@ -77,8 +77,8 @@ TEST_CASE("Test Authmiddleware") {
       "invalid token") {
     doCallBefore();
     REQUIRE(fix.res.is_completed());
-    REQUIRE(fix.res.code == StatusCodes::unauthorized);
-    REQUIRE(fix.res.body == IssueMessages::invalidToken);
+    REQUIRE(fix.res.code == Config::StatusCodes::unauthorized);
+    REQUIRE(fix.res.body == Config::IssueMessages::invalidToken);
   }
 
   SECTION("After handle expected no throw") { REQUIRE_NOTHROW(doCallAfter()); }
@@ -101,8 +101,8 @@ TEST_CASE("Test RateLimitMiddleware") {
     doCallBefore();
 
     REQUIRE(fix.res.is_completed());
-    REQUIRE(fix.res.code == StatusCodes::rateLimit);
-    REQUIRE(fix.res.body == IssueMessages::rateLimitExceed);
+    REQUIRE(fix.res.code == Config::StatusCodes::rateLimit);
+    REQUIRE(fix.res.body == Config::IssueMessages::rateLimitExceed);
   }
 
   SECTION("Section rate_limit is allowed expected return not completed task") {
@@ -165,7 +165,7 @@ TEST_CASE("Test cacheMiddleware") {
     fix.cache.mock_answer = value_from_cache;
     doCallBefore();
     REQUIRE(fix.res.is_completed());
-    REQUIRE(fix.res.code == StatusCodes::success);
+    REQUIRE(fix.res.code == Config::StatusCodes::success);
     REQUIRE(fix.res.body == value_from_cache);
   }
 
