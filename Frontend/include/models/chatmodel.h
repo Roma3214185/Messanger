@@ -17,15 +17,8 @@ using OptionalChatIndex = std::optional<ChatIndex>;
 class ChatModel : public QAbstractListModel {
   Q_OBJECT
 
-public:
-  enum Roles {
-    ChatIdRole = Qt::UserRole + 1,
-    TitleRole,
-    LastMessageRole,
-    UnreadRole,
-    LastMessageTimeRole,
-    AvatarRole
-  };
+ public:
+  enum Roles { ChatIdRole = Qt::UserRole + 1, TitleRole, LastMessageRole, UnreadRole, LastMessageTimeRole, AvatarRole };
 
   explicit ChatModel(QObject *parent = nullptr);
 
@@ -33,17 +26,16 @@ public:
   QVariant data(const QModelIndex &index, int role) const override;
   QHash<int, QByteArray> roleNames() const override;
   void addChat(const ChatPtr &chat);
-  void updateChatInfo(long long chat_id,
-                      const std::optional<Message> &last_message);
+  void updateChatInfo(long long chat_id, const std::optional<Message> &last_message);
   void clear();
   void sortChats();
   [[nodiscard]] OptionalChatIndex findIndexByChatId(long long chat_id) const;
 
-Q_SIGNALS:
+ Q_SIGNALS:
   void chatUpdated(const long long chat_id);
 
-private:
+ private:
   ListOfChats chats_;
 };
 
-#endif // CHATMODEL_H
+#endif  // CHATMODEL_H

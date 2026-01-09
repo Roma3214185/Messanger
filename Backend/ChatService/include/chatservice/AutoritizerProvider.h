@@ -8,26 +8,23 @@
 #include "interfaces/IAutoritizer.h"
 
 class RealAutoritizer : public IAutoritizer {
-public:
+ public:
   std::optional<long long> autoritize(const std::string &token) override {
     return JwtUtils::verifyTokenAndGetUserId(token);
   }
 };
 
-class AutoritizerProvider { // todo: delete AutoritizerProvider class
-public:
-  static void set(std::shared_ptr<IAutoritizer> a) {
-    instance() = std::move(a);
-  }
+class AutoritizerProvider {  // todo: delete AutoritizerProvider class
+ public:
+  static void set(std::shared_ptr<IAutoritizer> a) { instance() = std::move(a); }
 
   static std::shared_ptr<IAutoritizer> get() { return instance(); }
 
-private:
+ private:
   static std::shared_ptr<IAutoritizer> &instance() {
-    static std::shared_ptr<IAutoritizer> inst =
-        std::make_shared<RealAutoritizer>();
+    static std::shared_ptr<IAutoritizer> inst = std::make_shared<RealAutoritizer>();
     return inst;
   }
 };
 
-#endif // AUTORITIZERPROVIDER_H
+#endif  // AUTORITIZERPROVIDER_H

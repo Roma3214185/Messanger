@@ -4,8 +4,8 @@
 #include "interfaces/IConfigProvider.h"
 
 class MockConfigProvider : public IConfigProvider {
-public:
-  MockConfigProvider() {}
+ public:
+  MockConfigProvider() = default;
   explicit MockConfigProvider(Ports ports) : mock_ports(ports) {}
   explicit MockConfigProvider(StatusCodes codes) : mock_codes(codes) {}
 
@@ -15,9 +15,7 @@ public:
 
   const StatusCodes &statusCodes() const override { return mock_codes; }
 
-  const IssueMessages &issueMessages() const override {
-    return mock_issue_message;
-  }
+  const IssueMessages &issueMessages() const override { return mock_issue_message; }
 
   Ports mock_ports;
   StatusCodes mock_codes;
@@ -25,4 +23,4 @@ public:
   IssueMessages mock_issue_message;
 };
 
-#endif // MOCKCONFIGPROVIDER_H
+#endif  // MOCKCONFIGPROVIDER_H

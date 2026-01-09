@@ -16,7 +16,6 @@ QT_END_NAMESPACE
 
 class Presenter;
 class ChatBase;
-class User;
 class QListView;
 class ITheme;
 class MessageListView;
@@ -24,7 +23,7 @@ class MessageListView;
 class MainWindow : public QMainWindow, public IMainWindow {
   Q_OBJECT
 
-public:
+ public:
   explicit MainWindow(Model *model, QWidget *parent = nullptr);
   ~MainWindow();
 
@@ -39,7 +38,7 @@ public:
 
   void setTheme(std::unique_ptr<ITheme> theme);
 
-private Q_SLOTS:
+ private Q_SLOTS:
   void on_upSubmitButton_clicked();
   void on_inSubmitButton_clicked();
   void on_userTextEdit_textChanged(const QString &text);
@@ -65,7 +64,7 @@ private Q_SLOTS:
 
   void on_serch_messages_list_view_clicked(const QModelIndex &index);
 
-private:
+ private:
   void setMainWindow();
   void setSignInPage();
   void setSignUpPage();
@@ -86,14 +85,13 @@ private:
   QModelIndex findIndexByMessageId(QAbstractItemModel *model, long long id);
 
   std::unique_ptr<ITheme> current_theme_;
-  Ui::MainWindow *ui_;
+  std::unique_ptr<Ui::MainWindow> ui_;
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
 
-  std::optional<Message>
-      editable_message_; // todo: make Page to set in currentPage, in which
-                         // Message will be
-  QStandardItemModel *searchResultsModel_;
+  std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
+                                             // Message will be
+  std::unique_ptr<QStandardItemModel> searchResultsModel_;
 };
 
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

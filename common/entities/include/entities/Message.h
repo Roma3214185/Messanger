@@ -1,7 +1,7 @@
 #ifndef BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 #define BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
 
-#include <crow.h> //TODO: remove crow from here
+#include <crow.h>  //TODO: remove crow from here
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -12,13 +12,28 @@
 #include "TimestampService.h"
 #include "interfaces/entity.h"
 
-struct Message final : public IEntity {
+struct Message final {
   long long id{0};
   long long chat_id{0};
   long long sender_id{0};
   long long timestamp{0};
   std::string text;
   std::string local_id;
+
+  Message() = default;
+
+  Message(long long id, long long chat_id, long long sender_id, long long timestamp, std::string text,
+          std::string local_id)
+      : id(id),
+        chat_id(chat_id),
+        sender_id(sender_id),
+        timestamp(timestamp),
+        text(std::move(text)),
+        local_id(std::move(local_id)) {
+    DBC_REQUIRE(checkInvariants());
+  }
+
+  bool checkInvariants() const { return id > 0 && chat_id > 0 && sender_id > 0 && !text.empty(); }
 };
 
 namespace utils::entities {
@@ -26,16 +41,13 @@ namespace utils::entities {
 inline Message from_crow_json(const crow::json::rvalue &json_message) {
   Message message;
 
-  message.id = json_message.count(MessageTable::Id)
-                   ? json_message[MessageTable::Id].i()
-                   : 0;
+  message.id = json_message.count(MessageTable::Id) ? json_message[MessageTable::Id].i() : 0;
   message.chat_id = json_message[MessageTable::ChatId].i();
   message.sender_id = json_message[MessageTable::SenderId].i();
   message.text = json_message[MessageTable::Text].s();
   message.local_id = json_message[MessageTable::LocalId].s();
 
-  LOG_INFO("[Message] For text: {}, Local_id = ", message.text,
-           message.local_id);
+  LOG_INFO("[Message] For text: {}, Local_id = ", message.text, message.local_id);
 
   if (json_message.count(MessageTable::Timestamp)) {
     const auto &ts_val = json_message[MessageTable::Timestamp];
@@ -65,11 +77,12 @@ inline crow::json::wvalue to_crow_json(const Message &message) {
   return json_message;
 }
 
-} // namespace utils::entities
+}  // namespace utils::entities
 
 namespace nlohmann {
 
-template <> struct adl_serializer<Message> {
+template <>
+struct adl_serializer<Message> {
   static void to_json(nlohmann::json &json_message, const Message &message) {
     json_message = nlohmann::json{{MessageTable::Id, message.id},
                                   {MessageTable::ChatId, message.chat_id},
@@ -89,6 +102,6 @@ template <> struct adl_serializer<Message> {
   }
 };
 
-} // namespace nlohmann
+}  // namespace nlohmann
 
-#endif // BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
+#endif  // BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_

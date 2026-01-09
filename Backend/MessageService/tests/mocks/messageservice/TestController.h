@@ -5,7 +5,7 @@
 #include "messageservice/dto/GetMessagePack.h"
 
 class TestController : public Controller {
-public:
+ public:
   int call_save_message = 0;
   int call_save_message_status = 0;
   int call_getMessages = 0;
@@ -33,4 +33,4 @@ public:
   }
 };
 
-#endif // TESTCONTROLLER_H
+#endif  // TESTCONTROLLER_H

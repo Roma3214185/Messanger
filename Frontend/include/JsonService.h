@@ -1,31 +1,26 @@
 #ifndef JSONSERVER_H
-#define JSONSERVER_H
+#  define JSONSERVER_H
 
-#include <QDateTime>
-#include <QJsonObject>
-#include <QString>
+#  include <QDateTime>
+#  include <QJsonObject>
+#  include <QString>
 
-#include "Debug_profiling.h"
-#include "dto/Message.h"
-#include "dto/User.h"
-#include "models/chatmodel.h"
-#include "models/messagemodel.h"
+#  include "Debug_profiling.h"
+#  include "dto/Message.h"
+#  include "dto/User.h"
+#  include "models/chatmodel.h"
+#  include "models/messagemodel.h"
 
 using ChatPtr = std::shared_ptr<ChatBase>;
 
 namespace JsonService {
 
 inline auto getUserFromResponse(const QJsonObject &res) -> User {
-  if (!res.contains("email"))
-    LOG_ERROR("No email field");
-  if (!res.contains("tag"))
-    LOG_ERROR("No tag field");
-  if (!res.contains("name"))
-    LOG_ERROR("No name field");
-  if (!res.contains("id"))
-    LOG_ERROR("No id field");
-  if (!res.contains("avatar_path"))
-    LOG_ERROR("No avatar_path field");
+  if (!res.contains("email")) LOG_ERROR("No email field");
+  if (!res.contains("tag")) LOG_ERROR("No tag field");
+  if (!res.contains("name")) LOG_ERROR("No name field");
+  if (!res.contains("id")) LOG_ERROR("No id field");
+  if (!res.contains("avatar_path")) LOG_ERROR("No avatar_path field");
   User user;
   user.email = res["email"].toString();
   user.tag = res["tag"].toString();
@@ -33,32 +28,23 @@ inline auto getUserFromResponse(const QJsonObject &res) -> User {
   user.id = res["id"].toInteger();
   user.avatarPath = res["avatar_path"].toString();
 
-  spdlog::info("[USER] id={} | name='{}' | tag='{}' | email='{}'", user.id,
-               user.name.toStdString(), user.tag.toStdString(),
-               user.email.toStdString());
+  spdlog::info("[USER] id={} | name='{}' | tag='{}' | email='{}'", user.id, user.name.toStdString(),
+               user.tag.toStdString(), user.email.toStdString());
   return user;
 }
 
 inline auto getMessageFromJson(const QJsonObject &obj) -> Message {
   Message msg;
-  if (obj.contains("id"))
-    msg.id = obj["id"].toInteger();
-  if (obj.contains("sender_id"))
-    msg.sender_id = obj["sender_id"].toInteger();
-  if (obj.contains("chat_id"))
-    msg.chat_id = obj["chat_id"].toInteger();
-  if (obj.contains("text"))
-    msg.text = obj["text"].toString();
-  if (obj.contains("timestamp"))
-    msg.timestamp = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
-  if (obj.contains("local_id"))
-    msg.local_id = obj["local_id"].toString();
+  if (obj.contains("id")) msg.id = obj["id"].toInteger();
+  if (obj.contains("sender_id")) msg.sender_id = obj["sender_id"].toInteger();
+  if (obj.contains("chat_id")) msg.chat_id = obj["chat_id"].toInteger();
+  if (obj.contains("text")) msg.text = obj["text"].toString();
+  if (obj.contains("timestamp")) msg.timestamp = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
+  if (obj.contains("local_id")) msg.local_id = obj["local_id"].toString();
   if (obj.contains("read")) {
     const QJsonObject &read = obj["read"].toObject();
-    if (read.contains("read_by_me"))
-      msg.readed_by_me = read["read_by_me"].toBool();
-    if (read.contains("count"))
-      msg.read_counter = read["count"].toInt();
+    if (read.contains("read_by_me")) msg.readed_by_me = read["read_by_me"].toBool();
+    if (read.contains("count")) msg.read_counter = read["count"].toInt();
   }
 
   msg.liked_counter = 0;
@@ -110,8 +96,7 @@ inline auto getChatFromJson(const QJsonObject &obj) -> ChatPtr {
     chat->title = userObj["name"].toString();
     chat->avatar_path = userObj["avatar"].toString();
     chat->user_id = static_cast<long long>(userObj["id"].toDouble());
-    LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(),
-             chat->chat_id);
+    LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
     // todo: check invariants
     return chat;
   } else if (type == "group") {
@@ -120,16 +105,15 @@ inline auto getChatFromJson(const QJsonObject &obj) -> ChatPtr {
     chat->title = obj["name"].toString();
     chat->avatar_path = obj["avatar"].toString();
     chat->member_count = obj["member_count"].toInt();
-    LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(),
-             chat->chat_id);
+    LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
     return chat;
   }
   return nullptr;
 }
 
-} // namespace JsonService
+}  // namespace JsonService
 
-#endif // JSONSERVER_H
+#endif  // JSONSERVER_H
 
 // static void to_json(nlohmann::json& j, const UserMessage& m) {
 //   j = nlohmann::json(m.message);

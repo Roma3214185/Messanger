@@ -17,21 +17,16 @@ struct CacheMiddleware {
   };
 
   template <typename ParentCtx>
-  void before_handle(const crow::request &req, crow::response &res,
-                     context &ctx, ParentCtx &parent_ctx) {
-    if (req.method != crow::HTTPMethod::GET)
-      return;
-    if (req.url == "/auth/me")
-      return;
+  void before_handle(const crow::request &req, crow::response &res, context &ctx, ParentCtx &parent_ctx) {
+    if (req.method != crow::HTTPMethod::GET) return;
+    if (req.url == "/auth/me") return;
     std::string req_url = "/request";
-    if (req.url.substr(0, req_url.length()) == req_url)
-      return;
+    if (req.url.substr(0, req_url.length()) == req_url) return;
     LOG_INFO("Url before_handle cache: {}", req.url);
 
     auto key = makeCacheKey(req);
     auto val = cache_->get(key);
-    if (!val)
-      return;
+    if (!val) return;
 
     ctx.cached = val;
     res.code = provider->statusCodes().success;
@@ -43,21 +38,18 @@ struct CacheMiddleware {
   }
 
   template <typename ParentCtx>
-  void after_handle(const crow::request &req, crow::response &res, context &ctx,
-                    ParentCtx & /*unused*/) {
-    if (req.method != crow::HTTPMethod::GET)
-      return;
-    if (req.url.starts_with("/request"))
-      return;
+  void after_handle(const crow::request &req, crow::response &res, context &ctx, ParentCtx & /*unused*/) {
+    if (req.method != crow::HTTPMethod::GET) return;
+    if (req.url.starts_with("/request")) return;
     auto key = makeCacheKey(req);
     cache_->set(key, res.body, std::chrono::seconds(30));
   }
 
-private:
+ private:
   static std::string makeCacheKey(const crow::request &req) {
     // todo: implement for some url not set cache
-    std::string key = "cache:" + crow::method_name(req.method) + ":" + req.url +
-                      (req.body.empty() ? "" : "|" + req.body);
+    std::string key =
+        "cache:" + crow::method_name(req.method) + ":" + req.url + (req.body.empty() ? "" : "|" + req.body);
     auto keys = req.url_params.keys();
     std::ranges::sort(keys);
 
@@ -74,4 +66,4 @@ private:
   }
 };
 
-#endif // CACHEMIDDLEWARE_H
+#endif  // CACHEMIDDLEWARE_H

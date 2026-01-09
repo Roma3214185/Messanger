@@ -14,7 +14,7 @@ TEST_CASE("Test") {
   MockCache cache;
   FakeSqlExecutor executor;
   MockIdGenerator generator;
-  GenericRepository repository(db, &executor, cache, &pool);
+  GenericRepository repository(&executor, cache, &pool);
   MessageManager manager(&repository, &executor, &generator, cache);
 
   SECTION("getChatMessages expected create valid sql request") {
@@ -24,12 +24,13 @@ TEST_CASE("Test") {
 
     manager.getChatMessages(pack);
 
-    std::string expected_sql = "SELECT * FROM messages "
-                               "JOIN messages_status ON "
-                               "id = messages_status.message_id "
-                               "WHERE chat_id = ? "
-                               "AND messages_status.receiver_id = ? "
-                               "AND id < ? ORDER BY timestamp DESC LIMIT 2";
+    std::string expected_sql =
+        "SELECT * FROM messages "
+        "JOIN messages_status ON "
+        "id = messages_status.message_id "
+        "WHERE chat_id = ? "
+        "AND messages_status.receiver_id = ? "
+        "AND id < ? ORDER BY timestamp DESC LIMIT 2";
     REQUIRE(executor.execute_calls == before + 1);
     CHECK(executor.lastSql.toStdString() == expected_sql);
     CHECK(executor.lastValues.size() == 3);
@@ -41,17 +42,23 @@ TEST_CASE("Test") {
   SECTION("getMessagesStatus expected create valid sql request") {
     cache.clearCache();
     std::vector<Message> messages;
-    messages.push_back(Message{.id = 1});
-    messages.push_back(Message{.id = 2});
-    messages.push_back(Message{.id = 3});
-    messages.push_back(Message{.id = 4});
+    Message message1, message2, message3, message4;
+    message1.id = 1;
+    message2.id = 2;
+    message3.id = 3;
+    message4.id = 4;
+    messages.push_back(message1);
+    messages.push_back(message2);
+    messages.push_back(message3);
+    messages.push_back(message4);
     int user_id = 5;
     int before = executor.execute_calls;
 
     manager.getMessagesStatus(messages, user_id);
 
-    std::string expected_sql = "SELECT * FROM messages_status WHERE message_id "
-                               "= ? AND receiver_id = ?";
+    std::string expected_sql =
+        "SELECT * FROM messages_status WHERE message_id "
+        "= ? AND receiver_id = ?";
     REQUIRE(executor.execute_calls == before + messages.size());
     CHECK(executor.lastSql.toStdString() == expected_sql);
     CHECK(executor.lastValues.size() == 2);
@@ -95,8 +102,9 @@ TEST_CASE("Test") {
 
     manager.getMessageStatus(message_id, receiver_id);
 
-    std::string expected_sql = "SELECT * FROM messages_status WHERE message_id "
-                               "= ? AND receiver_id = ? LIMIT 1";
+    std::string expected_sql =
+        "SELECT * FROM messages_status WHERE message_id "
+        "= ? AND receiver_id = ? LIMIT 1";
 
     REQUIRE(executor.execute_calls == before_execute + 1);
     CHECK(executor.lastSql.toStdString() == expected_sql);

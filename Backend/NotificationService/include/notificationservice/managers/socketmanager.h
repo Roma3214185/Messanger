@@ -12,15 +12,15 @@ using SocketPtr = std::shared_ptr<ISocket>;
 using Sockets = std::unordered_map<UserId, SocketPtr>;
 
 class SocketsManager {
-public:
+ public:
   void saveConnections(UserId, SocketPtr socket);
   void deleteConnections(SocketPtr conn);
   SocketPtr getUserSocket(UserId);
   bool userOnline(UserId);
 
-private:
+ private:
   Sockets user_sockets_;
   std::mutex ws_mutex;
 };
 
-#endif // BACKEND_NOTIFICATION_SOCKETMANAGER_H
+#endif  // BACKEND_NOTIFICATION_SOCKETMANAGER_H

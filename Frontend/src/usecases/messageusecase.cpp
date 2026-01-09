@@ -11,50 +11,41 @@
 
 namespace {
 
-template <typename T> T waitForFuture(QFuture<T> &future) {
+template <typename T>
+T waitForFuture(QFuture<T> &future) {
   QFutureWatcher<T> watcher;
   watcher.setFuture(future);
 
   QEventLoop loop;
-  QObject::connect(&watcher, &QFutureWatcher<T>::finished, &loop,
-                   &QEventLoop::quit);
+  QObject::connect(&watcher, &QFutureWatcher<T>::finished, &loop, &QEventLoop::quit);
   loop.exec();
 
   return future.result();
 }
 
-} // namespace
+}  // namespace
 
-MessageUseCase::MessageUseCase(DataManager *data_manager,
-                               std::unique_ptr<MessageManager> message_manager,
+MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<MessageManager> message_manager,
                                TokenManager *token_manager)
-    : data_manager_(data_manager), message_manager_(std::move(message_manager)),
-      token_manager_(token_manager) {
-  connect(data_manager_, &DataManager::messageAdded, this,
-          [&](const Message &added_messaage) {
-            LOG_INFO("Received DataManager::messageAdded (text is {})",
-                     added_messaage.text.toStdString());
-            DBC_REQUIRE(added_messaage.chat_id > 0);
-            auto message_model =
-                data_manager_->getMessageModel(added_messaage.chat_id);
-            DBC_REQUIRE(message_model);
-            message_model->saveMessage(added_messaage);
-            if (added_messaage.id != 0)
-              Q_EMIT messageAdded(
-                  added_messaage); // this message from server, not offline
-          });
+    : data_manager_(data_manager), message_manager_(std::move(message_manager)), token_manager_(token_manager) {
+  connect(data_manager_, &DataManager::messageAdded, this, [&](const Message &added_messaage) {
+    LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.text.toStdString());
+    DBC_REQUIRE(added_messaage.chat_id > 0);
+    auto message_model = data_manager_->getMessageModel(added_messaage.chat_id);
+    DBC_REQUIRE(message_model);
+    message_model->saveMessage(added_messaage);
+    if (added_messaage.id != 0) Q_EMIT messageAdded(added_messaage);  // this message from server, not offline
+  });
 }
 
-auto MessageUseCase::getChatMessages(long long chat_id, int limit)
-    -> QList<Message> {
+auto MessageUseCase::getChatMessages(long long chat_id, int limit) -> QList<Message> {
   auto message_model = data_manager_->getMessageModel(chat_id);
   assert(message_model);
 
   long long id_of_oldest_message = [&]() {
     auto oldestMessage = message_model->getOldestMessage();
     if (oldestMessage) {
-      LOG_INFO("Last message with id '{}' and text '{}'", oldestMessage->id,
-               oldestMessage->text.toStdString());
+      LOG_INFO("Last message with id '{}' and text '{}'", oldestMessage->id, oldestMessage->text.toStdString());
       return oldestMessage->id;
     } else {
       LOG_INFO("Chat {} was empty (there is no oldest message");
@@ -63,11 +54,11 @@ auto MessageUseCase::getChatMessages(long long chat_id, int limit)
   }();
 
   // TODO: cache request result for {chat_id before_id}
-  LOG_INFO("[getChatMessages] Loading messages for chatId={}, "
-           "id_of_oldest_message = '{}'",
-           chat_id, id_of_oldest_message);
-  auto future = message_manager_->getChatMessages(
-      token_manager_->getToken(), chat_id, id_of_oldest_message, limit);
+  LOG_INFO(
+      "[getChatMessages] Loading messages for chatId={}, "
+      "id_of_oldest_message = '{}'",
+      chat_id, id_of_oldest_message);
+  auto future = message_manager_->getChatMessages(token_manager_->getToken(), chat_id, id_of_oldest_message, limit);
   return waitForFuture(future);
 }
 
@@ -89,15 +80,13 @@ void MessageUseCase::addMessageToChat(Message &msg) {
   DBC_REQUIRE(!msg.local_id.isEmpty());
   DBC_REQUIRE(msg.sender_id > 0);
   long long current_id = token_manager_->getCurrentUserId();
-  if (current_id == msg.sender_id)
-    msg.is_mine = true;
+  if (current_id == msg.sender_id) msg.is_mine = true;
   data_manager_->saveMessage(msg);
 }
 
 void MessageUseCase::updateMessage(Message &msg) {
   long long current_id = token_manager_->getCurrentUserId();
-  if (current_id == msg.sender_id)
-    msg.is_mine = true;
+  if (current_id == msg.sender_id) msg.is_mine = true;
   data_manager_->saveMessage(msg);
   message_manager_->updateMessage(msg, token_manager_->getToken());
 }
@@ -122,30 +111,41 @@ void MessageUseCase::getChatMessagesAsync(long long chat_id) {
   PROFILE_SCOPE("MessageUseCase::getChatMessagesAsync");
   DBC_REQUIRE(chat_id > 0);
 
-  auto watcher = new QFutureWatcher<QList<Message>>(this);
+  // auto watcher = new QFutureWatcher<QList<Message>>(this);
 
-  connect(
-      watcher, &QFutureWatcher<QList<Message>>::finished, this,
-      [this, watcher, chat_id]() {
-        try {
-          auto chat_messages = watcher->result();
-          LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages",
-                   chat_id, chat_messages.size());
-          for (auto &message : chat_messages) { // todo(roma): make pipeline
-            addMessageToChat(message);
-          }
+  // connect(
+  //     watcher, &QFutureWatcher<QList<Message>>::finished, this,
+  //     [this, watcher, chat_id]() {
+  //       try {
+  //         auto chat_messages = watcher->result();
+  //         LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages",
+  //                  chat_id, chat_messages.size());
+  //         for (auto &message : chat_messages) { // todo(roma): make pipeline
+  //           addMessageToChat(message);
+  //         }
 
-        } catch (...) {
-          LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id);
-        }
+  //       } catch (...) {
+  //         LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id);
+  //       }
 
-        watcher->deleteLater();
-      });
+  //       watcher->deleteLater();
+  //     });
 
-  QFuture<QList<Message>> future = QtConcurrent::run([this, chat_id]() {
-    return getChatMessages(
-        chat_id); // todo: make manager_->getChatMessagesAsync(?)
-  });
+  // QFuture<QList<Message>> future = QtConcurrent::run([this, chat_id]() {
+  //   return getChatMessages(
+  //       chat_id); // todo: make manager_->getChatMessagesAsync(?)
+  // });
 
-  watcher->setFuture(future);
+  // watcher->setFuture(future);
+
+  QtConcurrent::run([this, chat_id]() { return getChatMessages(chat_id); })
+      .then(this,
+            [this, chat_id](QList<Message> chat_messages) {
+              LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages", chat_id, chat_messages.size());
+
+              for (auto &message : chat_messages) {
+                addMessageToChat(message);
+              }
+            })
+      .onFailed(this, [chat_id]() { LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id); });
 }

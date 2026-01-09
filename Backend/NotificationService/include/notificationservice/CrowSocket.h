@@ -10,7 +10,7 @@ class CrowSocket final : public ISocket {
   crow::websocket::connection *conn_;
   std::mutex conn_mutex_;
 
-public:
+ public:
   explicit CrowSocket(crow::websocket::connection *conn) : conn_(conn) {}
 
   bool isSameAs(crow::websocket::connection *other) { return other == conn_; }
@@ -31,4 +31,4 @@ public:
   }
 };
 
-#endif // CROWSOCKET_H
+#endif  // CROWSOCKET_H

@@ -4,25 +4,21 @@
 #include "Meta.h"
 #include "entities/Message.h"
 
-template <> struct Reflection<Message> {
+template <>
+struct Reflection<Message> {
   static Meta meta() {
     return Meta{.table_name = MessageTable::Table,
-                .fields = {make_field<Message, long long>(MessageTable::Id,
-                                                          &Message::id),
-                           make_field<Message, long long>(
-                               MessageTable::SenderId, &Message::sender_id),
-                           make_field<Message, long long>(MessageTable::ChatId,
-                                                          &Message::chat_id),
-                           make_field<Message, std::string>(MessageTable::Text,
-                                                            &Message::text),
-                           make_field<Message, long long>(
-                               MessageTable::Timestamp, &Message::timestamp),
-                           make_field<Message, std::string>(
-                               MessageTable::LocalId, &Message::local_id)}};
+                .fields = {make_field<Message, long long>(MessageTable::Id, &Message::id),
+                           make_field<Message, long long>(MessageTable::SenderId, &Message::sender_id),
+                           make_field<Message, long long>(MessageTable::ChatId, &Message::chat_id),
+                           make_field<Message, std::string>(MessageTable::Text, &Message::text),
+                           make_field<Message, long long>(MessageTable::Timestamp, &Message::timestamp),
+                           make_field<Message, std::string>(MessageTable::LocalId, &Message::local_id)}};
   }
 };
 
-template <> struct Builder<Message> {
+template <>
+struct Builder<Message> {
   static Message build(QSqlQuery &query) {
     Message message;
     int idx = 0;
@@ -55,11 +51,11 @@ template <> struct Builder<Message> {
 };
 
 inline constexpr auto MessageFields =
-    std::make_tuple(&Message::id, &Message::chat_id, &Message::sender_id,
-                    &Message::text, &Message::timestamp);
+    std::make_tuple(&Message::id, &Message::chat_id, &Message::sender_id, &Message::text, &Message::timestamp);
 
-template <> struct EntityFields<Message> {
+template <>
+struct EntityFields<Message> {
   static constexpr auto &fields = MessageFields;
 };
 
-#endif // MESSAGEMETA_H
+#endif  // MESSAGEMETA_H

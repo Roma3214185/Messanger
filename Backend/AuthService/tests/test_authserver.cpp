@@ -27,9 +27,7 @@ struct TestFixture {
   std::string token = "secret-test-token";
   MockTokenGenerator generator;
 
-  TestFixture()
-      : controller(&manager, &authoritizer, &generator, &provider),
-        server(app, port, &controller) {
+  TestFixture() : controller(&manager, &authoritizer, &generator, &provider), server(app, port, &controller) {
     authoritizer.mock_user_id = user_id;
     provider.mock_codes = MockUtils::getMockCodes();
     user.id = user_id;
@@ -50,7 +48,7 @@ struct TestFixture {
   }
 };
 
-} // namespace Test
+}  // namespace Test
 
 TEST_CASE("handleMe listens on GET /auth/me") {
   Test::TestFixture fix;
@@ -67,8 +65,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.call_autoritize == before_auth_call + 1);
     REQUIRE(fix.manager.call_getUser == before_call_manager);
     REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
-    REQUIRE(fix.res.body ==
-            fix.formError(fix.provider.issueMessages().invalidToken));
+    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
   }
   fix.req.add_header("Authorization", fix.token);
 
@@ -88,8 +85,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.authoritizer.last_token == fix.token);
     REQUIRE(fix.manager.last_user_id == fix.user_id);
     REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
-    REQUIRE(fix.res.body ==
-            fix.formError(fix.provider.issueMessages().userNotFound));
+    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().userNotFound));
   }
 
   SECTION("Expected return valid status code and form json") {
@@ -255,8 +251,9 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
 TEST_CASE("findByTag listens GET users/search") {
   Test::TestFixture fix;
-  SECTION("Request without tag expected badRequest and Missing tag parametr "
-          "error") {
+  SECTION(
+      "Request without tag expected badRequest and Missing tag parametr "
+      "error") {
     fix.app.validate();
     fix.req.method = "GET"_method;
     fix.req.url = "/users/search";
@@ -279,16 +276,18 @@ TEST_CASE("findByTag listens GET users/search") {
   }
 
   fix.req.url_params = crow::query_string("?tag=secret-tag");
-  User user1{.id = 1,
-             .username = "1name",
-             .tag = "1tag",
-             .email = "1email",
-             .avatar = "1avatar/path"};
-  User user2{.id = 2,
-             .username = "2name",
-             .tag = "2tag",
-             .email = "2email",
-             .avatar = "2avatar/path"};
+  User user1;
+  user1.id = 1;
+  user1.username = "1name";
+  user1.tag = "1tag";
+  user1.email = "1email";
+  user1.avatar = "1avatar/path";
+  User user2;
+  user2.id = 2;
+  user2.username = "2name";
+  user2.tag = "2tag";
+  user2.email = "2email";
+  user2.avatar = "2avatar/path";
   fix.manager.mock_users = {user1, user2};
 
   SECTION("Valid request expected success code and json") {
@@ -333,11 +332,12 @@ TEST_CASE("handleFindById listens /users/<int>") {
     REQUIRE(fix.res.body == fix.formError("User not found"));
   }
 
-  User user{.id = 123,
-            .username = "3name",
-            .tag = "3tag",
-            .email = "3email",
-            .avatar = "3avatar/path"};
+  User user;
+  user.id = 123;
+  user.username = "3name";
+  user.tag = "3tag";
+  user.email = "3email";
+  user.avatar = "3avatar/path";
   fix.manager.mock_user = user;
 
   SECTION("User found expected success code and valid json message") {

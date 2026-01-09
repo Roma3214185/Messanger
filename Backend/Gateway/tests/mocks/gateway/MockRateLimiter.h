@@ -4,7 +4,7 @@
 #include "interfaces/IRateLimiter.h"
 
 class MockRateLimiter : public IRateLimiter {
-public:
+ public:
   bool should_fail = false;
   std::string last_ip;
   int call_allow = 0;
@@ -16,4 +16,4 @@ public:
   }
 };
 
-#endif // MOCKRATELIMITER_H
+#endif  // MOCKRATELIMITER_H

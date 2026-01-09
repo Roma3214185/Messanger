@@ -34,8 +34,7 @@ void Server::handleSocketRoutes() {
         LOG_INFO("Websocket is connected");
         conn.send_text(nlohmann::json{{"type", "opened"}}.dump());
       })
-      .onclose([&](crow::websocket::connection &conn, const std::string &reason,
-                   uint16_t code) {
+      .onclose([&](crow::websocket::connection &conn, const std::string &reason, uint16_t code) {
         auto socket = active_sockets_.findSocket(&conn);
         if (!socket) {
           LOG_WARN("Socket not found for onclose");
@@ -46,10 +45,8 @@ void Server::handleSocketRoutes() {
         active_sockets_.deleteConnection(socket);
         LOG_INFO("WebSocket disconnected: '{}' code {}", reason, code);
       })
-      .onmessage([&](crow::websocket::connection &conn, const std::string &data,
-                     bool /*is_binary*/) {
-        auto socket =
-            active_sockets_.findSocket(&conn); // use the existing wrapper
+      .onmessage([&](crow::websocket::connection &conn, const std::string &data, bool /*is_binary*/) {
+        auto socket = active_sockets_.findSocket(&conn);  // use the existing wrapper
         if (!socket) {
           LOG_ERROR("Socket not found for onmessage");
           return;
@@ -59,8 +56,7 @@ void Server::handleSocketRoutes() {
       });
 }
 
-void Server::handleSocketOnMessage(const std::shared_ptr<ISocket> &socket,
-                                   const std::string &data) {
+void Server::handleSocketOnMessage(const std::shared_ptr<ISocket> &socket, const std::string &data) {
   auto message_ptr = crow::json::load(data);
   if (!message_ptr) {
     LOG_ERROR("[onMessage] Failed in loading data: {}", data);

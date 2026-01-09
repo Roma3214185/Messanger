@@ -17,18 +17,17 @@ class QNetworkReply;
 
 class MessageManager : public BaseManager {
   Q_OBJECT
-public:
+ public:
   using BaseManager::BaseManager;
 
   void updateMessage(const Message &message_to_update, const QString &token);
   void deleteMessage(const Message &message_to_delete, const QString &token);
 
-  QFuture<QList<Message>> getChatMessages(const QString &current_token,
-                                          long long chat_id,
-                                          long long before_id, long long limit);
+  QFuture<QList<Message>> getChatMessages(const QString &current_token, long long chat_id, long long before_id,
+                                          long long limit);
 
-protected:
+ protected:
   QList<Message> onGetChatMessages(const QByteArray &responce_data);
 };
 
-#endif // MESSAGEMANAGER_H
+#endif  // MESSAGEMANAGER_H

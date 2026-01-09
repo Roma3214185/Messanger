@@ -6,23 +6,22 @@
 #include "interfaces/IUserNetworkManager.h"
 
 class NetworkFacade {
-public:
-  NetworkFacade(IUserNetworkManager *user, IMessageNetworkManager *msg,
-                IChatNetworkManager *chat)
+ public:
+  NetworkFacade(IUserNetworkManager *user, IMessageNetworkManager *msg, IChatNetworkManager *chat)
       : user_(user), message_(msg), chat_(chat) {}
 
   IUserNetworkManager &user() { return *user_; }
   IMessageNetworkManager &msg() { return *message_; }
   IChatNetworkManager &chat() { return *chat_; }
 
-private:
+ private:
   IUserNetworkManager *user_;
   IMessageNetworkManager *message_;
   IChatNetworkManager *chat_;
 };
 
 class NetworkFactory {
-public:
+ public:
   static NetworkFacade create(INetworkManagerBase *base) {
     auto *u = dynamic_cast<IUserNetworkManager *>(base);
     auto *m = dynamic_cast<IMessageNetworkManager *>(base);
@@ -32,4 +31,4 @@ public:
   }
 };
 
-#endif // NETWORKFACADE_H
+#endif  // NETWORKFACADE_H

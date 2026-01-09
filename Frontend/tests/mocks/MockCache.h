@@ -8,12 +8,11 @@
 using CacheMap = std::unordered_map<Key, Token>;
 
 class MockCache : public ICache {
-public:
+ public:
   OptionalToken get(const Key &key) override {
     ++get_calls;
     auto iter = cache_.find(key);
-    if (iter != cache_.end())
-      return iter->second;
+    if (iter != cache_.end()) return iter->second;
     return std::nullopt;
   }
 
@@ -31,8 +30,8 @@ public:
   int save_calls = 0;
   int delete_calls = 0;
 
-private:
+ private:
   CacheMap cache_;
 };
 
-#endif // MOCKCACHE_H
+#endif  // MOCKCACHE_H

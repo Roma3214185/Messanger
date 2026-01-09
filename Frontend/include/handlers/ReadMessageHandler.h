@@ -12,7 +12,7 @@
 class ReadMessageHandler : public ISocketResponceHandler {
   DataManager *data_manager_;
 
-public:
+ public:
   ReadMessageHandler(DataManager *data_manager) : data_manager_(data_manager) {}
 
   void handle(const QJsonObject &json_object) override {
@@ -32,4 +32,4 @@ public:
   }
 };
 
-#endif // READMESSAGEHANDLER_H
+#endif  // READMESSAGEHANDLER_H

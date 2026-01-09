@@ -17,9 +17,7 @@ TEST_CASE("ChatItemDelegate::refactorLastMessage") {
     REQUIRE(delegate.refactorLastMessage("") == style.no_message_status);
   }
 
-  SECTION("short message remains unchanged") {
-    REQUIRE(delegate.refactorLastMessage("Hello") == "Hello");
-  }
+  SECTION("short message remains unchanged") { REQUIRE(delegate.refactorLastMessage("Hello") == "Hello"); }
 
   SECTION("long message is truncated") {
     QString long_msg = "This is a very long message that should be truncated";
@@ -37,8 +35,7 @@ TEST_CASE("ChatItemDelegate::extractChatData") {
   item->setData("Chat Title", ChatModel::TitleRole);
   item->setData("Last message", ChatModel::LastMessageRole);
   item->setData("avatar.png", ChatModel::AvatarRole);
-  item->setData(QDateTime(QDate(2025, 11, 12), QTime(12, 0)),
-                ChatModel::LastMessageTimeRole);
+  item->setData(QDateTime(QDate(2025, 11, 12), QTime(12, 0)), ChatModel::LastMessageTimeRole);
   item->setData(3, ChatModel::UnreadRole);
   model.appendRow(item);
 

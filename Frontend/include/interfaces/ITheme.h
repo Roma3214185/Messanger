@@ -4,13 +4,13 @@
 #include <QString>
 
 class ITheme {
-public:
+ public:
   virtual QString getStyleSheet() = 0;
   virtual ~ITheme() = default;
 };
 
 class LightTheme : public ITheme {
-public:
+ public:
   QString getStyleSheet() override {
     return QString(R"(
         QWidget {
@@ -101,7 +101,7 @@ public:
 };
 
 class DarkTheme : public ITheme {
-public:
+ public:
   QString getStyleSheet() override {
     return QString(R"(
         QWidget {
@@ -192,4 +192,4 @@ public:
   }
 };
 
-#endif // ITHEME_H
+#endif  // ITHEME_H

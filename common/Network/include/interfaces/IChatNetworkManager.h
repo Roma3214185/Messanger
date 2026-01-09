@@ -8,8 +8,8 @@
 using UserId = long long;
 
 class IChatNetworkManager : public virtual INetworkManagerBase {
-public:
+ public:
   virtual std::vector<UserId> getMembersOfChat(long long chat_id);
 };
 
-#endif // ICHATNETWORKMANAGER_H
+#endif  // ICHATNETWORKMANAGER_H

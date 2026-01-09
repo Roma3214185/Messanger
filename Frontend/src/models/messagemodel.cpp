@@ -11,38 +11,36 @@ MessageModel::MessageModel(QObject *parent) : QAbstractListModel(parent) {}
 
 QVariant MessageModel::data(const QModelIndex &index, int role) const {
   // DBC_REQUIRE(index.isValid() && index.row() < messages_.size());
-  if (!index.isValid() || index.row() < 0 || index.row() >= messages_.size())
-    return QVariant();
+  if (!index.isValid() || index.row() < 0 || index.row() >= messages_.size()) return QVariant();
 
   const Message msg = messages_.at(index.row());
 
   switch (role) {
-  case MessageIdRole:
-    return msg.id;
-  case TextRole:
-    return msg.text;
-  case TimestampRole:
-    return msg.timestamp;
-  case SenderIdRole:
-    return msg.sender_id;
-  case SendedStatusRole:
-    return msg.status_sended;
-  case ReadedStatusRole:
-    return false; // TODO(roma) implement reading status(readed_cnt ?= 2
-  case FullMessage:
-    return QVariant::fromValue(msg);
-  default:
-    return QVariant();
+    case MessageIdRole:
+      return msg.id;
+    case TextRole:
+      return msg.text;
+    case TimestampRole:
+      return msg.timestamp;
+    case SenderIdRole:
+      return msg.sender_id;
+    case SendedStatusRole:
+      return msg.status_sended;
+    case ReadedStatusRole:
+      return false;  // TODO(roma) implement reading status(readed_cnt ?= 2
+    case FullMessage:
+      return QVariant::fromValue(msg);
+    default:
+      return QVariant();
   }
 }
 
 QModelIndex MessageModel::indexFromId(long long messageId) const {
   for (int row = 0; row < messages_.size(); ++row) {
-    if (messages_[row].id == messageId)
-      return index(row);
+    if (messages_[row].id == messageId) return index(row);
   }
 
-  return QModelIndex(); // Not found
+  return QModelIndex();  // Not found
 }
 
 // void MessageModel::setCurrentUserId(long long user_id) { currentUserId =
@@ -51,31 +49,27 @@ QModelIndex MessageModel::indexFromId(long long messageId) const {
 // void MessageModel::resetCurrentUseId() { currentUserId = std::nullopt; }
 
 std::optional<Message> MessageModel::getLastMessage() const {
-  if (messages_.empty())
-    return std::nullopt;
+  if (messages_.empty()) return std::nullopt;
   return messages_.back();
 }
 
 std::optional<Message> MessageModel::getOldestMessage() const {
-  if (messages_.empty())
-    return std::nullopt;
+  if (messages_.empty()) return std::nullopt;
   return messages_.front();
 }
 
 void MessageModel::saveMessage(const Message &msg /*, const User& user*/) {
-  LOG_INFO(
-      "[MessageModel::saveMessage]Msg id {} ans local_id {}, and status {}",
-      msg.id, msg.local_id.toStdString(), msg.status_sended);
+  LOG_INFO("[MessageModel::saveMessage]Msg id {} ans local_id {}, and status {}", msg.id, msg.local_id.toStdString(),
+           msg.status_sended);
 
   const std::lock_guard<std::mutex> lock(messages_mutex_);
-  auto it =
-      std::find_if(messages_.begin(), messages_.end(), [&](const auto &other) {
-        return msg.local_id == other.local_id; //|| msg.id == other.id;
-      });
+  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto &other) {
+    return msg.local_id == other.local_id;  //|| msg.id == other.id;
+  });
 
   if (it != messages_.end()) {
-    LOG_INFO("Message already exist with id {} ans local id {} and text {}",
-             it->id, it->local_id.toStdString(), it->text.toStdString());
+    LOG_INFO("Message already exist with id {} ans local id {} and text {}", it->id, it->local_id.toStdString(),
+             it->text.toStdString());
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
     *it = msg;
     it->readed_by_me = msg.readed_by_me;
@@ -94,10 +88,8 @@ void MessageModel::deleteMessage(const Message &message) {
   LOG_INFO("Message model try to delete message {}", message.toString());
 
   const std::lock_guard<std::mutex> lock(messages_mutex_);
-  auto it =
-      std::find_if(messages_.begin(), messages_.end(), [&](const auto &other) {
-        return message.local_id == other.local_id;
-      });
+  auto it = std::find_if(messages_.begin(), messages_.end(),
+                         [&](const auto &other) { return message.local_id == other.local_id; });
 
   if (it == messages_.end()) {
     LOG_INFO("Message already doesn't exist)");
@@ -112,9 +104,7 @@ void MessageModel::deleteMessage(const Message &message) {
 }
 
 void MessageModel::sortMessagesByTimestamp() {
-  std::sort(
-      messages_.begin(), messages_.end(),
-      [](const auto &a, const auto &b) { return a.timestamp < b.timestamp; });
+  std::sort(messages_.begin(), messages_.end(), [](const auto &a, const auto &b) { return a.timestamp < b.timestamp; });
 
   // const std::lock_guard<std::mutex> lock(messages_mutex_);
   // std::sort(messages_.begin(), messages_.end(), [](const auto& first_message,
@@ -137,9 +127,7 @@ void MessageModel::clear() {
 }
 
 QHash<int, QByteArray> MessageModel::roleNames() const {
-  return {{TextRole, "text"},
-          {TimestampRole, "timestamp"},
-          {SenderIdRole, "sender_id"}};
+  return {{TextRole, "text"}, {TimestampRole, "timestamp"}, {SenderIdRole, "sender_id"}};
 }
 
 int MessageModel::rowCount(const QModelIndex &parent) const {

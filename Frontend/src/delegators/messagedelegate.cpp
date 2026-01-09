@@ -4,9 +4,7 @@
 
 #include "models/messagemodel.h"
 
-void MessageDelegate::paint(QPainter *painter,
-                            const QStyleOptionViewItem &option,
-                            const QModelIndex &index) const {
+void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
   if (!painter || !painter->isActive()) {
     qWarning() << "[Error] Painter error!";
     return;
@@ -23,16 +21,13 @@ void MessageDelegate::paint(QPainter *painter,
 
   painter->save();
   auto draw_message_data = extractMessageData(message);
-  const bool is_mine =
-      draw_message_data.sender_id == draw_message_data.receiver_id;
+  const bool is_mine = draw_message_data.sender_id == draw_message_data.receiver_id;
   drawAll(painter, option, draw_message_data, is_mine);
-  if (draw_message_data.is_readed == false)
-    Q_EMIT unreadMessage(message);
+  if (draw_message_data.is_readed == false) Q_EMIT unreadMessage(message);
   painter->restore();
 }
 
-QSize MessageDelegate::sizeHint(const QStyleOptionViewItem &option,
-                                const QModelIndex &index) const {
+QSize MessageDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
   const QString text = index.data(MessageModel::TextRole).toString();
   constexpr int kTextFont = 12;
   const QFont font("Arial", kTextFont);
@@ -51,42 +46,33 @@ QSize MessageDelegate::sizeHint(const QStyleOptionViewItem &option,
   constexpr int kMinTextWidth = 20;
   constexpr int kAdditionalSpace = 50;
 
-  const int textWidth =
-      qMax(bubble_width - kPaddingLeft - kPaddingRight, kMinTextWidth);
+  const int textWidth = qMax(bubble_width - kPaddingLeft - kPaddingRight, kMinTextWidth);
 
-  const QRect text_rect =
-      fm.boundingRect(0, 0, textWidth, 0, Qt::TextWordWrap, text);
+  const QRect text_rect = fm.boundingRect(0, 0, textWidth, 0, Qt::TextWordWrap, text);
   const int height = text_rect.height() + kAdditionalSpace;
   return {bubble_width, height};
 }
 
-void MessageDelegate::drawBackgroundState(QPainter *painter, const QRect &rect,
-                                          const QStyleOptionViewItem &option,
+void MessageDelegate::drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option,
                                           bool is_mine) const {
   // const QColor kLightBlue = QColor("#d0e7ff");
   // if (option.state & QStyle::State_Selected)
   //   painter->fillRect(rect, kLightBlue);
 }
 
-void MessageDelegate::drawAvatar(QPainter *painter, const QRect &rect,
-                                 const QPixmap &avatar, bool is_mine) const {
+void MessageDelegate::drawAvatar(QPainter *painter, const QRect &rect, const QPixmap &avatar, bool is_mine) const {
   constexpr int kAvatarSize = 30;
 
   auto avatar_rect = [&]() -> QRect {
-    return is_mine ? QRect(rect.right() - 35, rect.top() + 5, kAvatarSize,
-                           kAvatarSize)
-                   : QRect(rect.left() + 5, rect.top() + 5, kAvatarSize,
-                           kAvatarSize);
+    return is_mine ? QRect(rect.right() - 35, rect.top() + 5, kAvatarSize, kAvatarSize)
+                   : QRect(rect.left() + 5, rect.top() + 5, kAvatarSize, kAvatarSize);
   };
 
-  painter->drawPixmap(avatar_rect(), avatar.scaled(kAvatarSize, kAvatarSize,
-                                                   Qt::KeepAspectRatio,
-                                                   Qt::SmoothTransformation));
+  painter->drawPixmap(avatar_rect(),
+                      avatar.scaled(kAvatarSize, kAvatarSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
-void MessageDelegate::drawUsername(QPainter *painter, const QRect &rect,
-                                   const QString &username,
-                                   bool is_mine) const {
+void MessageDelegate::drawUsername(QPainter *painter, const QRect &rect, const QString &username, bool is_mine) const {
   painter->save();
   constexpr int kUsernameFont = 12;
   const QFont font("Arial", kUsernameFont, QFont::Bold);
@@ -97,51 +83,40 @@ void MessageDelegate::drawUsername(QPainter *painter, const QRect &rect,
   constexpr int kSizeOffset = 55;
   constexpr int kTopOffset = 20;
 
-  const int x = is_mine ? rect.right() - kSizeOffset -
-                              painter->fontMetrics().horizontalAdvance(username)
+  const int x = is_mine ? rect.right() - kSizeOffset - painter->fontMetrics().horizontalAdvance(username)
                         : rect.left() + kSizeOffset;
 
   painter->drawText(x, rect.top() + kTopOffset, username);
   painter->restore();
 }
 
-void MessageDelegate::drawText(QPainter *painter, const QRect &rect,
-                               const QString &text, bool is_mine) const {
+void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const QString &text, bool is_mine) const {
   constexpr int kTextFont = 12;
   painter->setFont(QFont("Arial", kTextFont));
 
   auto text_rect = [&]() {
-    return is_mine ? QRect(rect.left() + 20, rect.top() + 40, rect.width() - 90,
-                           rect.height() - 40)
-                   : QRect(rect.left() + 55, rect.top() + 40, rect.width() - 90,
-                           rect.height() - 40);
+    return is_mine ? QRect(rect.left() + 20, rect.top() + 40, rect.width() - 90, rect.height() - 40)
+                   : QRect(rect.left() + 55, rect.top() + 40, rect.width() - 90, rect.height() - 40);
   };
 
-  painter->drawText(
-      text_rect(),
-      (is_mine ? Qt::AlignRight : Qt::AlignLeft) | Qt::TextWordWrap, text);
+  painter->drawText(text_rect(), (is_mine ? Qt::AlignRight : Qt::AlignLeft) | Qt::TextWordWrap, text);
 }
 
-void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect,
-                                    const QString &timestamp,
+void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QString &timestamp,
                                     bool is_mine) const {
   painter->setFont(QFont("Arial", 7));
   QRect timeRect;
 
   auto time_rect = [&]() {
-    return is_mine ? QRect(rect.left() + 10, rect.bottom() - 12,
-                           rect.width() - 15, 15)
+    return is_mine ? QRect(rect.left() + 10, rect.bottom() - 12, rect.width() - 15, 15)
                    : QRect(rect.right() - 120, rect.bottom() - 20, 115, 15);
   };
 
-  painter->drawText(time_rect(),
-                    is_mine ? Qt::AlignRight | Qt::AlignVCenter
-                            : Qt::AlignLeft | Qt::AlignVCenter,
+  painter->drawText(time_rect(), is_mine ? Qt::AlignRight | Qt::AlignVCenter : Qt::AlignLeft | Qt::AlignVCenter,
                     timestamp);
 }
 
-MessageDrawData
-MessageDelegate::extractMessageData(const Message &message) const {
+MessageDrawData MessageDelegate::extractMessageData(const Message &message) const {
   auto user = [&]() -> User {
     std::optional<User> getted_user = data_manager_->getUser(message.sender_id);
     if (getted_user) {
@@ -166,9 +141,8 @@ MessageDelegate::extractMessageData(const Message &message) const {
   return data;
 }
 
-void MessageDelegate::drawAll(QPainter *painter,
-                              const QStyleOptionViewItem &option,
-                              const MessageDrawData &msg, bool is_mine) const {
+void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option, const MessageDrawData &msg,
+                              bool is_mine) const {
   QRect rect = option.rect.normalized();
   drawBackgroundState(painter, rect, option, is_mine);
   drawAvatar(painter, rect, QPixmap(msg.avatar_path), is_mine);
@@ -179,11 +153,9 @@ void MessageDelegate::drawAll(QPainter *painter,
   drawReadCounter(painter, rect, msg.read_cnt, is_mine);
 }
 
-void MessageDelegate::drawStatus(QPainter *painter, const QRect &rect,
-                                 const MessageDrawData &message_data,
+void MessageDelegate::drawStatus(QPainter *painter, const QRect &rect, const MessageDrawData &message_data,
                                  bool is_mine) const {
-  if (!is_mine)
-    return;
+  if (!is_mine) return;
   constexpr int status_size = 16;
 
   const auto status_symbol = [message_data]() -> QString {
@@ -205,18 +177,15 @@ void MessageDelegate::drawStatus(QPainter *painter, const QRect &rect,
   painter->restore();
 }
 
-void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect,
-                                      const int read_cnt, bool is_mine) const {
+void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect, const int read_cnt, bool is_mine) const {
   constexpr int kSize = 15;
 
   constexpr int kTopOffset = 5;
   constexpr int kLeftOffset = 10;
 
-  const int x =
-      is_mine ? rect.left() + kLeftOffset / 2 : rect.right() - 4 * kLeftOffset;
+  const int x = is_mine ? rect.left() + kLeftOffset / 2 : rect.right() - 4 * kLeftOffset;
 
-  const int y =
-      is_mine ? rect.bottom() - kTopOffset * 2 : rect.top() + kTopOffset;
+  const int y = is_mine ? rect.bottom() - kTopOffset * 2 : rect.top() + kTopOffset;
 
   QRect circle_rect(x, y, kSize, kSize);
   painter->save();

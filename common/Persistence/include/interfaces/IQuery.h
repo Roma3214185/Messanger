@@ -8,8 +8,9 @@ struct IQuery {
   virtual void bind(const QVariant &v) = 0;
   virtual bool exec() = 0;
   virtual bool next() = 0;
+  virtual QString error() = 0;
   virtual QVariant value(int i) const = 0;
   virtual QVariant value(const std::string &field) const = 0;
 };
 
-#endif // IQUERY_H
+#endif  // IQUERY_H

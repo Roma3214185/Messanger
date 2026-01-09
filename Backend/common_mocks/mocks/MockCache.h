@@ -11,7 +11,7 @@ class MockCache : public ICacheService {
   std::unordered_map<std::string, int> mp;
   std::unordered_map<std::string, std::string> cache;
 
-public:
+ public:
   void incr(const std::string &key) override { mp[key]++; }
 
   void remove(const std::string &key) override {
@@ -29,8 +29,6 @@ public:
     mp.clear();
   }
 
-  void clearPrefix(const std::string &prefix) override {}
-
   int set_calls = 0;
   int set_pipeline_calls = 0;
   std::optional<std::string> mock_get_string = std::nullopt;
@@ -38,10 +36,8 @@ public:
 
   std::optional<std::string> get(const std::string &key) override {
     auto it = cache.find(key);
-    if (get_should_fail)
-      return std::nullopt;
-    if (mock_get_string)
-      return mock_get_string;
+    if (get_should_fail) return std::nullopt;
+    if (mock_get_string) return mock_get_string;
     return it == cache.end() ? std::nullopt : std::make_optional(it->second);
   }
 
@@ -54,12 +50,10 @@ public:
 
   int getCalls(const std::string &key) { return mp[key]; }
 
-  void
-  setPipelines(const std::vector<std::string> &keys,
-               const std::vector<std::string> &results,
-               std::chrono::seconds ttl = std::chrono::minutes(30)) override {
+  void setPipelines(const std::vector<std::string> &keys, const std::vector<std::string> &results,
+                    std::chrono::seconds ttl = std::chrono::minutes(30)) override {
     ++set_pipeline_calls;
   }
 };
 
-#endif // MOCKCACHE_H
+#endif  // MOCKCACHE_H

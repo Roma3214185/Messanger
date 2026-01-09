@@ -20,29 +20,25 @@ using ResponceBody = std::string;
 using Response = std::pair<StatusCode, ResponceBody>;
 
 class Controller {
-public:
-  Controller(IRabitMQClient *mq_client, MessageManager *manager,
-             IThreadPool *pool,
+ public:
+  Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool,
              IConfigProvider *provider = &ProdConfigProvider::instance());
 
-  Response updateMessage(const RequestDTO &request_pack,
-                         const std::string &message_id_str);
-  Response deleteMessage(const RequestDTO &request_pack,
-                         const std::string &message_id_str);
+  Response updateMessage(const RequestDTO &request_pack, const std::string &message_id_str);
+  Response deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str);
   Response getMessageById(const std::string &message_id_str);
-  Response getMessagesFromChat(const RequestDTO &request_pack,
-                               const std::string &chat_id_str);
+  Response getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str);
 
-protected:
-  std::vector<Message> getMessages(const GetMessagePack &);
-  std::vector<MessageStatus>
-  getMessagesStatus(const std::vector<Message> &messages,
-                    long long receiver_id);
-  std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
-  void subscribeToSaveMessage();
-  void subscribeToSaveMessageStatus();
+ protected:
   virtual void handleSaveMessage(const std::string &payload);
   virtual void handleSaveMessageStatus(const std::string &payload);
+  void subscribeToSaveMessage();
+  void subscribeToSaveMessageStatus();
+
+ private:
+  std::vector<Message> getMessages(const GetMessagePack &);
+  std::vector<MessageStatus> getMessagesStatus(const std::vector<Message> &messages, long long receiver_id);
+  std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
   std::optional<long long> getUserIdFromToken(const std::string &token);
 
   MessageManager *manager_;
@@ -51,4 +47,4 @@ protected:
   IThreadPool *pool_;
 };
 
-#endif // BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_
+#endif  // BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_

@@ -14,7 +14,7 @@ class IIdGenerator;
 using ID = long long;
 
 class ChatManager : public IChatManager {
-public:
+ public:
   ChatManager(GenericRepository *repository, IIdGenerator *generator);
   std::optional<ID> createPrivateChat(ID first_member, ID second_user) override;
   bool addMembersToChat(ID chat_id, const std::vector<ID> &members_id) override;
@@ -24,9 +24,9 @@ public:
   std::optional<ID> getOtherMemberId(ID chat_id, ID user_id) override;
   std::optional<Chat> getChatById(ID chat_id) override;
 
-private:
+ private:
   GenericRepository *repository_;
   IIdGenerator *generator_;
 };
 
-#endif // CHATMANAGER_H
+#endif  // CHATMANAGER_H

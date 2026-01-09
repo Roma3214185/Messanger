@@ -12,17 +12,11 @@
 #include "query/QueryResult.h"
 #include "threadpool.h"
 
-enum class Operator : std::uint8_t {
-  Equal,
-  Less,
-  More,
-  MoreEqual,
-  NotEqual,
-  LessEqual
-};
+enum class Operator : std::uint8_t { Equal, Less, More, MoreEqual, NotEqual, LessEqual };
 
-template <EntityJson T> class IBaseQuery {
-protected:
+template <EntityJson T>
+class IBaseQuery {
+ protected:
   ISqlExecutor *executor_;
 
   std::vector<QString> involved_tables_;
@@ -34,23 +28,20 @@ protected:
 
   inline static ThreadPool pool{4};
 
-public:
+ public:
   explicit IBaseQuery(ISqlExecutor *executor);
 
   IBaseQuery &from(const std::string &table_name) &;
   IBaseQuery &where(const std::string &field, const std::string &value) &;
   IBaseQuery &where(const std::string &field, const QVariant &value) &;
-  IBaseQuery &where(const std::string &field, Operator op,
-                    const std::string &value) &;
-  IBaseQuery &where(const std::string &field, Operator op,
-                    const QVariant &value) &;
+  IBaseQuery &where(const std::string &field, Operator op, const std::string &value) &;
+  IBaseQuery &where(const std::string &field, Operator op, const QVariant &value) &;
   IBaseQuery &limit(int n) &;
-  IBaseQuery &join(const std::string &table, const std::string &first,
-                   const std::string &second) &;
+  IBaseQuery &join(const std::string &table, const std::string &first, const std::string &second) &;
 
   [[nodiscard]] virtual QueryResult<T> execute() const = 0;
 
-protected:
+ protected:
   [[nodiscard]] virtual QString buildQuery() const = 0;
 
   virtual ~IBaseQuery() = default;
@@ -58,4 +49,4 @@ protected:
 
 #include "IBaseQuery.inl"
 
-#endif // IBASEQUERY_H
+#endif  // IBASEQUERY_H

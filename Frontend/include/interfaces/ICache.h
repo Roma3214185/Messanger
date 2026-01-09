@@ -9,7 +9,7 @@ using Token = std::string;
 using OptionalToken = std::optional<Token>;
 
 class ICache {
-public:
+ public:
   ICache() = default;
   ICache(const ICache &) = delete;
   ICache &operator=(const ICache &) = delete;
@@ -25,4 +25,4 @@ public:
 
 inline ICache::~ICache() = default;
 
-#endif // ICACHE_H
+#endif  // ICACHE_H

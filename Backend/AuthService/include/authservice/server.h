@@ -6,13 +6,13 @@
 class AuthController;
 
 class Server {
-public:
+ public:
   Server(crow::SimpleApp &app, int port, AuthController *controller);
   void initRoutes();
   void run();
   [[nodiscard]] bool generateKeys();
 
-private:
+ private:
   void handleFindById();
   void handleFindByTag();
   void handleRegister();
@@ -24,4 +24,4 @@ private:
   AuthController *controller_;
 };
 
-#endif // AUTH_SERVICE_SERVER_H
+#endif  // AUTH_SERVICE_SERVER_H

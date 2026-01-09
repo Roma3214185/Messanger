@@ -12,14 +12,13 @@ class DataManager;
 
 class ChatUseCase : public QObject {
   Q_OBJECT
-public:
+ public:
   using Token = QString;
   using ChatId = long long;
   using UserId = long long;
   using ChatPtr = std::shared_ptr<ChatBase>;
 
-  ChatUseCase(std::unique_ptr<ChatManager>, DataManager *, ChatModel *,
-              TokenManager *);
+  ChatUseCase(std::unique_ptr<ChatManager>, DataManager *, ChatModel *, TokenManager *);
   [[nodiscard]] ChatPtr loadChat(ChatId);
   QList<ChatPtr> loadChats();
   void loadChatsAsync();
@@ -36,11 +35,11 @@ public:
 
   void logout();
 
-private:
+ private:
   std::unique_ptr<ChatManager> chat_manager_;
   DataManager *data_manager_;
   ChatModel *chat_model_;
   TokenManager *token_manager_;
 };
 
-#endif // CHATUSECASE_H
+#endif  // CHATUSECASE_H

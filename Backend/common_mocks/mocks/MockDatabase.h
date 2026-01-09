@@ -5,7 +5,7 @@
 #include "SQLiteDataBase.h"
 
 class MockDatabase : public IDataBase {
-public:
+ public:
   std::string last_execute_sql;
   bool exec_should_fail = false;
   bool should_fail_preare = false;
@@ -20,14 +20,11 @@ public:
     return !exec_should_fail;
   }
 
-  std::unique_ptr<IQuery> prepare(const QString &sql) override {
-    return prepare(sql.toStdString());
-  }
+  std::unique_ptr<IQuery> prepare(const QString &sql) override { return prepare(sql.toStdString()); }
 
   std::unique_ptr<IQuery> prepare(const std::string &sql) override {
     last_prepared_sql = sql;
-    if (should_fail_preare)
-      return nullptr;
+    if (should_fail_preare) return nullptr;
     return std::make_unique<MockQuery>(mock_query);
   }
 
@@ -38,4 +35,4 @@ public:
   bool transaction() override { return !transaction_should_fail; }
 };
 
-#endif // MOCKDATABASE_H
+#endif  // MOCKDATABASE_H

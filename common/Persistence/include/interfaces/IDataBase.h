@@ -6,7 +6,7 @@
 #include "interfaces/IQuery.h"
 
 class IDataBase {
-public:
+ public:
   virtual ~IDataBase() = default;
 
   virtual bool exec(const QString &sql) = 0;
@@ -49,4 +49,4 @@ public:
   // virtual ~IDataBase() = default;
 };
 
-#endif // IDATABASE_H
+#endif  // IDATABASE_H

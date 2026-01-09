@@ -32,12 +32,11 @@ inline nostd::shared_ptr<trace::Tracer> initTracer(const int port = 4317) {
 
   static auto tracer = [&options]() {
     auto exporter = std::unique_ptr<sdktrace::SpanExporter>(
-        std::make_unique<opentelemetry::exporter::otlp::OtlpGrpcExporter>(
-            options));
-    auto processor = std::unique_ptr<sdktrace::SpanProcessor>(
-        std::make_unique<sdktrace::SimpleSpanProcessor>(std::move(exporter)));
-    auto provider = std::shared_ptr<trace::TracerProvider>(
-        std::make_unique<sdktrace::TracerProvider>(std::move(processor)));
+        std::make_unique<opentelemetry::exporter::otlp::OtlpGrpcExporter>(options));
+    auto processor =
+        std::unique_ptr<sdktrace::SpanProcessor>(std::make_unique<sdktrace::SimpleSpanProcessor>(std::move(exporter)));
+    auto provider =
+        std::shared_ptr<trace::TracerProvider>(std::make_unique<sdktrace::TracerProvider>(std::move(processor)));
     trace::Provider::SetTracerProvider(provider);
 
     return provider->GetTracer("MyTracer");
@@ -53,7 +52,7 @@ class ScopedTimer final {
   // nostd::shared_ptr<trace::Span> span_;
   // trace::Scope scope_;
 
-public:
+ public:
   explicit ScopedTimer(std::string name)
       : name_(std::move(name)),
         start_(std::chrono::high_resolution_clock::now())
@@ -70,12 +69,14 @@ public:
 
   ~ScopedTimer() noexcept {
     const auto end = std::chrono::high_resolution_clock::now();
-    const double duration_seconds =
-        std::chrono::duration<double>(end - start_).count();
+    const double duration_seconds = std::chrono::duration<double>(end - start_).count();
 
-    // span_->End();
-    spdlog::info("{} took {:.3f} s", name_, duration_seconds);
+    try {
+      // span_->End();
+      spdlog::info("{} took {:.3f} s", name_, duration_seconds);
+    } catch (...) {
+    }
   }
 };
 
-#endif // TRACY_H
+#endif  // TRACY_H

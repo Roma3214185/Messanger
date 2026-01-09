@@ -14,9 +14,14 @@
 #include "entities/User.h"
 #include "interfaces/IDataBase.h"
 
-class OutboxWorker : public QThread {
+class IOutboxWorker {
+ public:
+  virtual ~IOutboxWorker() = default;
+};
+
+class OutboxWorker : public IOutboxWorker, QThread {
   // Q_OBJECT
-public:
+ public:
   explicit OutboxWorker(IDataBase &db) : db_(db) {}
 
   ~OutboxWorker() {
@@ -41,13 +46,12 @@ public:
     wait_condition_.wakeAll();
   }
 
-protected:
+ protected:
   void run() override {
     while (true) {
       {
         QMutexLocker locker(&mutex_);
-        if (stop_)
-          break;
+        if (stop_) break;
       }
 
       processBatch(db_);
@@ -60,18 +64,18 @@ protected:
     // QSqlDatabase::removeDatabase("OutboxWorkerConnection");
   }
 
-private:
+ private:
   IDataBase &db_;
   volatile bool stop_{false};
   QMutex mutex_;
   QWaitCondition wait_condition_;
 
   void processBatch(IDataBase &db) {
-    const QString sql_command = "SELECT id, table_trigered, payload FROM "
-                                "outbox WHERE processed = 0 LIMIT 100;";
+    const QString sql_command =
+        "SELECT id, table_trigered, payload FROM "
+        "outbox WHERE processed = 0 LIMIT 100;";
     auto query = db.prepare(sql_command);
-    if (!query)
-      return;
+    if (!query) return;
 
     // Begin transaction
     // if (!query.exec("BEGIN TRANSACTION;")) {
@@ -97,42 +101,34 @@ private:
       if (table_triggered == "user_table") {
         LOG_INFO("Triggered user_table");
 
-        const User user =
-            nlohmann::json::parse(payload_str.toStdString()); // todo: try catch
+        User user = nlohmann::json::parse(payload_str.toStdString());  // todo: try catch
         LOG_INFO("User: {}", nlohmann::json(user).dump());
 
-        const std::string first_command =
-            "INSERT OR REPLACE INTO users_by_email VALUES(?, ?, ?, ?";
+        const std::string first_command = "INSERT OR REPLACE INTO users_by_email VALUES(?, ?, ?, ?";
         auto query1 = db.prepare(first_command);
-        if (!query1)
-          continue;
+        if (!query1) continue;
         query1->bind(user.id);
         query1->bind(QString::fromStdString(user.email));
         query1->bind(QString::fromStdString(user.username));
         query1->bind(QString::fromStdString(user.username));
 
-        const std::string second_command =
-            "INSERT OR REPLACE INTO users_by_tag VALUES(?, ?, ?, ?";
+        const std::string second_command = "INSERT OR REPLACE INTO users_by_tag VALUES(?, ?, ?, ?";
         auto query2 = db.prepare(second_command);
-        if (!query2)
-          continue;
+        if (!query2) continue;
         query2->bind(user.id);
         query2->bind(QString::fromStdString(user.email));
         query2->bind(QString::fromStdString(user.username));
         query2->bind(QString::fromStdString(user.username));
 
-        if (!query1->exec() || !query2->exec())
-          continue;
+        if (!query1->exec() || !query2->exec()) continue;
       }
 
       processed_ids.append(id);
     }
 
-    if (!processed_ids.empty())
-      LOG_INFO("Processed ids size: {}", processed_ids.size());
+    if (!processed_ids.empty()) LOG_INFO("Processed ids size: {}", processed_ids.size());
     for (const int id : processed_ids) {
-      const std::string command =
-          "UPDATE outbox SET processed = 1 WHERE id = ?";
+      const std::string command = "UPDATE outbox SET processed = 1 WHERE id = ?";
       auto mark_query = db.prepare(command);
       if (mark_query) {
         mark_query->bind(id);
@@ -149,4 +145,4 @@ private:
   }
 };
 
-#endif // OUTBOXWORKER_H
+#endif  // OUTBOXWORKER_H

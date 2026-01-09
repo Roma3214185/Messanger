@@ -10,14 +10,10 @@ struct TestDataManager : public DataManager {
 
 TEST_CASE("Test datamanager works with chats") {
   TestDataManager data_manager;
-  auto private_chat1 =
-      ChatFactory::createPrivateChat(1, "Ivan", "ivan228", 4, "offline");
-  auto private_chat2 =
-      ChatFactory::createPrivateChat(2, "Roma", "roma228", 5, "offline");
-  auto private_chat3 =
-      ChatFactory::createPrivateChat(3, "Sanya", "sanya228", 6, "offline");
-  auto private_chat4 =
-      ChatFactory::createPrivateChat(4, "Kolya", "kolya228", 7, "offline");
+  auto private_chat1 = ChatFactory::createPrivateChat(1, "Ivan", "ivan228", 4, "offline");
+  auto private_chat2 = ChatFactory::createPrivateChat(2, "Roma", "roma228", 5, "offline");
+  auto private_chat3 = ChatFactory::createPrivateChat(3, "Sanya", "sanya228", 6, "offline");
+  auto private_chat4 = ChatFactory::createPrivateChat(4, "Kolya", "kolya228", 7, "offline");
   setContractHandler(throwOnViolation);
 
   User valid_user;
@@ -28,8 +24,7 @@ TEST_CASE("Test datamanager works with chats") {
   valid_user.email = "email_roma";
 
   SECTION("Add two same chats expected add last one") {
-    auto same_private_chat =
-        ChatFactory::createPrivateChat(1, "Roma", "roma228", 5, "offline");
+    auto same_private_chat = ChatFactory::createPrivateChat(1, "Roma", "roma228", 5, "offline");
     data_manager.addChat(private_chat1);
     data_manager.addChat(same_private_chat);
 
@@ -82,15 +77,13 @@ TEST_CASE("Test datamanager works with chats") {
   }
 
   SECTION("Add chat with invalid id require throw exception") {
-    auto group_chat =
-        ChatFactory::createGroupChat(0, "Test title", 2, {}, {}, {});
+    auto group_chat = ChatFactory::createGroupChat(0, "Test title", 2, {}, {}, {});
 
     REQUIRE_THROWS(data_manager.addChat(group_chat));
   }
 
   SECTION("Get existing chat expected works as expected") {
-    auto group_chat =
-        ChatFactory::createGroupChat(1, "Test title", 2, {}, {}, {});
+    auto group_chat = ChatFactory::createGroupChat(1, "Test title", 2, {}, {}, {});
     data_manager.addChat(group_chat);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
 
@@ -99,8 +92,7 @@ TEST_CASE("Test datamanager works with chats") {
   }
 
   SECTION("Get not existing chat expected return nullptr") {
-    auto group_chat =
-        ChatFactory::createGroupChat(1, "Test title", 2, {}, {}, {});
+    auto group_chat = ChatFactory::createGroupChat(1, "Test title", 2, {}, {}, {});
     data_manager.addChat(group_chat);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
 

@@ -32,23 +32,19 @@ TEST_CASE("Test user model") {
   SECTION("Add user expected return valid user data") {
     user_model.addUser(user);
     QModelIndex index = user_model.index(0, 0);
-    REQUIRE(user_model.data(index, UserModel::AvatarRole).toString() ==
-            user.avatarPath);
-    REQUIRE(user_model.data(index, UserModel::NameRole).toString() ==
-            user.name);
+    REQUIRE(user_model.data(index, UserModel::AvatarRole).toString() == user.avatarPath);
+    REQUIRE(user_model.data(index, UserModel::NameRole).toString() == user.name);
     REQUIRE(user_model.data(index, UserModel::TagRole).toString() == user.tag);
-    REQUIRE(user_model.data(index, UserModel::EmailRole).toString() ==
-            user.email);
+    REQUIRE(user_model.data(index, UserModel::EmailRole).toString() == user.email);
     REQUIRE(user_model.data(index, UserModel::UserIdRole).toInt() == user.id);
   }
 
   SECTION("Expected return valid hash map") {
-    QHash<int, QByteArray> expected = {
-        {UserModel::Roles::UserIdRole, "chat_id"},
-        {UserModel::Roles::NameRole, "name"},
-        {UserModel::Roles::TagRole, "tag"},
-        {UserModel::Roles::EmailRole, "email"},
-        {UserModel::Roles::AvatarRole, "avatar"}};
+    QHash<int, QByteArray> expected = {{UserModel::Roles::UserIdRole, "chat_id"},
+                                       {UserModel::Roles::NameRole, "name"},
+                                       {UserModel::Roles::TagRole, "tag"},
+                                       {UserModel::Roles::EmailRole, "email"},
+                                       {UserModel::Roles::AvatarRole, "avatar"}};
 
     REQUIRE(user_model.roleNames() == expected);
   }

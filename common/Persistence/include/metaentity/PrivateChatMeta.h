@@ -4,28 +4,26 @@
 #include "Meta.h"
 #include "entities/PrivateChat.h"
 
-template <> struct Reflection<PrivateChat> {
+template <>
+struct Reflection<PrivateChat> {
   static Meta meta() {
     return Meta{
         .table_name = PrivateChatTable::Table,
-        .fields = {
-            make_field<PrivateChat, long long>(PrivateChatTable::ChatId,
-                                               &PrivateChat::chat_id),
-            make_field<PrivateChat, long long>(PrivateChatTable::FirstUserId,
-                                               &PrivateChat::first_user),
-            make_field<PrivateChat, long long>(PrivateChatTable::SecondUserId,
-                                               &PrivateChat::second_user)}};
+        .fields = {make_field<PrivateChat, long long>(PrivateChatTable::ChatId, &PrivateChat::chat_id),
+                   make_field<PrivateChat, long long>(PrivateChatTable::FirstUserId, &PrivateChat::first_user),
+                   make_field<PrivateChat, long long>(PrivateChatTable::SecondUserId, &PrivateChat::second_user)}};
   }
 };
 
-template <> struct EntityKey<PrivateChat> {
+template <>
+struct EntityKey<PrivateChat> {
   static std::string get(const PrivateChat &entity) {
-    return std::to_string(entity.first_user) + ", " +
-           std::to_string(entity.second_user);
+    return std::to_string(entity.first_user) + ", " + std::to_string(entity.second_user);
   }
 };
 
-template <> struct Builder<PrivateChat> {
+template <>
+struct Builder<PrivateChat> {
   static PrivateChat build(QSqlQuery &query) {
     PrivateChat chat;
     int idx = 0;
@@ -54,11 +52,12 @@ template <> struct Builder<PrivateChat> {
   }
 };
 
-inline constexpr auto PrivateChatFields = std::make_tuple(
-    &PrivateChat::chat_id, &PrivateChat::first_user, &PrivateChat::second_user);
+inline constexpr auto PrivateChatFields =
+    std::make_tuple(&PrivateChat::chat_id, &PrivateChat::first_user, &PrivateChat::second_user);
 
-template <> struct EntityFields<PrivateChat> {
+template <>
+struct EntityFields<PrivateChat> {
   static constexpr auto &fields = PrivateChatFields;
 };
 
-#endif // METAENTITY_PRIVATECHAT_H
+#endif  // METAENTITY_PRIVATECHAT_H

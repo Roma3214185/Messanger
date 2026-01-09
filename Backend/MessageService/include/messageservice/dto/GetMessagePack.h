@@ -8,4 +8,4 @@ struct GetMessagePack {
   long long user_id;
 };
 
-#endif // GETMESSAGEPACK_H
+#endif  // GETMESSAGEPACK_H

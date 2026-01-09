@@ -41,4 +41,4 @@ struct MockClient : public IClient {
   }
 };
 
-#endif // MOCKPROXY_H
+#endif  // MOCKPROXY_H

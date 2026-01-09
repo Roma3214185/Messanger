@@ -18,6 +18,14 @@ struct Field {
   std::function<void(void *, const std::any &)> set;
 };
 
+// template <typename T>
+// struct Field {
+//     const char *name;
+//     const std::type_info &type;
+//     std::function<std::any(const T *)> get;
+//     std::function<void(T *, const std::any &)> set;
+// };
+
 struct Meta {
   const char *name;
   const char *table_name;
@@ -25,14 +33,14 @@ struct Meta {
 
   [[nodiscard]] const Field *find(const std::string &field_name_to_find) const {
     for (const auto &field : fields) {
-      if (field_name_to_find == field.name)
-        return &field;
+      if (field_name_to_find == field.name) return &field;
     }
     return nullptr;
   }
 };
 
-template <class T, class M> Field make_field(const char *name, M T::*member) {
+template <class T, class M>
+Field make_field(const char *name, M T::*member) {
   return Field{.name = name,
                .type = typeid(M),
                .get = [member](const void *obj) -> std::any {
@@ -42,20 +50,12 @@ template <class T, class M> Field make_field(const char *name, M T::*member) {
                .set =
                    [member](void *obj, const std::any &val) {
                      auto *element = static_cast<T *>(obj);
-
-                     // if constexpr (std::is_same_v<M, std::string>) {
-                     //    if (val.type() == typeid(const char*)) {
-                     //     (element->*member) = std::string(std::any_cast<const
-                     //     char*>(val));
-                     //    }
-                     //    else
                      (element->*member) = std::any_cast<M>(val);
-                     //} /
-                     //}
                    }};
 }
 
-template <typename T, typename FieldTuple> struct FastBuilder {
+template <typename T, typename FieldTuple>
+struct FastBuilder {
   static T build(QSqlQuery &query, const FieldTuple &fields) {
     T entity;
     int i = 0;
@@ -81,14 +81,22 @@ template <typename T, typename FieldTuple> struct FastBuilder {
   }
 };
 
-template <typename T> struct Reflection { static Meta meta(); };
+template <typename T>
+struct Reflection {
+  static Meta meta();
+};
 
-template <typename T> struct Builder { T build(QSqlQuery &query); };
+template <typename T>
+struct Builder {
+  T build(QSqlQuery &query);
+};
 
-template <typename T> struct EntityFields;
+template <typename T>
+struct EntityFields;
 
-template <typename T> struct EntityKey {
+template <typename T>
+struct EntityKey {
   static std::string get(const T &entity) { return std::to_string(entity.id); }
 };
 
-#endif // BACKEND_GENERICREPOSITORY_META_H_
+#endif  // BACKEND_GENERICREPOSITORY_META_H_

@@ -7,8 +7,8 @@
 #include "interfaces/ICache.h"
 
 class RedisClient : public ICache {
-public:
-  RedisClient(std::string url) : redis(url) {}
+ public:
+  explicit RedisClient(std::string url) : redis(url) {}
 
   OptionalToken get(const Key &key) override {
     try {
@@ -19,14 +19,12 @@ public:
     }
   }
 
-  void saveToken(const Key &key, const Token &token) override {
-    redis.set(key, token);
-  }
+  void saveToken(const Key &key, const Token &token) override { redis.set(key, token); }
 
   void deleteToken(const Key &key) override { redis.del(key); }
 
-private:
+ private:
   sw::redis::Redis redis;
 };
 
-#endif // REDISCLIENT_H
+#endif  // REDISCLIENT_H

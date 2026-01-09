@@ -7,12 +7,10 @@
 #include "interfaces/IGenerator.h"
 
 class JwtGenerator : public IGenerator {
-public:
+ public:
   bool generateKeys() override {
-    const std::string kKeysDir =
-        "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
-    const std::string kPtivateKeysDir =
-        "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
+    const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
+    const std::string kPtivateKeysDir = "/Users/roma/QtProjects/Chat/Backend/AuthService/private_keys/";
     const std::string kPrivateKeyFile = kPtivateKeysDir + "private_key.pem";
     const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
 
@@ -32,18 +30,15 @@ public:
     }
   }
 
-  std::string generateToken(long long user_id) override {
-    return JwtUtils::generateToken(user_id);
-  }
+  std::string generateToken(long long user_id) override { return JwtUtils::generateToken(user_id); }
 
-private:
+ private:
   void saveInFile(const std::string &file_name, const std::string &key) {
     std::ofstream file(file_name);
-    if (!file)
-      throw std::runtime_error("Cannot open file for writing");
+    if (!file) throw std::runtime_error("Cannot open file for writing");
     file << key;
     file.close();
   }
 };
 
-#endif // JWTGENERATOR_H
+#endif  // JWTGENERATOR_H

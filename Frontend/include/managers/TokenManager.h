@@ -10,7 +10,7 @@ class TokenManager {
   std::optional<QString> token_;
   std::optional<long long> current_id_;
 
-public:
+ public:
   void setData(const QString &token, long long current_id) {
     DBC_REQUIRE(!token.isEmpty());
     DBC_REQUIRE(current_id > 0);
@@ -34,4 +34,4 @@ public:
   }
 };
 
-#endif // TOKENMANAGER_H
+#endif  // TOKENMANAGER_H

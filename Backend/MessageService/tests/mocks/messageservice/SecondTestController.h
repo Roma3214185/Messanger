@@ -4,10 +4,10 @@
 #include "messageservice/controller.h"
 
 class SecondTestController : public Controller {
-public:
+ public:
   using Controller::Controller;
   using Controller::handleSaveMessage;
   using Controller::handleSaveMessageStatus;
 };
 
-#endif // SECONDTESTCONTROLLER_H
+#endif  // SECONDTESTCONTROLLER_H

@@ -4,10 +4,8 @@
 #include "interfaces/IMainWindow.h"
 
 class MockMainWindow : public IMainWindow {
-public:
-  void setChatWindow(std::shared_ptr<ChatBase> chat) override {
-    ++call_setChatWindow;
-  }
+ public:
+  void setChatWindow(std::shared_ptr<ChatBase> chat) override { ++call_setChatWindow; }
 
   void setChatModel(ChatModel *model) override {}
 
@@ -25,4 +23,4 @@ public:
   int call_setChatWindow = 0;
 };
 
-#endif // MOCKMAINWINDOW_H
+#endif  // MOCKMAINWINDOW_H

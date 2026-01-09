@@ -19,7 +19,7 @@ TEST_CASE("Test saving entity in database") {
   db.mock_query = query;
   MockCache cache;
   FakeSqlExecutor executor;
-  GenericRepository rep(db, &executor, cache);
+  GenericRepository rep(&executor, cache);
 
   int mocked_id = 6;
   User user;
@@ -52,9 +52,7 @@ TEST_CASE("Test saving entity in database") {
   auto timepoint = QDateTime::currentMSecsSinceEpoch();
   message_status.read_at = timepoint;
 
-  SECTION("Save message_status expected true") {
-    REQUIRE(rep.save(message_status));
-  }
+  SECTION("Save message_status expected true") { REQUIRE(rep.save(message_status)); }
 
   SECTION("Save message_status expected any fields is changed") {
     REQUIRE(message_status.receiver_id == 3);
@@ -144,11 +142,27 @@ TEST_CASE("Test integration with cache while saving") {
   MockDatabase db;
   MockCache cache;
   FakeSqlExecutor executor;
-  GenericRepository rep(db, &executor, cache);
+  GenericRepository rep(&executor, cache);
 
-  SECTION("Saved entity eepected updated cache") {
+  SECTION("Saved ivalid entity expected return false") {
     User user;
     user.id = 10;
+    std::string tableKey = "table_generation:users";
+    std::string entityKey = "entity_cache:users:10";
+
+    int before_table = cache.getCalls(tableKey);
+    int before_entity = cache.getCalls(entityKey);
+
+    REQUIRE_FALSE(rep.save(user));
+  }
+
+  SECTION("Saved entity expected updated cache") {
+    User user;
+    user.id = 10;
+    user.tag = "tag";
+    user.username = "name";
+    user.email = "email";
+    REQUIRE(user.checkInvariants());
     std::string tableKey = "table_generation:users";
     std::string entityKey = "entity_cache:users:10";
 

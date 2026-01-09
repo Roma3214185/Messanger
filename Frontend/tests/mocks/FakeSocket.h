@@ -6,7 +6,7 @@
 #include "interfaces/ISocket.h"
 
 class FakeSocket : public ISocket {
-public:
+ public:
   void open(const QUrl &url) override {
     ++open_calls;
     last_opened_url = url;
@@ -17,13 +17,11 @@ public:
     last_sended_message = msg;
   }
 
-  void disconnect() override { ++disconnect_calls; }
+  void disconnectSocket() override { ++disconnect_calls; }
 
   void close() override { ++close_calls; }
 
-  void receiveTextMessage(const QString &message) {
-    Q_EMIT textMessageReceived(message);
-  }
+  void receiveTextMessage(const QString &message) { Q_EMIT textMessageReceived(message); }
 
   int close_calls = 0;
   int disconnect_calls = 0;
@@ -33,4 +31,4 @@ public:
   QString last_sended_message;
 };
 
-#endif // FAKESOCKET_H
+#endif  // FAKESOCKET_H

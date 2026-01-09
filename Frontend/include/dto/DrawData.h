@@ -32,4 +32,4 @@ struct ChatDrawData {
   int unread;
 };
 
-#endif // DRAWDATA_H
+#endif  // DRAWDATA_H

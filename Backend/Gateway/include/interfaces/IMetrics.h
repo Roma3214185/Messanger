@@ -7,10 +7,9 @@
 struct MetricsTracker;
 
 class IMetrics {
-public:
+ public:
   virtual ~IMetrics() = default;
-  virtual void requestEnded(const std::string &method, int res_code,
-                            bool hitKey) = 0;
+  virtual void requestEnded(const std::string &method, int res_code, bool hitKey) = 0;
   virtual void userConnected() = 0;
   virtual void newMessage(const std::string &ip) = 0;
   virtual void userDisconnected() = 0;
@@ -18,4 +17,4 @@ public:
   virtual void saveRequestLatency(const double latency) = 0;
 };
 
-#endif // APIGATE_IMETRICS_H
+#endif  // APIGATE_IMETRICS_H

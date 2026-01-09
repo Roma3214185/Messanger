@@ -6,7 +6,7 @@
 #include "ports.h"
 
 class IConfigProvider {
-public:
+ public:
   virtual ~IConfigProvider() = default;
 
   [[nodiscard]] virtual const Ports &ports() const = 0;
@@ -15,4 +15,4 @@ public:
   [[nodiscard]] virtual const IssueMessages &issueMessages() const = 0;
 };
 
-#endif // ICONFIGPROVIDER_H
+#endif  // ICONFIGPROVIDER_H

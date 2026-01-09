@@ -16,18 +16,17 @@ class QNetworkReply;
 
 class ChatManager : public BaseManager {
   Q_OBJECT
-public:
+ public:
   using BaseManager::BaseManager;
 
   QFuture<QList<ChatPtr>> loadChats(const QString &current_token);
   QFuture<ChatPtr> loadChat(const QString &current_token, long long chat_id);
-  QFuture<ChatPtr> createPrivateChat(const QString &current_token,
-                                     long long user_id);
+  QFuture<ChatPtr> createPrivateChat(const QString &current_token, long long user_id);
 
-protected:
+ protected:
   QList<ChatPtr> onLoadChats(const QByteArray &responce_data);
   ChatPtr onChatLoaded(const QByteArray &responce_data);
   ChatPtr onCreatePrivateChat(const QByteArray &responce_data);
 };
 
-#endif // CHATMANAGER_H
+#endif  // CHATMANAGER_H

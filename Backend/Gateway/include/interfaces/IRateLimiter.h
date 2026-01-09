@@ -4,9 +4,9 @@
 #include <string>
 
 class IRateLimiter {
-public:
+ public:
   virtual ~IRateLimiter() = default;
   virtual bool allow(const std::string &ip) = 0;
 };
 
-#endif // IRATELIMITER_H
+#endif  // IRATELIMITER_H

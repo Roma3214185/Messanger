@@ -9,13 +9,12 @@ namespace {
 
 bool checkIdValid(long long id) { return id > 0; }
 
-} // namespace
+}  // namespace
 
 ChatManager::ChatManager(GenericRepository *repository, IIdGenerator *generator)
     : repository_(repository), generator_(generator) {}
 
-std::optional<ID> ChatManager::createPrivateChat(ID first_user_id,
-                                                 ID second_user_id) {
+std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_user_id) {
   LOG_INFO("F id {} and S id {}", first_user_id, second_user_id);
   if (first_user_id == second_user_id) {
     LOG_ERROR("User id is same");
@@ -32,15 +31,11 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id,
     return std::nullopt;
   }
 
-  long long min_user_id =
-      first_user_id < second_user_id ? first_user_id : second_user_id;
-  long long max_user_id =
-      first_user_id > second_user_id ? first_user_id : second_user_id;
+  long long min_user_id = first_user_id < second_user_id ? first_user_id : second_user_id;
+  long long max_user_id = first_user_id > second_user_id ? first_user_id : second_user_id;
 
-  auto custom_query = QueryFactory::createSelect<PrivateChat>(
-      repository_->getExecutor(), repository_->getCache());
-  custom_query->where(PrivateChatTable::FirstUserId, min_user_id)
-      .where(PrivateChatTable::SecondUserId, max_user_id);
+  auto custom_query = QueryFactory::createSelect<PrivateChat>(repository_->getExecutor(), repository_->getCache());
+  custom_query->where(PrivateChatTable::FirstUserId, min_user_id).where(PrivateChatTable::SecondUserId, max_user_id);
 
   auto result = custom_query->execute();
   auto res = QueryFactory::getSelectResult(result).result;
@@ -88,8 +83,7 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id,
   return to_save.id;
 }
 
-bool ChatManager::addMembersToChat(ID chat_id,
-                                   const std::vector<ID> &members_id) {
+bool ChatManager::addMembersToChat(ID chat_id, const std::vector<ID> &members_id) {
   if (!checkIdValid(chat_id)) {
     LOG_ERROR("Invalid chat_id in addMembersToChat {}", chat_id);
   }
@@ -100,17 +94,14 @@ bool ChatManager::addMembersToChat(ID chat_id,
       continue;
     }
     LOG_INFO("Add member with id {} to chat {}", id, chat_id);
-    ChatMember new_member{.chat_id = chat_id,
-                          .user_id = id,
-                          .added_at = QDateTime::currentSecsSinceEpoch()};
+    ChatMember new_member(chat_id, id, QDateTime::currentSecsSinceEpoch());
     chat_members.push_back(new_member);
   }
 
   for (auto chat_member : chat_members) {
     bool ok = repository_->save(chat_member);
     if (!ok) {
-      LOG_INFO("Member {} for chat {} is not saved", chat_member.user_id,
-               chat_member.chat_id);
+      LOG_INFO("Member {} for chat {} is not saved", chat_member.user_id, chat_member.chat_id);
       return false;
     }
   }
@@ -123,19 +114,15 @@ std::vector<ID> ChatManager::getMembersOfChat(ID chat_id) {
     LOG_ERROR("In getMembersOfChat {} is invalid", chat_id);
     return std::vector<ID>{};
   }
-  auto chat_members =
-      repository_->findByField<ChatMember>(ChatMemberTable::ChatId, chat_id);
+  auto chat_members = repository_->findByField<ChatMember>(ChatMemberTable::ChatId, chat_id);
   // TODO: make select only id of chat_members
-  LOG_INFO("[getMembersOfChat] for chat_id {} finded {} members", chat_id,
-           chat_members.size());
+  LOG_INFO("[getMembersOfChat] for chat_id {} finded {} members", chat_id, chat_members.size());
   std::vector<ID> chat_members_id;
   for (auto member : chat_members) {
     if (!checkIdValid(member.user_id)) {
-      LOG_ERROR("Chat member with invalid id: {}",
-                nlohmann::json(member).dump());
+      LOG_ERROR("Chat member with invalid id: {}", nlohmann::json(member).dump());
     } else {
-      LOG_INFO("[getMembersOfChat] for chat_id {} finded {} ", chat_id,
-               nlohmann::json(member).dump());
+      LOG_INFO("[getMembersOfChat] for chat_id {} finded {} ", chat_id, nlohmann::json(member).dump());
       chat_members_id.push_back(member.user_id);
     }
   }
@@ -144,14 +131,11 @@ std::vector<ID> ChatManager::getMembersOfChat(ID chat_id) {
 
 std::vector<ID> ChatManager::getChatsIdOfUser(ID user_id) {
   LOG_INFO("getChatsIdOfUser {}", user_id);
-  auto chats_where_user_member =
-      repository_->findByField<ChatMember>(ChatMemberTable::UserId, user_id);
-  LOG_INFO("chats_where_user {} is member is {} size", user_id,
-           (int)chats_where_user_member.size());
+  auto chats_where_user_member = repository_->findByField<ChatMember>(ChatMemberTable::UserId, user_id);
+  LOG_INFO("chats_where_user {} is member is {} size", user_id, (int)chats_where_user_member.size());
 
   std::vector<ID> ids;
-  for (const auto &member : chats_where_user_member)
-    ids.push_back(member.chat_id);
+  for (const auto &member : chats_where_user_member) ids.push_back(member.chat_id);
 
   return ids;
 }
@@ -167,19 +151,16 @@ std::optional<ID> ChatManager::getOtherMemberId(ID chat_id, ID user_id) {
     return std::nullopt;
   }
 
-  if (!checkIdValid(user_id)) { // todo: struct ID that can't be <= 0
+  if (!checkIdValid(user_id)) {  // todo: struct ID that can't be <= 0
     LOG_ERROR("Invalid user_id in getOtherMemberId {}", chat_id);
     return std::nullopt;
   }
 
   auto members_id = getMembersOfChat(chat_id);
   for (auto mem_id : members_id) {
-    if (mem_id != user_id)
-      return mem_id;
+    if (mem_id != user_id) return mem_id;
   }
   return std::nullopt;
 }
 
-std::optional<Chat> ChatManager::getChatById(ID chat_id) {
-  return repository_->findOne<Chat>(chat_id);
-}
+std::optional<Chat> ChatManager::getChatById(ID chat_id) { return repository_->findOne<Chat>(chat_id); }

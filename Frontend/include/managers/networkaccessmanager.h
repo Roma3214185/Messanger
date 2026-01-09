@@ -8,13 +8,11 @@
 class NetworkAccessManager : public INetworkAccessManager {
   QNetworkAccessManager net_manager_;
 
-public:
-  QNetworkReply *post(const QNetworkRequest &req,
-                      const QByteArray &byte_array) override;
+ public:
+  QNetworkReply *post(const QNetworkRequest &req, const QByteArray &byte_array) override;
   QNetworkReply *get(const QNetworkRequest &req) override;
-  QNetworkReply *put(const QNetworkRequest &req,
-                     const QByteArray &byte_array) override;
+  QNetworkReply *put(const QNetworkRequest &req, const QByteArray &byte_array) override;
   QNetworkReply *del(const QNetworkRequest &) override;
 };
 
-#endif // NETWORKACCESSMANAGER_H
+#endif  // NETWORKACCESSMANAGER_H

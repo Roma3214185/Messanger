@@ -23,8 +23,7 @@ RabbitMQConfig getConfig(const ProdConfigProvider &provider) {
   return config;
 }
 
-std::unique_ptr<RabbitMQClient>
-createRabbitMQClient(const RabbitMQConfig config, IThreadPool *pool) {
+std::unique_ptr<RabbitMQClient> createRabbitMQClient(const RabbitMQConfig config, IThreadPool *pool) {
   try {
     return std::make_unique<RabbitMQClient>(config, pool);
   } catch (const AmqpClient::AmqpLibraryException &e) {
@@ -45,13 +44,12 @@ int main(int argc, char *argv[]) {
   ThreadPool pool;
   constexpr int service_id = 3;
   GeneratorId generator(service_id);
-  GenericRepository genetic_rep(bd, &executor, RedisCache::instance(), &pool);
+  GenericRepository genetic_rep(&executor, RedisCache::instance(), &pool);
   MessageManager manager(&genetic_rep, &executor, &generator);
   ProdConfigProvider provider;
   RabbitMQConfig config = getConfig(provider);
   auto mq = createRabbitMQClient(config, &pool);
-  if (!mq)
-    throw std::runtime_error("Cannot connect to RabbitMQ");
+  if (!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
 
   Controller controller(mq.get(), &manager, &pool);
   crow::SimpleApp app;

@@ -4,9 +4,8 @@
 #include "interfaces/IMessageHandler.h"
 
 class InitMessageHandler : public IMessageHandler {
-public:
-  void handle(const crow::json::rvalue &message,
-              const std::shared_ptr<ISocket> &socket,
+ public:
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
               NotificationManager &manager) override {
     LOG_INFO("Try get user_id");
     auto user_id = [message]() -> std::optional<long long> {
@@ -27,11 +26,11 @@ public:
       return std::nullopt;
     }();
 
-    if (user_id) {
+    if (user_id.has_value()) {
       manager.userConnected(*user_id, socket);
       LOG_INFO("[init] Socket registered for userId '{}'", *user_id);
     }
   }
 };
 
-#endif // INITMESSAGEHANDLER_H
+#endif  // INITMESSAGEHANDLER_H

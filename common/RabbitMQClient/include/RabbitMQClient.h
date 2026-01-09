@@ -25,9 +25,8 @@ struct RabbitMQConfig {
 struct IThreadPool;
 
 class RabbitMQClient : public IRabitMQClient {
-public:
-  RabbitMQClient(const RabbitMQConfig &rabbitmq_config,
-                 IThreadPool *thread_pool);
+ public:
+  RabbitMQClient(const RabbitMQConfig &rabbitmq_config, IThreadPool *thread_pool);
   ~RabbitMQClient();
 
   RabbitMQClient(const RabbitMQClient &) = delete;
@@ -37,13 +36,11 @@ public:
   RabbitMQClient &operator=(RabbitMQClient &&) = delete;
 
   void publish(const PublishRequest &publish_request) override;
-  void subscribe(const SubscribeRequest &subscribe_request,
-                 const EventCallback &callback) override;
+  void subscribe(const SubscribeRequest &subscribe_request, const EventCallback &callback) override;
   void stop() override;
 
-private:
-  void declareExchange(const std::string &exchange, const std::string &type,
-                       bool durable);
+ private:
+  void declareExchange(const std::string &exchange, const std::string &type, bool durable);
 
   std::atomic<bool> running_{false};
   IThreadPool *pool_;

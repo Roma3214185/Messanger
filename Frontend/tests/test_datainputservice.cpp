@@ -16,7 +16,7 @@ TEST_CASE("Name validation - UTF-8 friendly", "[name]") {
   SECTION("Empty name") {
     auto r = nameValidDetailed("", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Name is empty");
+    REQUIRE(r.message.toStdString() == "Name is empty");
   }
 
   SECTION("Exact min length") {
@@ -42,7 +42,7 @@ TEST_CASE("Name validation - UTF-8 friendly", "[name]") {
   SECTION("Control character") {
     auto r = nameValidDetailed("John\nDoe", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Name contains invalid character");
+    REQUIRE(r.message.toStdString() == "Name contains invalid character");
   }
 
   SECTION("Leading/trailing space") {
@@ -55,7 +55,7 @@ TEST_CASE("Name validation - UTF-8 friendly", "[name]") {
   SECTION("Invalid symbol") {
     auto r = nameValidDetailed("John@", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Name contains invalid character");
+    REQUIRE(r.message.toStdString() == "Name contains invalid character");
   }
 }
 
@@ -68,19 +68,19 @@ TEST_CASE("Tag validation - mixed patterns, boundaries, unicode", "[tag]") {
   SECTION("Empty tag") {
     auto r = tagValidDetailed("", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Tag is empty");
+    REQUIRE(r.message.toStdString() == "Tag is empty");
   }
 
   SECTION("Starts with underscore") {
     auto r = tagValidDetailed("_abc", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "First character must be letter or number");
+    REQUIRE(r.message.toStdString() == "First character must be letter or number");
   }
 
   SECTION("Consecutive underscores") {
     auto r = tagValidDetailed("ab__cd", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Tag contains consecutive underscores");
+    REQUIRE(r.message.toStdString() == "Tag contains consecutive underscores");
   }
 
   SECTION("Ends with underscore") {
@@ -107,13 +107,14 @@ TEST_CASE("Tag validation - mixed patterns, boundaries, unicode", "[tag]") {
   SECTION("Invalid symbol") {
     auto r = tagValidDetailed("tag!name", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Tag contains invalid character");
+    REQUIRE(r.message.toStdString() == "Tag contains invalid character");
   }
 }
 
-TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, "
-          "boundaries",
-          "[email]") {
+TEST_CASE(
+    "Email validation - aliases, subdomains, IP literals, quoted local, "
+    "boundaries",
+    "[email]") {
   Config cfg;
   cfg.kMinEmailLocalPartLength = 1;
   cfg.kMaxEmailLocalPartLength = 64;
@@ -140,31 +141,31 @@ TEST_CASE("Email validation - aliases, subdomains, IP literals, quoted local, "
     QString local(cfg.kMaxEmailLocalPartLength + 1, 'a');
     auto r = emailValidDetailed(local + "@gmail.com", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Local part too long");
+    REQUIRE(r.message.toStdString() == "Local part too long");
   }
 
   SECTION("Local part too short") {
     auto r = emailValidDetailed("@gmail.com", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Local part is empty");
+    REQUIRE(r.message.toStdString() == "Local part is empty");
   }
 
   SECTION("Missing at") {
     auto r = emailValidDetailed("notanemail", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Email does not contain @");
+    REQUIRE(r.message.toStdString() == "Email does not contain @");
   }
 
   SECTION("Empty domain") {
     auto r = emailValidDetailed("user@", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Domain is empty");
+    REQUIRE(r.message.toStdString() == "Domain is empty");
   }
 
   SECTION("Invalid email") {
     auto r = emailValidDetailed("user@gmaill.com", cfg);
     REQUIRE(!r.valid);
-    REQUIRE(r.message == "Invalid domain");
+    REQUIRE(r.message.toStdString() == "Invalid domain");
   }
 }
 
@@ -173,57 +174,47 @@ TEST_CASE("Chained validation - form level", "[form]") {
   cfg.kDomains = {"gmail.com"};
 
   SECTION("Good request expected result is valid") {
-    SignUpRequest good_request{.name = "John Doe",
-                               .email = "john+dev@gmail.com",
-                               .password = "GoodP@ss1",
-                               .tag = "dev_tag"};
+    SignUpRequest good_request{
+        .name = "John Doe", .email = "john+dev@gmail.com", .password = "GoodP@ss1", .tag = "dev_tag"};
     auto r = validateRegistrationUserInput(good_request, cfg);
     LOG_WARN("Message: {}", r.message.toStdString());
     REQUIRE(r.valid);
   }
 
   SECTION("Request with invalid name expected valid error message") {
-    SignUpRequest bad_name_request{.name = "",
-                                   .email = "john+dev@example.com",
-                                   .password = "GoodP@ss1",
-                                   .tag = "dev_tag"};
+    SignUpRequest bad_name_request{
+        .name = "", .email = "john+dev@example.com", .password = "GoodP@ss1", .tag = "dev_tag"};
     auto r2 = validateRegistrationUserInput(bad_name_request, cfg);
     REQUIRE(!r2.valid);
     LOG_WARN("Message: {}", r2.message.toStdString());
-    REQUIRE(r2.message == "Name is empty");
+    REQUIRE(r2.message.toStdString() == "Name is empty");
   }
 
   SECTION("Request with invalid email expected valid error message") {
-    SignUpRequest bad_email_request{.name = "John Doe",
-                                    .email = "invalidemail",
-                                    .password = "GoodP@ss1",
-                                    .tag = "dev_tag"};
+    SignUpRequest bad_email_request{
+        .name = "John Doe", .email = "invalidemail", .password = "GoodP@ss1", .tag = "dev_tag"};
     auto r3 = validateRegistrationUserInput(bad_email_request, cfg);
     REQUIRE(!r3.valid);
     LOG_WARN("Message: {}", r3.message.toStdString());
-    REQUIRE(r3.message == "Email does not contain @");
+    REQUIRE(r3.message.toStdString() == "Email does not contain @");
   }
 
   SECTION("Request with invalid password expected valid error message") {
-    SignUpRequest bad_password_request{.name = "John Doe",
-                                       .email = "john@gmail.com",
-                                       .password = "short",
-                                       .tag = "dev_tag"};
+    SignUpRequest bad_password_request{
+        .name = "John Doe", .email = "john@gmail.com", .password = "short", .tag = "dev_tag"};
     auto r4 = validateRegistrationUserInput(bad_password_request, cfg);
     REQUIRE(!r4.valid);
     LOG_WARN("Message: {}", r4.message.toStdString());
-    REQUIRE(r4.message == "Password is too short");
+    REQUIRE(r4.message.toStdString() == "Password is too short");
   }
 
   SECTION("Request with invalid tag expected valid error message") {
-    SignUpRequest bad_tag_request{.name = "John Doe",
-                                  .email = "john@gmail.com",
-                                  .password = "GoodP@ss1",
-                                  .tag = "_tag"};
+    SignUpRequest bad_tag_request{
+        .name = "John Doe", .email = "john@gmail.com", .password = "GoodP@ss1", .tag = "_tag"};
     auto r5 = validateRegistrationUserInput(bad_tag_request, cfg);
     REQUIRE(!r5.valid);
     LOG_WARN("Message from tag: {}", r5.message.toStdString());
-    REQUIRE(r5.message == "First character must be letter or number");
+    REQUIRE(r5.message.toStdString() == "First character must be letter or number");
   }
 }
 
@@ -233,8 +224,7 @@ TEST_CASE("Parameterized invalid passwords", "[password][param]") {
   cfg.kMaxPasswordLength = 12;
   cfg.kDomains = {"gmail.com"};
 
-  auto password_sample =
-      GENERATE("short", "has space", "bad|char", "\nnewline");
+  auto password_sample = GENERATE("short", "has space", "bad|char", "\nnewline");
   auto r = passwordValidDetailed(password_sample, cfg);
   REQUIRE(!r.valid);
 }

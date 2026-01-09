@@ -12,20 +12,18 @@
 // struct DeleteQuery;
 
 class QueryFactory {
-public:
+ public:
   template <EntityJson T>
-  static std::unique_ptr<SelectQuery<T>> createSelect(ISqlExecutor *executor,
-                                                      ICacheService &cache) {
+  static std::unique_ptr<SelectQuery<T>> createSelect(ISqlExecutor *executor, ICacheService &cache) {
     return std::make_unique<SelectQuery<T>>(executor, cache);
   }
 
   template <EntityJson T>
-  static std::unique_ptr<DeleteQuery<T>> createDelete(ISqlExecutor *executor,
-                                                      ICacheService &cache) {
+  static std::unique_ptr<DeleteQuery<T>> createDelete(ISqlExecutor *executor, ICacheService &cache) {
     return std::make_unique<DeleteQuery<T>>(executor, cache);
   }
 
-  template <EntityJson T> // todo: another factory: QueryResultFactory
+  template <EntityJson T>  // todo: another factory: QueryResultFactory
   static SelectResult<T> &getSelectResult(QueryResult<T> &value) {
     return expect_type<T, SelectResult<T>>(value);
   }
@@ -35,14 +33,13 @@ public:
     return expect_type<T, DeleteResult<T>>(value);
   }
 
-private:
+ private:
   template <EntityJson T, typename VariantResult>
   requires VariantResultInQueryResult<VariantResult, QueryResult<T>>
   static VariantResult &expect_type(QueryResult<T> &value) {
-    if (auto *p = std::get_if<VariantResult>(&value))
-      return *p;
+    if (auto *p = std::get_if<VariantResult>(&value)) return *p;
     throw std::runtime_error("Unexpected query result type");
   }
 };
 
-#endif // QUERYFACTORY_H
+#endif  // QUERYFACTORY_H

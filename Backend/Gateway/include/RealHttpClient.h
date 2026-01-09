@@ -11,17 +11,14 @@ constexpr int kBadGatewayCode = 502;
 const std::string kBadGatewayMessage = "Bad Gateway: downstream no response";
 
 class RealHttpClient : public IClient {
-public:
+ public:
   NetworkResponse Get(const ForwardRequestDTO &request) override {
     auto client = setupClient(request.host_with_port);
     RetryOptions opts = getOptions(request);
 
-    auto result = retryInvoke(
-        [&] {
-          return client->Get(request.full_path, request.params,
-                             request.headers);
-        },
-        opts);
+    auto result = retryInvoke([client = std::move(client), opts,
+                               request] { return client->Get(request.full_path, request.params, request.headers); },
+                              opts);
 
     return getResponse(result);
   }
@@ -31,7 +28,7 @@ public:
     RetryOptions opts = getOptions(request);
 
     auto result = retryInvoke(
-        [&] { // todo(roma): url_params??
+        [client = std::move(client), opts, request] {  // todo(roma): url_params??
           return client->Delete(request.full_path, request.headers);
         },
         opts);
@@ -44,9 +41,8 @@ public:
     RetryOptions opts = getOptions(request);
 
     auto result = retryInvoke(
-        [&] { // todo(roma): url_params??
-          return client->Put(request.full_path, request.headers, request.body,
-                             request.content_type);
+        [client = std::move(client), opts, request] {  // todo(roma): url_params??
+          return client->Put(request.full_path, request.headers, request.body, request.content_type);
         },
         opts);
 
@@ -58,18 +54,16 @@ public:
     RetryOptions opts = getOptions(request);
 
     auto result = retryInvoke(
-        [&] { // todo(roma): url_params??
-          return client->Post(request.full_path, request.headers, request.body,
-                              request.content_type);
+        [client = std::move(client), opts, request] {  // todo(roma): url_params??
+          return client->Post(request.full_path, request.headers, request.body, request.content_type);
         },
         opts);
 
     return getResponse(result);
   }
 
-private:
-  std::unique_ptr<httplib::Client>
-  setupClient(const std::string &host_with_port) {
+ private:
+  std::unique_ptr<httplib::Client> setupClient(const std::string &host_with_port) {
     auto client = std::make_unique<httplib::Client>(host_with_port);
     client->set_read_timeout(5, 0);
     client->set_connection_timeout(5, 0);
@@ -95,4 +89,4 @@ private:
   }
 };
 
-#endif // REALHTTPCLIENT_H
+#endif  // REALHTTPCLIENT_H

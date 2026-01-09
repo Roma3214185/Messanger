@@ -11,7 +11,7 @@
 using TimePoint = std::chrono::steady_clock::time_point;
 
 class RateLimiter : public IRateLimiter {
-public:
+ public:
   struct Entry {
     int requests = 0;
     TimePoint windowStart{};
@@ -20,8 +20,7 @@ public:
   using IP = std::string;
   using EntriesMap = std::unordered_map<IP, Entry>;
 
-  explicit RateLimiter(int maxReq = 300,
-                       std::chrono::seconds win = std::chrono::seconds(900))
+  explicit RateLimiter(int maxReq = 300, std::chrono::seconds win = std::chrono::seconds(900))
       : maxRequests(maxReq), window(win) {}
 
   bool allow(const std::string &ip) override {
@@ -42,23 +41,20 @@ public:
     return false;
   }
 
-private:
+ private:
   EntriesMap entries_;
   std::mutex mutex_;
   int maxRequests;
   std::chrono::seconds window;
 
-  bool isNewWindow(const Entry &entry,
-                   const std::chrono::steady_clock::time_point &now) const {
-    return entry.windowStart == std::chrono::steady_clock::time_point{} ||
-           (now - entry.windowStart) > window;
+  bool isNewWindow(const Entry &entry, const std::chrono::steady_clock::time_point &now) const {
+    return entry.windowStart == std::chrono::steady_clock::time_point{} || (now - entry.windowStart) > window;
   }
 
-  void resetEntry(Entry &entry,
-                  const std::chrono::steady_clock::time_point &now) {
+  void resetEntry(Entry &entry, const std::chrono::steady_clock::time_point &now) {
     entry.requests = 1;
     entry.windowStart = now;
   }
 };
 
-#endif // BACKEND_APIGATEWAY_SRC_HEADERS_RATELIMITER_H_
+#endif  // BACKEND_APIGATEWAY_SRC_HEADERS_RATELIMITER_H_

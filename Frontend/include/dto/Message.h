@@ -7,7 +7,7 @@
 
 #include "Debug_profiling.h"
 
-struct Message { // todo: make immutable messagedomein and mutable messageview
+struct Message {  // todo: make immutable messagedomein and mutable messageview
   long long id = 0;
   long long sender_id;
   long long chat_id;
@@ -53,10 +53,10 @@ struct Message { // todo: make immutable messagedomein and mutable messageview
   }
 
   bool checkInvariants() const noexcept {
-    return id > 0 // todo: what if message saved as offline, them id will == 0,
-                  // state pattern??
-           && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() &&
-           read_counter >= 0 && liked_counter >= 0 && !text.isEmpty();
+    return id > 0  // todo: what if message saved as offline, them id will == 0,
+                   // state pattern??
+           && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && liked_counter >= 0 &&
+           !text.isEmpty();
   }
 };
 
@@ -72,4 +72,4 @@ struct Message { // todo: make immutable messagedomein and mutable messageview
 //  const bool      status_sended = true;
 //  };
 
-#endif // MESSAGE_H
+#endif  // MESSAGE_H

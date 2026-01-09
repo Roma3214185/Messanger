@@ -14,12 +14,11 @@ using ResponseBody = std::string;
 using Response = std::pair<StatusCode, ResponseBody>;
 
 class AuthController {
-public:
+ public:
   using OptionalId = std::optional<long long>;
   using Token = std::string;
 
-  AuthController(IAuthManager *manager, IAutoritizer *authoritizer,
-                 IGenerator *generator,
+  AuthController(IAuthManager *manager, IAutoritizer *authoritizer, IGenerator *generator,
                  IConfigProvider *provider = &ProdConfigProvider::instance());
   Response findById(const RequestDTO &req, const std::string &user_id_str);
   Response findByTag(const RequestDTO &req);
@@ -28,7 +27,7 @@ public:
   Response loginUser(const RequestDTO &req);
   bool generateKeys();
 
-private:
+ private:
   OptionalId verifyToken(const std::string &token);
 
   IAuthManager *manager_;
@@ -37,4 +36,4 @@ private:
   IGenerator *generator_;
 };
 
-#endif // AUTHCONTROLLER_H
+#endif  // AUTHCONTROLLER_H

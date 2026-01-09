@@ -7,7 +7,7 @@
 #include <QVector>
 
 struct ChatBase {
-  long long chat_id{0}; // todo: make member only id
+  long long chat_id{0};  // todo: make member only id
   QString title;
   QString last_message;
   int unread{0};
@@ -17,9 +17,7 @@ struct ChatBase {
   virtual ~ChatBase() = 0;
   [[nodiscard]] virtual auto isPrivate() const -> bool = 0;
 
-  virtual bool checkInvariants() {
-    return chat_id > 0 && !title.isEmpty() && !avatar_path.isEmpty();
-  }
+  virtual bool checkInvariants() { return chat_id > 0 && !title.isEmpty() && !avatar_path.isEmpty(); }
 };
 
 struct PrivateChat : public ChatBase {
@@ -42,13 +40,12 @@ struct GroupChat : public ChatBase {
 inline ChatBase::~ChatBase() = default;
 
 class ChatFactory {
-public:
-  static std::shared_ptr<ChatBase>
-  createPrivateChat(const long long chat_id, const QString &title,
-                    const QString &user_tag, const long long user_id,
-                    const QString &status, const QString &last_message = {},
-                    const QDateTime &last_message_time = QDateTime(),
-                    const QString &avatar_path = {}) {
+ public:
+  static std::shared_ptr<ChatBase> createPrivateChat(const long long chat_id, const QString &title,
+                                                     const QString &user_tag, const long long user_id,
+                                                     const QString &status, const QString &last_message = {},
+                                                     const QDateTime &last_message_time = QDateTime(),
+                                                     const QString &avatar_path = {}) {
     auto chat = std::make_shared<PrivateChat>();
     chat->chat_id = chat_id;
     chat->title = title;
@@ -61,12 +58,12 @@ public:
     return chat;
   }
 
-  static std::shared_ptr<ChatBase> createGroupChat(
-      const long long chat_id, const QString &title, const int member_count,
-      const QStringList &member_tags, const QVector<int> &members_id,
-      const QStringList &avatar_paths, const QString &last_message = {},
-      const QDateTime &last_message_time = QDateTime(),
-      const QString &avatar_path = {}) {
+  static std::shared_ptr<ChatBase> createGroupChat(const long long chat_id, const QString &title,
+                                                   const int member_count, const QStringList &member_tags,
+                                                   const QVector<int> &members_id, const QStringList &avatar_paths,
+                                                   const QString &last_message = {},
+                                                   const QDateTime &last_message_time = QDateTime(),
+                                                   const QString &avatar_path = {}) {
     auto chat = std::make_shared<GroupChat>();
     chat->chat_id = chat_id;
     chat->title = title;
@@ -81,4 +78,4 @@ public:
   }
 };
 
-#endif // CHATBASE_H
+#endif  // CHATBASE_H
