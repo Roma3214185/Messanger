@@ -19,24 +19,19 @@ struct SharedFixture {
   FakeSqlExecutor executor;
   MockCache cache;
   Routes mock_routes;
-  MockConfigProvider provider;
   GenericRepository rep;
   MessageManager manager;
   MockThreadPool pool;
   MockIdGenerator generator;
 
-  SharedFixture()
-      : mock_routes(MockUtils::getMockRoutes()),
-        provider(),
+  SharedFixture() :
         rep(&executor, cache, &pool),
-        manager(&rep, &executor, &generator) {
-    provider.mock_routes = mock_routes;
-  }
+        manager(&rep, &executor, &generator) {}
 };
 
 TEST_CASE("Test cotroller works with rabitMQ") {
   SharedFixture fix;
-  TestController controller(&fix.rabit_client, &fix.manager, &fix.pool, &fix.provider);
+  TestController controller(&fix.rabit_client, &fix.manager, &fix.pool);
 
   SECTION("Subscrive on message to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
@@ -93,7 +88,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
 TEST_CASE("Test controller handles saved enitites") {
   SharedFixture fix;
-  SecondTestController controller(&fix.rabit_client, &fix.manager, &fix.pool, &fix.provider);
+  SecondTestController controller(&fix.rabit_client, &fix.manager, &fix.pool);
 
   // SECTION("handleSaveMessage expected call to pool and publish to rabitMQ") {
   //   Message message{.id = 2, .local_id = "121", .sender_id = 12};

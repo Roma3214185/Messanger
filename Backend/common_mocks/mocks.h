@@ -4,7 +4,6 @@
 #include "mocks/FakeSqlExecutor.h"
 #include "mocks/MockAutoritizer.h"
 #include "mocks/MockCache.h"
-#include "mocks/MockConfigProvider.h"
 #include "mocks/MockDatabase.h"
 #include "mocks/MockIdGenerator.h"
 #include "mocks/MockNetworkManager.h"

@@ -3,9 +3,7 @@
 
 #include <string>
 #include <unordered_map>
-
-#include "ProdConfigProvider.h"
-#include "threadpool.h"
+#include <vector>
 
 class Message;
 class MessageManager;
@@ -21,8 +19,7 @@ using Response = std::pair<StatusCode, ResponceBody>;
 
 class Controller {
  public:
-  Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool,
-             IConfigProvider *provider = &ProdConfigProvider::instance());
+  Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool);
 
   Response updateMessage(const RequestDTO &request_pack, const std::string &message_id_str);
   Response deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str);
@@ -43,7 +40,6 @@ class Controller {
 
   MessageManager *manager_;
   IRabitMQClient *mq_client_;
-  IConfigProvider *provider_;
   IThreadPool *pool_;
 };
 

@@ -88,8 +88,8 @@ std::vector<MessageStatus> fetchReaded(const std::vector<MessageStatus> &message
 
 }  // namespace
 
-Controller::Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool, IConfigProvider *provider)
-    : manager_(manager), mq_client_(mq_client), pool_(pool), provider_(provider) {
+Controller::Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool)
+    : manager_(manager), mq_client_(mq_client), pool_(pool) {
   subscribeToSaveMessage();
   subscribeToSaveMessageStatus();
 }
@@ -108,10 +108,10 @@ void Controller::handleSaveMessage(const std::string &payload) {
     }
 
     PublishRequest request;
-    request.exchange = provider_->routes().exchange;
-    request.routing_key = provider_->routes().messageSaved;
+    request.exchange = Routes::exchange;
+    request.routing_key = Routes::messageSaved;
     request.message = nlohmann::json(message).dump();  // can be error excahnge type
-    request.exchange_type = provider_->routes().exchangeType;
+    request.exchange_type = Routes::exchangeType;
 
     mq_client_->publish(request);
     // TODO: kMessageSaved
@@ -120,25 +120,25 @@ void Controller::handleSaveMessage(const std::string &payload) {
 
 void Controller::subscribeToSaveMessage() {
   SubscribeRequest request;
-  request.queue = provider_->routes().saveMessageQueue;
-  request.exchange = provider_->routes().exchange;
-  request.routing_key = provider_->routes().saveMessage;
-  request.exchange_type = provider_->routes().exchangeType;
+  request.queue = Routes::saveMessageQueue;
+  request.exchange = Routes::exchange;
+  request.routing_key = Routes::saveMessage;
+  request.exchange_type = Routes::exchangeType;
   mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
     LOG_INFO("Getted event in subscribeToSaveMessage: {} and payload {}", event, payload);
-    if (event == provider_->routes().saveMessage) handleSaveMessage(payload);
+    if (event == Routes::saveMessage) handleSaveMessage(payload);
   });
 }
 
 void Controller::subscribeToSaveMessageStatus() {
   SubscribeRequest request;
-  request.queue = provider_->routes().saveMessageStatusQueue;
-  request.exchange = provider_->routes().exchange;
-  request.routing_key = provider_->routes().saveMessageStatus;
-  request.exchange_type = provider_->routes().exchangeType;
+  request.queue = Routes::saveMessageStatusQueue;
+  request.exchange = Routes::exchange;
+  request.routing_key = Routes::saveMessageStatus;
+  request.exchange_type = Routes::exchangeType;
   mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
     LOG_INFO("Getted event in subscribeToSaveMessageStatus: {} and payload {}", event, payload);
-    if (event == provider_->routes().saveMessageStatus) handleSaveMessageStatus(payload);
+    if (event == Routes::saveMessageStatus) handleSaveMessageStatus(payload);
   });
 }
 
@@ -154,10 +154,10 @@ void Controller::handleSaveMessageStatus(const std::string &payload) {
       return;
     }
 
-    PublishRequest request{.exchange = provider_->routes().exchange,
-                           .routing_key = provider_->routes().messageStatusSaved,
+    PublishRequest request{.exchange = Routes::exchange,
+                           .routing_key = Routes::messageStatusSaved,
                            .message = nlohmann::json(status).dump(),
-                           .exchange_type = provider_->routes().exchangeType};
+                           .exchange_type = Routes::exchangeType};
 
     mq_client_->publish(request);
   });
@@ -176,7 +176,7 @@ std::optional<long long> Controller::getUserIdFromToken(const std::string &token
 Response Controller::updateMessage(const RequestDTO &request_pack, const std::string &message_id_str) {
   auto id_opt = getIdFromStr(message_id_str);
   if (!id_opt.has_value()) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid id"));
+    return std::make_pair(StatusCodes::badRequest, formErrorResponse("Invalid id"));
   }
 
   long long message_id = *id_opt;
@@ -184,8 +184,8 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(provider_->statusCodes().badRequest,
-                          formErrorResponse(provider_->issueMessages().invalidToken));
+    return std::make_pair(StatusCodes::badRequest,
+                          formErrorResponse(IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -194,29 +194,29 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
   // check if u have access to update this message (update only curr user)
   std::optional<Message> message_to_update = manager_->getMessage(message_id);
   if (!message_to_update) {
-    return std::make_pair(provider_->statusCodes().notFound, formErrorResponse("Message to update not found"));
+    return std::make_pair(StatusCodes::notFound, formErrorResponse("Message to update not found"));
   }
 
   if (message_to_update->sender_id != current_user_id) {
-    return std::make_pair(provider_->statusCodes().conflict,
+    return std::make_pair(StatusCodes::conflict,
                           formErrorResponse("U have no permission to update this message"));
   }
 
   std::optional<Message> updated_message = parsePayload<Message>(request_pack.body);
   if (!updated_message) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid data"));
+    return std::make_pair(StatusCodes::badRequest, formErrorResponse("Invalid data"));
   }
 
   // todo: check invariants of updated_message;
   if (!manager_->saveMessage(*updated_message)) {
-    return std::make_pair(provider_->statusCodes().serverError, formErrorResponse("Error while saving"));
+    return std::make_pair(StatusCodes::serverError, formErrorResponse("Error while saving"));
   }
 
   PublishRequest request;
-  request.exchange = provider_->routes().exchange;
-  request.routing_key = provider_->routes().messageSaved;
+  request.exchange = Routes::exchange;
+  request.routing_key = Routes::messageSaved;
   request.message = nlohmann::json(*updated_message).dump();
-  request.exchange_type = provider_->routes().exchangeType;
+  request.exchange_type = Routes::exchangeType;
 
   mq_client_->publish(request);
   return std::make_pair(200, nlohmann::json(*updated_message).dump());
@@ -225,15 +225,15 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
 Response Controller::deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str) {
   auto id_opt = getIdFromStr(message_id_str);
   if (!id_opt) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid id"));
+    return std::make_pair(StatusCodes::badRequest, formErrorResponse("Invalid id"));
   }
 
   long long message_id = *id_opt;
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(provider_->statusCodes().badRequest,
-                          formErrorResponse(provider_->issueMessages().invalidToken));
+    return std::make_pair(StatusCodes::badRequest,
+                          formErrorResponse(IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -241,24 +241,24 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<Message> message_to_delete = manager_->getMessage(message_id);
   if (!message_to_delete) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid data"));
+    return std::make_pair(StatusCodes::badRequest, formErrorResponse("Invalid data"));
   }
 
   if (message_to_delete->sender_id != current_user_id) {  // in future permission will be in admins of the group
                                                           // chat
-    return std::make_pair(provider_->statusCodes().conflict,
+    return std::make_pair(StatusCodes::conflict,
                           formErrorResponse("U have no permission to update this message"));
   }
 
   if (!manager_->deleteMessage(*message_to_delete)) {
-    return std::make_pair(provider_->statusCodes().serverError, formErrorResponse("Error while saving"));
+    return std::make_pair(StatusCodes::serverError, formErrorResponse("Error while saving"));
   }
 
   PublishRequest request;
-  request.exchange = provider_->routes().exchange;
-  request.routing_key = provider_->routes().messageDeleted;
+  request.exchange = Routes::exchange;
+  request.routing_key = Routes::messageDeleted;
   request.message = nlohmann::json(*message_to_delete).dump();
-  request.exchange_type = provider_->routes().exchangeType;
+  request.exchange_type = Routes::exchangeType;
 
   mq_client_->publish(request);
 
@@ -282,13 +282,13 @@ Response Controller::getMessageById(const std::string &message_id_str) {
 Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str) {
   std::optional<long long> user_id = getUserIdFromToken(request_pack.token);
   if (!user_id.has_value()) {
-    return std::make_pair(provider_->statusCodes().userError,
-                          formErrorResponse(provider_->issueMessages().invalidToken));
+    return std::make_pair(StatusCodes::userError,
+                          formErrorResponse(IssueMessages::invalidToken));
   }
 
   std::optional<long long> chat_id = getIdFromStr(chat_id_str);
   if (!chat_id.has_value()) {
-    return std::make_pair(provider_->statusCodes().badRequest, formErrorResponse("Invalid chat_id"));
+    return std::make_pair(StatusCodes::badRequest, formErrorResponse("Invalid chat_id"));
   }
 
   const GetMessagePack pack{.chat_id = *chat_id,
@@ -321,5 +321,5 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
     // todo: reactions here
   }
 
-  return std::make_pair(provider_->statusCodes().success, json_messages.dump());
+  return std::make_pair(StatusCodes::success, json_messages.dump());
 }
