@@ -1,14 +1,11 @@
 #include <catch2/catch_all.hpp>
 
 #include "NetworkFacade.h"
-#include "ProdConfigProvider.h"
 #include "chatservice/AutoritizerProvider.h"
 #include "chatservice/chatcontroller.h"
 #include "chatservice/chatserver.h"
 #include "mocks/MockAutoritizer.h"
-#include "mocks/MockConfigProvider.h"
 #include "mocks/MockNetworkManager.h"
-#include "mocks/MockUtils.h"
 #include "mocks/chatservice/MockChatManager.h"
 
 namespace TestServer {
@@ -17,7 +14,6 @@ struct TestFixture {
   crow::SimpleApp app;
   MockChatManager manager;
   MockNetworkManager network_manager;
-  MockConfigProvider provider;
   NetworkFacade facade = NetworkFactory::create(&network_manager);
   ChatController controller;
   ChatServer server;
@@ -28,13 +24,10 @@ struct TestFixture {
   int user_id = 13;
   std::shared_ptr<MockAutoritizer> mock_autoritized;
 
-  TestFixture() : controller(&manager, &facade, &provider), server(app, 100, &controller) {
+  TestFixture() : controller(&manager, &facade), server(app, 100, &controller) {
     mock_autoritized = std::make_shared<MockAutoritizer>();
     AutoritizerProvider::set(mock_autoritized);
     mock_autoritized->mock_user_id = user_id;
-    // provider.mock_codes =  MockUtils::getMockCodes();
-
-    // provider.mock_issue_message.invalidToken = "test_invalid_token";
   }
 
   std::string formError(const std::string &text) {
@@ -58,8 +51,8 @@ TEST_CASE("handleCreatingPrivateChat listens on POST /chats/private") {
     fix.app.handle_full(fix.req, fix.res);
 
     REQUIRE(fix.manager.call_getChatsOfUser == before);
-    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
+    REQUIRE(fix.res.code == Config::StatusCodes::userError);
+    REQUIRE(fix.res.body == fix.formError(Config::IssueMessages::invalidToken));
   }
 
   fix.req.add_header("Authorization", fix.secret_token);
@@ -156,8 +149,8 @@ TEST_CASE(
     REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
     REQUIRE(fix.mock_autoritized->last_token == "");
     REQUIRE(fix.manager.call_getChatsOfUser == before);
-    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-    REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
+    REQUIRE(fix.res.code == Config::StatusCodes::userError);
+    REQUIRE(fix.res.body == fix.formError(Config::IssueMessages::invalidToken));
   }
 
   SECTION("Token is setted expected call") {
@@ -195,6 +188,6 @@ TEST_CASE(
 
   REQUIRE(fix.mock_autoritized->call_autoritize == before_auth_call + 1);
   REQUIRE(fix.manager.call_getChatsOfUser == before);
-  REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
-  REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
+  REQUIRE(fix.res.code == Config::StatusCodes::userError);
+  REQUIRE(fix.res.body == fix.formError(Config::IssueMessages::invalidToken));
 }

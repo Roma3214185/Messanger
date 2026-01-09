@@ -6,12 +6,11 @@
 #include <algorithm>
 
 #include "MetricsMiddleware.h"
-#include "ProdConfigProvider.h"
+#include "config/codes.h"
 #include "interfaces/ICacheService.h"
 
 struct CacheMiddleware {
   ICacheService *cache_;
-  IConfigProvider *provider = &ProdConfigProvider::instance();
   struct context {
     std::optional<std::string> cached;
   };
@@ -29,7 +28,7 @@ struct CacheMiddleware {
     if (!val) return;
 
     ctx.cached = val;
-    res.code = provider->statusCodes().success;
+    res.code = Config::StatusCodes::success;
     res.write(val.value());
     auto &metrics_ctx = parent_ctx.template get<MetricsMiddleware>();
     metrics_ctx.hit_cache = true;

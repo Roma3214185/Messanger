@@ -3,7 +3,6 @@
 #include "Debug_profiling.h"
 #include "GeneratorId.h"
 #include "GenericRepository.h"
-#include "ProdConfigProvider.h"
 #include "RedisCache.h"
 #include "SQLiteDataBase.h"
 #include "SqlExecutor.h"
@@ -12,6 +11,7 @@
 #include "authservice/authcontroller.h"
 #include "authservice/authmanager.h"
 #include "authservice/server.h"
+#include "config/ports.h"
 
 int main(int argc, char *argv[]) {
   QCoreApplication a(argc, argv);
@@ -34,12 +34,11 @@ int main(int argc, char *argv[]) {
   GenericRepository rep(&executor, RedisCache::instance());
 
   AuthManager manager(rep, &id_generator);
-  ProdConfigProvider provider;
   RealAuthoritizer authoritizer;
   JwtGenerator generator;
   AuthController controller(&manager, &authoritizer, &generator);
   crow::SimpleApp app;
-  Server server(app, provider.ports().authService, &controller);
+  Server server(app, Config::Ports::authService, &controller);
 
   // if(!server.generateKeys()) {
   //   qFatal("Cannot generate keys");

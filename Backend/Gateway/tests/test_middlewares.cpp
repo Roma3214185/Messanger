@@ -3,9 +3,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "middlewares/Middlewares.h"
-#include "mocks/MockConfigProvider.h"
 #include "mocks/MockTheadPool.h"
-#include "mocks/MockUtils.h"
 #include "mocks/gateway/GatewayMocks.h"
 
 struct DummyParentCtx {
@@ -25,7 +23,6 @@ struct TestGatewayMiddlewaresFixrute {
   CacheMiddleware cache_middleware;
   MetricsMiddleware metrics_middleware;
   MockApiCache cache;
-  MockConfigProvider provider;
   crow::request req;
   crow::response res;
   MockMetrics metrics;
@@ -41,13 +38,10 @@ struct TestGatewayMiddlewaresFixrute {
   CacheMiddleware::context cache_ctx;
   MetricsMiddleware::context metrics_ctx;
 
-  TestGatewayMiddlewaresFixrute() : provider(MockUtils::getMockCodes()) {
+  TestGatewayMiddlewaresFixrute() {
     auth_middleware.verifier_ = &verifier;
-    auth_middleware.provider = &provider;
     cache_middleware.cache_ = &cache;
-    cache_middleware.provider = &provider;
     rate_limit_middleware.rate_limiter_ = &rate_limiter;
-    rate_limit_middleware.provider_ = &provider;
     metrics_middleware.metrics_ = &metrics;
 
     rate_limiter.should_fail = true;
@@ -83,8 +77,8 @@ TEST_CASE("Test Authmiddleware") {
       "invalid token") {
     doCallBefore();
     REQUIRE(fix.res.is_completed());
-    REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
-    REQUIRE(fix.res.body == fix.provider.issueMessages().invalidToken);
+    REQUIRE(fix.res.code == Config::StatusCodes::unauthorized);
+    REQUIRE(fix.res.body == Config::IssueMessages::invalidToken);
   }
 
   SECTION("After handle expected no throw") { REQUIRE_NOTHROW(doCallAfter()); }
@@ -107,8 +101,8 @@ TEST_CASE("Test RateLimitMiddleware") {
     doCallBefore();
 
     REQUIRE(fix.res.is_completed());
-    REQUIRE(fix.res.code == fix.provider.statusCodes().rateLimit);
-    REQUIRE(fix.res.body == fix.provider.issueMessages().rateLimitExceed);
+    REQUIRE(fix.res.code == Config::StatusCodes::rateLimit);
+    REQUIRE(fix.res.body == Config::IssueMessages::rateLimitExceed);
   }
 
   SECTION("Section rate_limit is allowed expected return not completed task") {
@@ -171,7 +165,7 @@ TEST_CASE("Test cacheMiddleware") {
     fix.cache.mock_answer = value_from_cache;
     doCallBefore();
     REQUIRE(fix.res.is_completed());
-    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+    REQUIRE(fix.res.code == Config::StatusCodes::success);
     REQUIRE(fix.res.body == value_from_cache);
   }
 

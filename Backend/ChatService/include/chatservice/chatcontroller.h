@@ -1,7 +1,7 @@
 #ifndef CHATCONTROLLER_H
 #define CHATCONTROLLER_H
 
-#include "ProdConfigProvider.h"
+#include <string>
 
 class NetworkFacade;
 class IConfigProvider;
@@ -16,8 +16,7 @@ using Response = std::pair<StatusCode, ResponceBody>;
 
 class ChatController {
  public:
-  ChatController(IChatManager *manager, NetworkFacade *network_facade,
-                 IConfigProvider *provider = &ProdConfigProvider::instance());
+  ChatController(IChatManager *manager, NetworkFacade *network_facade);
 
   Response createPrivateChat(const RequestDTO &req);
   Response getAllChats(const RequestDTO &req);
@@ -31,7 +30,6 @@ class ChatController {
 
   IChatManager *manager_;
   NetworkFacade *network_facade_;
-  IConfigProvider *provider_;
 };
 
 #endif  // CHATCONTROLLER_H

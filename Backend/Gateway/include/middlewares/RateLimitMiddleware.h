@@ -3,19 +3,18 @@
 
 #include <crow.h>
 
-#include "ProdConfigProvider.h"
+#include "config/codes.h"
 #include "interfaces/IRateLimiter.h"
 
 struct RateLimitMiddleware {
   struct context {};
   IRateLimiter *rate_limiter_;
-  IConfigProvider *provider_ = &ProdConfigProvider::instance();
 
   template <typename ParentCtx>
   void before_handle(const crow::request &req, crow::response &res, context & /*ctx*/, ParentCtx & /*parent_ctx*/) {
     if (!rate_limiter_->allow(getIP(req))) {
-      res.code = provider_->statusCodes().rateLimit;
-      res.write(provider_->issueMessages().rateLimitExceed);
+      res.code = Config::StatusCodes::rateLimit;
+      res.write(Config::IssueMessages::rateLimitExceed);
       res.end();
     }
   }

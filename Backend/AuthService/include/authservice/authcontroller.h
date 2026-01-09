@@ -1,7 +1,7 @@
 #ifndef AUTHCONTROLLER_H
 #define AUTHCONTROLLER_H
 
-#include "ProdConfigProvider.h"
+#include <string>
 
 class IAuthManager;
 class AuthResponce;
@@ -18,8 +18,7 @@ class AuthController {
   using OptionalId = std::optional<long long>;
   using Token = std::string;
 
-  AuthController(IAuthManager *manager, IAutoritizer *authoritizer, IGenerator *generator,
-                 IConfigProvider *provider = &ProdConfigProvider::instance());
+  AuthController(IAuthManager *manager, IAutoritizer *authoritizer, IGenerator *generator);
   Response findById(const RequestDTO &req, const std::string &user_id_str);
   Response findByTag(const RequestDTO &req);
   Response registerUser(const RequestDTO &req);
@@ -31,7 +30,6 @@ class AuthController {
   OptionalId verifyToken(const std::string &token);
 
   IAuthManager *manager_;
-  IConfigProvider *provider_;
   IAutoritizer *authoritizer_;
   IGenerator *generator_;
 };

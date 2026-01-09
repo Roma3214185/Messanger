@@ -3,17 +3,16 @@
 #include "Debug_profiling.h"
 #include "NetworkFacade.h"
 #include "NetworkManager.h"
-#include "ProdConfigProvider.h"
 #include "RabbitMQClient.h"
 #include "notificationservice/managers/notificationmanager.h"
 #include "notificationservice/managers/socketmanager.h"
 #include "notificationservice/server.h"
 #include "threadpool.h"
 
-RabbitMQConfig getConfig(const ProdConfigProvider &provider) {
+RabbitMQConfig getConfig() {
   RabbitMQConfig config;
   config.host = "localhost";
-  config.port = provider.ports().rabitMQ;
+  config.port = Config::Ports::rabitMQ;
   config.user = "guest";
   config.password = "guest";
   return config;
@@ -21,14 +20,13 @@ RabbitMQConfig getConfig(const ProdConfigProvider &provider) {
 
 int main() {
   initLogger("NotifiactionService");
-  ProdConfigProvider provider;
-  RabbitMQConfig config = getConfig(provider);
+  RabbitMQConfig config = getConfig();
   ThreadPool pool;
   RabbitMQClient mq(config, &pool);
   SocketsManager sockManager;
   NetworkManager network_manager;
   NetworkFacade net_repository = NetworkFactory::create(&network_manager);
   NotificationManager notifManager(&mq, &sockManager, net_repository);
-  Server server(provider.ports().notificationService, &notifManager);
+  Server server(Config::Ports::notificationService, &notifManager);
   server.run();
 }

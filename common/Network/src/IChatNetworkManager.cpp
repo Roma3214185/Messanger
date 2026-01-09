@@ -3,13 +3,15 @@
 #include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
+#include "config/codes.h"
+#include "config/ports.h"
 
 std::vector<UserId> IChatNetworkManager::getMembersOfChat(long long chat_id) {
   const std::string path = "/chats/" + std::to_string(chat_id) + "/members";
 
-  auto res = forward(provider_->ports().chatService, "", path, "GET");
+  auto res = forward(Config::Ports::chatService, "", path, "GET");
 
-  if (res.first != provider_->statusCodes().success) {
+  if (res.first != Config::StatusCodes::success) {
     LOG_ERROR("GetMembersOfChat failed '{}' reason: '{}'", res.first, res.second);
     return std::vector<UserId>{};
   }

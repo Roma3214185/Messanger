@@ -4,6 +4,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "GenericRepository.h"
+#include "config/Routes.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/IDataBase.h"
 #include "interfaces/ISqlExecutor.h"
@@ -18,25 +19,17 @@ struct SharedFixture {
   MockDatabase db;
   FakeSqlExecutor executor;
   MockCache cache;
-  Routes mock_routes;
-  MockConfigProvider provider;
   GenericRepository rep;
   MessageManager manager;
   MockThreadPool pool;
   MockIdGenerator generator;
 
-  SharedFixture()
-      : mock_routes(MockUtils::getMockRoutes()),
-        provider(),
-        rep(&executor, cache, &pool),
-        manager(&rep, &executor, &generator) {
-    provider.mock_routes = mock_routes;
-  }
+  SharedFixture() : rep(&executor, cache, &pool), manager(&rep, &executor, &generator) {}
 };
 
 TEST_CASE("Test cotroller works with rabitMQ") {
   SharedFixture fix;
-  TestController controller(&fix.rabit_client, &fix.manager, &fix.pool, &fix.provider);
+  TestController controller(&fix.rabit_client, &fix.manager, &fix.pool);
 
   SECTION("Subscrive on message to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
@@ -44,10 +37,10 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
-    CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageQueue);
-    CHECK(last_subscribe_data.exchange_type == fix.mock_routes.exchangeType);
-    CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessage);
+    CHECK(last_subscribe_data.exchange == Config::Routes::exchange);
+    CHECK(last_subscribe_data.queue == Config::Routes::saveMessageQueue);
+    CHECK(last_subscribe_data.exchange_type == Config::Routes::exchangeType);
+    CHECK(last_subscribe_data.routing_key == Config::Routes::saveMessage);
   }
 
   SECTION("Subscrive on message to save expected call valid callback function") {
@@ -69,10 +62,10 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
-    CHECK(last_subscribe_data.exchange == fix.mock_routes.exchange);
-    CHECK(last_subscribe_data.queue == fix.mock_routes.saveMessageStatusQueue);
-    CHECK(last_subscribe_data.exchange_type == fix.mock_routes.exchangeType);
-    CHECK(last_subscribe_data.routing_key == fix.mock_routes.saveMessageStatus);
+    CHECK(last_subscribe_data.exchange == Config::Routes::exchange);
+    CHECK(last_subscribe_data.queue == Config::Routes::saveMessageStatusQueue);
+    CHECK(last_subscribe_data.exchange_type == Config::Routes::exchangeType);
+    CHECK(last_subscribe_data.routing_key == Config::Routes::saveMessageStatus);
   }
 
   SECTION(
@@ -93,7 +86,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
 TEST_CASE("Test controller handles saved enitites") {
   SharedFixture fix;
-  SecondTestController controller(&fix.rabit_client, &fix.manager, &fix.pool, &fix.provider);
+  SecondTestController controller(&fix.rabit_client, &fix.manager, &fix.pool);
 
   // SECTION("handleSaveMessage expected call to pool and publish to rabitMQ") {
   //   Message message{.id = 2, .local_id = "121", .sender_id = 12};

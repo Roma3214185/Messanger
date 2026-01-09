@@ -1,17 +1,15 @@
 #include <catch2/catch_all.hpp>
 
+#include "config/ports.h"
 #include "gatewayserver.h"
-#include "mocks/MockConfigProvider.h"
 #include "mocks/MockRabitMQClient.h"
 #include "mocks/MockTheadPool.h"
-#include "mocks/MockUtils.h"
 #include "mocks/gateway/GatewayMocks.h"
 
 struct TestGatewayServerFixrute {
   GatewayApp app;
   MockApiCache cache;
   MockClient client;
-  MockConfigProvider provider;
   crow::request req;
   crow::response res;
   GatewayServer server;
@@ -24,15 +22,12 @@ struct TestGatewayServerFixrute {
   MockRabitMQClient rabiq_client;
   int user_id = 123;
 
-  TestGatewayServerFixrute()
-      : provider(MockUtils::getMockPorts()), server(app, &client, &cache, &pool, &provider, &rabiq_client) {
+  TestGatewayServerFixrute() : server(app, &client, &cache, &pool, &rabiq_client) {
     app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
     app.get_middleware<CacheMiddleware>().cache_ = &cache;
     app.get_middleware<LoggingMiddleware>();
     app.get_middleware<RateLimitMiddleware>().rate_limiter_ = &rate_limiter;
     app.get_middleware<MetricsMiddleware>().metrics_ = &metrics;
-
-    provider.mock_codes = MockUtils::getMockCodes();
 
     verifier.mock_ans = user_id;
     client.mock_response = std::make_pair(mock_client_code, mock_client_ans);
@@ -68,7 +63,7 @@ TEST_CASE("Test apigate POST method") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_post == before_post_calls + 1);
-    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().authService));
+    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Config::Ports::authService));
   }
 
   SECTION(
@@ -93,7 +88,7 @@ TEST_CASE("Test apigate GET method") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_get == before_forward_cnt + 1);
-    CHECK(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().messageService));
+    CHECK(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Config::Ports::messageService));
     CHECK(fix.client.last_request.body == fix.req.body);
     CHECK(fix.client.last_request.full_path == fix.req.url);
   }
@@ -128,7 +123,7 @@ TEST_CASE("Test simple base_path request") {
     fix.makeCall();
 
     REQUIRE(fix.client.call_get == before_post_calls + 1);
-    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(fix.provider.ports().chatService));
+    REQUIRE(fix.client.last_request.host_with_port == "localhost:" + std::to_string(Config::Ports::chatService));
   }
 }
 
