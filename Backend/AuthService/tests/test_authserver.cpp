@@ -27,7 +27,7 @@ struct TestFixture {
   std::string token = "secret-test-token";
   MockTokenGenerator generator;
 
-  TestFixture() : controller(&manager, &authoritizer, &generator, &provider), server(app, port, &controller) {
+  TestFixture() : controller(&manager, &authoritizer, &generator), server(app, port, &controller) {
     authoritizer.mock_user_id = user_id;
     provider.mock_codes = MockUtils::getMockCodes();
     user.id = user_id;
@@ -64,7 +64,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
 
     REQUIRE(fix.authoritizer.call_autoritize == before_auth_call + 1);
     REQUIRE(fix.manager.call_getUser == before_call_manager);
-    REQUIRE(fix.res.code == fix.provider.statusCodes().unauthorized);
+    REQUIRE(fix.res.code == StatusCodes::unauthorized);
     REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().invalidToken));
   }
   fix.req.add_header("Authorization", fix.token);
@@ -84,7 +84,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
     REQUIRE(fix.manager.call_getUser == before_call_manager + 1);
     REQUIRE(fix.authoritizer.last_token == fix.token);
     REQUIRE(fix.manager.last_user_id == fix.user_id);
-    REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
+    REQUIRE(fix.res.code == StatusCodes::notFound);
     REQUIRE(fix.res.body == fix.formError(fix.provider.issueMessages().userNotFound));
   }
 
@@ -99,7 +99,7 @@ TEST_CASE("handleMe listens on GET /auth/me") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+    REQUIRE(fix.res.code == StatusCodes::success);
 
     auto r = crow::json::load(fix.res.body);
 
@@ -122,7 +122,7 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    CHECK(fix.res.code == fix.provider.statusCodes().badRequest);
+    CHECK(fix.res.code == StatusCodes::badRequest);
     CHECK(fix.res.body == fix.formError("Invalid Json"));
   }
 
@@ -134,7 +134,7 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.code == StatusCodes::badRequest);
     REQUIRE(fix.res.body == fix.formError("Invalid Json"));
   }
 
@@ -150,7 +150,7 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
 
     REQUIRE(fix.manager.last_login_request.email == "test_email");
     REQUIRE(fix.manager.last_login_request.password == "test_password");
-    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.code == StatusCodes::badRequest);
     REQUIRE(fix.res.body == fix.formError("Invalid credentials"));
   }
 
@@ -162,7 +162,7 @@ TEST_CASE("handleLogin listens on POST /auth/login") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+    REQUIRE(fix.res.code == StatusCodes::success);
 
     auto r = crow::json::load(fix.res.body);
     REQUIRE(r.size() == 2);
@@ -184,7 +184,7 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.code == StatusCodes::badRequest);
     REQUIRE(fix.res.body == fix.formError("Invalid json"));
   }
 
@@ -196,7 +196,7 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.code == StatusCodes::badRequest);
     REQUIRE(fix.res.body == fix.formError("Invalid json"));
   }
 
@@ -224,7 +224,7 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
     REQUIRE(fix.manager.last_register_request.password == "b");
     REQUIRE(fix.manager.last_register_request.name == "c");
     REQUIRE(fix.manager.last_register_request.tag == "d");
-    REQUIRE(fix.res.code == fix.provider.statusCodes().userError);
+    REQUIRE(fix.res.code == StatusCodes::userError);
     REQUIRE(fix.res.body == fix.formError("User already exist"));
   }
 
@@ -236,7 +236,7 @@ TEST_CASE("handleLogin listens on POST /auth/register") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+    REQUIRE(fix.res.code == StatusCodes::success);
 
     auto r = crow::json::load(fix.res.body);
     REQUIRE(r.size() == 2);
@@ -260,7 +260,7 @@ TEST_CASE("findByTag listens GET users/search") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().badRequest);
+    REQUIRE(fix.res.code == StatusCodes::badRequest);
     REQUIRE(fix.res.body == fix.formError("Missing tag parametr"));
   }
 
@@ -297,7 +297,7 @@ TEST_CASE("findByTag listens GET users/search") {
 
     fix.app.handle_full(fix.req, fix.res);
 
-    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+    REQUIRE(fix.res.code == StatusCodes::success);
 
     auto result = crow::json::load(fix.res.body);
     REQUIRE(result["users"].size() == 2);
@@ -328,7 +328,7 @@ TEST_CASE("handleFindById listens /users/<int>") {
     fix.app.handle_full(fix.req, fix.res);
 
     REQUIRE(fix.manager.last_user_id == 123);
-    REQUIRE(fix.res.code == fix.provider.statusCodes().notFound);
+    REQUIRE(fix.res.code == StatusCodes::notFound);
     REQUIRE(fix.res.body == fix.formError("User not found"));
   }
 
@@ -347,7 +347,7 @@ TEST_CASE("handleFindById listens /users/<int>") {
     fix.app.handle_full(fix.req, fix.res);
 
     REQUIRE(fix.manager.last_user_id == 123);
-    REQUIRE(fix.res.code == fix.provider.statusCodes().success);
+    REQUIRE(fix.res.code == StatusCodes::success);
     auto result = crow::json::load(fix.res.body);
     REQUIRE(result.size() == 5);
     CHECK(result["id"].i() == 123);

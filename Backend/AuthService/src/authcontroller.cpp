@@ -9,15 +9,16 @@
 #include "entities/RegisterRequest.h"
 #include "entities/RequestDTO.h"
 #include "interfaces/IAutoritizer.h"
+#include "codes.h"
 
 using std::string;
 
 namespace {
 
-crow::json::wvalue userToJson(const User &user, const std::string &token = "") {
+crow::json::wvalue userToJson(const User &user, std::string_view token = {}) {
   crow::json::wvalue res;
   if (!token.empty()) {
-    res["token"] = token;
+    res["token"] = std::string(token);
   }
   res["user"]["id"] = user.id;
   res["user"]["email"] = user.email;
@@ -59,17 +60,15 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 
 }  // namespace
 
-AuthController::AuthController(IAuthManager *manager, IAutoritizer *authoritizer, IGenerator *generator,
-                               IConfigProvider *provider)
+AuthController::AuthController(IAuthManager *manager, IAutoritizer *authoritizer, IGenerator *generator)
     : manager_(manager),
       authoritizer_(authoritizer),
-      generator_(generator),
-      provider_(provider) {}  // todo(roma) make itokengenrator (ISRP)
+      generator_(generator) {}  // todo(roma) make itokengenrator (ISRP)
 
 Response AuthController::loginUser(const RequestDTO &req) {
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password")) {  // todo: make function bool contains(json, field)
-    return sendResponse(provider_->statusCodes().badRequest, "Invalid Json", true);
+    return sendResponse(StatusCodes::badRequest, "Invalid Json", true);
   }
   LoginRequest login_request{
       .email = body["email"].s(),
@@ -82,34 +81,34 @@ Response AuthController::loginUser(const RequestDTO &req) {
 
   if (!logged_user) {
     LOG_ERROR("Invalid credentials");
-    return sendResponse(provider_->statusCodes().badRequest, "Invalid credentials", true);
+    return sendResponse(StatusCodes::badRequest, "Invalid credentials", true);
   }
 
   auto token = generator_->generateToken(logged_user->id);
-  return sendResponse(provider_->statusCodes().success, userToJson(*logged_user, token).dump(), false);
+  return sendResponse(StatusCodes::success, userToJson(*logged_user, token).dump(), false);
 }
 
 Response AuthController::handleMe(const RequestDTO &req) {
   auto user_id = verifyToken(req.token);
   if (!user_id.has_value()) {
     LOG_ERROR("Invalid token");
-    return sendResponse(provider_->statusCodes().unauthorized, provider_->issueMessages().invalidToken, true);
+    return sendResponse(StatusCodes::unauthorized, IssueMessages::invalidToken, true);
   }
 
   std::optional<User> user = manager_->getUser(*user_id);
   if (!user) {
     LOG_ERROR("User with id {} not found", *user_id);
-    return sendResponse(provider_->statusCodes().notFound, provider_->issueMessages().userNotFound, true);
+    return sendResponse(StatusCodes::notFound, IssueMessages::userNotFound, true);
   }
 
-  return sendResponse(provider_->statusCodes().success, userToJson(*user, req.token).dump(), false);
+  return sendResponse(StatusCodes::success, userToJson(*user, req.token).dump(), false);
 }
 
 Response AuthController::findByTag(const RequestDTO &req) {
   std::optional<std::string> tag = fetchTag(req);
   if (!tag) {  // TODO: fully check tag to not go to databse
     LOG_ERROR("Missing tag parametr");
-    return sendResponse(provider_->statusCodes().badRequest, "Missing tag parametr", true);
+    return sendResponse(StatusCodes::badRequest, "Missing tag parametr", true);
   }
 
   auto list_of_users = manager_->findUsersByTag(*tag);
@@ -124,24 +123,24 @@ Response AuthController::findByTag(const RequestDTO &req) {
     json_users["users"][idx++] = std::move(user_json["user"]);
   }
 
-  return sendResponse(provider_->statusCodes().success, json_users.dump(),
+  return sendResponse(StatusCodes::success, json_users.dump(),
                       false);  // todo: check in function code
 }
 
 Response AuthController::findById(const RequestDTO & /*req*/, const std::string &user_id_str) {
   std::optional<long long> user_id = getIdFromStr(user_id_str);
   if (!user_id.has_value()) {
-    return sendResponse(provider_->statusCodes().badRequest, "Invalid user_id", true);
+    return sendResponse(StatusCodes::badRequest, "Invalid user_id", true);
   }
 
   auto found_user = manager_->getUser(*user_id);
   if (!found_user) {
     LOG_ERROR("User with id {} not found", *user_id);
-    return sendResponse(provider_->statusCodes().notFound, "User not found", true);
+    return sendResponse(StatusCodes::notFound, "User not found", true);
   }
 
   auto user_json = userToJson(*found_user);
-  return sendResponse(provider_->statusCodes().success, user_json["user"].dump(), false);
+  return sendResponse(StatusCodes::success, user_json["user"].dump(), false);
 }
 
 AuthController::OptionalId AuthController::verifyToken(const std::string &token) {
@@ -152,7 +151,7 @@ Response AuthController::registerUser(const RequestDTO &req) {
   auto body = crow::json::load(req.body);
   if (!body || !body.count("email") || !body.count("password") || !body.count("name") || !body.count("tag")) {
     LOG_ERROR("Invalid json");
-    return sendResponse(provider_->statusCodes().badRequest, "Invalid json", true);
+    return sendResponse(StatusCodes::badRequest, "Invalid json", true);
   }
 
   RegisterRequest register_request;
@@ -168,10 +167,10 @@ Response AuthController::registerUser(const RequestDTO &req) {
   std::optional<User> register_user = manager_->registerUser(register_request);
   if (!register_user) {
     LOG_ERROR("User not registered");
-    return sendResponse(provider_->statusCodes().userError, "User already exist", true);
+    return sendResponse(StatusCodes::userError, "User already exist", true);
   }
   LOG_INFO("User registered successfully, id is {}", register_user->id);
   std::string token = generator_->generateToken(register_user->id);
   LOG_INFO("User user {}, id {} token is {}", register_user->username, register_user->id, token);
-  return sendResponse(provider_->statusCodes().success, userToJson(*register_user, token).dump(), false);
+  return sendResponse(StatusCodes::success, userToJson(*register_user, token).dump(), false);
 }
