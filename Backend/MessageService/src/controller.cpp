@@ -5,6 +5,8 @@
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
+#include "config/Routes.h"
+#include "config/codes.h"
 #include "entities/Message.h"
 #include "entities/RequestDTO.h"
 #include "entities/UserMessage.h"
@@ -13,8 +15,6 @@
 #include "messageservice/dto/GetMessagePack.h"
 #include "messageservice/managers/JwtUtils.h"
 #include "messageservice/managers/MessageManager.h"
-#include "config/Routes.h"
-#include "config/codes.h"
 
 namespace {
 
@@ -185,8 +185,7 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest,
-                          formErrorResponse(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse(Config::IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -233,8 +232,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest,
-                          formErrorResponse(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse(Config::IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -283,8 +281,7 @@ Response Controller::getMessageById(const std::string &message_id_str) {
 Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str) {
   std::optional<long long> user_id = getUserIdFromToken(request_pack.token);
   if (!user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::userError,
-                          formErrorResponse(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::userError, formErrorResponse(Config::IssueMessages::invalidToken));
   }
 
   std::optional<long long> chat_id = getIdFromStr(chat_id_str);

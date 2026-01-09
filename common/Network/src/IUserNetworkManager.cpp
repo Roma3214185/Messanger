@@ -1,9 +1,9 @@
 #include "interfaces/IUserNetworkManager.h"
 
 #include "Debug_profiling.h"
-#include "entities/User.h"
-#include "config/ports.h"
 #include "config/codes.h"
+#include "config/ports.h"
+#include "entities/User.h"
 
 std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
   const std::string path = "/users/" + std::to_string(other_user_id);

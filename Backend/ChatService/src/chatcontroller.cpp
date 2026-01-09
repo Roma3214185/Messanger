@@ -7,7 +7,6 @@
 #include "config/codes.h"
 #include "entities/RequestDTO.h"
 #include "entities/User.h"
-#include "config/codes.h"
 
 using std::optional;
 using std::string;
@@ -57,8 +56,7 @@ ChatController::ChatController(IChatManager *manager, NetworkFacade *network_fac
 Response ChatController::createPrivateChat(const RequestDTO &req) {
   auto my_id = autoritize(req.token);
   if (!my_id) {
-    return sendResponse(Config::StatusCodes::unauthorized,
-                        formErrorResponce(Config::IssueMessages::invalidToken));
+    return sendResponse(Config::StatusCodes::unauthorized, formErrorResponce(Config::IssueMessages::invalidToken));
   }
 
   auto body = crow::json::load(req.body);
@@ -151,8 +149,7 @@ Response ChatController::getAllChats(const RequestDTO &req) {
 Response ChatController::getChat(const RequestDTO &req, const std::string &chat_id_str) {
   auto user_id = autoritize(req.token);
   if (!user_id.has_value()) {
-    return sendResponse(Config::StatusCodes::unauthorized,
-                        formErrorResponce(Config::IssueMessages::invalidToken));
+    return sendResponse(Config::StatusCodes::unauthorized, formErrorResponce(Config::IssueMessages::invalidToken));
   }
 
   LOG_INFO("chat_id_str = {}", chat_id_str);
@@ -173,8 +170,7 @@ Response ChatController::getChat(const RequestDTO &req, const std::string &chat_
     auto count = manager_->getMembersCount(chat.id);
 
     if (count <= 0) {
-      return sendResponse(Config::StatusCodes::serverError,
-                          formErrorResponce("Failed to retrieve group member count"));
+      return sendResponse(Config::StatusCodes::serverError, formErrorResponce("Failed to retrieve group member count"));
     }
 
     auto chat_json = buildChatJson(chat, std::nullopt, count);

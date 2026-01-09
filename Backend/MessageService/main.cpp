@@ -7,12 +7,12 @@
 #include "RabbitMQClient.h"
 #include "SQLiteDataBase.h"
 #include "SqlExecutor.h"
+#include "config/ports.h"
 #include "interfaces/IThreadPool.h"
 #include "messageservice/controller.h"
 #include "messageservice/managers/MessageManager.h"
 #include "messageservice/server.h"
 #include "threadpool.h"
-#include "config/ports.h"
 
 RabbitMQConfig getConfig() {
   RabbitMQConfig config;

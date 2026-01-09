@@ -6,8 +6,8 @@
 #include <algorithm>
 
 #include "MetricsMiddleware.h"
-#include "interfaces/ICacheService.h"
 #include "config/codes.h"
+#include "interfaces/ICacheService.h"
 
 struct CacheMiddleware {
   ICacheService *cache_;

@@ -3,8 +3,8 @@
 
 #include <crow.h>
 
-#include "interfaces/IRateLimiter.h"
 #include "config/codes.h"
+#include "interfaces/IRateLimiter.h"
 
 struct RateLimitMiddleware {
   struct context {};
