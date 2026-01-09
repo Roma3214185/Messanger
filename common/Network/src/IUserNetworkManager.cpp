@@ -3,12 +3,13 @@
 #include "Debug_profiling.h"
 #include "entities/User.h"
 #include "ports.h"
+#include "codes.h"
 
 std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
   const std::string path = "/users/" + std::to_string(other_user_id);
-  auto res = forward(provider_->ports().userService, "", path, "GET");
+  auto res = forward(Ports::userService, "", path, "GET");
 
-  if (res.first != provider_->statusCodes().success) {
+  if (res.first != StatusCodes::success) {
     LOG_ERROR("getUserById failed: {}", res.first);
     return std::nullopt;
   }
