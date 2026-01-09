@@ -3,9 +3,7 @@
 
 #include <string>
 
-namespace Config {
-
-struct StatusCodes {  // todo: namespace
+namespace Config::StatusCodes {
   static constexpr int success = 200;
   static constexpr int accepted = 202;
   static constexpr int serverError = 500;
@@ -15,14 +13,13 @@ struct StatusCodes {  // todo: namespace
   static constexpr int conflict = 409;
   static constexpr int notFound = 404;
   static constexpr int rateLimit = 429;
-};
+}  // namespace Config::StatusCodes
 
-struct IssueMessages {
+
+namespace Config::IssueMessages {
   static constexpr const char *userNotFound = "User not founded";
   static constexpr const char *invalidToken = "Invalid or expired token";
   static constexpr const char *rateLimitExceed = "Rate limit exceeded";
-};
-
-}  //namespace Config
+}  //namespace Config::IssueMessages
 
 #endif  // CODES_H

@@ -3,9 +3,7 @@
 
 #include <string>
 
-namespace Config {
-
-struct Routes {
+namespace Config::Routes {
   static constexpr const char *messageSaved = "message_saved";
   static constexpr const char *messageDeleted = "message_deleted";
   static constexpr const char *saveMessage = "save_message";
@@ -18,8 +16,6 @@ struct Routes {
   static constexpr const char *messageStatusSaved = "message_status_saved";
   static constexpr const char *sendRequest = "send_request";
   static constexpr const char *exchangeType = "direct";
-};
-
-}  //namespace Config
+}  //namespace Config::Routes
 
 #endif  // ROUTES_H
