@@ -1,10 +1,8 @@
 #ifndef BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 #define BACKEND_NOTIFICATIONSERVICE_NOTIFICATIONMANAGER_NOTIFICATIONMANAGER_H_
 
-#include "ProdConfigProvider.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
-#include "interfaces/IRabitMQClient.h"
 
 class NetworkFacade;
 class IRabitMQClient;
@@ -16,15 +14,13 @@ class NotificationManager {
   IRabitMQClient *mq_client_;
   SocketsManager *socket_manager_;
   NetworkFacade &network_facade_;
-  IConfigProvider *provider_;
 
  public:
   using SocketPtr = std::shared_ptr<ISocket>;
 
-  NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager, NetworkFacade &network_facade,
-                      IConfigProvider *provider = &ProdConfigProvider::instance());
+  NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager, NetworkFacade &network_facade);
 
-  void saveConnections(const SocketPtr &conn);  // think about move these connections
+  void saveConnections(const SocketPtr &conn);
   void deleteConnections(const SocketPtr &conn);
   virtual void userConnected(long long user_id, SocketPtr conn);
   void saveMessageStatus(MessageStatus &status);
