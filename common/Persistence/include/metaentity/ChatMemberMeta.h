@@ -17,7 +17,7 @@ struct Reflection<ChatMember> {
 
 template <>
 struct Builder<ChatMember> {
-  static ChatMember build(QSqlQuery &query) {
+  static ChatMember build(const QSqlQuery &query) {
     ChatMember chat_member;
     int idx = 0;
 

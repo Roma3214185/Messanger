@@ -17,7 +17,7 @@ struct Reflection<UserCredentials> {
 
 template <>
 struct Builder<UserCredentials> {
-  static UserCredentials build(QSqlQuery &query) {
+  static UserCredentials build(const QSqlQuery &query) {
     UserCredentials user_credentials;
     int idx = 0;
 

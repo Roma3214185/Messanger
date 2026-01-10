@@ -18,7 +18,7 @@ struct Reflection<MessageStatus> {
 
 template <>
 struct Builder<MessageStatus> {
-  static MessageStatus build(QSqlQuery &query) {
+  static MessageStatus build(const QSqlQuery &query) {
     MessageStatus message_status;
     int idx = 0;
 

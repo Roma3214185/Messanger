@@ -24,7 +24,7 @@ struct EntityKey<PrivateChat> {
 
 template <>
 struct Builder<PrivateChat> {
-  static PrivateChat build(QSqlQuery &query) {
+  static PrivateChat build(const QSqlQuery &query) {
     PrivateChat chat;
     int idx = 0;
 
