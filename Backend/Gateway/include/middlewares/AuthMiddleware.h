@@ -46,8 +46,7 @@ struct AuthMiddleware {
 
   inline static bool needToAuth(const std::string &url) {
     LOG_INFO("Check to auth url {}", url);
-    return std::ranges::none_of(kNoNeedAuthUrls,
-                        [&](const auto &prefix) { return url.starts_with(prefix); });
+    return std::ranges::none_of(kNoNeedAuthUrls, [&](const auto &prefix) { return url.starts_with(prefix); });
   }
 };
 

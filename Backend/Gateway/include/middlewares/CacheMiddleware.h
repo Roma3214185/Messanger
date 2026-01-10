@@ -48,7 +48,7 @@ struct CacheMiddleware {
     auto keys = req.url_params.keys();
     std::ranges::sort(keys);
 
-    for (const auto& k : keys) {
+    for (const auto &k : keys) {
       key += "|" + k + "=" + req.url_params.get(k);
     }
 
@@ -60,7 +60,7 @@ struct CacheMiddleware {
     return key;
   }
 
-  bool notNeedCache(const std::string& url) const {
+  bool notNeedCache(const std::string &url) const {
     if (url == "/auth/me") return true;
     if (std::string req_url = "/request"; url.substr(0, req_url.length()) == req_url) return true;
     return false;

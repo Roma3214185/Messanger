@@ -31,10 +31,7 @@ crow::json::wvalue userToJson(const User &user, std::string_view token = {}) {
 }
 
 [[nodiscard]] Response sendResponse(int code, const std::string &text, bool is_error) {
-  auto text_json = [&]() -> std::string {
-    return is_error ? utils::details::formError(text)
-                    : text;
-  };
+  auto text_json = [&]() -> std::string { return is_error ? utils::details::formError(text) : text; };
 
   LOG_INFO("Return responce {} and body {}, is_error {}", code, text, std::to_string(is_error));
   return std::make_pair(code, text_json());

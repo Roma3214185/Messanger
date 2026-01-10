@@ -4,11 +4,11 @@
 #include "NetworkFacade.h"
 #include "NetworkManager.h"
 #include "RabbitMQClient.h"
+#include "config/ports.h"
 #include "notificationservice/managers/notificationmanager.h"
 #include "notificationservice/managers/socketmanager.h"
 #include "notificationservice/server.h"
 #include "threadpool.h"
-#include "config/ports.h"
 
 RabbitMQConfig getConfig() {
   RabbitMQConfig config;

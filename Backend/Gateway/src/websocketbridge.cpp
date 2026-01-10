@@ -48,7 +48,7 @@ void WebSocketBridge::onClientConnect(crow::websocket::connection &client) {
 
 void WebSocketBridge::onClientMessage(crow::websocket::connection &client, const std::string &data) {
   const std::string client_id = makeClientId(client);
-  if ( auto it = connections_.find(client_id); it != connections_.end() && it->second) {
+  if (auto it = connections_.find(client_id); it != connections_.end() && it->second) {
     it->second->send(data);
   }
 }

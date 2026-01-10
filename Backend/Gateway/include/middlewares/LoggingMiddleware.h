@@ -16,8 +16,7 @@ struct LoggingMiddleware {
   inline static std::atomic<uint64_t> global_request_counter{0};
 
   std::string generateRequestId() {
-    const uint64_t id =
-        global_request_counter.fetch_add(1, std::memory_order_relaxed);
+    const uint64_t id = global_request_counter.fetch_add(1, std::memory_order_relaxed);
 
     return std::format("req-{:06}", id);
   }

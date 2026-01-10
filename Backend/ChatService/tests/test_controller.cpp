@@ -1,45 +1,43 @@
 #include <catch2/catch_all.hpp>
-#include "chatservice/chatserver.h"
-#include "chatservice/chatcontroller.h"
-#include "mocks/chatservice/MockChatManager.h"
-#include "mocks/MockNetworkManager.h"
+#include <chrono>
 #include "NetworkFacade.h"
 #include "chatservice/AutoritizerProvider.h"
-#include "mocks/MockAutoritizer.h"
-#include <chrono>
-#include "entities/RequestDTO.h"
+#include "chatservice/chatcontroller.h"
+#include "chatservice/chatserver.h"
 #include "config/codes.h"
+#include "entities/RequestDTO.h"
+#include "mocks/MockAutoritizer.h"
+#include "mocks/MockNetworkManager.h"
+#include "mocks/chatservice/MockChatManager.h"
 
 namespace TestController {
 
 struct TestFixture {
-    crow::SimpleApp app;
-    MockChatManager manager;
-    MockNetworkManager network_manager;
-    NetworkFacade facade = NetworkFactory::create(&network_manager);
-    ChatController controller;
-    ChatServer server;
-    int port = 100;
-    std::string secret_token = "Secret-token-123";
-    RequestDTO req;
-    int user_id = 13;
-    std::shared_ptr<MockAutoritizer> mock_autoritized;
+  crow::SimpleApp app;
+  MockChatManager manager;
+  MockNetworkManager network_manager;
+  NetworkFacade facade = NetworkFactory::create(&network_manager);
+  ChatController controller;
+  ChatServer server;
+  int port = 100;
+  std::string secret_token = "Secret-token-123";
+  RequestDTO req;
+  int user_id = 13;
+  std::shared_ptr<MockAutoritizer> mock_autoritized;
 
-    TestFixture()
-        : controller(&manager, &facade)
-        , server(app, 100, &controller) {
-      mock_autoritized = std::make_shared<MockAutoritizer>();
-      AutoritizerProvider::set(mock_autoritized);
-      auth();
-    }
+  TestFixture() : controller(&manager, &facade), server(app, 100, &controller) {
+    mock_autoritized = std::make_shared<MockAutoritizer>();
+    AutoritizerProvider::set(mock_autoritized);
+    auth();
+  }
 
-    void auth() {
-      mock_autoritized->mock_user_id = user_id;
-      req.headers.emplace_back(std::make_pair("Authorization", secret_token));
-    }
+  void auth() {
+    mock_autoritized->mock_user_id = user_id;
+    req.headers.emplace_back(std::make_pair("Authorization", secret_token));
+  }
 };
 
-} // namespace TestController
+}  // namespace TestController
 
 TEST_CASE("Test createPrivateChat") {
   TestController::TestFixture fix;
@@ -52,7 +50,7 @@ TEST_CASE("Test createPrivateChat") {
 
   SECTION("Request body don't have user_id fiels expected return userError status code and info about issue") {
     fix.req.body = R"({"users_id": 1})";
-     auto [code, body] = fix.controller.createPrivateChat(fix.req);
+    auto [code, body] = fix.controller.createPrivateChat(fix.req);
     REQUIRE(code == Config::StatusCodes::userError);
     REQUIRE(body == utils::details::formError("Missing user_id value"));
   }
@@ -89,7 +87,7 @@ TEST_CASE("Test createPrivateChat") {
   SECTION("Chat not created expected serverError status code and problem issue") {
     int before = fix.manager.call_createPrivateChat;
 
-     auto [code, body] = fix.controller.createPrivateChat(fix.req);
+    auto [code, body] = fix.controller.createPrivateChat(fix.req);
 
     REQUIRE(fix.manager.call_createPrivateChat == before + 1);
     REQUIRE(code == Config::StatusCodes::serverError);
@@ -102,7 +100,7 @@ TEST_CASE("Test createPrivateChat") {
   SECTION("Chat created expected success status code and valid json output") {
     int before = fix.manager.call_createPrivateChat;
 
-     auto [code, body] = fix.controller.createPrivateChat(fix.req);
+    auto [code, body] = fix.controller.createPrivateChat(fix.req);
 
     REQUIRE(fix.manager.call_createPrivateChat == before + 1);
     REQUIRE(code == Config::StatusCodes::success);
@@ -111,9 +109,9 @@ TEST_CASE("Test createPrivateChat") {
 
     REQUIRE(r.size() == 3);
     CHECK(r["id"].i() == chat_id);
-    CHECK(r["type"].s()    == "private");
-    CHECK(r["user"]["id"].i()   == user.id);
-    CHECK(r["user"]["avatar"].s()  == user.avatar);
+    CHECK(r["type"].s() == "private");
+    CHECK(r["user"]["id"].i() == user.id);
+    CHECK(r["user"]["avatar"].s() == user.avatar);
     CHECK(r["user"]["name"].s() == user.username);
   }
 }
@@ -125,7 +123,7 @@ TEST_CASE("Test getAllChatMembers") {
   SECTION("Invalid token expected no error about invalid token") {
     fix.mock_autoritized->need_fail = true;
     auto [_, body] = fix.controller.getAllChatMembers(fix.req, chat_id);
-    REQUIRE(body !=Config::IssueMessages::invalidToken);
+    REQUIRE(body != Config::IssueMessages::invalidToken);
   }
 
   SECTION("DB returns empty list expected serverError") {
@@ -138,9 +136,9 @@ TEST_CASE("Test getAllChatMembers") {
   }
 
   SECTION("DB returns one member expected success and correct json") {
-    fix.manager.mock_members = { 5 };
+    fix.manager.mock_members = {5};
 
-    auto [code, body] =  fix.controller.getAllChatMembers(fix.req, chat_id);
+    auto [code, body] = fix.controller.getAllChatMembers(fix.req, chat_id);
 
     REQUIRE(code == Config::StatusCodes::success);
 
@@ -152,7 +150,7 @@ TEST_CASE("Test getAllChatMembers") {
   }
 
   SECTION("DB returns multiple members expected success and correct json") {
-    std::vector<long long> members = { 3, 7, 12 };
+    std::vector<long long> members = {3, 7, 12};
     fix.manager.mock_members = members;
 
     auto [code, body] = fix.controller.getAllChatMembers(fix.req, chat_id);
@@ -182,7 +180,7 @@ TEST_CASE("Test ChatController::GetChat") {
   }
 
   SECTION("Chat not found expected statusCode userError and info about issue") {
-     auto [code, body] = fix.controller.getChat(fix.req, chat_id);
+    auto [code, body] = fix.controller.getChat(fix.req, chat_id);
     REQUIRE(code == Config::StatusCodes::userError);
     REQUIRE(body == utils::details::formError("Chat not found"));
   }
@@ -206,7 +204,7 @@ TEST_CASE("Test ChatController::GetChat") {
   fix.manager.mock_other_member_id = other_member_id;
 
   SECTION("Not found user profile expected badRequest error and problem issue") {
-     auto [code, body] = fix.controller.getChat(fix.req, chat_id);
+    auto [code, body] = fix.controller.getChat(fix.req, chat_id);
     REQUIRE(code == Config::StatusCodes::badRequest);
     REQUIRE(body == utils::details::formError("User profile not found"));
   }
@@ -225,9 +223,9 @@ TEST_CASE("Test ChatController::GetChat") {
 
     REQUIRE(r.size() == 3);
     CHECK(r["id"].i() == std::stoi(chat_id));
-    CHECK(r["type"].s()    == "private");
-    CHECK(r["user"]["id"].i()   == other_user.id);
-    CHECK(r["user"]["avatar"].s()  == other_user.avatar);
+    CHECK(r["type"].s() == "private");
+    CHECK(r["user"]["id"].i() == other_user.id);
+    CHECK(r["user"]["avatar"].s() == other_user.avatar);
     CHECK(r["user"]["name"].s() == other_user.username);
   }
 }
@@ -256,12 +254,9 @@ TEST_CASE("Test ChatController::GetAllChats") {
   group_chat.is_group = true;
   group_chat.name = "GroupChatName";
   group_chat.avatar = "group/avatar.png";
-  group_chat.created_at =   utils::time::getCurrentTime();
+  group_chat.created_at = utils::time::getCurrentTime();
 
-  fix.manager.mock_chat_by_id = {
-      {private_chat.id, private_chat},
-      {group_chat.id, group_chat}
-  };
+  fix.manager.mock_chat_by_id = {{private_chat.id, private_chat}, {group_chat.id, group_chat}};
 
   User other_user;
   other_user.id = 123;
@@ -270,13 +265,9 @@ TEST_CASE("Test ChatController::GetAllChats") {
   fix.network_manager.mock_user = other_user;
   fix.manager.mock_other_member_id = 123;
 
-  SECTION("One valid private chat and one valid group chat expected success")
-  {
+  SECTION("One valid private chat and one valid group chat expected success") {
     fix.auth();
-    fix.manager.mock_chat_by_id = {
-        {private_chat.id, private_chat},
-        {group_chat.id, group_chat}
-    };
+    fix.manager.mock_chat_by_id = {{private_chat.id, private_chat}, {group_chat.id, group_chat}};
     fix.manager.mock_other_member_id = other_user.id;
     fix.network_manager.mock_user = other_user;
     constexpr int mock_cnt = 5;

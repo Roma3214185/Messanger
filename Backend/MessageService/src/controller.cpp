@@ -238,7 +238,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<Message> message_to_delete = manager_->getMessage(message_id);
   if (!message_to_delete) {
-     return std::make_pair(Config::StatusCodes::notFound, utils::details::formError("Message to delete not found"));
+    return std::make_pair(Config::StatusCodes::notFound, utils::details::formError("Message to delete not found"));
   }
 
   if (message_to_delete->sender_id != current_user_id) {  // in future permission will be in admins of the group

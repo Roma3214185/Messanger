@@ -4,10 +4,10 @@
 #include "chatservice/AutoritizerProvider.h"
 #include "chatservice/chatcontroller.h"
 #include "chatservice/chatserver.h"
+#include "config/codes.h"
 #include "mocks/MockAutoritizer.h"
 #include "mocks/MockNetworkManager.h"
 #include "mocks/chatservice/MockChatManager.h"
-#include "config/codes.h"
 
 namespace TestServer {
 

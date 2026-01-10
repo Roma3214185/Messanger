@@ -14,7 +14,7 @@ using std::string;
 namespace {
 
 template <typename T>
-inline void append(crow::json::wvalue &arr, const T& item) {
+inline void append(crow::json::wvalue &arr, const T &item) {
   size_t idx = arr.size();
   arr[idx] = item;
 }
@@ -28,13 +28,11 @@ std::optional<long long> getIdFromStr(const std::string &str) {
   }
 }
 
-[[nodiscard]]
-Response sendResponse(int code, const std::string &text) { return std::make_pair(code, text); }
+[[nodiscard]] Response sendResponse(int code, const std::string &text) { return std::make_pair(code, text); }
 
-[[nodiscard]]
-nlohmann::json buildChatJson(const Chat &chat,
-                             const std::optional<User> other_user,  // todo: make not optional
-                             std::optional<int> member_count) {
+[[nodiscard]] nlohmann::json buildChatJson(const Chat &chat,
+                                           const std::optional<User> other_user,  // todo: make not optional
+                                           std::optional<int> member_count) {
   nlohmann::json json;
   json["id"] = chat.id;
   json["type"] = chat.is_group ? "group" : "private";
@@ -133,7 +131,6 @@ Response ChatController::getAllChats(const RequestDTO &req) {
 
   crow::json::wvalue ans;
   ans["chats"] = crow::json::wvalue::list();
-
 
   for (const auto &chat_id : chats) {
     LOG_INFO("User id {} - chat_id {}", *user_id, chat_id);

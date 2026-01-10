@@ -15,15 +15,16 @@ ChatManager::ChatManager(GenericRepository *repository, IIdGenerator *generator)
     : repository_(repository), generator_(generator) {}
 
 std::optional<PrivateChat> ChatManager::getPrivateChat(ID first_user_id, ID second_user_id) {
-  if(first_user_id == second_user_id) {
-    LOG_ERROR ("Invalid sitution with ID");
+  if (first_user_id == second_user_id) {
+    LOG_ERROR("Invalid sitution with ID");
     return std::nullopt;
   }
 
-  if(first_user_id > second_user_id) std::swap(first_user_id, second_user_id);
+  if (first_user_id > second_user_id) std::swap(first_user_id, second_user_id);
 
   auto custom_query = QueryFactory::createSelect<PrivateChat>(repository_->getExecutor(), repository_->getCache());
-  custom_query->where(PrivateChatTable::FirstUserId, first_user_id).where(PrivateChatTable::SecondUserId, second_user_id);
+  custom_query->where(PrivateChatTable::FirstUserId, first_user_id)
+      .where(PrivateChatTable::SecondUserId, second_user_id);
   auto result = custom_query->execute();
 
   if (auto res = QueryFactory::getSelectResult(result).result; res.size() == 1) {
@@ -54,7 +55,7 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
   long long min_user_id = first_user_id < second_user_id ? first_user_id : second_user_id;
   long long max_user_id = first_user_id > second_user_id ? first_user_id : second_user_id;
 
-  if(auto existed_chat = getPrivateChat(min_user_id, max_user_id); existed_chat.has_value()) {
+  if (auto existed_chat = getPrivateChat(min_user_id, max_user_id); existed_chat.has_value()) {
     LOG_INFO("Private chat is existed, id is {}", existed_chat->chat_id);
     return existed_chat->chat_id;
   }
