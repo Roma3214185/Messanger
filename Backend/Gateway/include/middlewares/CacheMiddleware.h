@@ -18,9 +18,7 @@ struct CacheMiddleware {
   template <typename ParentCtx>
   void before_handle(const crow::request &req, crow::response &res, context &ctx, ParentCtx &parent_ctx) {
     if (req.method != crow::HTTPMethod::GET) return;
-    if (req.url == "/auth/me") return;
-    std::string req_url = "/request";
-    if (req.url.substr(0, req_url.length()) == req_url) return;
+    if(notNeedCache(req.url)) return;
     LOG_INFO("Url before_handle cache: {}", req.url);
 
     auto key = makeCacheKey(req);
@@ -52,7 +50,7 @@ struct CacheMiddleware {
     auto keys = req.url_params.keys();
     std::ranges::sort(keys);
 
-    for (auto &k : keys) {
+    for (const auto& k : keys) {
       key += "|" + k + "=" + req.url_params.get(k);
     }
 
@@ -62,6 +60,12 @@ struct CacheMiddleware {
 
     LOG_INFO("makeCacheKey for req {} : {} ", req.url, key);
     return key;
+  }
+
+  bool notNeedCache(const std::string& url) const {
+    if (url == "/auth/me") return true;
+    if (std::string req_url = "/request"; url.substr(0, req_url.length()) == req_url) return true;
+    return false;
   }
 };
 

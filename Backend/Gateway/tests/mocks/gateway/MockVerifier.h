@@ -9,7 +9,7 @@ class MockVerifier : public IVerifier {
   int call_verify = 0;
   std::optional<long long> mock_ans;
 
-  std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
+  std::optional<long long> verifyTokenAndGetUserId(const std::string &token) override {
     last_token = token;
     ++call_verify;
     return mock_ans;

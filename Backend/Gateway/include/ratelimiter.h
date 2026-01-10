@@ -24,7 +24,7 @@ class RateLimiter : public IRateLimiter {
       : maxRequests(maxReq), window(win) {}
 
   bool allow(const std::string &ip) override {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     auto now = std::chrono::steady_clock::now();
 
     auto &entry = entries_[ip];
