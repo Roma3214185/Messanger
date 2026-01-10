@@ -53,6 +53,7 @@ class BaseManager : public QObject {
                        }
 
                        const int http_status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                       LOG_INFO("httpStatus = ", http_status);
                        if (http_status == 202) {
                          std::string task_id = extractTaskId(reply);
                          QByteArray new_array = getRequestStatus(task_id);
@@ -92,8 +93,9 @@ class BaseManager : public QObject {
 
                        // TODO: if(!checkReply(reply) {
 
-                       int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-                       if (httpStatus == 202) {
+                       int http_status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                       LOG_INFO("http_status = ", http_status);
+                       if (http_status == 202) {
                          const std::string task_id = extractTaskId(reply);
                          on_finished(getRequestStatus(task_id));
                        } else {

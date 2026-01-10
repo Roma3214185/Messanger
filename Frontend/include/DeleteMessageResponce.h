@@ -16,8 +16,9 @@ class DeleteMessageResponceHandler : public ISocketResponceHandler {
 
   void handle(const QJsonObject &json_object) override {
     auto new_message = JsonService::getMessageFromJson(json_object);
-    int current_id = token_manager_->getCurrentUserId();
-    if (current_id == new_message.sender_id) new_message.is_mine = true;
+    if (long long current_id = token_manager_->getCurrentUserId(); current_id == new_message.sender_id) {
+      new_message.is_mine = true;
+    }
     new_message.status_sended = true;
     message_use_case_->deleteMessage(new_message);
   }
