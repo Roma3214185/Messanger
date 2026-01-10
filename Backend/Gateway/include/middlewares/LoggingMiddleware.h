@@ -2,7 +2,7 @@
 #define LOGGINGMIDDLEWARE_H
 
 #include <crow.h>
-
+#include <format>
 #include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
@@ -16,10 +16,10 @@ struct LoggingMiddleware {
   inline static std::atomic<uint64_t> global_request_counter{0};
 
   std::string generateRequestId() {
-    const uint64_t id = global_request_counter.fetch_add(1, std::memory_order_relaxed);
-    std::stringstream sstream;
-    sstream << "req-" << std::setw(6) << std::setfill('0') << id;
-    return sstream.str();
+    const uint64_t id =
+        global_request_counter.fetch_add(1, std::memory_order_relaxed);
+
+    return std::format("req-{:06}", id);
   }
 
   template <typename ParentCtx>
