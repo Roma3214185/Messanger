@@ -14,6 +14,12 @@ using std::string;
 
 namespace {
 
+template <typename T>
+inline void append(crow::json::wvalue &arr, const T&item) {
+  size_t idx = arr.size();
+  arr[idx] = item;
+}
+
 std::optional<long long> getIdFromStr(const std::string &str) {
   try {
     return std::stoll(str);
@@ -130,7 +136,6 @@ Response ChatController::getAllChats(const RequestDTO &req) {
   crow::json::wvalue ans;
   ans["chats"] = crow::json::wvalue::list();
 
-  int index = 0;
 
   for (const auto &chat_id : chats) {
     LOG_INFO("User id {} - chat_id {}", *user_id, chat_id);
@@ -138,7 +143,7 @@ Response ChatController::getAllChats(const RequestDTO &req) {
     LOG_INFO("For chat {} finded res is {}", chat_id, body);
 
     if (code == Config::StatusCodes::success) {
-      ans["chats"][index++] = crow::json::load(body);
+      append(ans["chats"], crow::json::load(body));
     } else {
       LOG_ERROR("[GetAllChats] Failed to retrieve chat with ID '{}'", chat_id);
       // return sendError(res, chat_res.code, chat_res.body);
@@ -158,7 +163,7 @@ Response ChatController::getChat(const RequestDTO &req, const std::string &chat_
   LOG_INFO("chat_id_str = {}", chat_id_str);
   auto chat_id = getIdFromStr(chat_id_str);
   if (!chat_id.has_value()) {
-    return sendResponse(Config::StatusCodes::badRequest, utils::details::formError("Invaid id"));
+    return sendResponse(Config::StatusCodes::badRequest, utils::details::formError("Invalid id"));
   }
 
   LOG_INFO("Chat id is {}", *chat_id);
@@ -214,11 +219,9 @@ Response ChatController::getAllChatMembers(const RequestDTO & /*req*/, const std
   crow::json::wvalue ans;
   ans["members"] = crow::json::wvalue::list();
 
-  size_t i = -1;
   for (auto member_id : list_of_members) {
-    ++i;
     LOG_INFO("ChatId '{}' - member '{}'", *chat_id, member_id);
-    ans["members"][i] = member_id;
+    append(ans["members"], member_id);
   }
 
   return sendResponse(Config::StatusCodes::success, ans.dump());
