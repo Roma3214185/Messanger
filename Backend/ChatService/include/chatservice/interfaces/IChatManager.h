@@ -1,7 +1,8 @@
 #ifndef ICHATMANAGER_H
 #define ICHATMANAGER_H
 
-#include <entities/Chat.h>
+#include "entities/Chat.h"
+#include "entities/PrivateChat.h"
 
 #include <optional>
 #include <vector>
@@ -17,6 +18,7 @@ class IChatManager {
   virtual std::vector<ID> getChatsIdOfUser(ID user_id) = 0;
   virtual int getMembersCount(ID chat_id) = 0;
   virtual std::optional<ID> getOtherMemberId(ID chat_id, ID user_id) = 0;
+  virtual std::optional<PrivateChat> getPrivateChat(ID first_user_id, ID second_user_id) = 0;
   virtual std::optional<Chat> getChatById(ID chat_id) = 0;
 };
 

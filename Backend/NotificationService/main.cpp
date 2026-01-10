@@ -8,6 +8,7 @@
 #include "notificationservice/managers/socketmanager.h"
 #include "notificationservice/server.h"
 #include "threadpool.h"
+#include "config/ports.h"
 
 RabbitMQConfig getConfig() {
   RabbitMQConfig config;

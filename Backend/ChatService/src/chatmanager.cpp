@@ -14,6 +14,26 @@ bool checkIdValid(long long id) { return id > 0; }
 ChatManager::ChatManager(GenericRepository *repository, IIdGenerator *generator)
     : repository_(repository), generator_(generator) {}
 
+std::optional<PrivateChat> ChatManager::getPrivateChat(ID first_user_id, ID second_user_id) {
+  if(first_user_id == second_user_id) {
+    LOG_ERROR ("Invalid sitaution with ID");
+    return std::nullopt;
+  }
+
+  if(first_user_id > second_user_id) std::swap(first_user_id, second_user_id);
+
+  auto custom_query = QueryFactory::createSelect<PrivateChat>(repository_->getExecutor(), repository_->getCache());
+  custom_query->where(PrivateChatTable::FirstUserId, first_user_id).where(PrivateChatTable::SecondUserId, second_user_id);
+  auto result = custom_query->execute();  // todo: implement fucntion getPrivateChat()
+
+  if (auto res = QueryFactory::getSelectResult(result).result; res.size() == 1) {
+    LOG_INFO("Private chat is existed, id is {}", res[0].chat_id);
+    return res[0];
+  }
+
+  return std::nullopt;
+}
+
 std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_user_id) {
   LOG_INFO("F id {} and S id {}", first_user_id, second_user_id);
   if (first_user_id == second_user_id) {
@@ -34,16 +54,19 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
   long long min_user_id = first_user_id < second_user_id ? first_user_id : second_user_id;
   long long max_user_id = first_user_id > second_user_id ? first_user_id : second_user_id;
 
-  auto custom_query = QueryFactory::createSelect<PrivateChat>(repository_->getExecutor(), repository_->getCache());
-  custom_query->where(PrivateChatTable::FirstUserId, min_user_id).where(PrivateChatTable::SecondUserId, max_user_id);
-
-  auto result = custom_query->execute();
-  auto res = QueryFactory::getSelectResult(result).result;
-  // DBC_REQUIRE(res.size() <= 1);
-  if (res.size() == 1) {
-    LOG_INFO("Private chat is existed, id is {}", res[0].chat_id);
-    return res[0].chat_id;
+  if(auto existed_chat = getPrivateChat(min_user_id, max_user_id); existed_chat.has_value()) {
+    LOG_INFO("Private chat is existed, id is {}", existed_chat->chat_id);
+    return existed_chat->chat_id;
   }
+
+  // auto custom_query = QueryFactory::createSelect<PrivateChat>(repository_->getExecutor(), repository_->getCache());
+  // custom_query->where(PrivateChatTable::FirstUserId, min_user_id).where(PrivateChatTable::SecondUserId, max_user_id);
+  // auto result = custom_query->execute();  // todo: implement fucntion getPrivateChat()
+
+  // if (auto res = QueryFactory::getSelectResult(result).result; res.size() == 1) {
+  //   LOG_INFO("Private chat is existed, id is {}", res[0].chat_id);
+  //   return res[0].chat_id;
+  // }
 
   long long new_chat_id = generator_->generateId();
   if (!checkIdValid(new_chat_id)) {
@@ -57,8 +80,7 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
   to_save.created_at = QDateTime::currentSecsSinceEpoch();
   to_save.is_group = false;
 
-  bool ok = repository_->save(to_save);
-  if (!ok) {
+  if (!repository_->save(to_save)) {
     LOG_ERROR("Can't save chat in db");
     return std::nullopt;
   }
@@ -68,14 +90,12 @@ std::optional<ID> ChatManager::createPrivateChat(ID first_user_id, ID second_use
   private_chat.first_user = min_user_id;
   private_chat.second_user = max_user_id;
 
-  bool save_private_chat = repository_->save(private_chat);
-  if (!save_private_chat) {
+  if (!repository_->save(private_chat)) {
     LOG_ERROR("Can't save private chat");
     return std::nullopt;
   }
 
-  bool save_members = addMembersToChat(to_save.id, {min_user_id, max_user_id});
-  if (!save_members) {
+  if (!addMembersToChat(to_save.id, {min_user_id, max_user_id})) {
     LOG_ERROR("Can't save members");
     return std::nullopt;
   }

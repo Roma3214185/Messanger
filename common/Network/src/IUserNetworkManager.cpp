@@ -7,15 +7,15 @@
 
 std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
   const std::string path = "/users/" + std::to_string(other_user_id);
-  auto res = forward(Config::Ports::userService, "", path, "GET");
+  auto [code, body] = forward(Config::Ports::userService, "", path, "GET");
 
-  if (res.first != Config::StatusCodes::success) {
-    LOG_ERROR("getUserById failed: {}", res.first);
+  if (code != Config::StatusCodes::success) {
+    LOG_ERROR("getUserById failed: {}", code);
     return std::nullopt;
   }
 
   try {
-    const nlohmann::json obj = nlohmann::json::parse(res.second);
+    const nlohmann::json obj = nlohmann::json::parse(body);
 
     if (!obj.is_object()) {
       LOG_ERROR("Invalid JSON format in getUserById");
