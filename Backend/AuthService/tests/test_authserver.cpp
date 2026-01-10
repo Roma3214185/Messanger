@@ -18,8 +18,8 @@ struct TestFixture {
   crow::request req;
   crow::response res;
   int user_id = 13;
-  Server server;
   AuthController controller;
+  Server server;
   MockAutoritizer authoritizer;
   User user;
   std::string token = "secret-test-token";

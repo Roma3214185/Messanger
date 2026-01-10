@@ -45,6 +45,13 @@ class MockChatManager : public IChatManager {
     return mock_members;
   }
 
+  bool should_return_private_chat = true;
+  PrivateChat mock_private_chat;
+  std::optional<PrivateChat> getPrivateChat(ID first_user_id, ID second_user_id) override {
+    if(should_return_private_chat) return mock_private_chat;
+    return std::nullopt;
+  }
+
   std::vector<ID> getChatsIdOfUser(ID user_id) override {
     last_user_id = user_id;
     ++call_getChatsOfUser;

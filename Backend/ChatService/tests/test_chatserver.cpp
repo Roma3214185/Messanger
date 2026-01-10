@@ -7,6 +7,7 @@
 #include "mocks/MockAutoritizer.h"
 #include "mocks/MockNetworkManager.h"
 #include "mocks/chatservice/MockChatManager.h"
+#include "config/codes.h"
 
 namespace TestServer {
 
