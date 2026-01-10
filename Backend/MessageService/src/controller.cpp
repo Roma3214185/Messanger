@@ -183,7 +183,7 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError(Config::IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -230,7 +230,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError(Config::IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -279,7 +279,7 @@ Response Controller::getMessageById(const std::string &message_id_str) {
 Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str) {
   std::optional<long long> user_id = getUserIdFromToken(request_pack.token);
   if (!user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::userError, formErrorResponse(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::userError, utils::details::formError(Config::IssueMessages::invalidToken));
   }
 
   std::optional<long long> chat_id = getIdFromStr(chat_id_str);

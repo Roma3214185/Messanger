@@ -48,7 +48,7 @@ TEST_CASE("Test createPrivateChat") {
     REQUIRE(body == utils::details::formError("Missing user_id value"));
   }
 
-  SECTION("Request body don't have user_id fiels expected return userError status code and info about issue") {
+  SECTION("Request body don't have user_id field expected return userError status code and info about issue") {
     fix.req.body = R"({"users_id": 1})";
     auto [code, body] = fix.controller.createPrivateChat(fix.req);
     REQUIRE(code == Config::StatusCodes::userError);
@@ -58,7 +58,7 @@ TEST_CASE("Test createPrivateChat") {
   int other_user_id = 37;
   fix.req.body = R"({"user_id": 37})";
 
-  SECTION("Request body have user_id fiels expected call to network_manager with valid id") {
+  SECTION("Request body have user_id field expected call to network_manager with valid id") {
     fix.controller.createPrivateChat(fix.req);
     REQUIRE(fix.network_manager.last_user_id == other_user_id);
   }
