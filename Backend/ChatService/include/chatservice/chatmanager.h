@@ -23,6 +23,7 @@ class ChatManager : public IChatManager {
   int getMembersCount(ID chat_id) override;
   std::optional<ID> getOtherMemberId(ID chat_id, ID user_id) override;
   std::optional<Chat> getChatById(ID chat_id) override;
+  std::optional<PrivateChat> getPrivateChat(ID first_user_id, ID second_user_id) override;
 
  private:
   GenericRepository *repository_;

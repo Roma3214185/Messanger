@@ -20,8 +20,7 @@ struct AuthMiddleware {
     if (!needToAuth(req.url)) return;
 
     auto token = fetchToken(req);
-    std::optional<long long> id = verifier_->verifyTokenAndGetUserId(token);
-    if (id.has_value()) {
+    if (std::optional<long long> id = verifier_->verifyTokenAndGetUserId(token); id.has_value()) {
       cont.user_id = *id;
       return;
     }
@@ -47,8 +46,7 @@ struct AuthMiddleware {
 
   inline static bool needToAuth(const std::string &url) {
     LOG_INFO("Check to auth url {}", url);
-    return std::none_of(kNoNeedAuthUrls.begin(), kNoNeedAuthUrls.end(),
-                        [&](const auto &prefix) { return url.starts_with(prefix); });
+    return std::ranges::none_of(kNoNeedAuthUrls, [&](const auto &prefix) { return url.starts_with(prefix); });
   }
 };
 

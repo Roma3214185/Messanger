@@ -28,6 +28,8 @@ inline std::string getContentType(const crow::request &req) {
 
 inline std::string extractToken(const crow::request &req) { return req.get_header_value("Authorization"); }
 
+inline std::string formError(const std::string &error_text) { return nlohmann::json{{"error", error_text}}.dump(); }
+
 }  // namespace utils::details
 
 namespace utils {

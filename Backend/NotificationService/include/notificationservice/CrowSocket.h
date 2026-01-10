@@ -21,7 +21,6 @@ class CrowSocket final : public ISocket {
       return;
     }
 
-    std::lock_guard<std::mutex> lock(conn_mutex_);
     if (conn_) {
       conn_->send_text(text);
       LOG_INFO("{} is sended", text);

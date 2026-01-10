@@ -24,7 +24,7 @@ struct EntityFields<User> {
 
 template <>
 struct Builder<User> {
-  static User build(QSqlQuery &query) {
+  static User build(const QSqlQuery &query) {
     User user;
     int i = 0;
 

@@ -39,8 +39,6 @@ std::optional<long long> getIdFromStr(const std::string &str) {
   }
 }
 
-std::string formErrorResponse(const std::string &error_text) { return nlohmann::json{{"error", error_text}}.dump(); }
-
 int getLimit(const RequestDTO &req) {
   auto it = req.url_params.find("limit");
   return it != req.url_params.end() ? std::stoi(it->second) : INT_MAX;
@@ -177,7 +175,7 @@ std::optional<long long> Controller::getUserIdFromToken(const std::string &token
 Response Controller::updateMessage(const RequestDTO &request_pack, const std::string &message_id_str) {
   auto id_opt = getIdFromStr(message_id_str);
   if (!id_opt.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse("Invalid id"));
+    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError("Invalid id"));
   }
 
   long long message_id = *id_opt;
@@ -194,22 +192,22 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
   // check if u have access to update this message (update only curr user)
   std::optional<Message> message_to_update = manager_->getMessage(message_id);
   if (!message_to_update) {
-    return std::make_pair(Config::StatusCodes::notFound, formErrorResponse("Message to update not found"));
+    return std::make_pair(Config::StatusCodes::notFound, utils::details::formError("Message to update not found"));
   }
 
   if (message_to_update->sender_id != current_user_id) {
     return std::make_pair(Config::StatusCodes::conflict,
-                          formErrorResponse("U have no permission to update this message"));
+                          utils::details::formError("U have no permission to update this message"));
   }
 
   std::optional<Message> updated_message = parsePayload<Message>(request_pack.body);
   if (!updated_message) {
-    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse("Invalid data"));
+    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError("Invalid data"));
   }
 
   // todo: check invariants of updated_message;
   if (!manager_->saveMessage(*updated_message)) {
-    return std::make_pair(Config::StatusCodes::serverError, formErrorResponse("Error while saving"));
+    return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Error while saving"));
   }
 
   PublishRequest request;
@@ -225,7 +223,7 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
 Response Controller::deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str) {
   auto id_opt = getIdFromStr(message_id_str);
   if (!id_opt) {
-    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse("Invalid id"));
+    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError("Invalid id"));
   }
 
   long long message_id = *id_opt;
@@ -240,17 +238,17 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<Message> message_to_delete = manager_->getMessage(message_id);
   if (!message_to_delete) {
-    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse("Invalid data"));
+    return std::make_pair(Config::StatusCodes::notFound, utils::details::formError("Message to delete not found"));
   }
 
   if (message_to_delete->sender_id != current_user_id) {  // in future permission will be in admins of the group
                                                           // chat
     return std::make_pair(Config::StatusCodes::conflict,
-                          formErrorResponse("U have no permission to update this message"));
+                          utils::details::formError("U have no permission to update this message"));
   }
 
   if (!manager_->deleteMessage(*message_to_delete)) {
-    return std::make_pair(Config::StatusCodes::serverError, formErrorResponse("Error while saving"));
+    return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Error while saving"));
   }
 
   PublishRequest request;
@@ -272,10 +270,10 @@ Response Controller::getMessageById(const std::string &message_id_str) {
   LOG_INFO("getMessageById {}", message_id_str);
 
   std::optional<long long> message_id = getIdFromStr(message_id_str);
-  if (!message_id.has_value()) return std::make_pair(400, formErrorResponse("Invalid message_id"));
+  if (!message_id.has_value()) return std::make_pair(400, utils::details::formError("Invalid message_id"));
   auto message_opt = manager_->getMessage(*message_id);
   return message_opt ? std::make_pair(200, nlohmann::json(*message_opt).dump())
-                     : std::make_pair(404, formErrorResponse("Not found"));
+                     : std::make_pair(404, utils::details::formError("Not found"));
 }
 
 Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str) {
@@ -286,7 +284,7 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
 
   std::optional<long long> chat_id = getIdFromStr(chat_id_str);
   if (!chat_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest, formErrorResponse("Invalid chat_id"));
+    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError("Invalid chat_id"));
   }
 
   const GetMessagePack pack{.chat_id = *chat_id,

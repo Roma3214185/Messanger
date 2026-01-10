@@ -13,6 +13,7 @@
 #include "chatservice/chatcontroller.h"
 #include "chatservice/chatmanager.h"
 #include "chatservice/chatserver.h"
+#include "config/ports.h"
 
 int main(int argc, char *argv[]) {
   initLogger("ChatService");

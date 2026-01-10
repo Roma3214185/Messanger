@@ -20,7 +20,7 @@ class SocketsManager {
 
  private:
   Sockets user_sockets_;
-  std::mutex ws_mutex;
+  std::mutex ws_mutex_;
 };
 
 #endif  // BACKEND_NOTIFICATION_SOCKETMANAGER_H

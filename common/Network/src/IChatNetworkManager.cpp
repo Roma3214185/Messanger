@@ -9,16 +9,16 @@
 std::vector<UserId> IChatNetworkManager::getMembersOfChat(long long chat_id) {
   const std::string path = "/chats/" + std::to_string(chat_id) + "/members";
 
-  auto res = forward(Config::Ports::chatService, "", path, "GET");
+  auto [code, body] = forward(Config::Ports::chatService, "", path, "GET");
 
-  if (res.first != Config::StatusCodes::success) {
-    LOG_ERROR("GetMembersOfChat failed '{}' reason: '{}'", res.first, res.second);
+  if (code != Config::StatusCodes::success) {
+    LOG_ERROR("GetMembersOfChat failed '{}' reason: '{}'", code, body);
     return std::vector<UserId>{};
   }
 
   std::vector<UserId> members;
   try {
-    nlohmann::json json_response = nlohmann::json::parse(res.second);
+    nlohmann::json json_response = nlohmann::json::parse(body);
 
     if (!json_response.contains("members") || !json_response["members"].is_array()) {
       LOG_ERROR("getMembersOfChat: missing 'members' array");

@@ -16,7 +16,7 @@ class SocketRepository {
 
  private:
   std::unordered_set<SocketPtr> active_sockets_;
-  std::mutex ws_mutex;
+  std::mutex ws_mutex_;
 };
 
 #endif  // SOCKETREPOSITORY_H

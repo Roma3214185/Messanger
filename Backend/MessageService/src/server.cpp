@@ -33,7 +33,7 @@ void Server::handleRoutes() {
 void Server::handleGetMessagesFromChat() {  // todo: chat/<string>/messages
   CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::GET)(
-          [&](const crow::request &req, crow::response &res, const std::string &chat_id_str) {
+          [this](const crow::request &req, crow::response &res, const std::string &chat_id_str) {
             PROFILE_SCOPE();
             auto [code, body] = controller_->getMessagesFromChat(utils::getDTO(req, "messages/<chat_id>"), chat_id_str);
             sendResponse(res, code, body);
@@ -43,7 +43,7 @@ void Server::handleGetMessagesFromChat() {  // todo: chat/<string>/messages
 void Server::handleGetMessage() {
   CROW_ROUTE(app_, "/message/<string>")
       .methods(crow::HTTPMethod::GET)(
-          [&](const crow::request &req, crow::response &res, const std::string &message_id_str) {
+          [this](const crow::request &req, crow::response &res, const std::string &message_id_str) {
             PROFILE_SCOPE();
             auto [code, body] = controller_->getMessageById(message_id_str);
             sendResponse(res, code, body);
@@ -58,7 +58,7 @@ void Server::run() {
 void Server::handleUpdateMessage() {
   CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::PUT)(
-          [&](const crow::request &req, crow::response &res, const std::string &message_id_str) {
+          [this](const crow::request &req, crow::response &res, const std::string &message_id_str) {
             PROFILE_SCOPE();
             auto [code, body] = controller_->updateMessage(utils::getDTO(req, "message/string"), message_id_str);
             sendResponse(res, code, body);
@@ -68,7 +68,7 @@ void Server::handleUpdateMessage() {
 void Server::handleDeleteMessage() {
   CROW_ROUTE(app_, "/messages/<string>")
       .methods(crow::HTTPMethod::DELETE)(
-          [&](const crow::request &req, crow::response &res, const std::string &message_id_str) {
+          [this](const crow::request &req, crow::response &res, const std::string &message_id_str) {
             PROFILE_SCOPE();
             auto [code, body] = controller_->deleteMessage(utils::getDTO(req, "message/string"), message_id_str);
             sendResponse(res, code, body);

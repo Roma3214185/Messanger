@@ -29,10 +29,10 @@ class MessageManager {
   std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
 
  private:
-  ICacheService &cache_;
   GenericRepository *repository_;
   ISqlExecutor *executor_;
   IIdGenerator *generator_;
+  ICacheService &cache_;
 };
 
 #endif  // BACKEND_MESSAGE_SERVICE_MESSAGEMANAGER_H

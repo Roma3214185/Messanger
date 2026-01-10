@@ -42,7 +42,10 @@ TEST_CASE("Test") {
   SECTION("getMessagesStatus expected create valid sql request") {
     cache.clearCache();
     std::vector<Message> messages;
-    Message message1, message2, message3, message4;
+    Message message1;
+    Message message2;
+    Message message3;
+    Message message4;
     message1.id = 1;
     message2.id = 2;
     message3.id = 3;

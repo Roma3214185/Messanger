@@ -6,7 +6,7 @@
 
 class MockRabitMQClient : public IRabitMQClient {
  public:
-  virtual void publish(const PublishRequest &request) override {
+  void publish(const PublishRequest &request) override {
     last_publish_request = request;
     publish_mp[request.routing_key]++;
     if (call_backs.count(request.routing_key))
@@ -16,7 +16,7 @@ class MockRabitMQClient : public IRabitMQClient {
     ++publish_cnt;
   }
 
-  virtual void subscribe(const SubscribeRequest &request, const EventCallback &cb) override {
+  void subscribe(const SubscribeRequest &request, const EventCallback &cb) override {
     last_callback = cb;
     last_subscribe_request = request;
     call_backs[request.routing_key] = cb;

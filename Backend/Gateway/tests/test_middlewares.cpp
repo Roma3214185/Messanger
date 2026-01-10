@@ -17,7 +17,7 @@ struct DummyParentCtx {
 };
 
 struct TestGatewayMiddlewaresFixrute {
-  LoggingMiddleware logging_middleware;
+  [[no_unique_address]] LoggingMiddleware logging_middleware;
   RateLimitMiddleware rate_limit_middleware;
   AuthMiddleware auth_middleware;
   CacheMiddleware cache_middleware;
@@ -32,7 +32,7 @@ struct TestGatewayMiddlewaresFixrute {
   MockThreadPool pool;
   int user_id = 123;
 
-  RateLimitMiddleware::context rate_ctx;
+  [[no_unique_address]] RateLimitMiddleware::context rate_ctx;
   AuthMiddleware::context auth_ctx;
   LoggingMiddleware::context log_ctx;
   CacheMiddleware::context cache_ctx;

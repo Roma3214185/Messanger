@@ -16,18 +16,19 @@ std::shared_ptr<ix::WebSocket> WebSocketBridge::createBackendConnection(const st
   auto backend_ws = std::make_shared<ix::WebSocket>();
   backend_ws->setUrl(backend_url_);
 
+  using enum ix::WebSocketMessageType;
   backend_ws->setOnMessageCallback([this, client_id](const ix::WebSocketMessagePtr &msg) {
     switch (msg->type) {
-      case ix::WebSocketMessageType::Open:
+      case Open:
         LOG_INFO("Backend WS connected");
         break;
-      case ix::WebSocketMessageType::Message:
+      case Message:
         clients_.at(client_id)->send_text(msg->str);
         break;
-      case ix::WebSocketMessageType::Close:
+      case Close:
         LOG_INFO("Backend WS closed: code={}, reason={}", msg->closeInfo.code, msg->closeInfo.reason);
         break;
-      case ix::WebSocketMessageType::Error:
+      case Error:
         break;
       default:
         break;
@@ -47,8 +48,7 @@ void WebSocketBridge::onClientConnect(crow::websocket::connection &client) {
 
 void WebSocketBridge::onClientMessage(crow::websocket::connection &client, const std::string &data) {
   const std::string client_id = makeClientId(client);
-  auto it = connections_.find(client_id);
-  if (it != connections_.end() && it->second) {
+  if (auto it = connections_.find(client_id); it != connections_.end() && it->second) {
     it->second->send(data);
   }
 }
@@ -56,9 +56,7 @@ void WebSocketBridge::onClientMessage(crow::websocket::connection &client, const
 void WebSocketBridge::onClientClose(crow::websocket::connection &client, const std::string & /*reason*/,
                                     uint16_t /*code*/) {
   const std::string id = makeClientId(client);
-
-  auto it = connections_.find(id);
-  if (it != connections_.end()) {
+  if (auto it = connections_.find(id); it != connections_.end()) {
     if (it->second && it->second->getReadyState() == ix::ReadyState::Open) {
       it->second->close();
     }

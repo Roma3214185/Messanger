@@ -21,8 +21,8 @@ class ChatServer {
   void handleGetChat();
   void handleGetAllChatsMembers();
 
-  int port_;
   crow::SimpleApp &app_;
+  int port_;
   ChatController *controller_;
 };
 

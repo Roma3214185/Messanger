@@ -225,15 +225,15 @@ void GatewayServer::registerWebSocketRoutes() {
   auto ws_bridge = std::make_shared<WebSocketBridge>(backend_url);
 
   CROW_WEBSOCKET_ROUTE(app_, "/ws")
-      .onopen([ws_bridge, this](crow::websocket::connection &client) {
+      .onopen([ws_bridge](crow::websocket::connection &client) {
         ws_bridge->onClientConnect(client);
         // metrics_->userConnected();
       })
-      .onmessage([ws_bridge, this](crow::websocket::connection &client, const std::string &data, bool) {
+      .onmessage([ws_bridge](crow::websocket::connection &client, const std::string &data, bool) {
         ws_bridge->onClientMessage(client, data);
         // metrics_->newMessage(client.get_remote_ip());
       })
-      .onclose([ws_bridge, this](crow::websocket::connection &client, const std::string &reason, uint16_t code) {
+      .onclose([ws_bridge](crow::websocket::connection &client, const std::string &reason, uint16_t code) {
         ws_bridge->onClientClose(client, reason, code);
         // metrics_->userDisconnected();
       });
