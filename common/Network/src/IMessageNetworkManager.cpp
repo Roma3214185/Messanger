@@ -7,7 +7,7 @@
 std::optional<long long> IMessageNetworkManager::getChatIdOfMessage(long long message_id) {
   const std::string path = "/message/" + std::to_string(message_id);
   auto [code, body] = forward(Config::Ports::messageService, "", path, "GET");
-  LOG_INFO("getChatIdOfMessage reveived {} and body {}", code, body);
+  LOG_INFO("getChatIdOfMessage received {} and body {}", code, body);
   if (code != Config::StatusCodes::success) {
     LOG_ERROR("getChatIdOfMessage failed: {}", code);
     return std::nullopt;
@@ -22,7 +22,7 @@ std::optional<long long> IMessageNetworkManager::getChatIdOfMessage(long long me
     }
 
     if (!obj.contains("chat_id")) {
-      LOG_ERROR("Obj doesn't contain 'id' field");
+      LOG_ERROR("Obj doesn't contain 'chat_id' field");
       return std::nullopt;
     }
 

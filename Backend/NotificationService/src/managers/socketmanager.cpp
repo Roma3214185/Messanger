@@ -21,10 +21,13 @@ void SocketsManager::deleteConnections(SocketPtr conn_to_delete) {  // todo: on 
   }
 }
 
-bool SocketsManager::userOnline(UserId user_id) { return user_sockets_.contains(user_id); }
+bool SocketsManager::userOnline(UserId user_id) {
+  std::scoped_lock lock(ws_mutex_);
+  return user_sockets_.contains(user_id);
+}
 
 SocketPtr SocketsManager::getUserSocket(UserId user_id) {
- std::scoped_lock lock(ws_mutex_);
+  std::scoped_lock lock(ws_mutex_);
   auto find = user_sockets_.find(user_id);
   if (find == user_sockets_.end()) {
     return nullptr;

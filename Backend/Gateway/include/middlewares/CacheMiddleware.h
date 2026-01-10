@@ -17,8 +17,7 @@ struct CacheMiddleware {
 
   template <typename ParentCtx>
   void before_handle(const crow::request &req, crow::response &res, context &ctx, ParentCtx &parent_ctx) {
-    if (req.method != crow::HTTPMethod::GET) return;
-    if(notNeedCache(req.url)) return;
+    if (req.method != crow::HTTPMethod::GET || notNeedCache(req.url)) return;
     LOG_INFO("Url before_handle cache: {}", req.url);
 
     auto key = makeCacheKey(req);
@@ -36,8 +35,7 @@ struct CacheMiddleware {
 
   template <typename ParentCtx>
   void after_handle(const crow::request &req, crow::response &res, context &ctx, ParentCtx & /*unused*/) {
-    if (req.method != crow::HTTPMethod::GET) return;
-    if (req.url.starts_with("/request")) return;
+    if (req.method != crow::HTTPMethod::GET || notNeedCache(req.url)) return;
     auto key = makeCacheKey(req);
     cache_->set(key, res.body, std::chrono::seconds(30));
   }
