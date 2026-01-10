@@ -15,7 +15,7 @@ using std::string;
 namespace {
 
 template <typename T>
-inline void append(crow::json::wvalue &arr, const T&item) {
+inline void append(crow::json::wvalue &arr, const T& item) {
   size_t idx = arr.size();
   arr[idx] = item;
 }
