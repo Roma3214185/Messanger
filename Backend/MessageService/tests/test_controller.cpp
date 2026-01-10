@@ -4,6 +4,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "GenericRepository.h"
+#include "config/Routes.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/IDataBase.h"
 #include "interfaces/ISqlExecutor.h"
@@ -12,7 +13,6 @@
 #include "mocks.h"
 #include "mocks/messageservice/SecondTestController.h"
 #include "mocks/messageservice/TestController.h"
-#include "config/Routes.h"
 
 struct SharedFixture {
   MockRabitMQClient rabit_client;
@@ -24,9 +24,7 @@ struct SharedFixture {
   MockThreadPool pool;
   MockIdGenerator generator;
 
-  SharedFixture() :
-        rep(&executor, cache, &pool),
-        manager(&rep, &executor, &generator) {}
+  SharedFixture() : rep(&executor, cache, &pool), manager(&rep, &executor, &generator) {}
 };
 
 TEST_CASE("Test cotroller works with rabitMQ") {

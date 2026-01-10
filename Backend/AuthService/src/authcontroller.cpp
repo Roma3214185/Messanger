@@ -6,10 +6,10 @@
 #include "Debug_profiling.h"
 #include "authservice/interfaces/IAuthManager.h"
 #include "authservice/interfaces/IGenerator.h"
+#include "config/codes.h"
 #include "entities/RegisterRequest.h"
 #include "entities/RequestDTO.h"
 #include "interfaces/IAutoritizer.h"
-#include "config/codes.h"
 
 using std::string;
 
@@ -57,9 +57,7 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 }  // namespace
 
 AuthController::AuthController(IAuthManager *manager, IAutoritizer *authoritizer, IGenerator *generator)
-    : manager_(manager),
-      authoritizer_(authoritizer),
-      generator_(generator) {}  // todo(roma) make itokengenrator (ISRP)
+    : manager_(manager), authoritizer_(authoritizer), generator_(generator) {}  // todo(roma) make itokengenrator (ISRP)
 
 Response AuthController::loginUser(const RequestDTO &req) {
   auto body = crow::json::load(req.body);

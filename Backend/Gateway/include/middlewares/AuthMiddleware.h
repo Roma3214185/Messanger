@@ -6,8 +6,8 @@
 #include <algorithm>
 
 #include "Debug_profiling.h"
-#include "interfaces/IVerifier.h"
 #include "config/codes.h"
+#include "interfaces/IVerifier.h"
 
 struct AuthMiddleware {
   struct context {

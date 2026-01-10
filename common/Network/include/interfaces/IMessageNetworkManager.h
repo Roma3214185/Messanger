@@ -4,6 +4,8 @@
 #include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
+#include "config/codes.h"
+#include "config/ports.h"
 #include "interfaces/INetworkManagerBase.h"
 
 class IMessageNetworkManager : public virtual INetworkManagerBase {

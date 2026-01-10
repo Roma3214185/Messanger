@@ -3,12 +3,12 @@
 #include "RabbitMQClient.h"
 #include "RealHttpClient.h"
 #include "RedisCache.h"
+#include "config/ports.h"
 #include "gatewayserver.h"
 #include "middlewares/Middlewares.h"
 #include "mocks/MockRabitMQClient.h"  //TODO: remove mocks from cmake and here
 #include "ratelimiter.h"
 #include "threadpool.h"
-#include "config/ports.h"
 
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";

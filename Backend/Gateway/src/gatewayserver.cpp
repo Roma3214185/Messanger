@@ -8,14 +8,14 @@
 #include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
+#include "config/Routes.h"
+#include "config/ports.h"
 #include "interfaces/ICacheService.h"
 #include "interfaces/IMetrics.h"
 #include "interfaces/IRabitMQClient.h"
 #include "interfaces/IThreadPool.h"
 #include "middlewares/Middlewares.h"
 #include "websocketbridge.h"
-#include "config/ports.h"
-#include "config/Routes.h"
 
 using std::string;
 
@@ -62,7 +62,8 @@ RequestDTO getRequestInfo(const crow::request &req, const std::string &path) {
 
 }  // namespace
 
-GatewayServer::GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool, IRabitMQClient *queue)
+GatewayServer::GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool,
+                             IRabitMQClient *queue)
     : app_(app), cache_(cache), proxy_(client), pool_(pool), queue_(queue) {}
 
 void GatewayServer::run() {

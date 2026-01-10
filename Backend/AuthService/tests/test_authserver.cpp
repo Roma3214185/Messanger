@@ -2,11 +2,11 @@
 
 #include "authservice/authcontroller.h"
 #include "authservice/server.h"
+#include "config/codes.h"
 #include "mocks/MockAutoritizer.h"
 #include "mocks/MockIdGenerator.h"
 #include "mocks/authservice/MockAuthManager.h"
 #include "mocks/authservice/MockGenerator.h"
-#include "config/codes.h"
 
 namespace Test {
 

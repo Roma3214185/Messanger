@@ -1,10 +1,10 @@
 #include <catch2/catch_all.hpp>
 
+#include "config/ports.h"
 #include "gatewayserver.h"
 #include "mocks/MockRabitMQClient.h"
 #include "mocks/MockTheadPool.h"
 #include "mocks/gateway/GatewayMocks.h"
-#include "config/ports.h"
 
 struct TestGatewayServerFixrute {
   GatewayApp app;
@@ -22,8 +22,7 @@ struct TestGatewayServerFixrute {
   MockRabitMQClient rabiq_client;
   int user_id = 123;
 
-  TestGatewayServerFixrute()
-      : server(app, &client, &cache, &pool, &rabiq_client) {
+  TestGatewayServerFixrute() : server(app, &client, &cache, &pool, &rabiq_client) {
     app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
     app.get_middleware<CacheMiddleware>().cache_ = &cache;
     app.get_middleware<LoggingMiddleware>();
