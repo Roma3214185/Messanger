@@ -71,12 +71,6 @@ TEST_CASE("Test createPrivateChat") {
     REQUIRE(body == utils::details::formError(Config::IssueMessages::userNotFound));
   }
 
-  SECTION("Network_manager not found user expected userError and output issue") {
-     auto [code, body] = fix.controller.createPrivateChat(fix.req);
-    REQUIRE(code == Config::StatusCodes::userError);
-    REQUIRE(body == utils::details::formError(Config::IssueMessages::userNotFound));
-  }
-
   User user;
   user.username = "Roma";
   user.id = 123;

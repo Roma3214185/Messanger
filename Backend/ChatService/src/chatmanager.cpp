@@ -24,7 +24,7 @@ std::optional<PrivateChat> ChatManager::getPrivateChat(ID first_user_id, ID seco
 
   auto custom_query = QueryFactory::createSelect<PrivateChat>(repository_->getExecutor(), repository_->getCache());
   custom_query->where(PrivateChatTable::FirstUserId, first_user_id).where(PrivateChatTable::SecondUserId, second_user_id);
-  auto result = custom_query->execute();  // todo: implement fucntion getPrivateChat()
+  auto result = custom_query->execute();
 
   if (auto res = QueryFactory::getSelectResult(result).result; res.size() == 1) {
     LOG_INFO("Private chat is existed, id is {}", res[0].chat_id);
