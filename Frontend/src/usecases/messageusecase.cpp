@@ -40,18 +40,10 @@ MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<Messag
 
 auto MessageUseCase::getChatMessages(long long chat_id, int limit) -> QList<Message> {
   auto message_model = data_manager_->getMessageModel(chat_id);
-  assert(message_model);
+  DBC_REQUIRE(message_model != nullptr);
+  auto oldestMessage = message_model->getOldestMessage();
 
-  long long id_of_oldest_message = [&]() {
-    auto oldestMessage = message_model->getOldestMessage();
-    if (oldestMessage) {
-      LOG_INFO("Last message with id '{}' and text '{}'", oldestMessage->id, oldestMessage->text.toStdString());
-      return oldestMessage->id;
-    } else {
-      LOG_INFO("Chat {} was empty (there is no oldest message");
-      return 0ll;
-    }
-  }();
+  long long id_of_oldest_message = oldestMessage.has_value() ? oldestMessage->id : 0ll;
 
   // TODO: cache request result for {chat_id before_id}
   LOG_INFO(

@@ -17,7 +17,7 @@ ChatPtr DataManager::getPrivateChatWithUser(long long user_id) {
 
 MessageModelPtr DataManager::getMessageModel(long long chat_id) {
   auto iter = message_models_by_chat_id_.find(chat_id);
-  if (iter != message_models_by_chat_id_.end()) return iter->second;
+  if (iter != message_models_by_chat_id_.end() && iter->second != nullptr) return iter->second;
 
   auto message_model = std::make_shared<MessageModel>();
   message_models_by_chat_id_[chat_id] = message_model;
@@ -65,9 +65,10 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   if (!message_model) message_model = std::make_shared<MessageModel>();
 
   const std::lock_guard<std::mutex> lock(chat_mutex_);
-  if (!chats_by_id_.contains(chat->chat_id)) Q_EMIT chatAdded(chat);
+  bool chat_was = chats_by_id_.contains(chat->chat_id);
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
+  if(!chat_was) Q_EMIT chatAdded(chat);
 }
 
 void DataManager::saveUser(const User &user) {
