@@ -51,8 +51,8 @@ RedisCache &RedisCache::instance() {
 }
 
 sw::redis::Redis &RedisCache::getRedis() {
+  std::scoped_lock lock(init_mutex_);
   if (!redis_) {
-    const std::scoped_lock lock(init_mutex_);
     try {
       redis_ = std::make_unique<sw::redis::Redis>("tcp://127.0.0.1:6379");
     } catch (const std::exception &e) {
