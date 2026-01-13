@@ -3,10 +3,10 @@
 #include <QFrame>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QScrollBar>
 #include <QStandardItem>
 #include <QTimer>
-#include <QMouseEvent>
 
 #include "../forms/ui_mainwindow.h"
 #include "DataInputService.h"
@@ -270,11 +270,12 @@ void MainWindow::onPressEvent(QMouseEvent *event) {
     onReactionClicked(pos);
   }
 
-  //MessageListView::mousePressEvent(event);
+  // MessageListView::mousePressEvent(event);
 }
 
 void MainWindow::onReactionClicked(const QPoint &pos) {
-  QModelIndex index = message_list_view_->indexAt(pos);  //todo: u get index 2 times, consider to refactor it in onPressEvent or in helper fucntion for future
+  QModelIndex index = message_list_view_->indexAt(
+      pos);  // todo: u get index 2 times, consider to refactor it in onPressEvent or in helper fucntion for future
   if (!index.isValid()) return;
   Message msg = index.data(MessageModel::Roles::FullMessage).value<Message>();
   if (auto reaction_id = message_delegate_->reactionAt(msg.id, pos)) {
@@ -297,7 +298,7 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QAction *copyAction = menu.addAction("Copy");
   QAction *editAction = menu.addAction("Edit");
   QAction *deleteAction = menu.addAction("Delete");
-  //todo: reactions = getStandart Reactions Menu, and make polymorhic
+  // todo: reactions = getStandart Reactions Menu, and make polymorhic
 
   QIcon like_icon("/Users/roma/QtProjects/Chat/images/like.jpeg");
 
@@ -308,17 +309,16 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QAction *dislikeAction = menu.addAction(dislike_icon, "Dislike");
   dislikeAction->setIconVisibleInMenu(true);
 
-
   if (msg.id <= 0 || !msg.isMine()) {  // message still offline, todo: add if it's your message
-                                      // and if u are admin in this chat
+                                       // and if u are admin in this chat
     editAction->setEnabled(false);
     deleteAction->setEnabled(false);
     likeAction->setEnabled(false);
     dislikeAction->setEnabled(false);
   }
 
-  if(msg.receiver_reaction == 1) likeAction->setEnabled(false);
-  if(msg.receiver_reaction == 2) dislikeAction->setEnabled(false);
+  if (msg.receiver_reaction == 1) likeAction->setEnabled(false);
+  if (msg.receiver_reaction == 2) dislikeAction->setEnabled(false);
 
   QAction *selected = menu.exec(message_list_view_->viewport()->mapToGlobal(pos));
   if (!selected) return;
@@ -329,9 +329,9 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
     editMessage(msg);
   } else if (selected == deleteAction) {
     deleteMessage(msg);
-  } else if(selected == likeAction) {
+  } else if (selected == likeAction) {
     presenter_->reactionClicked(msg, 1);
-  } else if(selected == dislikeAction) {
+  } else if (selected == dislikeAction) {
     presenter_->reactionClicked(msg, 2);
   }
 }

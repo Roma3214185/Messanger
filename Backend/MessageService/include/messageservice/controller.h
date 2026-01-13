@@ -33,8 +33,8 @@ class Controller {
   void subscribeToSaveMessageStatus();
   void subscribeToSaveMessageReaction();
   void subscribeToDeleteMessageReaction();
-  void  onDeleteMessageReaction(const std::string &payload);
-  void  onSaveMessageReaction(const std::string &payload);
+  void onDeleteMessageReaction(const std::string &payload);
+  void onSaveMessageReaction(const std::string &payload);
 
  private:
   std::vector<Message> getMessages(const GetMessagePack &);

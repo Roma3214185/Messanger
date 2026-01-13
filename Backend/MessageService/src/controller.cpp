@@ -5,6 +5,7 @@
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
+#include "Utils.h"
 #include "config/Routes.h"
 #include "config/codes.h"
 #include "entities/Message.h"
@@ -15,7 +16,6 @@
 #include "messageservice/dto/GetMessagePack.h"
 #include "messageservice/managers/JwtUtils.h"
 #include "messageservice/managers/MessageManager.h"
-#include "Utils.h"
 
 namespace {
 
@@ -77,7 +77,7 @@ Controller::Controller(IRabitMQClient *mq_client, MessageManager *manager, IThre
 
 void Controller::handleSaveMessage(const std::string &payload) {
   std::optional<Message> msg = utils::parsePayload<Message>(payload);  // TODO: alias
-  if (msg == std::nullopt) return;                              // DBC_REQUIRE
+  if (msg == std::nullopt) return;                                     // DBC_REQUIRE
 
   auto message = *msg;
   LOG_INFO("Get message to save with id {} and text {}", message.id, message.text);
@@ -144,9 +144,7 @@ void Controller::handleSaveMessageStatus(const std::string &payload) {
   });
 }
 
-std::vector<Message> Controller::getMessages(const GetMessagePack &pack) {
-  return manager_->getChatMessages(pack);
-}
+std::vector<Message> Controller::getMessages(const GetMessagePack &pack) { return manager_->getChatMessages(pack); }
 
 std::vector<MessageStatus> Controller::getMessagesStatus(const std::vector<Message> &messages, long long receiver_id) {
   return manager_->getMessagesStatus(messages, receiver_id);
@@ -167,7 +165,8 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::badRequest,
+                          utils::details::formError(Config::IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -214,7 +213,8 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
 
   std::optional<long long> optional_user_id = getUserIdFromToken(request_pack.token);
   if (!optional_user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::badRequest, utils::details::formError(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::badRequest,
+                          utils::details::formError(Config::IssueMessages::invalidToken));
   }
 
   long long current_user_id = *optional_user_id;
@@ -264,7 +264,8 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
   LOG_INFO("Get messages from chat with id {}", chat_id_str);
   std::optional<long long> user_id = getUserIdFromToken(request_pack.token);
   if (!user_id.has_value()) {
-    return std::make_pair(Config::StatusCodes::userError, utils::details::formError(Config::IssueMessages::invalidToken));
+    return std::make_pair(Config::StatusCodes::userError,
+                          utils::details::formError(Config::IssueMessages::invalidToken));
   }
   LOG_INFO("Token is valid use_id {}", user_id.value());
 
@@ -290,7 +291,7 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
   // i need to return std::vector<UserMessage>
   // std::vector<UserMessage> ans;
 
-  nlohmann::json json_messages;  //todo : make function to get vector UserMessage
+  nlohmann::json json_messages;  // todo : make function to get vector UserMessage
   int i = 0;
   for (auto &message : messages) {
     std::vector<MessageStatus> message_statuses = getReadedMessageStatuses(message.id);
@@ -310,7 +311,6 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
 
     user_message.reactions.counts = reactions_map;
     user_message.reactions.my_reaction = my_reaction;
-
 
     json_messages[i++] = nlohmann::json(user_message);
   }

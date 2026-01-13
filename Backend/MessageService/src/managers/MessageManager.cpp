@@ -92,25 +92,24 @@ std::vector<MessageStatus> MessageManager::getReadedMessageStatuses(long long me
   return QueryFactory::getSelectResult(res).result;
 }
 
-bool MessageManager::saveMessageReaction(const Reaction& reaction) {
+bool MessageManager::saveMessageReaction(const Reaction &reaction) {
   DBC_REQUIRE(reaction.checkInvariants());
   return repository_->save(reaction);
 }
 
-bool MessageManager::deleteMessageReaction(const Reaction& reaction) {
+bool MessageManager::deleteMessageReaction(const Reaction &reaction) {
   DBC_REQUIRE(reaction.checkInvariants());
   auto query = QueryFactory::createDelete<Reaction>(executor_, cache_);
   query->where(MessageReactionTable::MessageId, reaction.message_id);
   query->where(MessageReactionTable::ReceiverId, reaction.receiver_id);
-  //todo: in future premium users can have a couple of reactions, so query->where(MessageReactionTable::ReactionId, reaction.reaction_id);
+  // todo: in future premium users can have a couple of reactions, so query->where(MessageReactionTable::ReactionId,
+  // reaction.reaction_id);
   auto res = query->execute();
   return QueryFactory::getDeleteResult(res).success;
 }
 
 std::pair<std::unordered_map<int, int>, std::optional<int>> MessageManager::getReactions(long long message_id,
-                                                             long long receiver_id) {
-
-
+                                                                                         long long receiver_id) {
   auto custom_query = QueryFactory::createSelect<Reaction>(executor_, cache_);
   custom_query->where(MessageReactionTable::MessageId, message_id);
   auto res = custom_query->execute();
@@ -119,9 +118,9 @@ std::pair<std::unordered_map<int, int>, std::optional<int>> MessageManager::getR
   std::optional<int> receiver_id_reactions;
   std::unordered_map<int, int> message_reactions;
 
-  for(const Reaction& reaction: vector_of_reactions) {
+  for (const Reaction &reaction : vector_of_reactions) {
     message_reactions[reaction.reaction_id]++;
-    if(reaction.receiver_id == receiver_id) receiver_id_reactions = reaction.reaction_id;
+    if (reaction.receiver_id == receiver_id) receiver_id_reactions = reaction.reaction_id;
   }
 
   return std::make_pair(message_reactions, receiver_id_reactions);

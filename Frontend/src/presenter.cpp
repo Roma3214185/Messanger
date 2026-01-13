@@ -11,13 +11,13 @@
 #include "MessageListView.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
+#include "entities/Reaction.h"
 #include "handlers/NewMessageResponceHandler.h"
 #include "handlers/OpenResponceHandler.h"
 #include "interfaces/IMainWindow.h"
 #include "interfaces/IMessageListView.h"
 #include "model.h"
 #include "models/messagemodel.h"
-#include "entities/Reaction.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
@@ -104,19 +104,20 @@ void Presenter::updateMessage(Message &message) {
   manager_->message()->updateMessage(message);
 }
 
-void Presenter::reactionClicked(Message &message, int reaction_id) { //todo: can be const
+void Presenter::reactionClicked(Message &message, int reaction_id) {  // todo: can be const
   LOG_INFO("Make reaction {} id for message {}", reaction_id, message.toString());
   DBC_REQUIRE(message.checkInvariants());
 
   Reaction reaction(message.id, manager_->tokenManager()->getCurrentUserId(), reaction_id);
 
   if (bool there_was_not_reaction = !message.receiver_reaction.has_value(); there_was_not_reaction) {
-    manager_->socket()->saveReaction(reaction); //it faster and async than save (?)
+    manager_->socket()->saveReaction(reaction);  // it faster and async than save (?)
     manager_->dataManager()->saveReaction(message, reaction);
-  } else if(bool is_already_this_reaction = message.receiver_reaction.has_value() && *message.receiver_reaction == reaction_id;
-      is_already_this_reaction) {
-      manager_->socket()->deleteReaction(reaction);
-      manager_->dataManager()->deleteReaction(message, reaction);
+  } else if (bool is_already_this_reaction =
+                 message.receiver_reaction.has_value() && *message.receiver_reaction == reaction_id;
+             is_already_this_reaction) {
+    manager_->socket()->deleteReaction(reaction);
+    manager_->dataManager()->deleteReaction(message, reaction);
   } else {
     Reaction old_reaction(reaction.message_id, reaction.receiver_id, message.receiver_reaction.value());
     manager_->socket()->deleteReaction(old_reaction);
@@ -179,7 +180,7 @@ void Presenter::newMessage(Message &msg) {
   DBC_REQUIRE(current_user_ != std::nullopt);
 
   if (msg.isMine()) {
-    qDebug() << msg.receiver_read_status; //todo: can be already always true, refactor to get const Message&
+    qDebug() << msg.receiver_read_status;  // todo: can be already always true, refactor to get const Message&
     msg.receiver_read_status = true;
   }
   LOG_INFO("New message received from socket {}", msg.toString());
@@ -253,7 +254,7 @@ void Presenter::sendButtonClicked(const QString &text_to_send) {
   // TODO: what if multithreaded will make here current_user is nullopt, after
   // checking (?)
   auto message_to_send = manager_->entities()->createMessage(*current_opened_chat_id_, current_user_->id, trimmed_text,
-                                                      QUuid::createUuid().toString());
+                                                             QUuid::createUuid().toString());
   LOG_INFO("Message to send {}", message_to_send.toString());
   manager_->message()->addMessageToChat(message_to_send);
   message_list_view_->scrollToBottom();

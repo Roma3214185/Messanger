@@ -43,7 +43,7 @@ QHash<int, QByteArray> ChatModel::roleNames() const {
 }
 
 void ChatModel::addChat(const ChatPtr &chat) {
-  if(auto index = findIndexByChatId(chat->chat_id); index.has_value()) {
+  if (auto index = findIndexByChatId(chat->chat_id); index.has_value()) {
     LOG_WARN("Chat with id {} already exist");
     return;
   }

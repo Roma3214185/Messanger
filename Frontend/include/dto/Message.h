@@ -23,12 +23,12 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   std::unordered_map<int, int> reactions;
   QString local_id;
 
-  void updateFrom(const Message &other) {  // todo: copy asign operator
+  void updateFrom(const Message& other) {  // todo: copy asign operator
     DBC_REQUIRE(local_id == other.local_id);
     DBC_REQUIRE(chat_id == other.chat_id);
     DBC_REQUIRE(sender_id == other.sender_id);
     DBC_REQUIRE(receiver_id == other.receiver_id);
-    if(id != 0) DBC_REQUIRE(id == other.id);
+    if (id != 0) DBC_REQUIRE(id == other.id);
 
     LOG_INFO("Update {} | | from {}", this->toString(), other.toString());
     id = other.id;
@@ -44,12 +44,10 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   }
 
   bool isOfflineSaved() const noexcept {
-    return id == 0; //todo: state pattern
+    return id == 0;  // todo: state pattern
   }
 
-  bool isMine() const noexcept {
-    return sender_id == receiver_id;
-  }
+  bool isMine() const noexcept { return sender_id == receiver_id; }
 
   std::string toString() const noexcept {
     std::string res;
@@ -59,15 +57,17 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     res += " | text = " + text.toStdString();
     res += " | timestamp = " + timestamp.toString().toStdString();
     res += " | receiver_read_status = " + std::to_string(receiver_read_status + 0);
-    if(receiver_reaction.has_value()) res += " | my reaction id is = " + std::to_string(*receiver_reaction);
-    else res += " | no my reaction ";
+    if (receiver_reaction.has_value())
+      res += " | my reaction id is = " + std::to_string(*receiver_reaction);
+    else
+      res += " | no my reaction ";
     res += " | read_counter = " + std::to_string(read_counter + 0);
     res += " | status_sended = " + std::to_string(status_sended + 0);
     res += " | local_id = " + local_id.toStdString();
 
     int total_reactions = 0;
     std::string reactions_string;
-    for(const auto& [react_id, react_cnt] : reactions) {
+    for (const auto& [react_id, react_cnt] : reactions) {
       total_reactions += react_cnt;
       reactions_string += "| {reaction:" + std::to_string(react_id) + " = cnt: " + std::to_string(react_cnt) + "} ";
     }
@@ -79,9 +79,8 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   bool checkInvariants() const noexcept {
     return id > 0  // todo: what if message saved as offline, them id will == 0,
                    // state pattern??
-           && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0
-           && !text.isEmpty() && read_counter > 0
-           && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
+           && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
+           !text.isEmpty() && read_counter > 0 && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
   }
 };
 

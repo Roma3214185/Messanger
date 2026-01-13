@@ -7,7 +7,7 @@
 #include "usecases/messageusecase.h"
 
 class NewMessageResponceHandler : public ISocketResponceHandler {
-  EntityFactory* entity_factory_;
+  EntityFactory *entity_factory_;
   MessageUseCase *message_use_case_;
 
  public:

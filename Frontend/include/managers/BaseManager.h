@@ -11,14 +11,14 @@
 #include <QUrl>
 
 #include "Debug_profiling.h"
-#include "interfaces/INetworkAccessManager.h"
 #include "JsonService.h"
+#include "interfaces/INetworkAccessManager.h"
 
 class BaseManager : public QObject {
   Q_OBJECT
  public:
   BaseManager(INetworkAccessManager *network_manager, const QUrl &base_url, EntityFactory *enity_factory,
-                       std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
+              std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
   virtual ~BaseManager();
 
  protected:
@@ -170,7 +170,7 @@ class BaseManager : public QObject {
   }
 
   INetworkAccessManager *network_manager_;
-  EntityFactory* entity_factory_;
+  EntityFactory *entity_factory_;
   QUrl url_;
   std::chrono::milliseconds timeout_ms_;
 

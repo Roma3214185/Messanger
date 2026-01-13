@@ -45,8 +45,7 @@ class Model : public QObject {
   Q_OBJECT
 
  public:
-  Model(const QUrl &url, INetworkAccessManager *net_manager, ICache *cache, ISocket *socket,
-                 DataManager *data_manager);
+  Model(const QUrl &url, INetworkAccessManager *net_manager, ICache *cache, ISocket *socket, DataManager *data_manager);
 
   ChatModel *getChatModel() const noexcept { return chat_model_.get(); }
   UserModel *getUserModel() const noexcept { return user_model_.get(); }

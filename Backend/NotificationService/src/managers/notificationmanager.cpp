@@ -2,10 +2,10 @@
 
 #include "Debug_profiling.h"
 #include "NetworkFacade.h"
+#include "Utils.h"
 #include "config/Routes.h"
 #include "interfaces/IRabitMQClient.h"
 #include "notificationservice/managers/socketmanager.h"
-#include "Utils.h"
 
 NotificationManager::NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager,
                                          NetworkFacade &network_facade)
@@ -49,12 +49,12 @@ void NotificationManager::subscribeMessageReactionSaved() {
   });
 }
 
-void NotificationManager::onMessageReactionDeleted(const std::string& payload) {
+void NotificationManager::onMessageReactionDeleted(const std::string &payload) {
   auto parsed_reaction = utils::parsePayload<Reaction>(payload);
   if (!parsed_reaction) return;
   Reaction reaction_deleted = parsed_reaction.value();
   auto chat_id_opt = getChatIdOfMessage(reaction_deleted.message_id);
-  if(!chat_id_opt.has_value()) {
+  if (!chat_id_opt.has_value()) {
     LOG_ERROR("Can't find chat_id_opt for Reaction {}", nlohmann::json(reaction_deleted).dump());
     return;
   }
@@ -69,12 +69,12 @@ void NotificationManager::onMessageReactionDeleted(const std::string& payload) {
   }
 }
 
-void NotificationManager::onMessageReactionSaved(const std::string& payload) {
+void NotificationManager::onMessageReactionSaved(const std::string &payload) {
   auto parsed_reaction = utils::parsePayload<Reaction>(payload);
   if (!parsed_reaction) return;
   Reaction reaction_saved = parsed_reaction.value();
   auto chat_id_opt = getChatIdOfMessage(reaction_saved.message_id);
-  if(!chat_id_opt.has_value()) {
+  if (!chat_id_opt.has_value()) {
     LOG_ERROR("Can't find chat_id_opt for Reaction {}", nlohmann::json(reaction_saved).dump());
     return;
   }
@@ -252,14 +252,14 @@ std::optional<long long> NotificationManager::getChatIdOfMessage(long long messa
   return network_facade_.msg().getChatIdOfMessage(message_id);
 }
 
-void NotificationManager::saveReaction(const Reaction& reaction) {
+void NotificationManager::saveReaction(const Reaction &reaction) {
   mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
                                      .routing_key = Config::Routes::saveReaction,
                                      .message = nlohmann::json(reaction).dump(),
                                      .exchange_type = Config::Routes::exchangeType});
 }
 
-void NotificationManager::deleteReaction(const Reaction& reaction) {
+void NotificationManager::deleteReaction(const Reaction &reaction) {
   mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
                                      .routing_key = Config::Routes::deleteReaction,
                                      .message = nlohmann::json(reaction).dump(),

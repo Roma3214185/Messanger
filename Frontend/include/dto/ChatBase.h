@@ -43,11 +43,9 @@ inline ChatBase::~ChatBase() = default;
 
 class ChatFactory {
  public:
-  static ChatPtr createPrivateChat(const long long chat_id, const QString &title,
-                                                     const QString &user_tag, const long long user_id,
-                                                     const QString &status, const QString &last_message = {},
-                                                     const QDateTime &last_message_time = QDateTime(),
-                                                     const QString &avatar_path = {}) {
+  static ChatPtr createPrivateChat(const long long chat_id, const QString &title, const QString &user_tag,
+                                   const long long user_id, const QString &status, const QString &last_message = {},
+                                   const QDateTime &last_message_time = QDateTime(), const QString &avatar_path = {}) {
     auto chat = std::make_shared<PrivateChat>();
     chat->chat_id = chat_id;
     chat->title = title;
@@ -60,12 +58,10 @@ class ChatFactory {
     return chat;
   }
 
-  static ChatPtr createGroupChat(const long long chat_id, const QString &title,
-                                                   const int member_count, const QStringList &member_tags,
-                                                   const QVector<int> &members_id, const QStringList &avatar_paths,
-                                                   const QString &last_message = {},
-                                                   const QDateTime &last_message_time = QDateTime(),
-                                                   const QString &avatar_path = {}) {
+  static ChatPtr createGroupChat(const long long chat_id, const QString &title, const int member_count,
+                                 const QStringList &member_tags, const QVector<int> &members_id,
+                                 const QStringList &avatar_paths, const QString &last_message = {},
+                                 const QDateTime &last_message_time = QDateTime(), const QString &avatar_path = {}) {
     auto chat = std::make_shared<GroupChat>();
     chat->chat_id = chat_id;
     chat->title = title;

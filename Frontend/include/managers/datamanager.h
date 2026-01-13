@@ -5,8 +5,8 @@
 
 #include "dto/ChatBase.h"
 #include "dto/User.h"
-#include "models/messagemodel.h"
 #include "entities/Reaction.h"
+#include "models/messagemodel.h"
 
 class MessageModel;
 
@@ -42,10 +42,10 @@ class DataManager : public QObject {
   void deleteMessage(const Message &msg);
   void readMessage(long long message_id, long long readed_by);
   std::optional<std::string> getReactionPath(long long reaction_id);
-  void saveReaction(const Reaction& reaction);
+  void saveReaction(const Reaction &reaction);
   void saveReaction(Message &message, const Reaction &reaction);
-  void deleteReaction(Message& message, const Reaction& reaction_to_delete);
-  void deleteReaction(const Reaction& reaction);
+  void deleteReaction(Message &message, const Reaction &reaction_to_delete);
+  void deleteReaction(const Reaction &reaction);
 
  Q_SIGNALS:
   void chatAdded(const ChatPtr &chat);

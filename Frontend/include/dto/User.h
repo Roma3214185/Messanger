@@ -12,7 +12,7 @@ struct User {
   QString avatarPath = "/Users/roma/QtProjects/Chat/images/default_avatar.jpg";
 
   bool checkInvariants() const {
-    return id > 0 && !email.isEmpty() && !name.isEmpty() && !tag.isEmpty(); //&& !avatarPath.isEmpty();
+    return id > 0 && !email.isEmpty() && !name.isEmpty() && !tag.isEmpty();  //&& !avatarPath.isEmpty();
   }
 
   std::string toString() const noexcept {

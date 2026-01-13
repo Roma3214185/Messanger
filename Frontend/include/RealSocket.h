@@ -3,8 +3,8 @@
 
 #include <QWebSocket>
 
-#include "interfaces/ISocket.h"
 #include "Debug_profiling.h"
+#include "interfaces/ISocket.h"
 
 class RealSocket : public ISocket {
   QWebSocket *socket_;

@@ -127,7 +127,6 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   EntityFactory entity_factory(&token_manager);
   TestMessageManager message_manager(&network_manager, url, &entity_factory, timeout_ms);
 
-
   SECTION("Invalid JSON emits error and returns empty list") {
     auto reply = std::make_unique<MockReply>();
     reply->setData("not valid json");

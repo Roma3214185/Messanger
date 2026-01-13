@@ -7,8 +7,8 @@
 #include "metaentity/MessageMeta.h"
 #include "metaentity/MessageStatusMeta.h"
 #include "metaentity/PrivateChatMeta.h"
+#include "metaentity/ReactionMeta.h"
 #include "metaentity/UserCredentialsMeta.h"
 #include "metaentity/UserMeta.h"
-#include "metaentity/ReactionMeta.h"
 
-#endif // METAENTITIES_H
+#endif  // METAENTITIES_H

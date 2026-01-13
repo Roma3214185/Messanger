@@ -1,8 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <optional>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include "Debug_profiling.h"
 
 namespace utils {
@@ -26,8 +26,6 @@ inline std::optional<long long> getIdFromStr(const std::string &str) {
   }
 }
 
+}  // namespace utils
 
-} // namespace utils
-
-
-#endif // UTILS_H
+#endif  // UTILS_H

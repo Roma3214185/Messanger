@@ -6,7 +6,7 @@
 #include "usecases/messageusecase.h"
 
 class DeleteMessageResponceHandler : public ISocketResponceHandler {
-  EntityFactory* entity_factory_;
+  EntityFactory *entity_factory_;
   MessageUseCase *message_use_case_;
 
  public:
