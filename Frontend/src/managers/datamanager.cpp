@@ -2,6 +2,22 @@
 
 #include "Debug_profiling.h"
 
+auto DataManager::getIterMessageById(long long message_id) {
+  DBC_REQUIRE(message_id > 0);
+  const std::lock_guard<std::mutex> lock(messages_mutex_);
+  return std::find_if(messages_.begin(), messages_.end(), [&](const auto &existing_message) {
+    return existing_message.id == message_id;
+  });
+}
+
+auto DataManager::getIterMessageByLocalId(const QString& local_id) {
+  DBC_REQUIRE(!local_id.isEmpty());
+  const std::lock_guard<std::mutex> lock(messages_mutex_);
+  return std::find_if(messages_.begin(), messages_.end(), [&](const auto &existing_message) {
+    return existing_message.local_id == local_id;
+  });
+}
+
 ChatPtr DataManager::getPrivateChatWithUser(long long user_id) {
   for (auto [_, chat] : chats_by_id_) {
     if (chat->isPrivate()) {
@@ -130,19 +146,16 @@ void DataManager::deleteMessage(const Message &msg) {
 void DataManager::readMessage(long long message_id, long long readed_by) {
   DBC_REQUIRE(message_id > 0);
   DBC_REQUIRE(readed_by > 0);
-  const std::lock_guard<std::mutex> lock(messages_mutex_);
-  auto it = std::find_if(messages_.begin(), messages_.end(),
-                         [&](const auto &existing_message) { return existing_message.id == message_id; });
-
+  auto it = getIterMessageById(message_id);
   if (it == messages_.end()) {
     LOG_WARN("To read message with id {} not found",
              message_id);  // can be if u delete message for yourself
     return;
   }
 
-  if (!it->readed_by_me) {
+  if (!it->receiver_read_status) {
     it->read_counter++;
-    it->readed_by_me = true;
+    it->receiver_read_status = true;
     LOG_INFO("{} is marked readed", it->toString());
     Q_EMIT messageAdded(*it);  // todo: rename messageChanged
 
@@ -151,4 +164,76 @@ void DataManager::readMessage(long long message_id, long long readed_by) {
   } else {
     LOG_INFO("{} is already marked readed", it->toString());
   }
+}
+
+std::optional<std::string> DataManager::getReactionPath(long long reaction_id) {
+  reactions_[1] = "/Users/roma/QtProjects/Chat/images/like.jpeg";
+  reactions_[2] = "/Users/roma/QtProjects/Chat/images/dislike.jpeg";
+  DBC_REQUIRE(reaction_id > 0);
+  auto it = reactions_.find(reaction_id);
+  return it != reactions_.end() ? std::make_optional(it->second)  : std::nullopt;
+}
+
+void DataManager::saveReaction(const Reaction& reaction) {
+  auto it = getIterMessageById(reaction.message_id);
+  if(it == messages_.end()) {
+    LOG_ERROR("TO save reaction message {} not found", reaction.message_id);
+    return;
+  }
+
+  saveReaction(*it, reaction);
+  // todo: if !reactions_.contains(reaction.reaction_id) Q_EMIT to send request on server to have info about image of this reaction
+}
+
+void DataManager::deleteReaction(const Reaction& reaction) {
+  auto it = getIterMessageById(reaction.message_id);
+  if(it == messages_.end()) {
+    LOG_ERROR("TO delete reaction message {} not found", reaction.message_id);
+    return;
+  }
+
+  deleteReaction(*it, reaction);
+}
+
+void DataManager::deleteReaction(Message& message, const Reaction& reaction_to_delete) {
+  DBC_REQUIRE(message.id > 0 && message.id == reaction_to_delete.message_id);
+
+  if(message.receiver_id == reaction_to_delete.receiver_id && message.receiver_reaction == std::nullopt) {
+    LOG_INFO("It's my reaction, and it already deleted");
+    return;
+  }
+
+  //todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
+  message.reactions[reaction_to_delete.reaction_id]--;
+
+  if(message.receiver_id == reaction_to_delete.receiver_id) {  //it's my reaction
+    message.receiver_reaction = std::nullopt;
+  }
+
+  auto it = getIterMessageByLocalId(message.local_id);
+  DBC_REQUIRE(it != messages_.end());
+  it->updateFrom(message);
+  Q_EMIT messageAdded(message);  // todo: messageChanged
+}
+
+void DataManager::saveReaction(Message& message, const Reaction& reaction) {
+  DBC_REQUIRE(message.id > 0 && message.id == reaction.message_id);
+
+  if(message.receiver_id == reaction.receiver_id && message.receiver_reaction == reaction.reaction_id) {
+    LOG_INFO("It's my reaction, and it exists already");
+    return;
+  }
+
+  //todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
+  message.reactions[reaction.reaction_id]++;
+
+  if(message.receiver_id == reaction.receiver_id) {
+    if(message.receiver_reaction.has_value()) message.reactions[*message.receiver_reaction]--;
+    message.receiver_reaction = reaction.reaction_id;
+  }
+
+  auto it = getIterMessageByLocalId(message.local_id);
+  DBC_REQUIRE(it != messages_.end());
+  it->updateFrom(message);
+  Q_EMIT messageAdded(message);  // todo: messageChanged
 }

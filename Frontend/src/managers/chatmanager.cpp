@@ -55,7 +55,7 @@ auto ChatManager::onLoadChats(const QByteArray &responce_data) -> QList<ChatPtr>
 
   auto chats = QList<ChatPtr>{};
   for (const auto &val : doc.object()["chats"].toArray()) {
-    auto chat = JsonService::getChatFromJson(val.toObject());
+    auto chat = this->entity_factory_->getChatFromJson(val.toObject());
     if (chat)
       chats.append(chat);
     else
@@ -88,8 +88,7 @@ ChatPtr ChatManager::onChatLoaded(const QByteArray &responce_data) {
     return nullptr;
   }
 
-  auto chat = JsonService::getChatFromJson(doc.object());
-  return chat;
+  return this->entity_factory_->getChatFromJson(doc.object());
 }
 
 QFuture<ChatPtr> ChatManager::createPrivateChat(const QString &current_token, long long user_id) {
@@ -107,10 +106,7 @@ QFuture<ChatPtr> ChatManager::createPrivateChat(const QString &current_token, lo
 
 auto ChatManager::onCreatePrivateChat(const QByteArray &responce_data) -> ChatPtr {
   PROFILE_SCOPE("Model::onCreatePrivateChat");
-  // if(!checkReply(reply)) return nullptr;
-  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
 
-  // auto responseData = reply->readAll();
   auto doc = QJsonDocument::fromJson(responce_data);
   if (!doc.isObject()) {
     LOG_ERROR("[onCreatePrivateChat] Invalid JSON: expected object at root");
@@ -124,7 +120,7 @@ auto ChatManager::onCreatePrivateChat(const QByteArray &responce_data) -> ChatPt
     return nullptr;
   }
 
-  auto new_chat = JsonService::getChatFromJson(responseObj);
+  auto new_chat = this->entity_factory_->getChatFromJson(responseObj);
   LOG_INFO("Private chat created with id '{}' ", new_chat->chat_id);
   return new_chat;
 }
