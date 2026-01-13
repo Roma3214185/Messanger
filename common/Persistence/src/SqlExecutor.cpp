@@ -4,11 +4,11 @@ SqlExecutor::SqlExecutor(IDataBase &database) : database_(database) {}
 
 SqlExecutorResult SqlExecutor::execute(const QString &sql, const QList<QVariant> &values) {
   PROFILE_SCOPE("[SqlExecutor] Execute");
-
+  LOG_INFO("Execute {}", sql.toStdString());
   auto outQuery = database_.prepare(sql);
   if (!outQuery) {
     LOG_ERROR("Error prepare outQuery");
-    return SqlExecutorResult(outQuery->error().toStdString());
+    return SqlExecutorResult("Failed to prepare");
   }
 
   for (int i = 0; i < values.size(); ++i) outQuery->bind(values[i]);

@@ -6,14 +6,7 @@
 
 #include "interfaces/IBaseQuery.h"
 #include "interfaces/ICacheService.h"
-#include "metaentity/ChatMemberMeta.h"
-#include "metaentity/ChatMeta.h"
-#include "metaentity/EntityConcept.h"
-#include "metaentity/MessageMeta.h"
-#include "metaentity/MessageStatusMeta.h"
-#include "metaentity/PrivateChatMeta.h"
-#include "metaentity/UserCredentialsMeta.h"
-#include "metaentity/UserMeta.h"
+#include "metaentity/metaentities.h"  //todo: don't include metaentity, refactor in this case
 
 struct Meta;
 
