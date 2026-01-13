@@ -120,7 +120,5 @@ auto ChatManager::onCreatePrivateChat(const QByteArray &responce_data) -> ChatPt
     return nullptr;
   }
 
-  auto new_chat = this->entity_factory_->getChatFromJson(responseObj);
-  LOG_INFO("Private chat created with id '{}' ", new_chat->chat_id);
-  return new_chat;
+  return this->entity_factory_->getChatFromJson(responseObj);
 }
