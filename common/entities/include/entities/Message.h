@@ -10,7 +10,6 @@
 #include "Debug_profiling.h"
 #include "Fields.h"
 #include "TimestampService.h"
-#include "interfaces/entity.h"
 
 struct Message final {
   long long id{0};

@@ -3,8 +3,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "interfaces/entity.h"
-
 template <typename T>
 concept JsonRoundTrip = requires(const nlohmann::json &j, const T &t) {
   { j.get<T>() } -> std::convertible_to<T>;

@@ -82,7 +82,7 @@ CheckOptions:
 
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(Frontend|Backend|common)/.+\.h$'
-AnalyzeTemporaryDtors: true
+#AnalyzeTemporaryDtors: true
 
 #### Disabled checks and why: #####
 #

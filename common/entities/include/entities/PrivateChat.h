@@ -6,7 +6,6 @@
 
 #include "Debug_profiling.h"
 #include "Fields.h"
-#include "interfaces/entity.h"
 
 struct PrivateChat final {
   long long chat_id;

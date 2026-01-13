@@ -46,7 +46,7 @@ struct adl_serializer<UserMessage> {
 
     if (j.contains("reactions")) {
       if (j["reactions"].contains("counts")) j["reactions"].at("counts").get_to(m.reactions.counts);
-      if (j.contains("reactions") && j["reactions"].contains("receiver_reactions") &&
+      if (j.contains("reactions") && j["reactions"].contains("receiver_reaction") &&
           !j["reactions"]["receiver_reaction"].is_null()) {
         m.reactions.my_reaction = j["reactions"]["receiver_reaction"].get<int>();
       } else {
