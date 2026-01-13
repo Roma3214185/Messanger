@@ -54,6 +54,8 @@ target_link_libraries(NotificationServiceCore PUBLIC
 add_executable(NotificationService
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     Dockerfile
+    include/handlers/SaveMessageReaction.h
+    include/handlers/DeleteMessageReaction.h
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore)

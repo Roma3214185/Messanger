@@ -5,21 +5,7 @@
 #include "config/Routes.h"
 #include "interfaces/IRabitMQClient.h"
 #include "notificationservice/managers/socketmanager.h"
-
-namespace {
-
-template <typename T>
-std::optional<T> parsePayload(const std::string &payload) {
-  try {
-    nlohmann::json parsed = nlohmann::json::parse(payload);
-    return parsed.get<T>();
-  } catch (const std::exception &e) {
-    LOG_ERROR("Failed to parse message payload: {}", e.what());
-    return std::nullopt;
-  }
-}
-
-}  // namespace
+#include "Utils.h"
 
 NotificationManager::NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager,
                                          NetworkFacade &network_facade)
@@ -27,6 +13,80 @@ NotificationManager::NotificationManager(IRabitMQClient *mq_client, SocketsManag
   subscribeMessageSaved();
   subscribeMessageDeleted();
   subscribeMessageStatusSaved();
+  subscribeMessageReactionDeleted();
+  subscribeMessageReactionSaved();
+}
+
+void NotificationManager::subscribeMessageReactionDeleted() {
+  SubscribeRequest request;
+  request.queue = Config::Routes::messageReactionDeleted;
+  request.exchange = Config::Routes::exchange;
+  request.routing_key = Config::Routes::messageReactionDeleted;
+  request.exchange_type = Config::Routes::exchangeType;
+
+  mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
+    LOG_INFO(
+        "Subscribe save message received message to "
+        "save: event {} and payload {}",
+        event, payload);
+    onMessageReactionDeleted(payload);
+  });
+}
+
+void NotificationManager::subscribeMessageReactionSaved() {
+  SubscribeRequest request;
+  request.queue = Config::Routes::messageReactionSaved;
+  request.exchange = Config::Routes::exchange;
+  request.routing_key = Config::Routes::messageReactionSaved;
+  request.exchange_type = Config::Routes::exchangeType;
+
+  mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
+    LOG_INFO(
+        "Subscribe save message received message to "
+        "save: event {} and payload {}",
+        event, payload);
+    onMessageReactionSaved(payload);
+  });
+}
+
+void NotificationManager::onMessageReactionDeleted(const std::string& payload) {
+  auto parsed_reaction = utils::parsePayload<Reaction>(payload);
+  if (!parsed_reaction) return;
+  Reaction reaction_deleted = parsed_reaction.value();
+  auto chat_id_opt = getChatIdOfMessage(reaction_deleted.message_id);
+  if(!chat_id_opt.has_value()) {
+    LOG_ERROR("Can't find chat_id_opt for Reaction {}", nlohmann::json(reaction_deleted).dump());
+    return;
+  }
+
+  auto members_of_chat = fetchChatMembers(chat_id_opt.value());
+  LOG_INFO("For chat id '{}' finded '{}' members", chat_id_opt.value(), members_of_chat.size());
+  LOG_INFO("Received deleted reaction {}", nlohmann::json(reaction_deleted).dump());
+
+  for (auto user_id : members_of_chat) {
+    LOG_INFO("{} is member of chat {}", user_id, chat_id_opt.value());
+    notifyMember(user_id, reaction_deleted, "delete_reaction");
+  }
+}
+
+void NotificationManager::onMessageReactionSaved(const std::string& payload) {
+  auto parsed_reaction = utils::parsePayload<Reaction>(payload);
+  if (!parsed_reaction) return;
+  Reaction reaction_saved = parsed_reaction.value();
+  auto chat_id_opt = getChatIdOfMessage(reaction_saved.message_id);
+  if(!chat_id_opt.has_value()) {
+    LOG_ERROR("Can't find chat_id_opt for Reaction {}", nlohmann::json(reaction_saved).dump());
+    return;
+  }
+
+  auto members_of_chat = fetchChatMembers(chat_id_opt.value());
+  LOG_INFO("For chat id '{}' finded '{}' members", chat_id_opt.value(), members_of_chat.size());
+  LOG_INFO("Received saved reaction {}", nlohmann::json(reaction_saved).dump());
+
+  for (auto user_id : members_of_chat) {
+    LOG_INFO("{} is member of chat {}", user_id, chat_id_opt.value());
+    notifyMember(user_id, reaction_saved, "save_reaction");
+  }
 }
 
 void NotificationManager::subscribeMessageSaved() {
@@ -75,7 +135,7 @@ void NotificationManager::subscribeMessageStatusSaved() {
 }
 
 void NotificationManager::handleOnMessageDeleted(const std::string &payload) {
-  auto parsed = parsePayload<Message>(payload);
+  auto parsed = utils::parsePayload<Message>(payload);
   if (!parsed) return;
 
   Message deleteted_message = *parsed;
@@ -110,7 +170,7 @@ void NotificationManager::onSendMessage(Message &message) {
 }
 
 void NotificationManager::onMessageStatusSaved(const std::string &payload) {
-  auto parsed = parsePayload<MessageStatus>(payload);
+  auto parsed = utils::parsePayload<MessageStatus>(payload);
   if (!parsed) return;
 
   MessageStatus message_status = *parsed;
@@ -131,7 +191,7 @@ void NotificationManager::onMessageStatusSaved(const std::string &payload) {
 }
 
 void NotificationManager::onMessageSaved(const std::string &payload) {
-  auto parsed = parsePayload<Message>(payload);
+  auto parsed = utils::parsePayload<Message>(payload);
   if (!parsed) return;
   Message saved_message = *parsed;
 
@@ -190,4 +250,18 @@ void NotificationManager::saveDeliveryStatus(const Message &msg,
 std::optional<long long> NotificationManager::getChatIdOfMessage(long long message_id) {
   DBC_REQUIRE(message_id > 0);
   return network_facade_.msg().getChatIdOfMessage(message_id);
+}
+
+void NotificationManager::saveReaction(const Reaction& reaction) {
+  mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
+                                     .routing_key = Config::Routes::saveReaction,
+                                     .message = nlohmann::json(reaction).dump(),
+                                     .exchange_type = Config::Routes::exchangeType});
+}
+
+void NotificationManager::deleteReaction(const Reaction& reaction) {
+  mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
+                                     .routing_key = Config::Routes::deleteReaction,
+                                     .message = nlohmann::json(reaction).dump(),
+                                     .exchange_type = Config::Routes::exchangeType});
 }

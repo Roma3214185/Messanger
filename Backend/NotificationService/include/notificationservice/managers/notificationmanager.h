@@ -3,6 +3,7 @@
 
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
+#include "entities/Reaction.h"
 
 class NetworkFacade;
 class IRabitMQClient;
@@ -31,6 +32,12 @@ class NotificationManager {
   virtual void onMessageSaved(const std::string &payload);
   void subscribeMessageDeleted();
   void handleOnMessageDeleted(const std::string &payload);
+  void saveReaction(const Reaction& reaction);
+  void deleteReaction(const Reaction& reaction);
+  void subscribeMessageReactionDeleted();
+  void subscribeMessageReactionSaved();
+  void onMessageReactionDeleted(const std::string& payload);  //todo: make handlers also polymorhic
+  void onMessageReactionSaved(const std::string& payload);
 
  protected:
   std::vector<long long> fetchChatMembers(long long chat_id);
