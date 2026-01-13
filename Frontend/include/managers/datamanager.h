@@ -5,6 +5,7 @@
 
 #include "dto/ChatBase.h"
 #include "dto/User.h"
+#include "entities/Reaction.h"
 #include "models/messagemodel.h"
 
 class MessageModel;
@@ -40,6 +41,11 @@ class DataManager : public QObject {
   [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
   void deleteMessage(const Message &msg);
   void readMessage(long long message_id, long long readed_by);
+  std::optional<std::string> getReactionPath(long long reaction_id);
+  void saveReaction(const Reaction &reaction);
+  void saveReaction(Message &message, const Reaction &reaction);
+  void deleteReaction(Message &message, const Reaction &reaction_to_delete);
+  void deleteReaction(const Reaction &reaction);
 
  Q_SIGNALS:
   void chatAdded(const ChatPtr &chat);
@@ -50,10 +56,15 @@ class DataManager : public QObject {
   [[nodiscard]] int getNumberOfExistingUsers() const noexcept;
 
  private:
+  auto getIterMessageById(long long message_id);
+  auto getIterMessageByLocalId(const QString &local_id);
+
   ChatMap chats_by_id_;
   UserMap users_by_id_;
   ListMessage messages_;
   MessageModelMap message_models_by_chat_id_;
+
+  std::unordered_map<int, std::string> reactions_;
 
   std::mutex messages_mutex_;
   std::mutex chat_mutex_;

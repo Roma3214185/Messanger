@@ -7,7 +7,6 @@
 #include "Debug_profiling.h"
 #include "Fields.h"
 #include "TimestampService.h"
-#include "interfaces/entity.h"
 
 struct ChatMember final {
   long long chat_id{0};

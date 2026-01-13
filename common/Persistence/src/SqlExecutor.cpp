@@ -4,11 +4,11 @@ SqlExecutor::SqlExecutor(IDataBase &database) : database_(database) {}
 
 SqlExecutorResult SqlExecutor::execute(const QString &sql, const QList<QVariant> &values) {
   PROFILE_SCOPE("[SqlExecutor] Execute");
-
+  LOG_INFO("Execute {}", sql.toStdString());
   auto outQuery = database_.prepare(sql);
   if (!outQuery) {
     LOG_ERROR("Error prepare outQuery");
-    return SqlExecutorResult{.query = nullptr, .error = outQuery->error().toStdString()};
+    return SqlExecutorResult("Failed to prepare");
   }
 
   for (int i = 0; i < values.size(); ++i) outQuery->bind(values[i]);
@@ -17,9 +17,9 @@ SqlExecutorResult SqlExecutor::execute(const QString &sql, const QList<QVariant>
 
   if (!outQuery->exec()) {
     LOG_ERROR("[SqlExecutor] Exec failed: '{}'", sql.toStdString());
-    return SqlExecutorResult{.query = nullptr, .error = outQuery->error().toStdString()};
+    return SqlExecutorResult(outQuery->error().toStdString());
   }
 
   LOG_INFO("[SqlExecutor] Exec succeed: '{}'", sql.toStdString());
-  return SqlExecutorResult{.query = std::move(outQuery), .error = outQuery->error().toStdString()};
+  return SqlExecutorResult(std::move(outQuery));
 }

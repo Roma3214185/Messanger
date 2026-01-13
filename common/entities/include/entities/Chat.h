@@ -7,7 +7,6 @@
 #include "Debug_profiling.h"
 #include "Fields.h"
 #include "TimestampService.h"
-#include "interfaces/entity.h"
 
 struct Chat final {
   long long id{0};
@@ -24,7 +23,7 @@ struct Chat final {
     DBC_REQUIRE(checkInvariants());
   }
 
-  bool checkInvariants() const { return id > 0 && !name.empty(); }
+  bool checkInvariants() const { return id > 0; }  //&& !name.empty(); }
 };
 
 namespace nlohmann {

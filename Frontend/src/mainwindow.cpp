@@ -3,6 +3,7 @@
 #include <QFrame>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QScrollBar>
 #include <QStandardItem>
 #include <QTimer>
@@ -96,8 +97,8 @@ void MainWindow::setMessageListView(QListView *list_view) {
   DBC_REQUIRE(list_view != nullptr);
   ui_->messageListViewLayout->addWidget(list_view);
 
-  auto *message_delegate = presenter_->getMessageDelegate();
-  list_view->setItemDelegate(message_delegate);
+  message_delegate_ = presenter_->getMessageDelegate();
+  list_view->setItemDelegate(message_delegate_);
 }
 
 MainWindow::~MainWindow() = default;
@@ -212,7 +213,7 @@ void MainWindow::seupConnections() {
 
   DBC_REQUIRE(message_list_view_ != nullptr);
   message_list_view_->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(message_list_view_.get(), &QListView::customContextMenuRequested, this, &MainWindow::onMessageContextMenu);
+  connect(message_list_view_.get(), &MessageListView::clickedWithEvent, this, &MainWindow::onPressEvent);
 
   connect(presenter_.get(), &Presenter::userSetted, this, &MainWindow::setMainWindow);
 
@@ -259,6 +260,29 @@ void MainWindow::setTheme(std::unique_ptr<ITheme> theme) {
   ui_->centralwidget->setStyleSheet(current_theme_->getStyleSheet());
 }
 
+void MainWindow::onPressEvent(QMouseEvent *event) {
+  const QPoint pos = event->pos();
+  qDebug() << "onPressEvent";
+
+  if (event->button() == Qt::RightButton) {
+    onMessageContextMenu(pos);
+  } else if (event->button() == Qt::LeftButton) {
+    onReactionClicked(pos);
+  }
+
+  // MessageListView::mousePressEvent(event);
+}
+
+void MainWindow::onReactionClicked(const QPoint &pos) {
+  QModelIndex index = message_list_view_->indexAt(
+      pos);  // todo: u get index 2 times, consider to refactor it in onPressEvent or in helper fucntion for future
+  if (!index.isValid()) return;
+  Message msg = index.data(MessageModel::Roles::FullMessage).value<Message>();
+  if (auto reaction_id = message_delegate_->reactionAt(msg.id, pos)) {
+    presenter_->reactionClicked(msg, *reaction_id);
+  }
+}
+
 void MainWindow::on_pushButton_clicked(bool checked) {
   checked ? setTheme(std::make_unique<DarkTheme>()) : setTheme(std::make_unique<LightTheme>());
 }
@@ -274,12 +298,34 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QAction *copyAction = menu.addAction("Copy");
   QAction *editAction = menu.addAction("Edit");
   QAction *deleteAction = menu.addAction("Delete");
+  // todo: reactions = getStandart Reactions Menu, and make polymorhic
 
-  if (msg.id <= 0 || !msg.is_mine) {  // message still offline, todo: add if it's your message
-                                      // and if u are admin in this chat
+  QIcon like_icon("/Users/roma/QtProjects/Chat/images/like.jpeg");
+
+  QAction *likeAction = menu.addAction(like_icon, "Like");
+  likeAction->setIconVisibleInMenu(true);
+
+  QIcon dislike_icon("/Users/roma/QtProjects/Chat/images/dislike.jpeg");
+  QAction *dislikeAction = menu.addAction(dislike_icon, "Dislike");
+  dislikeAction->setIconVisibleInMenu(true);
+
+  if (!msg.isOfflineSaved()) {
     editAction->setEnabled(false);
     deleteAction->setEnabled(false);
+    likeAction->setEnabled(false);
+    dislikeAction->setEnabled(false);
   }
+
+  /* todo:
+   * namespace ReactionIds {
+      constexpr int Like = 1;
+      constexpr int Dislike = 2;
+      and presenter_->getDefaultReactionsWithALl required info
+    }
+  */
+
+  if (msg.receiver_reaction == 1) likeAction->setEnabled(false);
+  if (msg.receiver_reaction == 2) dislikeAction->setEnabled(false);
 
   QAction *selected = menu.exec(message_list_view_->viewport()->mapToGlobal(pos));
   if (!selected) return;
@@ -290,6 +336,10 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
     editMessage(msg);
   } else if (selected == deleteAction) {
     deleteMessage(msg);
+  } else if (selected == likeAction) {
+    presenter_->reactionClicked(msg, 1);
+  } else if (selected == dislikeAction) {
+    presenter_->reactionClicked(msg, 2);
   }
 }
 
@@ -297,7 +347,7 @@ void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << me
 
 void MainWindow::editMessage(const Message &message) {
   qDebug() << "Edit " << message.toString();
-  DBC_REQUIRE(message.is_mine && message.id > 0);
+  DBC_REQUIRE(message.isMine() && !message.isOfflineSaved());
 
   QString text_to_edit = message.text;
   DBC_REQUIRE(!text_to_edit.isEmpty());
@@ -310,7 +360,7 @@ void MainWindow::editMessage(const Message &message) {
 
 void MainWindow::deleteMessage(const Message &message) {
   qDebug() << "Delete " << message.toString();
-  DBC_REQUIRE(message.is_mine && message.id > 0);
+  DBC_REQUIRE(message.isMine() && message.id > 0);
   presenter_->deleteMessage(message);
 }
 

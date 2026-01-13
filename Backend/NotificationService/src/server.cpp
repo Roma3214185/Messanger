@@ -16,6 +16,8 @@ void Server::initHanlers() {
   handlers_["init"] = std::make_unique<InitMessageHandler>();
   handlers_["send_message"] = std::make_unique<SendMessageHandler>();
   handlers_["read_message"] = std::make_unique<MarkReadMessageHandler>();
+  handlers_["save_reaction"] = std::make_unique<SaveMessageReactionHandler>();
+  handlers_["delete_reaction"] = std::make_unique<DeleteMessageReactionHandler>();
 }
 
 void Server::run() {
@@ -57,6 +59,7 @@ void Server::handleSocketRoutes() {
 }
 
 void Server::handleSocketOnMessage(const std::shared_ptr<ISocket> &socket, const std::string &data) {
+  LOG_INFO("Data from socket {}", data);
   auto message_ptr = crow::json::load(data);
   if (!message_ptr) {
     LOG_ERROR("[onMessage] Failed in loading data: {}", data);

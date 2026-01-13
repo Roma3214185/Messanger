@@ -6,7 +6,6 @@
 #include <QObject>
 #include <QUrl>
 
-#include "dto/ChatBase.h"
 #include "managers/BaseManager.h"
 
 using ChatPtr = std::shared_ptr<ChatBase>;

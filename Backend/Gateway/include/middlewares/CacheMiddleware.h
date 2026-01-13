@@ -62,6 +62,7 @@ struct CacheMiddleware {
 
   bool notNeedCache(const std::string &url) const {
     if (url == "/auth/me") return true;
+    if (std::string req_url = "/messages"; url.substr(0, req_url.length()) == req_url) return true;
     if (std::string req_url = "/request"; url.substr(0, req_url.length()) == req_url) return true;
     return false;
   }

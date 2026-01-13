@@ -11,19 +11,24 @@ void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
   }
 
   auto message = [&]() -> Message {
-    auto value_message = index.data(MessageModel::FullMessage);
-    if (value_message.canConvert<Message>()) {
+    try {
+      auto value_message = index.data(MessageModel::FullMessage);
+      value_message.canConvert<Message>();
       return value_message.value<Message>();
+    } catch (...) {
+      throw std::runtime_error("Message in invalid in extractMessageData");
     }
-
-    throw std::runtime_error("Message in invalid in extractMessageData");
   }();
 
+  if (!message.isOfflineSaved()) {
+    auto &boxes = hit_boxes_by_message_[message.id];
+    boxes.clear();
+  }
+
   painter->save();
-  auto draw_message_data = extractMessageData(message);
-  const bool is_mine = draw_message_data.sender_id == draw_message_data.receiver_id;
-  drawAll(painter, option, draw_message_data, is_mine);
-  if (draw_message_data.is_readed == false) Q_EMIT unreadMessage(message);
+  auto sender = extractSender(message.sender_id);
+  drawAll(painter, option, message, sender);
+  if (message.receiver_read_status == false) Q_EMIT unreadMessage(message);
   painter->restore();
 }
 
@@ -102,8 +107,8 @@ void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const QStri
   painter->drawText(text_rect(), (is_mine ? Qt::AlignRight : Qt::AlignLeft) | Qt::TextWordWrap, text);
 }
 
-void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QString &timestamp,
-                                    bool is_mine) const {
+void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &time, bool is_mine) const {
+  QString timestamp = time.toString("hh:mm dd.MM");
   painter->setFont(QFont("Arial", 7));
   QRect timeRect;
 
@@ -116,51 +121,57 @@ void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const 
                     timestamp);
 }
 
-MessageDrawData MessageDelegate::extractMessageData(const Message &message) const {
-  auto user = [&]() -> User {
-    std::optional<User> getted_user = data_manager_->getUser(message.sender_id);
-    if (getted_user) {
-      return *getted_user;
-    }
+User MessageDelegate::extractSender(long long sender_id) const {
+  if (auto sender = data_manager_->getUser(sender_id)) {
+    sender->avatarPath = "/Users/roma/QtProjects/Chat/images/default_avatar.jpg";
+    return *sender;
+  }
 
-    User default_user;
-    default_user.name = "Unknown user";
-    return default_user;
-  }();
-
-  MessageDrawData data;
-  data.username = user.name;
-  data.text = message.text;
-  data.avatar_path = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
-  data.timestamp = message.timestamp.toString("hh:mm dd.MM");
-  data.sender_id = message.sender_id;
-  data.receiver_id = token_manager_->getCurrentUserId();
-  data.is_sended = message.status_sended;
-  data.is_readed = message.readed_by_me;
-  data.read_cnt = message.read_counter;
-  return data;
+  User default_user;
+  default_user.name = "Unknown user";
+  default_user.avatarPath = "/Users/roma/QtProjects/Chat/images/default_avatar.jpg";
+  return default_user;
 }
 
-void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option, const MessageDrawData &msg,
-                              bool is_mine) const {
+void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option, const Message &msg,
+                              const User &user) const {
   QRect rect = option.rect.normalized();
+  bool is_mine = msg.isMine();
   drawBackgroundState(painter, rect, option, is_mine);
-  drawAvatar(painter, rect, QPixmap(msg.avatar_path), is_mine);
-  drawUsername(painter, rect, msg.username, is_mine);
+  drawAvatar(painter, rect, QPixmap(user.avatarPath), is_mine);
+  drawUsername(painter, rect, user.name, is_mine);
   drawTimestamp(painter, rect, msg.timestamp, is_mine);
   drawText(painter, rect, msg.text, is_mine);
-  drawStatus(painter, rect, msg, is_mine);
-  drawReadCounter(painter, rect, msg.read_cnt, is_mine);
+  drawStatus(painter, rect, msg.status_sended, msg.read_counter, is_mine);
+  drawReadCounter(painter, rect, msg.read_counter, is_mine);
+  if (!msg.isOfflineSaved()) {
+    drawReactions(painter, rect, msg.reactions, msg.receiver_reaction, msg.id);
+  }
 }
 
-void MessageDelegate::drawStatus(QPainter *painter, const QRect &rect, const MessageDrawData &message_data,
+void MessageDelegate::drawReactions(QPainter *painter, const QRect &rect, const std::unordered_map<int, int> &reactions,
+                                    std::optional<int> my_reaction, long long message_id) const {
+  DBC_REQUIRE(message_id > 0);
+  std::string default_reactions_path = "/Users/roma/QtProjects/Chat/images/red-error-icon-image.jpg";
+  int offset = 30;
+  for (const auto &[reaction_id, reaction_cnt] : reactions) {
+    if (reaction_cnt <= 0) continue;
+    auto reaction_image_path = data_manager_->getReactionPath(reaction_id);
+    if (!reaction_image_path.has_value()) {
+      reaction_image_path = default_reactions_path;
+    }
+    auto full_maked_icon =
+        makeReactionIcon(QString::fromStdString(*reaction_image_path), reaction_cnt, my_reaction, reaction_id);
+    addInRect(painter, rect, full_maked_icon, reaction_id, message_id, offset);
+  }
+}
+
+void MessageDelegate::drawStatus(QPainter *painter, const QRect &rect, bool is_sended, int read_cnt,
                                  bool is_mine) const {
   if (!is_mine) return;
   constexpr int status_size = 16;
 
-  const auto status_symbol = [message_data]() -> QString {
-    return !message_data.is_sended ? "!" : message_data.is_readed ? ".." : ".";
-  };
+  const QString status_symbol = !is_sended ? "!" : read_cnt > 1 ? ".." : ".";
 
   constexpr int kTopOffset = 30;
   constexpr int kLeftOffset = 4;
@@ -173,7 +184,7 @@ void MessageDelegate::drawStatus(QPainter *painter, const QRect &rect, const Mes
 
   painter->save();
   painter->setPen(QPen(Qt::gray));
-  painter->drawText(position, status_symbol());
+  painter->drawText(position, status_symbol);
   painter->restore();
 }
 
@@ -203,4 +214,82 @@ void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect, cons
   painter->drawText(circle_rect, Qt::AlignCenter, QString::number(read_cnt));
 
   painter->restore();
+}
+
+QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, std::optional<int> my_reaction,
+                                          int reaction_id) const {
+  constexpr int iconSize = 20;
+  constexpr int padding = 4;
+  constexpr int badgeMinWidth = 14;
+  constexpr int height = 24;
+
+  QPixmap icon(imagePath);
+  if (icon.isNull()) {
+    icon = QPixmap(iconSize, iconSize);
+    icon.fill(Qt::transparent);
+  } else {
+    icon = icon.scaled(iconSize, iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  }
+
+  QFont font;
+  font.setPixelSize(11);
+  QFontMetrics fm(font);
+
+  const QString text = QString::number(count);
+  const int textWidth = std::max(badgeMinWidth, fm.horizontalAdvance(text));
+
+  const int width = iconSize + padding + textWidth + padding;
+
+  QPixmap result(width, height);
+  result.fill(Qt::transparent);
+
+  QPainter p(&result);
+  p.setRenderHint(QPainter::Antialiasing);
+  p.setFont(font);
+
+  // highlight if my reaction
+  if (my_reaction && *my_reaction == reaction_id) {
+    p.setBrush(QColor(0, 120, 215, 60));
+    p.setPen(Qt::NoPen);
+    p.drawRoundedRect(result.rect(), 6, 6);
+  }
+
+  // draw icon
+  p.drawPixmap(padding, (height - iconSize) / 2, icon);
+
+  // draw count
+  p.setPen(Qt::black);
+  QRect textRect(iconSize + padding * 2, 0, textWidth, height);
+
+  p.drawText(textRect, Qt::AlignCenter, text);
+
+  return result;
+}
+
+void MessageDelegate::addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, int reaction_id,
+                                long long message_id, int &reaction_x_offset) const {
+  constexpr int spacing = 6;
+
+  const int x = rect.left() + reaction_x_offset;
+  const int y = rect.bottom() - icon.height() - 4;
+
+  QRect hitRect(x, y, icon.width(), icon.height());
+
+  painter->drawPixmap(hitRect.topLeft(), icon);
+
+  DBC_REQUIRE(message_id > 0);
+  DBC_REQUIRE(reaction_id > 0);
+  hit_boxes_by_message_[message_id].push_back({hitRect, reaction_id});
+
+  reaction_x_offset += icon.width() + spacing;
+}
+
+std::optional<int> MessageDelegate::reactionAt(long long message_id, const QPoint &pos) const {
+  auto it = hit_boxes_by_message_.find(message_id);
+  if (it == hit_boxes_by_message_.end()) return std::nullopt;
+
+  for (const auto &box : it->second) {
+    if (box.rect.contains(pos)) return box.reaction_id;
+  }
+  return std::nullopt;
 }

@@ -63,6 +63,15 @@ const QString CREATE_MESSAGES_STATUS_TABLE = R"(
         );
     )";
 
+const QString CREATE_MESSAGES_REACTION_TABLE = R"(
+        CREATE TABLE IF NOT EXISTS messages_reaction (
+            message_id INTEGER,
+            receiver_id INTEGER,
+            reaction_id INTEGER,
+            PRIMARY KEY(message_id, receiver_id)
+        );
+    )";
+
 const QString CREATE_CHATS_TABLE = R"(
         CREATE TABLE IF NOT EXISTS chats (
             id INTEGER PRIMARY KEY,
@@ -118,9 +127,9 @@ const QString CREATE_OUTBOX_TABLE = R"(CREATE TABLE IF NOT EXISTS outbox (
 
 bool SQLiteDatabase::initializeSchema() {
   const std::vector<QString> tables = {
-      CREATE_USERS_TABLE,          CREATE_MESSAGES_TABLE,      CREATE_MESSAGES_STATUS_TABLE, CREATE_CHATS_TABLE,
-      CREATE_CHAT_MEMBERS_TABLE,   CREATE_CREDENTIALS_TABLE,   CREATE_PRIVATE_CHATS_TABLE,   CREATE_OUTBOX_TABLE,
-      CREATE_USERS_BY_EMAIL_TABLE, CREATE_USERS_BY_EMAIL_INDEX};
+      CREATE_USERS_TABLE,          CREATE_MESSAGES_TABLE,       CREATE_MESSAGES_STATUS_TABLE,  CREATE_CHATS_TABLE,
+      CREATE_CHAT_MEMBERS_TABLE,   CREATE_CREDENTIALS_TABLE,    CREATE_PRIVATE_CHATS_TABLE,    CREATE_OUTBOX_TABLE,
+      CREATE_USERS_BY_EMAIL_TABLE, CREATE_USERS_BY_EMAIL_INDEX, CREATE_MESSAGES_REACTION_TABLE};
 
   for (const auto &sql : tables) {
     if (!executeSql(db(), sql)) {

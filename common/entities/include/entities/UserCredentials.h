@@ -5,7 +5,6 @@
 #include <string>
 
 #include "Fields.h"
-#include "interfaces/entity.h"
 
 struct UserCredentials final {
   long long user_id{0};

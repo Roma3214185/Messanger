@@ -35,18 +35,22 @@
 Model::Model(const QUrl &url, INetworkAccessManager *netManager, ICache *cash, ISocket *socket,
              DataManager *data_manager)
     : cache_(cash),
+      token_manager_(std::make_unique<TokenManager>()),
+      entity_factory_(std::make_unique<EntityFactory>(token_manager_.get())),
       chat_model_(std::make_unique<ChatModel>()),
       user_model_(std::make_unique<UserModel>()),
       data_manager_(data_manager),
-      token_manager_(std::make_unique<TokenManager>()),
       socket_use_case_(std::make_unique<SocketUseCase>(std::make_unique<SocketManager>(socket, url))),
-      chat_use_case_(std::make_unique<ChatUseCase>(std::make_unique<ChatManager>(netManager, url), data_manager_,
-                                                   chat_model_.get(), token_manager_.get())),
-      user_use_case_(std::make_unique<UserUseCase>(data_manager_, std::make_unique<UserManager>(netManager, url),
-                                                   token_manager_.get())),
+      chat_use_case_(
+          std::make_unique<ChatUseCase>(std::make_unique<ChatManager>(netManager, url, entity_factory_.get()),
+                                        data_manager_, chat_model_.get(), token_manager_.get())),
+      user_use_case_(std::make_unique<UserUseCase>(
+          data_manager_, std::make_unique<UserManager>(netManager, url, entity_factory_.get()), token_manager_.get())),
       message_use_case_(std::make_unique<MessageUseCase>(
-          data_manager_, std::make_unique<MessageManager>(netManager, url), token_manager_.get())),
-      session_use_case_(std::make_unique<SessionUseCase>(std::make_unique<SessionManager>(netManager, url))) {
+          data_manager_, std::make_unique<MessageManager>(netManager, url, entity_factory_.get()),
+          token_manager_.get())),
+      session_use_case_(
+          std::make_unique<SessionUseCase>(std::make_unique<SessionManager>(netManager, url, entity_factory_.get()))) {
   LOG_INFO("[Model::Model] Initialized Model with URL: '{}'", url.toString().toStdString());
 }
 

@@ -62,12 +62,13 @@ SelectQuery<T>::SelectQuery(ISqlExecutor* executor, ICacheService& cache)
 
 template <EntityJson T>
 QueryResult<T> SelectQuery<T>::execute() const {
+  PROFILE_SCOPE();
   QString sql = buildQuery();
   std::string cache_key = createCacheKey(sql, hashGenerations(getGenerations()), hashParams(this->values_));
 
-  if (auto cached = tryLoadFromCache(cache_key)) {
+  if (auto cached = tryLoadFromCache(cache_key); cached.has_value()) {
     LOG_INFO("Hit cache for key {}", cache_key);
-    return SelectResult<T>{ *cached };
+    return SelectResult<T>{ cached.value() };
   }
 
   LOG_INFO("Not hit cache for sql {}", sql.toStdString());

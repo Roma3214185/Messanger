@@ -7,6 +7,7 @@ if (NOT TARGET Entities)
 
     target_include_directories(Entities INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/
     )
 
     target_link_libraries(Entities INTERFACE

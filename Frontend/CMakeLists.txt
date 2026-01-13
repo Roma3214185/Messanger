@@ -70,6 +70,7 @@ target_link_libraries(FrontendLib PUBLIC
     Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
     Metrics
     RedisCache
+    Entities
 )
 
 target_compile_definitions(FrontendLib PUBLIC SPDLOG_HEADER_ONLY)
@@ -85,6 +86,9 @@ add_executable(Frontend
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
     Dockerfile
+    include/utils.h
+    include/handlers/SaveMessageReactionHandler.h
+    include/handlers/DeleteMessageReactionHandler.h
 )
 
 add_custom_command(TARGET Frontend POST_BUILD

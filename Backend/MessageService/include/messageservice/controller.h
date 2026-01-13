@@ -31,6 +31,10 @@ class Controller {
   virtual void handleSaveMessageStatus(const std::string &payload);
   void subscribeToSaveMessage();
   void subscribeToSaveMessageStatus();
+  void subscribeToSaveMessageReaction();
+  void subscribeToDeleteMessageReaction();
+  void onDeleteMessageReaction(const std::string &payload);
+  void onSaveMessageReaction(const std::string &payload);
 
  private:
   std::vector<Message> getMessages(const GetMessagePack &);

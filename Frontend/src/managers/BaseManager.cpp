@@ -1,8 +1,12 @@
 #include "managers/BaseManager.h"
 
-BaseManager::BaseManager(INetworkAccessManager *network_manager, const QUrl &base_url,
+BaseManager::BaseManager(INetworkAccessManager *network_manager, const QUrl &base_url, EntityFactory *entity_factory,
                          std::chrono::milliseconds timeout_ms, QObject *parent)
-    : QObject(parent), network_manager_(network_manager), url_(base_url), timeout_ms_(timeout_ms) {}
+    : QObject(parent),
+      network_manager_(network_manager),
+      url_(base_url),
+      entity_factory_(entity_factory),
+      timeout_ms_(timeout_ms) {}
 
 BaseManager::~BaseManager() = default;
 

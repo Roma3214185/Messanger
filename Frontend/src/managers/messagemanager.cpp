@@ -58,7 +58,7 @@ QList<Message> MessageManager::onGetChatMessages(const QByteArray &responce_data
 
   QList<Message> messages;
   for (const auto &val : doc.array()) {
-    messages.append(JsonService::getMessageFromJson(val.toObject()));
+    messages.append(this->entity_factory_->getMessageFromJson(val.toObject()));
   }
   LOG_INFO("[onGetChatMessages] Loaded {} messages", messages.size());
   return messages;
@@ -72,7 +72,7 @@ void MessageManager::updateMessage(const Message &message_to_update, const QStri
   LOG_INFO("Update message {}", message_to_update.toString());
   QUrlQuery query;
   endpoint.setQuery(query);
-  QJsonObject json = JsonService::toJson(message_to_update);
+  QJsonObject json = this->entity_factory_->toJson(message_to_update);
 
   auto request = getRequestWithToken(endpoint, token);
   auto *reply = network_manager_->put(request, QJsonDocument(json).toJson());

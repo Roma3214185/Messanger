@@ -55,7 +55,7 @@ void SessionManager::onReplyFinished(const QByteArray &responce) {
     return;
   }
 
-  auto createdUser = JsonService::getUserFromResponse(responseObj["user"].toObject());
+  auto createdUser = this->entity_factory_->getUserFromResponse(responseObj["user"].toObject());
   QString current_token = responseObj["token"].toString();
 
   LOG_INFO("[onReplyFinished] User created. User: '{}', Token: '{}'", createdUser.name.toStdString(),

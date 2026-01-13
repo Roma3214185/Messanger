@@ -6,7 +6,6 @@
 #include <string>
 
 #include "Debug_profiling.h"
-#include "interfaces/entity.h"
 
 struct User final {
   long long id = 0;

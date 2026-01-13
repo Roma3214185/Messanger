@@ -4,8 +4,10 @@
 #include <QDateTime>
 #include <QString>
 #include <QUuid>
+#include <unordered_map>
 
 #include "Debug_profiling.h"
+#include "entities/Reaction.h"
 
 struct Message {  // todo: make immutable messagedomein and mutable messageview
   long long id = 0;
@@ -13,27 +15,39 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   long long chat_id;
   QString text;
   QDateTime timestamp;
-  bool readed_by_me;
+  bool receiver_read_status = true;
   int read_counter = 0;
-  int liked_counter = 0;
   bool status_sended{false};
-  bool is_mine{false};
-  std::optional<int> my_reaction;
+  long long receiver_id;
+  std::optional<int> receiver_reaction{std::nullopt};
+  std::unordered_map<int, int> reactions;
   QString local_id;
 
-  void updateFrom(const Message &other) {
+  void updateFrom(const Message& other) {  // todo: copy asign operator
     DBC_REQUIRE(local_id == other.local_id);
-    LOG_INFO("Update from {}", other.toString());
+    DBC_REQUIRE(chat_id == other.chat_id);
+    DBC_REQUIRE(sender_id == other.sender_id);
+    DBC_REQUIRE(receiver_id == other.receiver_id);
+    if (id != 0) DBC_REQUIRE(id == other.id);
+
+    LOG_INFO("Update {} | | from {}", this->toString(), other.toString());
     id = other.id;
     text = other.text;
     timestamp = other.timestamp;
-    readed_by_me = other.readed_by_me;
+    receiver_read_status = other.receiver_read_status;
     read_counter = other.read_counter;
-    liked_counter = other.liked_counter;
+    reactions = other.reactions;
     status_sended = other.status_sended;
-    is_mine = other.is_mine;
+    receiver_reaction = other.receiver_reaction;
+    reactions = other.reactions;
     DBC_INVARIANT(checkInvariants());
   }
+
+  bool isOfflineSaved() const noexcept {
+    return id == 0;  // todo: state pattern
+  }
+
+  bool isMine() const noexcept { return sender_id == receiver_id; }
 
   std::string toString() const noexcept {
     std::string res;
@@ -42,21 +56,31 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     res += " | chat_id = " + std::to_string(chat_id);
     res += " | text = " + text.toStdString();
     res += " | timestamp = " + timestamp.toString().toStdString();
-    res += " | readed_by_me = " + std::to_string(readed_by_me + 0);
-    // res += " | liked_by_me = " +  std::to_string(liked_by_me + 0);
+    res += " | receiver_read_status = " + std::to_string(receiver_read_status + 0);
+    if (receiver_reaction.has_value())
+      res += " | my reaction id is = " + std::to_string(*receiver_reaction);
+    else
+      res += " | no my reaction ";
     res += " | read_counter = " + std::to_string(read_counter + 0);
-    // res += " | liked_counter = " +  std::to_string(liked_counter + 0);
     res += " | status_sended = " + std::to_string(status_sended + 0);
     res += " | local_id = " + local_id.toStdString();
-    res += " | is_mine = " + std::to_string(is_mine + 0);
+
+    int total_reactions = 0;
+    std::string reactions_string;
+    for (const auto& [react_id, react_cnt] : reactions) {
+      total_reactions += react_cnt;
+      reactions_string += "| {reaction:" + std::to_string(react_id) + " = cnt: " + std::to_string(react_cnt) + "} ";
+    }
+    res += " | total_reactions = " + std::to_string(total_reactions);
+    res += reactions_string;
     return res;
   }
 
   bool checkInvariants() const noexcept {
     return id > 0  // todo: what if message saved as offline, them id will == 0,
                    // state pattern??
-           && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && liked_counter >= 0 &&
-           !text.isEmpty();
+           && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
+           !text.isEmpty() && read_counter > 0 && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
   }
 };
 

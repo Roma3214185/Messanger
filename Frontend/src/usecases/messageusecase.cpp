@@ -40,18 +40,10 @@ MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<Messag
 
 auto MessageUseCase::getChatMessages(long long chat_id, int limit) -> QList<Message> {
   auto message_model = data_manager_->getMessageModel(chat_id);
-  assert(message_model);
+  DBC_REQUIRE(message_model != nullptr);
+  auto oldestMessage = message_model->getOldestMessage();
 
-  long long id_of_oldest_message = [&]() {
-    auto oldestMessage = message_model->getOldestMessage();
-    if (oldestMessage) {
-      LOG_INFO("Last message with id '{}' and text '{}'", oldestMessage->id, oldestMessage->text.toStdString());
-      return oldestMessage->id;
-    } else {
-      LOG_INFO("Chat {} was empty (there is no oldest message");
-      return 0ll;
-    }
-  }();
+  long long id_of_oldest_message = oldestMessage.has_value() ? oldestMessage->id : 0ll;
 
   // TODO: cache request result for {chat_id before_id}
   LOG_INFO(
@@ -79,14 +71,15 @@ void MessageUseCase::addMessageToChat(Message &msg) {
   PROFILE_SCOPE("MessageUseCase::addMessageToChat");
   DBC_REQUIRE(!msg.local_id.isEmpty());
   DBC_REQUIRE(msg.sender_id > 0);
-  long long current_id = token_manager_->getCurrentUserId();
-  if (current_id == msg.sender_id) msg.is_mine = true;
+  msg.receiver_id = token_manager_->getCurrentUserId();  // todo: it's already in JsonService, can be delated
   data_manager_->saveMessage(msg);
 }
 
 void MessageUseCase::updateMessage(Message &msg) {
   long long current_id = token_manager_->getCurrentUserId();
-  if (current_id == msg.sender_id) msg.is_mine = true;
+  qDebug() << "Message receiver id = "
+           << msg.receiver_id;  // todo: it's already in JsonService, can be delated, made const Message&
+  msg.receiver_id = current_id;
   data_manager_->saveMessage(msg);
   message_manager_->updateMessage(msg, token_manager_->getToken());
 }

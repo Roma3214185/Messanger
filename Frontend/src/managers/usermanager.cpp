@@ -33,7 +33,7 @@ QFuture<std::optional<User>> UserManager::getUser(long long user_id, const QStri
       reply, [this](const QByteArray &responce_data) { return onGetUser(responce_data); }, timeout_ms_, std::nullopt);
 }
 
-auto UserManager::onGetUser(const QByteArray &responce_data) const -> optional<User> {
+auto UserManager::onGetUser(const QByteArray &responce_data) const -> std::optional<User> {
   PROFILE_SCOPE("UserManager::onGetUser");
   // if(!checkReply(reply)) return std::nullopt;
   // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
@@ -45,7 +45,7 @@ auto UserManager::onGetUser(const QByteArray &responce_data) const -> optional<U
     return std::nullopt;
   }
 
-  auto user = JsonService::getUserFromResponse(doc.object());
+  auto user = this->entity_factory_->getUserFromResponse(doc.object());
   LOG_INFO("[onGetUser] User loaded: '{}'", user.name.toStdString());
   return user;
 }
@@ -65,10 +65,6 @@ QFuture<QList<User>> UserManager::findUsersByTag(const QString &tag, const QStri
 }
 
 QList<User> UserManager::onFindUsersByTag(const QByteArray &responce_data) const {
-  // if(!checkReply(reply)) return {};
-  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-
-  // auto responseData = reply->readAll();
   auto doc = QJsonDocument::fromJson(responce_data);
 
   if (!doc.isObject()) {
@@ -89,7 +85,7 @@ QList<User> UserManager::onFindUsersByTag(const QByteArray &responce_data) const
 
   for (const auto &value : std::as_const(arr)) {
     auto obj = value.toObject();
-    auto user = JsonService::getUserFromResponse(obj);
+    auto user = this->entity_factory_->getUserFromResponse(obj);
     users.append(user);
   }
 

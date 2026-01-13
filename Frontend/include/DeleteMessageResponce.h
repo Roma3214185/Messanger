@@ -3,24 +3,18 @@
 
 #include "JsonService.h"
 #include "interfaces/ISocketResponceHandler.h"
-#include "managers/TokenManager.h"
 #include "usecases/messageusecase.h"
 
 class DeleteMessageResponceHandler : public ISocketResponceHandler {
-  TokenManager *token_manager_;
+  EntityFactory *entity_factory_;
   MessageUseCase *message_use_case_;
 
  public:
-  DeleteMessageResponceHandler(TokenManager *token_manager, MessageUseCase *message_use_case)
-      : token_manager_(token_manager), message_use_case_(message_use_case) {}
+  DeleteMessageResponceHandler(EntityFactory *entity_factory, MessageUseCase *message_use_case)
+      : entity_factory_(entity_factory), message_use_case_(message_use_case) {}
 
   void handle(const QJsonObject &json_object) override {
-    auto new_message = JsonService::getMessageFromJson(json_object);
-    if (long long current_id = token_manager_->getCurrentUserId(); current_id == new_message.sender_id) {
-      new_message.is_mine = true;
-    }
-    new_message.status_sended = true;
-    message_use_case_->deleteMessage(new_message);
+    message_use_case_->deleteMessage(entity_factory_->getMessageFromJson(json_object));
   }
 };
 
