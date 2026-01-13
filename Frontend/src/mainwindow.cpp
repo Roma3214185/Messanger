@@ -309,13 +309,20 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QAction *dislikeAction = menu.addAction(dislike_icon, "Dislike");
   dislikeAction->setIconVisibleInMenu(true);
 
-  if (msg.id <= 0 || !msg.isMine()) {  // message still offline, todo: add if it's your message
-                                       // and if u are admin in this chat
+  if (!msg.isOfflineSaved()) {
     editAction->setEnabled(false);
     deleteAction->setEnabled(false);
     likeAction->setEnabled(false);
     dislikeAction->setEnabled(false);
   }
+
+  /* todo:
+   * namespace ReactionIds {
+      constexpr int Like = 1;
+      constexpr int Dislike = 2;
+      and presenter_->getDefaultReactionsWithALl required info
+    }
+  */
 
   if (msg.receiver_reaction == 1) likeAction->setEnabled(false);
   if (msg.receiver_reaction == 2) dislikeAction->setEnabled(false);
