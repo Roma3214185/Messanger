@@ -4,14 +4,12 @@
 
 auto DataManager::getIterMessageById(long long message_id) {
   DBC_REQUIRE(message_id > 0);
-  const std::lock_guard<std::mutex> lock(messages_mutex_);
   return std::find_if(messages_.begin(), messages_.end(),
                       [&](const auto &existing_message) { return existing_message.id == message_id; });
 }
 
 auto DataManager::getIterMessageByLocalId(const QString &local_id) {
   DBC_REQUIRE(!local_id.isEmpty());
-  const std::lock_guard<std::mutex> lock(messages_mutex_);
   return std::find_if(messages_.begin(), messages_.end(),
                       [&](const auto &existing_message) { return existing_message.local_id == local_id; });
 }
