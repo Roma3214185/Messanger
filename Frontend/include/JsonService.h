@@ -2,9 +2,9 @@
 #define ENTITY_FACTORY_H
 
 #include <QDateTime>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QString>
-#include <QJsonArray>
 
 #include "Debug_profiling.h"
 #include "dto/ChatBase.h"
