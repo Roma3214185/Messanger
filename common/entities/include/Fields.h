@@ -29,6 +29,17 @@ static std::string fullField(const std::string &field) { return std::string(Tabl
 
 }  // namespace MessageStatusTable
 
+namespace MessageReactionTable {
+
+inline static constexpr const char *Table = "messages_reaction";
+inline static constexpr const char *MessageId = "message_id";
+inline static constexpr const char *ReceiverId = "receiver_id";
+inline static constexpr const char *ReactionId = "reaction_id";
+
+static std::string fullField(const std::string &field) { return std::string(Table) + "." + field; }
+
+}  // namespace MessageReactionTable
+
 namespace UserTable {
 
 inline static constexpr const char *Table = "users";

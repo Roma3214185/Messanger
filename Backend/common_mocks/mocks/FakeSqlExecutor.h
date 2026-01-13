@@ -23,8 +23,8 @@ class FakeSqlExecutor : public ISqlExecutor {
     lastSql = sql;
     lastValues = values;
     last_sqls.push_back(lastSql.toStdString());
-    if (shouldFail) return SqlExecutorResult{.query = nullptr};
-    return SqlExecutorResult{.query = std::make_unique<MockQuery>(mock_query)};
+    if (shouldFail) return SqlExecutorResult();
+    return SqlExecutorResult(std::make_unique<MockQuery>(mock_query));
   }
 };
 

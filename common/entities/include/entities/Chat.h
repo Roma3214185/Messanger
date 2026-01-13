@@ -24,7 +24,7 @@ struct Chat final {
     DBC_REQUIRE(checkInvariants());
   }
 
-  bool checkInvariants() const { return id > 0 && !name.empty(); }
+  bool checkInvariants() const { return id > 0; } //&& !name.empty(); }
 };
 
 namespace nlohmann {

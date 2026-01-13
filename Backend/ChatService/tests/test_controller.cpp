@@ -33,7 +33,7 @@ struct TestFixture {
 
   void auth() {
     mock_autoritized->mock_user_id = user_id;
-    req.headers.emplace_back(std::make_pair("Authorization", secret_token));
+    req.headers.emplace_back("Authorization", secret_token);
   }
 };
 

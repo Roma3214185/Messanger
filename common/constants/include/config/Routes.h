@@ -16,6 +16,10 @@ static constexpr const char *exchange = "app.events";
 static constexpr const char *messageStatusSaved = "message_status_saved";
 static constexpr const char *sendRequest = "send_request";
 static constexpr const char *exchangeType = "direct";
+static constexpr const char *saveReaction = "save_message_reaction";
+static constexpr const char *deleteReaction = "delete_message_reaction";
+static constexpr const char *messageReactionDeleted = "message_reaction_deleted";
+static constexpr const char *messageReactionSaved = "message_reaction_saved";
 }  // namespace Config::Routes
 
 #endif  // ROUTES_H
