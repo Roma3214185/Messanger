@@ -23,7 +23,7 @@ QueryResult<T> DeleteQuery<T>::execute() const {
 template <EntityJson T>
 QString DeleteQuery<T>::buildQuery() const {
   QString sql =
-      QString("DELETE * FROM %1").arg(this->table_name_);
+      QString("DELETE FROM %1").arg(this->table_name_);
   sql += this->join_clause_;
   if (!this->filters_.empty()) sql += " WHERE " + this->filters_.join(" AND ");
   if (!this->limit_clause_.isEmpty()) sql += " " + this->limit_clause_;
