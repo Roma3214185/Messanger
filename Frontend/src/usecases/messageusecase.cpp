@@ -71,14 +71,14 @@ void MessageUseCase::addMessageToChat(Message &msg) {
   PROFILE_SCOPE("MessageUseCase::addMessageToChat");
   DBC_REQUIRE(!msg.local_id.isEmpty());
   DBC_REQUIRE(msg.sender_id > 0);
-  long long current_id = token_manager_->getCurrentUserId();
-  if (current_id == msg.sender_id) msg.is_mine = true;
+  msg.receiver_id = token_manager_->getCurrentUserId();  //todo: it's already in JsonService, can be delated
   data_manager_->saveMessage(msg);
 }
 
 void MessageUseCase::updateMessage(Message &msg) {
   long long current_id = token_manager_->getCurrentUserId();
-  if (current_id == msg.sender_id) msg.is_mine = true;
+  qDebug() << "Message receiver id = " << msg.receiver_id; //todo: it's already in JsonService, can be delated, made const Message&
+  msg.receiver_id = current_id;
   data_manager_->saveMessage(msg);
   message_manager_->updateMessage(msg, token_manager_->getToken());
 }

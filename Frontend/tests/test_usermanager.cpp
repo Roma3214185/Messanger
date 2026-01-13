@@ -23,8 +23,12 @@ TEST_CASE("Test user manager") {
   QUrl url("http://localhost:8083/");
   std::chrono::milliseconds times_out{20};
   std::chrono::milliseconds delay{3};
-
-  UserManager user_manager(&network_manager, url, times_out);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  UserManager user_manager(&network_manager, url, &entity_factory, times_out);
   int user_id{4};
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
@@ -34,7 +38,6 @@ TEST_CASE("Test user manager") {
       {"id", user.id}, {"name", user.name}, {"email", user.email}, {"tag", user.tag}, {"avatar_path", user.avatarPath}};
   QJsonDocument doc(obj);
   QByteArray json_data = doc.toJson();
-  QString token = "secret-token-123";
   auto doGetUser = [&]() -> QFuture<std::optional<User>> { return user_manager.getUser(user_id, token); };
 
   SECTION("GetUserExpectedRightUrlCreated") {
@@ -128,7 +131,12 @@ TEST_CASE("Test onGetUser") {
   MockReply mock_reply;
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("url");
-  TestUserManager user_manager(&network_manager, url);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestUserManager user_manager(&network_manager, url, &entity_factory);
 
   SECTION("ValidReplyExpectedNotEmittedErrorOccurred") {
     QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
@@ -223,7 +231,12 @@ TEST_CASE("Test findUsersByTag") {
   QUrl url("http://localhost:8083/");
   std::chrono::milliseconds times_out{20};
   std::chrono::milliseconds delay{5};
-  UserManager user_manager(&network_manager, url, times_out);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  UserManager user_manager(&network_manager, url, &entity_factory, times_out);
   QString tag = "roma222";
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
@@ -327,7 +340,12 @@ TEST_CASE("Tests onUserFindedByTag") {
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("http://localhost:8083/");
   std::chrono::milliseconds times_out{20};
-  TestUserManager user_manager(&network_manager, url, times_out);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestUserManager user_manager(&network_manager, url, &entity_factory, times_out);
   QString tag = "roma222";
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
@@ -387,7 +405,12 @@ TEST_CASE("UserManager onFindUsersByTag invalid JSON handling") {
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("http://localhost:8083/");
   std::chrono::milliseconds times_out{20};
-  TestUserManager user_manager(&network_manager, url, times_out);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestUserManager user_manager(&network_manager, url, &entity_factory, times_out);
   QString tag = "roma222";
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());

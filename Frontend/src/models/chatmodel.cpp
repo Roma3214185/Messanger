@@ -29,7 +29,6 @@ QVariant ChatModel::data(const QModelIndex &index, int role) const {
     case AvatarRole:
       return chat->avatar_path;
     default:
-      DBC_UNREACHABLE();
       return QVariant();
   }
 }
@@ -44,10 +43,9 @@ QHash<int, QByteArray> ChatModel::roleNames() const {
 }
 
 void ChatModel::addChat(const ChatPtr &chat) {
-  for (auto &existing_chat : chats_) {
-    if (existing_chat->chat_id == chat->chat_id) {
-      return LOG_WARN("Chat with id {} already exist");
-    }
+  if(auto index = findIndexByChatId(chat->chat_id); index.has_value()) {
+    LOG_WARN("Chat with id {} already exist");
+    return;
   }
 
   beginInsertRows(QModelIndex(), chats_.size(), chats_.size());

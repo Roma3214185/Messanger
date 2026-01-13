@@ -3,6 +3,7 @@
 #include <QJsonObject>
 #include <QtConcurrent/QtConcurrent>
 #include <iostream>
+#include <nlohmann/json.hpp>
 
 #include "Debug_profiling.h"
 #include "DeleteMessageResponce.h"
@@ -16,29 +17,7 @@
 #include "interfaces/IMessageListView.h"
 #include "model.h"
 #include "models/messagemodel.h"
-
-namespace {
-
-class EntityFactory {
- public:
-  static Message createMessage(long long chat_id, long long sender_id, const QString &text, const QString &local_id,
-                               QDateTime timestamp = QDateTime::currentDateTime()) {
-    DBC_REQUIRE(!text.isEmpty());
-    DBC_REQUIRE(!local_id.isEmpty());
-    DBC_REQUIRE(sender_id > 0);
-    DBC_REQUIRE(chat_id > 0);
-    // todo: what about message_id??
-    Message message{.chat_id = chat_id,
-                    .sender_id = sender_id,
-                    .text = text,
-                    .status_sended = false,
-                    .timestamp = timestamp,
-                    .local_id = local_id};
-    return message;
-  }
-};
-
-}  // namespace
+#include "entities/Reaction.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
@@ -62,9 +41,9 @@ void Presenter::initialHandlers() {
   socket_responce_handlers_[opened_type] =
       std::make_unique<OpenResponceHandler>(manager_->tokenManager(), manager_->socket());
   socket_responce_handlers_[new_message_type] =
-      std::make_unique<NewMessageResponceHandler>(manager_->tokenManager(), manager_->message());
+      std::make_unique<NewMessageResponceHandler>(manager_->entities(), manager_->message());
   socket_responce_handlers_[delete_message_type] =
-      std::make_unique<DeleteMessageResponceHandler>(manager_->tokenManager(), manager_->message());
+      std::make_unique<DeleteMessageResponceHandler>(manager_->entities(), manager_->message());
 }
 
 void Presenter::setMessageListView(IMessageListView *message_list_view) {
@@ -125,6 +104,28 @@ void Presenter::updateMessage(Message &message) {
   manager_->message()->updateMessage(message);
 }
 
+void Presenter::reactionClicked(Message &message, int reaction_id) { //todo: can be const
+  LOG_INFO("Make reaction {} id for message {}", reaction_id, message.toString());
+  DBC_REQUIRE(message.checkInvariants());
+
+  Reaction reaction(message.id, manager_->tokenManager()->getCurrentUserId(), reaction_id);
+
+  if (bool there_was_not_reaction = !message.receiver_reaction.has_value(); there_was_not_reaction) {
+    manager_->socket()->saveReaction(reaction); //it faster and async than save (?)
+    manager_->dataManager()->saveReaction(message, reaction);
+  } else if(bool is_already_this_reaction = message.receiver_reaction.has_value() && *message.receiver_reaction == reaction_id;
+      is_already_this_reaction) {
+      manager_->socket()->deleteReaction(reaction);
+      manager_->dataManager()->deleteReaction(message, reaction);
+  } else {
+    Reaction old_reaction(reaction.message_id, reaction.receiver_id, message.receiver_reaction.value());
+    manager_->socket()->deleteReaction(old_reaction);
+    manager_->dataManager()->deleteReaction(message, old_reaction);
+    manager_->socket()->saveReaction(reaction);
+    manager_->dataManager()->saveReaction(message, reaction);
+  }
+}
+
 void Presenter::onScroll(int value) {  // todo: multithreaded event changed
                                        // current_opened_chat_id_ (?)
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
@@ -177,9 +178,9 @@ void Presenter::onChatClicked(long long chat_id) { openChat(chat_id); }
 void Presenter::newMessage(Message &msg) {
   DBC_REQUIRE(current_user_ != std::nullopt);
 
-  if (msg.sender_id == current_user_->id) {
-    msg.readed_by_me = true;
-    msg.is_mine = true;
+  if (msg.isMine()) {
+    qDebug() << msg.receiver_read_status; //todo: can be already always true, refactor to get const Message&
+    msg.receiver_read_status = true;
   }
   LOG_INFO("New message received from socket {}", msg.toString());
 
@@ -251,7 +252,7 @@ void Presenter::sendButtonClicked(const QString &text_to_send) {
 
   // TODO: what if multithreaded will make here current_user is nullopt, after
   // checking (?)
-  auto message_to_send = EntityFactory::createMessage(*current_opened_chat_id_, current_user_->id, trimmed_text,
+  auto message_to_send = manager_->entities()->createMessage(*current_opened_chat_id_, current_user_->id, trimmed_text,
                                                       QUuid::createUuid().toString());
   LOG_INFO("Message to send {}", message_to_send.toString());
   manager_->message()->addMessageToChat(message_to_send);
@@ -286,9 +287,9 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix)
 
 void Presenter::onUnreadMessage(Message &message) {
   qDebug() << "Emit onUnreadMessage";
-  DBC_REQUIRE(message.readed_by_me == false);
-  if (message.readed_by_me == true) return;
-  message.readed_by_me = true;
+  DBC_REQUIRE(message.receiver_read_status == false);
+  if (message.receiver_read_status == true) return;
+  message.receiver_read_status = true;
   message.read_counter++;
   manager_->dataManager()->saveMessage(message);
   manager_->socket()->sendReadMessageEvent(message, manager_->tokenManager()->getCurrentUserId());

@@ -6,6 +6,7 @@
 #include "managers/socketmanager.h"
 
 struct Message;
+struct Reaction;
 
 class SocketUseCase : public QObject {
   Q_OBJECT
@@ -16,6 +17,10 @@ class SocketUseCase : public QObject {
   void sendMessage(const Message &msg);
   void sendReadMessageEvent(const Message &message, long long current_user_id);
   void close() { socket_manager_->close(); }
+  void saveReaction(const Reaction& reaction);
+  void deleteReaction(const Reaction& reaction);
+  void sendInSocket(const QString& text);
+  void sendInSocket(const QJsonObject& text);
 
  Q_SIGNALS:
   // void chatAdded(long long id);

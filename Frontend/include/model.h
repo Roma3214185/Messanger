@@ -33,6 +33,7 @@ class ISocket;
 class ChatUseCase;
 class MessageUseCase;
 class UserUseCase;
+class EntityFactory;
 
 using ChatId = long long;
 using ChatPtr = std::shared_ptr<ChatBase>;
@@ -44,7 +45,7 @@ class Model : public QObject {
   Q_OBJECT
 
  public:
-  explicit Model(const QUrl &url, INetworkAccessManager *net_manager, ICache *cache, ISocket *socket,
+  Model(const QUrl &url, INetworkAccessManager *net_manager, ICache *cache, ISocket *socket,
                  DataManager *data_manager);
 
   ChatModel *getChatModel() const noexcept { return chat_model_.get(); }
@@ -64,15 +65,17 @@ class Model : public QObject {
   DataManager *dataManager() const noexcept { return data_manager_; }
   TokenManager *tokenManager() const noexcept { return token_manager_.get(); }
   SocketUseCase *socket() const noexcept { return socket_use_case_.get(); }
+  EntityFactory *entities() const noexcept { return entity_factory_.get(); }
 
  private:
   ICache *cache_;
+  std::unique_ptr<TokenManager> token_manager_;
+  std::unique_ptr<EntityFactory> entity_factory_;
 
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
 
   DataManager *data_manager_;
-  std::unique_ptr<TokenManager> token_manager_;
 
   std::unique_ptr<SocketUseCase> socket_use_case_;
   std::unique_ptr<ChatUseCase> chat_use_case_;

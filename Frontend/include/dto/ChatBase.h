@@ -37,11 +37,13 @@ struct GroupChat : public ChatBase {
   [[nodiscard]] auto isPrivate() const -> bool override { return false; }
 };
 
+using ChatPtr = std::shared_ptr<ChatBase>;
+
 inline ChatBase::~ChatBase() = default;
 
 class ChatFactory {
  public:
-  static std::shared_ptr<ChatBase> createPrivateChat(const long long chat_id, const QString &title,
+  static ChatPtr createPrivateChat(const long long chat_id, const QString &title,
                                                      const QString &user_tag, const long long user_id,
                                                      const QString &status, const QString &last_message = {},
                                                      const QDateTime &last_message_time = QDateTime(),
@@ -58,7 +60,7 @@ class ChatFactory {
     return chat;
   }
 
-  static std::shared_ptr<ChatBase> createGroupChat(const long long chat_id, const QString &title,
+  static ChatPtr createGroupChat(const long long chat_id, const QString &title,
                                                    const int member_count, const QStringList &member_tags,
                                                    const QVector<int> &members_id, const QStringList &avatar_paths,
                                                    const QString &last_message = {},

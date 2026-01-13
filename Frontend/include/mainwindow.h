@@ -19,6 +19,7 @@ class ChatBase;
 class QListView;
 class ITheme;
 class MessageListView;
+class MessageDelegate;
 
 class MainWindow : public QMainWindow, public IMainWindow {
   Q_OBJECT
@@ -46,6 +47,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void on_sendButton_clicked();
   void on_logoutButton_clicked();
   void on_pushButton_clicked(bool checked);
+  void onPressEvent(QMouseEvent *event);
 
   void on_cancelEditButton_clicked();
 
@@ -82,13 +84,14 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setTitleChatMode();
 
   void onMessageContextMenu(const QPoint &pos);
+  void onReactionClicked(const QPoint &pos);
   QModelIndex findIndexByMessageId(QAbstractItemModel *model, long long id);
 
   std::unique_ptr<ITheme> current_theme_;
   std::unique_ptr<Ui::MainWindow> ui_;
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
-
+  MessageDelegate *message_delegate_;
   std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
                                              // Message will be
   std::unique_ptr<QStandardItemModel> searchResultsModel_;

@@ -5,19 +5,6 @@
 #include <QRect>
 #include <QString>
 
-struct MessageDrawData {
-  QString username;
-  QString text;
-  QString avatar_path;
-  QString timestamp;
-  long long sender_id;
-  long long receiver_id;
-  bool is_mine;
-  bool is_sended;
-  bool is_readed;
-  int read_cnt;
-};
-
 struct UserDrawData {
   QString name;
   QPixmap avatar;

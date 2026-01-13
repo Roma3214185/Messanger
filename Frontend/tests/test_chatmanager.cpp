@@ -24,7 +24,12 @@ TEST_CASE("Test ChatManager loadChats") {
   QUrl url("http://localhost:8081");
   std::chrono::milliseconds times_out{20};
   std::chrono::milliseconds delay{5};
-  TestChatManager chat_manager(&network_manager, url, times_out);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestChatManager chat_manager(&network_manager, url, &entity_factory, times_out);
   QJsonObject chat_obj{{"type", "private"},
                        {"id", 43},
                        {"user", QJsonObject{{"id", 123}, {"name", "Chat43"}, {"avatar", "path/to/avatar"}}}};
@@ -106,7 +111,12 @@ TEST_CASE("Test ChatManager loadChat") {
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("http://localhost:8081");
   std::chrono::milliseconds times_out{20};
-  TestChatManager chat_manager(&network_manager, url, times_out);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestChatManager chat_manager(&network_manager, url, &entity_factory, times_out);
 
   QJsonObject chat_obj{{"type", "private"},
                        {"id", 42},
@@ -172,7 +182,12 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("http://localhost:8081");
   std::chrono::milliseconds times_out{20};
-  TestChatManager chat_manager(&network_manager, url, times_out);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestChatManager chat_manager(&network_manager, url, &entity_factory, times_out);
 
   QJsonObject user_obj{{"id", 55}, {"name", "PrivateChat101"}, {"avatar", "/path/to/avatar.png"}};
 

@@ -21,7 +21,12 @@ TEST_CASE("Test MessageManager getChatMessages") {
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("http://localhost:8081");
   std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{30};
-  TestMessageManager message_manager(&network_manager, url, timeout_ms);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestMessageManager message_manager(&network_manager, url, &entity_factory, timeout_ms);
 
   QJsonArray messages_array{
       QJsonObject{{"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}},
@@ -115,7 +120,13 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   MockNetworkAccessManager network_manager(&mock_reply);
   QUrl url("http://localhost:8081");
   std::chrono::milliseconds timeout_ms{30};
-  TestMessageManager message_manager(&network_manager, url, timeout_ms);
+  TokenManager token_manager;
+  long long test_current_id = 12345;
+  QString token = "secret-token123";
+  token_manager.setData(token, test_current_id);
+  EntityFactory entity_factory(&token_manager);
+  TestMessageManager message_manager(&network_manager, url, &entity_factory, timeout_ms);
+
 
   SECTION("Invalid JSON emits error and returns empty list") {
     auto reply = std::make_unique<MockReply>();

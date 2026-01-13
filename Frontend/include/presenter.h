@@ -43,6 +43,7 @@ class Presenter : public QObject {
 
   void deleteMessage(const Message &message);
   void updateMessage(Message &message);
+  void reactionClicked(Message &message, int reaction_id);
 
   MessageDelegate *getMessageDelegate();
   UserDelegate *getUserDelegate();

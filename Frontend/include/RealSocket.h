@@ -4,6 +4,7 @@
 #include <QWebSocket>
 
 #include "interfaces/ISocket.h"
+#include "Debug_profiling.h"
 
 class RealSocket : public ISocket {
   QWebSocket *socket_;
@@ -15,7 +16,10 @@ class RealSocket : public ISocket {
   }
 
   void open(const QUrl &url) override { socket_->open(url); }
-  void sendTextMessage(const QString &msg) override { socket_->sendTextMessage(msg); }
+  void sendTextMessage(const QString &msg) override {
+    LOG_INFO("Text to send in socket {}", msg.toStdString());
+    socket_->sendTextMessage(msg);
+  }
   void close() override { socket_->close(); }
   void disconnectSocket() override { socket_->disconnect(); }
 };
