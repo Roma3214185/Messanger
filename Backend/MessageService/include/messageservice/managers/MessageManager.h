@@ -6,6 +6,7 @@
 #include "RedisCache.h"
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
+#include "entities/Reaction.h"
 
 class GenericRepository;
 class ISqlExecutor;
@@ -27,6 +28,11 @@ class MessageManager {
   [[nodiscard]] bool updateMessage(const Message &message);
   [[nodiscard]] bool deleteMessage(const Message &message);
   std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
+  bool saveMessageReaction(const Reaction& reaction);
+  bool deleteMessageReaction(const Reaction& reaction);
+
+  std::pair<std::unordered_map<int, int>, std::optional<int>>
+  getReactions(long long message_id, long long receiver_id);
 
  private:
   GenericRepository *repository_;

@@ -30,6 +30,8 @@ std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_
 }
 
 std::vector<Message> MessageManager::getChatMessages(const GetMessagePack &pack) {
+  PROFILE_SCOPE();
+  LOG_INFO("Start MessageManager::getChatMessages");
   auto custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
   custom_query
       ->join(MessageStatusTable::Table, MessageTable::Id, MessageStatusTable::fullField(MessageStatusTable::MessageId))
@@ -42,8 +44,9 @@ std::vector<Message> MessageManager::getChatMessages(const GetMessagePack &pack)
   if (pack.before_id > 0) {
     custom_query->where(MessageTable::Id, Operator::Less, pack.before_id);
   }
-
+  LOG_INFO("Query to select fully created");
   auto res = custom_query->execute();
+  LOG_INFO("Query executed");
   return QueryFactory::getSelectResult(res).result;
 }
 
@@ -87,4 +90,39 @@ std::vector<MessageStatus> MessageManager::getReadedMessageStatuses(long long me
   query->where(MessageStatusTable::MessageId, message_id).where(MessageStatusTable::IsRead, 1);
   auto res = query->execute();
   return QueryFactory::getSelectResult(res).result;
+}
+
+bool MessageManager::saveMessageReaction(const Reaction& reaction) {
+  DBC_REQUIRE(reaction.checkInvariants());
+  return repository_->save(reaction);
+}
+
+bool MessageManager::deleteMessageReaction(const Reaction& reaction) {
+  DBC_REQUIRE(reaction.checkInvariants());
+  auto query = QueryFactory::createDelete<Reaction>(executor_, cache_);
+  query->where(MessageReactionTable::MessageId, reaction.message_id);
+  query->where(MessageReactionTable::ReceiverId, reaction.receiver_id);
+  //todo: in future premium users can have a couple of reactions, so query->where(MessageReactionTable::ReactionId, reaction.reaction_id);
+  auto res = query->execute();
+  return QueryFactory::getDeleteResult(res).success;
+}
+
+std::pair<std::unordered_map<int, int>, std::optional<int>> MessageManager::getReactions(long long message_id,
+                                                             long long receiver_id) {
+
+
+  auto custom_query = QueryFactory::createSelect<Reaction>(executor_, cache_);
+  custom_query->where(MessageReactionTable::MessageId, message_id);
+  auto res = custom_query->execute();
+  std::vector<Reaction> vector_of_reactions = QueryFactory::getSelectResult(res).result;
+
+  std::optional<int> receiver_id_reactions;
+  std::unordered_map<int, int> message_reactions;
+
+  for(const Reaction& reaction: vector_of_reactions) {
+    message_reactions[reaction.reaction_id]++;
+    if(reaction.receiver_id == receiver_id) receiver_id_reactions = reaction.reaction_id;
+  }
+
+  return std::make_pair(message_reactions, receiver_id_reactions);
 }
