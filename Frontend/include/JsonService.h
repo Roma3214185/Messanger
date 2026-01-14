@@ -16,7 +16,7 @@ class EntityFactory {
   TokenManager *token_manager_;
 
  public:
-  EntityFactory(TokenManager *token_manager) : token_manager_(token_manager) {}
+  explicit EntityFactory(TokenManager *token_manager) : token_manager_(token_manager) {}
 
   Message createMessage(long long chat_id, long long sender_id, const QString &text, const QString &local_id,
                         QDateTime timestamp = QDateTime::currentDateTime()) {
@@ -47,6 +47,7 @@ class EntityFactory {
     if (!res.contains("name")) LOG_ERROR("No name field");
     if (!res.contains("id")) LOG_ERROR("No id field");
     if (!res.contains("avatar_path")) LOG_ERROR("No avatar_path field");
+
     User user;
     user.email = res["email"].toString();
     user.tag = res["tag"].toString();
@@ -56,6 +57,7 @@ class EntityFactory {
 
     spdlog::info("[USER] id={} | name='{}' | tag='{}' | email='{}'", user.id, user.name.toStdString(),
                  user.tag.toStdString(), user.email.toStdString());
+    DBC_ENSURE(user.checkInvariants());
     return user;
   }
 
@@ -100,13 +102,8 @@ class EntityFactory {
     }
 
     msg.receiver_id = token_manager_->getCurrentUserId();
-    // if (msg.isMine()) {
-    //   DBC_REQUIRE(msg.read_counter > 0);
-    //   DBC_REQUIRE(msg.receiver_read_status == true);
-    //   // msg.receiver_read_status = true;
-    //   // msg.read_counter++;
-    // }
     msg.status_sended = true;
+    DBC_ENSURE(msg.checkInvariants());
 
     LOG_INFO("[JSON] {}", msg.toString());
     return msg;

@@ -72,6 +72,14 @@ const QString CREATE_MESSAGES_REACTION_TABLE = R"(
         );
     )";
 
+const QString CREATE_MESSAGES_REACTION_INFO_TABLE = R"(
+        CREATE TABLE IF NOT EXISTS messages_reaction_info (
+            id INTEGER,
+            image TEXT NOT NULL,
+            PRIMARY KEY(id)
+        );
+    )";
+
 const QString CREATE_CHATS_TABLE = R"(
         CREATE TABLE IF NOT EXISTS chats (
             id INTEGER PRIMARY KEY,
@@ -98,6 +106,7 @@ const QString CREATE_CREDENTIALS_TABLE = R"(
             hash_password TEXT NOT NULL
         );
     )";
+
 // TODO: commit when insert private_chat and in table chat
 const QString CREATE_PRIVATE_CHATS_TABLE =
     R"(CREATE TABLE IF NOT EXISTS private_chats (
@@ -129,7 +138,7 @@ bool SQLiteDatabase::initializeSchema() {
   const std::vector<QString> tables = {
       CREATE_USERS_TABLE,          CREATE_MESSAGES_TABLE,       CREATE_MESSAGES_STATUS_TABLE,  CREATE_CHATS_TABLE,
       CREATE_CHAT_MEMBERS_TABLE,   CREATE_CREDENTIALS_TABLE,    CREATE_PRIVATE_CHATS_TABLE,    CREATE_OUTBOX_TABLE,
-      CREATE_USERS_BY_EMAIL_TABLE, CREATE_USERS_BY_EMAIL_INDEX, CREATE_MESSAGES_REACTION_TABLE};
+      CREATE_USERS_BY_EMAIL_TABLE, CREATE_USERS_BY_EMAIL_INDEX, CREATE_MESSAGES_REACTION_TABLE, CREATE_MESSAGES_REACTION_INFO_TABLE};
 
   for (const auto &sql : tables) {
     if (!executeSql(db(), sql)) {

@@ -5253,3 +5253,22 @@
 [13-01 22:01:41] [info] [] SelectQuery<Reaction>::execute took 0.003 s
 [13-01 22:01:41] [info] [] Send responce code 200 and body [{"chat_id":7416880792917278720,"id":7416890578660540416,"local_id":"{b390152e-8659-4982-a56c-2b5597bb0731}","reactions":{"counts":[[1,1]],"receiver_reaction":1},"read":{"count":1,"receiver_read_status":true},"sender_id":7416880777901654016,"text":"oooo","timestamp":1768324513},{"chat_id":7416880792917278720,"id":7416890526504370176,"local_id":"{59e7229b-6d7b-4fe1-b22f-1075b5330ca0}","reactions":{"counts":[],"receiver_reaction":null},"read":{"count":1,"receiver_read_status":true},"sender_id":7416880777901654016,"text":"ooo","timestamp":1768324500}]
 [13-01 22:01:41] [info] [] Server::handleGetMessagesFromChat took 0.025 s
+[14-01 10:47:58] [info] [] Logger initialized for service 'MessageService'
+[14-01 10:47:58] [info] [SQLiteDatabase::initializeSchema] Database schema initialized successfully
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] Subscrive: app.events | save_message
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] Subscrive: app.events | save_message_status
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] Subscrive: app.events | save_message_reaction
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] Subscrive: app.events | delete_message_reaction
+[14-01 10:47:58] [info] [Server::run] [Message server is started on port '8082'
+[14-01 10:47:58] [info] [RabbitMQClient::declareExchange] [rabbit] Declared exchange 'app.events'
+[14-01 10:47:58] [info] [RabbitMQClient::declareExchange] [rabbit] Declared exchange 'app.events'
+[14-01 10:47:58] [info] [RabbitMQClient::declareExchange] [rabbit] Declared exchange 'app.events'
+[14-01 10:47:58] [info] [RabbitMQClient::declareExchange] [rabbit] Declared exchange 'app.events'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Queue 'delete_message_reaction' bound to exchange 'app.events' with key 'delete_message_reaction'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Queue 'QueueSaveMessage' bound to exchange 'app.events' with key 'save_message'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Queue 'QueueSaveMessageStatus' bound to exchange 'app.events' with key 'save_message_status'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Queue 'save_message_reaction' bound to exchange 'app.events' with key 'save_message_reaction'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Subscribed to 'app.events':'delete_message_reaction' in queue 'delete_message_reaction'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Subscribed to 'app.events':'save_message' in queue 'QueueSaveMessage'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Subscribed to 'app.events':'save_message_reaction' in queue 'save_message_reaction'
+[14-01 10:47:58] [info] [RabbitMQClient::subscribe] [rabbit] Subscribed to 'app.events':'save_message_status' in queue 'QueueSaveMessageStatus'

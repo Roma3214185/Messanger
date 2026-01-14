@@ -278,8 +278,8 @@ void MainWindow::onReactionClicked(const QPoint &pos) {
       pos);  // todo: u get index 2 times, consider to refactor it in onPressEvent or in helper fucntion for future
   if (!index.isValid()) return;
   Message msg = index.data(MessageModel::Roles::FullMessage).value<Message>();
-  if (auto reaction_id = message_delegate_->reactionAt(msg.id, pos)) {
-    presenter_->reactionClicked(msg, *reaction_id);
+  if (auto reaction_id = message_delegate_->reactionAt(msg.id, pos); reaction_id.has_value()) {
+    presenter_->reactionClicked(msg, reaction_id.value());
   }
 }
 

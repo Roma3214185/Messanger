@@ -9,8 +9,6 @@ add_library(Persistence STATIC
     src/GenericRepository.cpp
     src/SQLiteDatabase.cpp
     src/SqlExecutor.cpp
-    include/metaentity/ReactionMeta.h
-    include/metaentity/metaentities.h
 )
 
 target_compile_features(Persistence PUBLIC cxx_std_20)

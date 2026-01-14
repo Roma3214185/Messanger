@@ -10,5 +10,6 @@
 #include "metaentity/ReactionMeta.h"
 #include "metaentity/UserCredentialsMeta.h"
 #include "metaentity/UserMeta.h"
+#include "metaentity/ReactionInfoMeta.h"
 
 #endif  // METAENTITIES_H
