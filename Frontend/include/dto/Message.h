@@ -8,6 +8,7 @@
 
 #include "Debug_profiling.h"
 #include "entities/Reaction.h"
+#include "entities/ReactionInfo.h"
 
 struct Message {  // todo: make immutable messagedomein and mutable messageview
   long long id = 0;
@@ -15,12 +16,12 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   long long chat_id;
   QString text;
   QDateTime timestamp;
-  bool receiver_read_status = true;
+  bool receiver_read_status = false;
   int read_counter = 0;
   bool status_sended{false};
   long long receiver_id;
-  std::optional<int> receiver_reaction{std::nullopt};
-  std::unordered_map<int, int> reactions;
+  std::optional<long long> receiver_reaction{std::nullopt};
+  std::unordered_map<long long, int> reactions;
   QString local_id;
 
   void updateFrom(const Message& other) {  // todo: copy asign operator
@@ -69,7 +70,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     std::string reactions_string;
     for (const auto& [react_id, react_cnt] : reactions) {
       total_reactions += react_cnt;
-      reactions_string += "| {reaction:" + std::to_string(react_id) + " = cnt: " + std::to_string(react_cnt) + "} ";
+      reactions_string += "| {reaction:" + std::to_string(react_id) + "; cnt: " + std::to_string(react_cnt) + "} ";
     }
     res += " | total_reactions = " + std::to_string(total_reactions);
     res += reactions_string;

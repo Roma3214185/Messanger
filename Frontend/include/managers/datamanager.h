@@ -41,11 +41,12 @@ class DataManager : public QObject {
   [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
   void deleteMessage(const Message &msg);
   void readMessage(long long message_id, long long readed_by);
-  std::optional<std::string> getReactionPath(long long reaction_id);
+  std::optional<ReactionInfo> getReactionInfo(long long reaction_id);
   void saveReaction(const Reaction &reaction);
   void saveReaction(Message &message, const Reaction &reaction);
   void deleteReaction(Message &message, const Reaction &reaction_to_delete);
   void deleteReaction(const Reaction &reaction);
+  void save(const ReactionInfo& reaction_info);
 
  Q_SIGNALS:
   void chatAdded(const ChatPtr &chat);
@@ -64,7 +65,7 @@ class DataManager : public QObject {
   ListMessage messages_;
   MessageModelMap message_models_by_chat_id_;
 
-  std::unordered_map<int, std::string> reactions_;
+  std::unordered_map<int, ReactionInfo> reactions_;
 
   std::mutex messages_mutex_;
   std::mutex chat_mutex_;

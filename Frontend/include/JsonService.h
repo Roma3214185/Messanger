@@ -11,6 +11,14 @@
 #include "dto/Message.h"
 #include "dto/User.h"
 #include "managers/TokenManager.h"
+#include "entities/ReactionInfo.h"
+
+// struct MessageServerJsonAnswer {
+//     Message message;
+//     std::vector<ReactionInfo> reactions_infos;
+// };
+
+using MessageServerJsonAnswer = std::pair<Message, std::vector<ReactionInfo>>;
 
 class EntityFactory {
   TokenManager *token_manager_;
@@ -61,8 +69,9 @@ class EntityFactory {
     return user;
   }
 
-  Message getMessageFromJson(const QJsonObject &obj) {
+  MessageServerJsonAnswer getMessageFromJson(const QJsonObject &obj) {
     Message msg;
+    std::vector<ReactionInfo> reactions_infos;
     if (obj.contains("id")) msg.id = obj["id"].toInteger();
     if (obj.contains("sender_id")) msg.sender_id = obj["sender_id"].toInteger();
     if (obj.contains("chat_id")) msg.chat_id = obj["chat_id"].toInteger();
@@ -92,11 +101,14 @@ class EntityFactory {
 
           QJsonArray pair = v.toArray();
           if (pair.size() != 2) continue;
-
-          int reaction_id = pair[0].toInt();
           int count = pair[1].toInt();
 
-          msg.reactions[reaction_id] = count;
+          if(auto reaction_info = getReactionInfo(pair[0]); reaction_info.has_value()) {
+            msg.reactions[reaction_info->id]++;
+            reactions_infos.push_back(reaction_info.value());
+          } else {
+            LOG_ERROR("Unable to get reactionInfo from JsonValue");
+          }
         }
       }
     }
@@ -106,7 +118,7 @@ class EntityFactory {
     DBC_ENSURE(msg.checkInvariants());
 
     LOG_INFO("[JSON] {}", msg.toString());
-    return msg;
+    return std::make_pair(msg, std::move(reactions_infos));
   }
 
   QJsonObject toJson(const Message &msg) {
@@ -143,33 +155,50 @@ class EntityFactory {
     }
 
     const QString type = obj["type"].toString();
+    ChatPtr chat = nullptr;
 
     if (type == "private") {
       const auto userObj = obj["user"].toObject();
-      auto chat = std::make_shared<PrivateChat>();
+      chat = std::make_shared<PrivateChat>();
+      //chat = dynamic_cast<PrivateChat>(chat);
       chat->chat_id = static_cast<long long>(obj["id"].toDouble());
       chat->title = userObj["name"].toString();
       chat->avatar_path = userObj["avatar"].toString();
-      chat->user_id = static_cast<long long>(userObj["id"].toDouble());
+      //chat->user_id = static_cast<long long>(userObj["id"].toDouble());
       LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
       // todo: check invariants
-      return chat;
     } else if (type == "group") {
-      auto chat = std::make_shared<GroupChat>();
+      chat = std::make_shared<GroupChat>();
       chat->chat_id = static_cast<long long>(obj["id"].toDouble());
       chat->title = obj["name"].toString();
       chat->avatar_path = obj["avatar"].toString();
-      chat->member_count = obj["member_count"].toInt();
+      //chat->member_count = obj["member_count"].toInt();
       LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
-      return chat;
+    } else {
+      return nullptr;
     }
-    return nullptr;
+
+    chat->default_reactions.clear();
+
+    if(obj.contains("default_reactions")) {
+      const auto reactArr = obj["default_reactions"].toArray();
+
+      for (const QJsonValue &v : reactArr) {
+        if(auto reaction_info = getReactionInfo(v); reaction_info.has_value()) {
+          chat->default_reactions.push_back(reaction_info.value());
+        } else {
+          LOG_ERROR("Unable to get reactionInfo from JsonValue");
+        }
+      }
+    }
+
+    return chat;
   }
 
   Reaction getReaction(const QJsonObject &obj) {
-    if (obj.contains("reaction_id")) LOG_ERROR("Obj reaction doesn't contains 'reaction_id' field");
-    if (obj.contains("message_id")) LOG_ERROR("Obj reaction doesn't contains 'message_id' field");
-    if (obj.contains("receiver_id")) LOG_ERROR("Obj reaction doesn't contains 'receiver_id' field");
+    if (!obj.contains("reaction_id")) LOG_ERROR("Obj for reaction doesn't contains 'reaction_id' field");
+    if (!obj.contains("message_id")) LOG_ERROR("Obj for reaction doesn't contains 'message_id' field");
+    if (!obj.contains("receiver_id")) LOG_ERROR("Obj for reaction doesn't contains 'receiver_id' field");
 
     Reaction reaction;
     reaction.reaction_id = obj["reaction_id"].toInteger();
@@ -177,6 +206,15 @@ class EntityFactory {
     reaction.receiver_id = obj["receiver_id"].toInteger();
     DBC_ENSURE(reaction.checkInvariants());
     return reaction;
+  }
+
+  std::optional<ReactionInfo> getReactionInfo(const QJsonValue& value) {
+    if(value.isObject() == false) return std::nullopt;
+    const auto reaction_object = value.toObject();
+    ReactionInfo reaction_info;
+    reaction_info.id = static_cast<long long>(reaction_object["id"].toDouble());
+    reaction_info.image = reaction_object["image"].toString().toStdString();
+    return reaction_info.checkInvariants() ? std::make_optional(reaction_info) : std::nullopt;
   }
 };
 

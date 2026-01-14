@@ -9,6 +9,7 @@ class MessageManager;
 class TokenManager;
 struct Message;
 struct User;
+struct ReactionInfo;
 
 class MessageUseCase : public QObject {
   Q_OBJECT
@@ -25,6 +26,7 @@ class MessageUseCase : public QObject {
   void deleteMessage(const Message &msg);
   void logout();
   void clearAllMessages();
+  void saveReactionInfo(const std::vector<ReactionInfo>& reaction_infos);
 
  Q_SIGNALS:
   void messageAdded(const Message &);

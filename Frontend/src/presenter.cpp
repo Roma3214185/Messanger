@@ -12,12 +12,11 @@
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/Reaction.h"
-#include "handlers/NewMessageResponceHandler.h"
-#include "handlers/OpenResponceHandler.h"
 #include "interfaces/IMainWindow.h"
 #include "interfaces/IMessageListView.h"
 #include "model.h"
 #include "models/messagemodel.h"
+#include "handlers/Handlers.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
@@ -37,6 +36,9 @@ void Presenter::initialHandlers() {
   const std::string opened_type = "opened";
   const std::string new_message_type = "new_message";
   const std::string delete_message_type = "delete_message";
+  const std::string read_message_type = "read_message";
+  const std::string save_reaction_type = "save_reaction";
+  const std::string delete_reaction_type = "delete_reaction";
 
   socket_responce_handlers_[opened_type] =
       std::make_unique<OpenResponceHandler>(manager_->tokenManager(), manager_->socket());
@@ -44,6 +46,12 @@ void Presenter::initialHandlers() {
       std::make_unique<NewMessageResponceHandler>(manager_->entities(), manager_->message());
   socket_responce_handlers_[delete_message_type] =
       std::make_unique<DeleteMessageResponceHandler>(manager_->entities(), manager_->message());
+  socket_responce_handlers_[read_message_type] =
+      std::make_unique<ReadMessageHandler>(manager_->dataManager());
+  socket_responce_handlers_[save_reaction_type] =
+      std::make_unique<SaveMessageReactionHandler>(manager_->entities(), manager_->dataManager());
+  socket_responce_handlers_[delete_reaction_type] =
+      std::make_unique<DeleteMessageReactionHandler>(manager_->entities(), manager_->dataManager());
 }
 
 void Presenter::setMessageListView(IMessageListView *message_list_view) {
@@ -116,6 +124,7 @@ void Presenter::reactionClicked(Message &message, int reaction_id) {  // todo: c
   } else if (bool is_already_this_reaction =
                  message.receiver_reaction.has_value() && *message.receiver_reaction == reaction_id;
              is_already_this_reaction) {
+    LOG_INFO("Clicked on reaction that already setted, need to just delete current");
     manager_->socket()->deleteReaction(reaction);
     manager_->dataManager()->deleteReaction(message, reaction);
   } else {
@@ -286,12 +295,23 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix)
   return ans;
 }
 
+std::vector<ReactionInfo> Presenter::getDefaultReactionsInChat(long long chat_id) {
+  if(auto chat = manager_->dataManager()->getChat(chat_id); chat != nullptr) {
+    return chat->default_reactions;
+  }
+  DBC_UNREACHABLE();
+  return {};
+}
+
 void Presenter::onUnreadMessage(Message &message) {
-  qDebug() << "Emit onUnreadMessage";
-  DBC_REQUIRE(message.receiver_read_status == false);
-  if (message.receiver_read_status == true) return;
-  message.receiver_read_status = true;
-  message.read_counter++;
-  manager_->dataManager()->saveMessage(message);
-  manager_->socket()->sendReadMessageEvent(message, manager_->tokenManager()->getCurrentUserId());
+  qDebug() << "Emit onUnreadMessage for message " << message.text;
+  if (message.receiver_read_status == true) {
+    DBC_UNREACHABLE();
+    return;
+  }
+  if(message.isOfflineSaved()) return;
+
+  long long current_user_id = manager_->tokenManager()->getCurrentUserId();
+  manager_->dataManager()->readMessage(message.id, current_user_id);
+  manager_->socket()->sendReadMessageEvent(message, current_user_id);
 }

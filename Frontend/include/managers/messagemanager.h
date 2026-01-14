@@ -28,6 +28,9 @@ class MessageManager : public BaseManager {
 
  protected:
   QList<Message> onGetChatMessages(const QByteArray &responce_data);
+
+ Q_SIGNALS:
+  void saveReactionInfo(const ReactionInfo& reaction_info);
 };
 
 #endif  // MESSAGEMANAGER_H

@@ -57,9 +57,16 @@ QList<Message> MessageManager::onGetChatMessages(const QByteArray &responce_data
   }
 
   QList<Message> messages;
+  std::unordered_set<ReactionInfo> reactions_infos;
   for (const auto &val : doc.array()) {
-    messages.append(this->entity_factory_->getMessageFromJson(val.toObject()));
+    auto [message, reactions] = this->entity_factory_->getMessageFromJson(val.toObject());
+    messages.append(message);
+    for(auto reaction : reactions) {
+      reactions_infos.insert(reaction);
+    }
   }
+
+  for(auto reaction : reactions_infos) Q_EMIT saveReactionInfo(reaction);
   LOG_INFO("[onGetChatMessages] Loaded {} messages", messages.size());
   return messages;
 }

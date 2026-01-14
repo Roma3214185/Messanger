@@ -89,6 +89,7 @@ add_executable(Frontend
     include/utils.h
     include/handlers/SaveMessageReactionHandler.h
     include/handlers/DeleteMessageReactionHandler.h
+    include/handlers/Handlers.h
 )
 
 add_custom_command(TARGET Frontend POST_BUILD
