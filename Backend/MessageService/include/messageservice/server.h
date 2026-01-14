@@ -17,6 +17,7 @@ class Server {
   void handleGetMessage();
   void handleUpdateMessage();
   void handleDeleteMessage();
+  void handleGetReaction();
 
   crow::SimpleApp &app_;
   int port_;
