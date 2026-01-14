@@ -39,3 +39,4 @@ external/vcpkg/buildtrees/
 external/vcpkg/packages/
 
 logs/
+external/
