@@ -4,7 +4,7 @@
 #include <optional>
 
 #include "Message.h"
-#include "Reaction.h"
+#include "ReactionInfo.h"
 
 struct UserMessage {  // todo: rename UserMessage -> Message
   Message message;    // todo: rename Message -> MessageInfo
@@ -15,7 +15,7 @@ struct UserMessage {  // todo: rename UserMessage -> Message
   } read;
 
   struct {
-    std::unordered_map<int, int> counts;  // type -> count
+    std::unordered_map<ReactionInfo, int> counts;  // type -> count
     std::optional<int> my_reaction;
   } reactions;
 };

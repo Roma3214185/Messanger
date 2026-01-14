@@ -8,19 +8,15 @@ struct ReactionInfo {
   long long id;
   std::string image;
 
-  bool operator ==(const ReactionInfo& other) {
-    return other.id == id;
-  }
-
-  ReactionInfo& operator =(const ReactionInfo& other) {
-    if(*this != other) {
-      id = other.id;
-      image = other.image;
-    }
-    return *this;
+  bool checkInvariants() const {
+    return id > 0 && !image.empty();
   }
 };
 
+inline bool operator==(const ReactionInfo& a, const ReactionInfo& b) {
+  return a.id == b.id &&
+         a.image == b.image;
+}
 
 namespace nlohmann {
 
@@ -38,5 +34,17 @@ struct adl_serializer<ReactionInfo> {
 };
 
 }  // namespace nlohmann
+
+namespace std {
+
+template<>
+struct hash<ReactionInfo> {
+    size_t operator()(const ReactionInfo& r) const noexcept {
+      //size_t h1 = std::hash<int>{}(r.id);
+      //return h1 ^ (h2 << 1); // combine
+      return std::hash<long long>{}(r.id);
+    }
+};
+}  // namespace std
 
 #endif // REACTIONINFO_H
