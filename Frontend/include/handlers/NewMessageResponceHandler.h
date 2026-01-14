@@ -15,8 +15,9 @@ class NewMessageResponceHandler : public ISocketResponceHandler {
       : entity_factory_(entity_factory), message_use_case_(message_use_case) {}
 
   void handle(const QJsonObject &json_object) override {
-    auto message = entity_factory_->getMessageFromJson(json_object);
+    auto [message, reactions] = entity_factory_->getMessageFromJson(json_object);
     message_use_case_->addMessageToChat(message);
+    message_use_case_->saveReactionInfo(reactions);
   }
 };
 
