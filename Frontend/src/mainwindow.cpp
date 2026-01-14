@@ -20,6 +20,22 @@
 #include "models/messagemodel.h"
 #include "presenter.h"
 
+namespace {
+
+std::string trim(const std::string& s) {
+  size_t start = 0;
+  while (start < s.size() && std::isspace(static_cast<unsigned char>(s[start])))
+    ++start;
+
+  size_t end = s.size();
+  while (end > start && std::isspace(static_cast<unsigned char>(s[end - 1])))
+    --end;
+
+  return s.substr(start, end - start);
+}
+
+}
+
 namespace MessageRoles {
 enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
 }
@@ -298,34 +314,27 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QAction *copyAction = menu.addAction("Copy");
   QAction *editAction = menu.addAction("Edit");
   QAction *deleteAction = menu.addAction("Delete");
-  // todo: reactions = getStandart Reactions Menu, and make polymorhic
 
-  QIcon like_icon("/Users/roma/QtProjects/Chat/images/like.jpeg");
+  auto reactions_actions = std::unordered_map<QAction*, ReactionInfo>{};
 
-  QAction *likeAction = menu.addAction(like_icon, "Like");
-  likeAction->setIconVisibleInMenu(true);
-
-  QIcon dislike_icon("/Users/roma/QtProjects/Chat/images/dislike.jpeg");
-  QAction *dislikeAction = menu.addAction(dislike_icon, "Dislike");
-  dislikeAction->setIconVisibleInMenu(true);
-
-  if (!msg.isOfflineSaved()) {
+  if (msg.isOfflineSaved()) {
     editAction->setEnabled(false);
     deleteAction->setEnabled(false);
-    likeAction->setEnabled(false);
-    dislikeAction->setEnabled(false);
-  }
-
-  /* todo:
-   * namespace ReactionIds {
-      constexpr int Like = 1;
-      constexpr int Dislike = 2;
-      and presenter_->getDefaultReactionsWithALl required info
+  } else {
+    std::vector<ReactionInfo> reactions = presenter_->getDefaultReactionsInChat(msg.chat_id);
+    for(const auto &reaction : reactions) {
+      LOG_INFO("Reaction to set in menu (id = {} and path : {}|", reaction.id, reaction.image);
+      if(msg.receiver_reaction == reaction.id) continue;
+      QIcon reaction_icon(QString::fromStdString(trim(reaction.image)));
+      if (reaction_icon.isNull()) {
+        LOG_ERROR("Failed to load icon: {}", reaction.image);
+      } else {
+        QAction *reaction_action = menu.addAction(reaction_icon, "");
+        reaction_action->setIconVisibleInMenu(true);
+        reactions_actions[reaction_action] = reaction;
+      }
     }
-  */
-
-  if (msg.receiver_reaction == 1) likeAction->setEnabled(false);
-  if (msg.receiver_reaction == 2) dislikeAction->setEnabled(false);
+  }
 
   QAction *selected = menu.exec(message_list_view_->viewport()->mapToGlobal(pos));
   if (!selected) return;
@@ -336,10 +345,10 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
     editMessage(msg);
   } else if (selected == deleteAction) {
     deleteMessage(msg);
-  } else if (selected == likeAction) {
-    presenter_->reactionClicked(msg, 1);
-  } else if (selected == dislikeAction) {
-    presenter_->reactionClicked(msg, 2);
+  } else if (auto it = reactions_actions.find(selected); it != reactions_actions.end()){
+    presenter_->reactionClicked(msg, it->second.id);
+  } else {
+    LOG_ERROR("Invalid action");
   }
 }
 
