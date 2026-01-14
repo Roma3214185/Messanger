@@ -44,6 +44,10 @@ jobs:
         run: |
           brew uninstall --ignore-dependencies protobuf || true
 
+      - name: Clone vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git external/vcpkg
+
       # 5️⃣ Bootstrap vcpkg
       - name: Bootstrap vcpkg
         run: ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
