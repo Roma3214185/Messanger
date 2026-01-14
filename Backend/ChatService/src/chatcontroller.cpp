@@ -7,6 +7,7 @@
 #include "config/codes.h"
 #include "entities/RequestDTO.h"
 #include "entities/User.h"
+#include "entities/ReactionInfo.h"
 
 using std::optional;
 using std::string;
@@ -30,8 +31,9 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 
 [[nodiscard]] Response sendResponse(int code, const std::string &text) { return std::make_pair(code, text); }
 
-[[nodiscard]] nlohmann::json buildChatJson(const Chat &chat,
-                                           const std::optional<User> other_user,  // todo: make not optional
+[[nodiscard]] nlohmann::json buildChatJson(const Chat &chat, //todo: make entity that fully handles all required info
+                                           std::vector<ReactionInfo> reactions,
+                                           const std::optional<User> other_user,
                                            std::optional<int> member_count) {
   nlohmann::json json;
   json["id"] = chat.id;
@@ -46,6 +48,8 @@ std::optional<long long> getIdFromStr(const std::string &str) {
     json["user"]["name"] = other_user->username;
     json["user"]["avatar"] = other_user->avatar;
   }
+
+  json["default_reactions"] = reactions;
 
   return json;
 }
@@ -112,7 +116,8 @@ Response ChatController::createPrivateChat(const RequestDTO &req) {
   chat.id = *chat_id;
   chat.is_group = 0;
   chat.name = "test_name";
-  auto result = buildChatJson(chat, user, 0);
+  auto reactions = getReactionOfChat(chat.id);
+  auto result = buildChatJson(chat, reactions, user, 0);
   return sendResponse(Config::StatusCodes::success, result.dump());
 }
 
@@ -177,8 +182,8 @@ Response ChatController::getChat(const RequestDTO &req, const std::string &chat_
       return sendResponse(Config::StatusCodes::serverError,
                           utils::details::formError("Failed to retrieve group member count"));
     }
-
-    auto chat_json = buildChatJson(chat, std::nullopt, count);
+    auto reactions = getReactionOfChat(chat.id);
+    auto chat_json = buildChatJson(chat, reactions, std::nullopt, count);
     return sendResponse(Config::StatusCodes::success, chat_json.dump());
   }
 
@@ -191,8 +196,8 @@ Response ChatController::getChat(const RequestDTO &req, const std::string &chat_
   if (!other_user) {
     return sendResponse(Config::StatusCodes::badRequest, utils::details::formError("User profile not found"));
   }
-
-  auto chat_json = buildChatJson(chat, other_user, std::nullopt);
+  auto reactions = getReactionOfChat(chat.id);
+  auto chat_json = buildChatJson(chat, reactions, other_user, std::nullopt);
   return sendResponse(Config::StatusCodes::success, chat_json.dump());
 }
 
@@ -224,3 +229,19 @@ Response ChatController::getAllChatMembers(const RequestDTO & /*req*/, const std
 }
 
 std::optional<User> ChatController::getUserById(long long id) { return network_facade_->user().getUserById(id); }
+
+std::vector<ReactionInfo> ChatController::getReactionOfChat(long long chat_id) {
+  DBC_REQUIRE(chat_id > 0);
+  std::vector<long long> ids_of_reactions{1, 2}; //todo: make table ChatReactions chat_id | reaction_id with default values
+
+  std::vector<ReactionInfo> reactions_of_chat;
+  for(const auto& id_of_reactions: ids_of_reactions) {
+    if(auto reaction = network_facade_->msg().getReaction(id_of_reactions); reaction.has_value()) {
+      DBC_REQUIRE(reaction->checkInvariants());
+      reactions_of_chat.push_back(reaction.value());
+    } else {
+      LOG_ERROR("Failed to get reaction {} for chat {}", id_of_reactions, chat_id);
+    }
+  }
+  return reactions_of_chat;
+}

@@ -2,6 +2,7 @@
 #define CHATCONTROLLER_H
 
 #include <string>
+#include <vector>
 
 class NetworkFacade;
 class IConfigProvider;
@@ -9,6 +10,7 @@ class IChatManager;
 class User;
 class Chat;
 class RequestDTO;
+struct ReactionInfo;
 
 using StatusCode = int;
 using ResponceBody = std::string;
@@ -27,6 +29,7 @@ class ChatController {
   std::optional<long long> authorizeUser(const RequestDTO &req);
   virtual std::optional<User> getUserById(long long id);
   std::optional<long long> autoritize(const std::string &token);
+  std::vector<ReactionInfo> getReactionOfChat(long long chat_id);
 
   IChatManager *manager_;
   NetworkFacade *network_facade_;
