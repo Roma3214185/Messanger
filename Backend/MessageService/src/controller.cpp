@@ -382,11 +382,11 @@ Response Controller::setup() {  //todo: here subscribers
   //todo: if subscrive failre return StatusCode(500, "Failed to subscrive");
   std::optional<std::vector<ReactionInfo>> reactions = loadReactions();
   if(reactions.has_value() == false) {
-    return std::make_pair(Config::StatusCodes::serverError, "Failed while loading reactions");
+    return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Failed while loading reactions"));
   }
 
   if(!manager_->saveMessageReactionInfo(reactions.value()))
-    return std::make_pair(Config::StatusCodes::serverError, "Failed to save reactions");
+    return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Failed to save reactions"));
 
   return std::make_pair(Config::StatusCodes::success, "Setup is correct");
 }

@@ -146,7 +146,7 @@ std::optional<ReactionInfo> MessageManager::getReactionInfo(long long message_re
 }
 
 bool MessageManager::saveMessageReactionInfo(const std::vector<ReactionInfo>& reaction_infos) {
-  for(auto& reaction_info: reaction_infos) {
+  for(const auto& reaction_info: reaction_infos) {
     if(!repository_->save(reaction_info)) return false; //todo: make pipeline
   }
   return true;

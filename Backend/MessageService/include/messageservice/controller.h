@@ -26,7 +26,7 @@ class Controller {
   Response deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str);
   Response getMessageById(const std::string &message_id_str);
   Response getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str);
-  Response getReaction(const RequestDTO &request_pack, const std::string &chat_id_str);
+  Response getReaction(const RequestDTO &request_pack, const std::string &reaction_id_str);
   Response setup();
 
  protected:

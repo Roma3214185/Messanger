@@ -27,9 +27,9 @@ struct Builder<ReactionInfo> {
           field = value.toLongLong();
         } else if constexpr (std::is_same_v<TField, int>) {
           field = value.toInt();
-        } else if constexpr (std::is_same_v<TField, std::string>)
+        } else if constexpr (std::is_same_v<TField, std::string>) {
           field = value.toString().toStdString();
-        else {
+        } else {
           field = value.value<TField>();
         }
       };

@@ -12,7 +12,7 @@ struct UserChat {
 namespace nlohmann {
 
 template <>
-struct adl_serializer<Chat> {
+struct adl_serializer<UserChat> {
     static void to_json(nlohmann::json &json_chat, const UserChat &chat) {
       json_chat = nlohmann::json(chat.chat_info);
       json_chat["default_reactions"] = chat.default_reactions;
