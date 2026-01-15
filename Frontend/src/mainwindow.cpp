@@ -11,6 +11,7 @@
 #include "../forms/ui_mainwindow.h"
 #include "DataInputService.h"
 #include "Debug_profiling.h"
+#include "MessageActionPanel.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
 #include "delegators/userdelegate.h"
@@ -19,7 +20,6 @@
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
 #include "presenter.h"
-#include "MessageActionPanel.h"
 
 namespace {
 
@@ -318,9 +318,8 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   connect(panel, &MessageActionPanel::copyClicked, this, &MainWindow::copyMessage);
   connect(panel, &MessageActionPanel::editClicked, this, &MainWindow::editMessage);
   connect(panel, &MessageActionPanel::deleteClicked, this, &MainWindow::deleteMessage);
-  connect(panel, &MessageActionPanel::reactionClicked, [this](const Message &m, long long reaction_id){
-    presenter_->reactionClicked(m, reaction_id);
-  });
+  connect(panel, &MessageActionPanel::reactionClicked,
+          [this](const Message &m, long long reaction_id) { presenter_->reactionClicked(m, reaction_id); });
 }
 
 void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << message.toString(); }

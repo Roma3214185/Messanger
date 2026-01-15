@@ -28,7 +28,7 @@ T waitForFuture(QFuture<T> &future) {
 MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<MessageManager> message_manager,
                                TokenManager *token_manager)
     : data_manager_(data_manager), message_manager_(std::move(message_manager)), token_manager_(token_manager) {
-  connect(data_manager_, &DataManager::messageAdded, this, [&](const Message &added_messaage) { //todo: not make copy
+  connect(data_manager_, &DataManager::messageAdded, this, [&](const Message &added_messaage) {  // todo: not make copy
     LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.text.toStdString());
     DBC_REQUIRE(added_messaage.chat_id > 0);
     auto message_model = data_manager_->getMessageModel(added_messaage.chat_id);

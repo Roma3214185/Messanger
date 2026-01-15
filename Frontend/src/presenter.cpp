@@ -9,6 +9,7 @@
 #include "DeleteMessageResponce.h"
 #include "JsonService.h"
 #include "MessageListView.h"
+#include "Utils.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/Reaction.h"
@@ -17,8 +18,6 @@
 #include "interfaces/IMessageListView.h"
 #include "model.h"
 #include "models/messagemodel.h"
-#include "handlers/Handlers.h"
-#include "Utils.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
@@ -117,7 +116,7 @@ void Presenter::reactionClicked(const Message &message, long long reaction_id) {
   LOG_INFO("Make reaction {} id for message {}", reaction_id, message.toString());
   DBC_REQUIRE(message.checkInvariants());
   DBC_REQUIRE(!message.isOfflineSaved());
-  if(message.isOfflineSaved()) return; // temporary while contracts don't throw exceptions
+  if (message.isOfflineSaved()) return;  // temporary while contracts don't throw exceptions
 
   long long current_user_id = manager_->tokenManager()->getCurrentUserId();
   Reaction new_reaction(message.id, current_user_id, reaction_id);
@@ -135,12 +134,12 @@ void Presenter::reactionClicked(const Message &message, long long reaction_id) {
   }
 }
 
-void Presenter::saveReaction(const Reaction& reaction) {
-  manager_->socket()->saveReaction(reaction); // it faster and async than save (?)
+void Presenter::saveReaction(const Reaction &reaction) {
+  manager_->socket()->saveReaction(reaction);  // it faster and async than save (?)
   manager_->dataManager()->saveReaction(reaction);
 }
 
-void Presenter::deleteReaction(const Reaction& reaction) {
+void Presenter::deleteReaction(const Reaction &reaction) {
   manager_->socket()->deleteReaction(reaction);
   manager_->dataManager()->deleteReaction(reaction);
 }

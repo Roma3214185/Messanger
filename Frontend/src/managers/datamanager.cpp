@@ -9,8 +9,8 @@ void decrease(std::unordered_map<long long, int> &reactions, long long reaction_
   reactions[reaction_id]--;
   if (reactions[reaction_id] <= 0) reactions.erase(reaction_id);
 }
-  
-bool isMyReaction(const Message& message, const Reaction& reaction) {
+
+bool isMyReaction(const Message &message, const Reaction &reaction) {
   return message.receiver_id == reaction.receiver_id;
 }
 
@@ -192,13 +192,13 @@ void DataManager::deleteReaction(const Reaction &reaction_to_delete) {
   std::lock_guard lock(messages_mutex_);
   DBC_REQUIRE(reaction_to_delete.checkInvariants());
   auto iter_on_message = getIterMessageById(reaction_to_delete.message_id);
-  if(iter_on_message == messages_.end()) {
+  if (iter_on_message == messages_.end()) {
     DBC_UNREACHABLE();
     return;
   }
 
   // todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
-  Message& message_to_delete_reaction = *iter_on_message;
+  Message &message_to_delete_reaction = *iter_on_message;
   bool my_reaction = isMyReaction(message_to_delete_reaction, reaction_to_delete);
 
   if (my_reaction && !utils::isSame(message_to_delete_reaction.receiver_reaction, reaction_to_delete.reaction_id)) {
@@ -218,12 +218,12 @@ void DataManager::saveReaction(const Reaction &reaction_to_save) {
   std::lock_guard lock(messages_mutex_);
   DBC_REQUIRE(reaction_to_save.checkInvariants());
   auto iter_on_message = getIterMessageById(reaction_to_save.message_id);
-  if(iter_on_message == messages_.end()) {
+  if (iter_on_message == messages_.end()) {
     DBC_UNREACHABLE();
     return;
   }
 
-  Message& message_to_save_reaction = *iter_on_message;
+  Message &message_to_save_reaction = *iter_on_message;
   bool my_reaction = isMyReaction(message_to_save_reaction, reaction_to_save);
 
   if (my_reaction && message_to_save_reaction.receiver_reaction == reaction_to_save.reaction_id) {
@@ -236,7 +236,8 @@ void DataManager::saveReaction(const Reaction &reaction_to_save) {
 
   if (my_reaction) {
     // it's my reaction, so i need to delete my old reaction if it setted, and set new one
-    if (message_to_save_reaction.receiver_reaction.has_value())  decrease(message_to_save_reaction.reactions, message_to_save_reaction.receiver_reaction.value());
+    if (message_to_save_reaction.receiver_reaction.has_value())
+      decrease(message_to_save_reaction.reactions, message_to_save_reaction.receiver_reaction.value());
     message_to_save_reaction.receiver_reaction = reaction_to_save.reaction_id;
   }
 

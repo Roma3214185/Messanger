@@ -1,10 +1,9 @@
 #include "MessageActionPanel.h"
 
-MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<ReactionInfo>& reactions, QWidget *parent)
-    : QWidget(parent), msg_(msg), reactions_(reactions)
-{
+MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<ReactionInfo> &reactions, QWidget *parent)
+    : QWidget(parent), msg_(msg), reactions_(reactions) {
   auto *layout = new QVBoxLayout(this);
-  layout->setContentsMargins(4,4,4,4);
+  layout->setContentsMargins(4, 4, 4, 4);
   layout->setSpacing(4);
 
   actionList_ = new QListView(this);
@@ -25,7 +24,7 @@ MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<Rea
 
   const int itemCount = actionModel_->rowCount();
   const int spacing = actionList_->spacing();
-  const int totalHeight = itemCount * itemHeight + (itemCount-1) * spacing + 2 * actionList_->frameWidth();
+  const int totalHeight = itemCount * itemHeight + (itemCount - 1) * spacing + 2 * actionList_->frameWidth();
   actionList_->setFixedHeight(totalHeight);
 
   layout->addWidget(actionList_);
@@ -33,7 +32,7 @@ MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<Rea
   emojiGrid_ = new QListView(this);
   emojiGrid_->setViewMode(QListView::IconMode);
   emojiGrid_->setSpacing(6);
-  emojiGrid_->setIconSize(QSize(18,18));
+  emojiGrid_->setIconSize(QSize(18, 18));
   emojiGrid_->setResizeMode(QListView::Adjust);
   emojiGrid_->setMovement(QListView::Static);
   emojiGrid_->setFixedHeight(36);
@@ -52,7 +51,7 @@ void MessageActionPanel::loadEmojiReactions() {
   for (const auto &r : reactions_) {
     QStandardItem *item = new QStandardItem;
     QIcon icon(QString::fromStdString(r.image));
-    if(icon.isNull()) continue;
+    if (icon.isNull()) continue;
     item->setIcon(icon);
     item->setData(r.id, Qt::UserRole + 1);
     emojiModel_->appendRow(item);
@@ -61,10 +60,14 @@ void MessageActionPanel::loadEmojiReactions() {
 
 void MessageActionPanel::onActionClicked(const QModelIndex &index) {
   QString action = index.data().toString();
-  if (action == "Copy") Q_EMIT copyClicked(msg_);
-  else if (action == "Edit") Q_EMIT editClicked(msg_);
-  else if (action == "Delete") Q_EMIT deleteClicked(msg_);
-  else LOG_ERROR("Invalid action");
+  if (action == "Copy")
+    Q_EMIT copyClicked(msg_);
+  else if (action == "Edit")
+    Q_EMIT editClicked(msg_);
+  else if (action == "Delete")
+    Q_EMIT deleteClicked(msg_);
+  else
+    LOG_ERROR("Invalid action");
   this->close();
 }
 

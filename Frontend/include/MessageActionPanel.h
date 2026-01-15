@@ -1,51 +1,50 @@
 #ifndef MESSAGEACTIONPANEL_H
 #define MESSAGEACTIONPANEL_H
 
-#include <QObject>
-#include "dto/Message.h"
-#include <QVBoxLayout>
 #include <QListView>
-#include <QStringListModel>
+#include <QObject>
 #include <QStandardItemModel>
+#include <QStringListModel>
 #include <QStyledItemDelegate>
+#include <QVBoxLayout>
+#include "dto/Message.h"
 
 class FixedHeightDelegate : public QStyledItemDelegate {
-  public:
-    FixedHeightDelegate(int height, QObject* parent = nullptr)
-        : QStyledItemDelegate(parent), itemHeight(height) {}
+ public:
+  FixedHeightDelegate(int height, QObject *parent = nullptr) : QStyledItemDelegate(parent), itemHeight(height) {}
 
-    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override {
-      QSize s = QStyledItemDelegate::sizeHint(option, index);
-      s.setHeight(itemHeight);
-      return s;
-    }
+  QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+    QSize s = QStyledItemDelegate::sizeHint(option, index);
+    s.setHeight(itemHeight);
+    return s;
+  }
 
-  private:
-    int itemHeight;
+ private:
+  int itemHeight;
 };
 
 class MessageActionPanel : public QWidget {
-    Q_OBJECT
-  public:
-    MessageActionPanel(const Message &msg, const std::vector<ReactionInfo>& reactions, QWidget *parent = nullptr);
+  Q_OBJECT
+ public:
+  MessageActionPanel(const Message &msg, const std::vector<ReactionInfo> &reactions, QWidget *parent = nullptr);
 
-  Q_SIGNALS:
-    void copyClicked(const Message &msg);
-    void editClicked(const Message &msg);
-    void deleteClicked(const Message &msg);
-    void reactionClicked(const Message &msg, long long emojiId);
+ Q_SIGNALS:
+  void copyClicked(const Message &msg);
+  void editClicked(const Message &msg);
+  void deleteClicked(const Message &msg);
+  void reactionClicked(const Message &msg, long long emojiId);
 
-  private:
-    void loadEmojiReactions();
-    void onActionClicked(const QModelIndex &index);
-    void onEmojiClicked(const QModelIndex &index);
+ private:
+  void loadEmojiReactions();
+  void onActionClicked(const QModelIndex &index);
+  void onEmojiClicked(const QModelIndex &index);
 
-    std::vector<ReactionInfo> reactions_;
-    Message msg_;
-    QListView *actionList_;
-    QStringListModel *actionModel_;
-    QListView *emojiGrid_;
-    QStandardItemModel *emojiModel_;
+  std::vector<ReactionInfo> reactions_;
+  Message msg_;
+  QListView *actionList_;
+  QStringListModel *actionModel_;
+  QListView *emojiGrid_;
+  QStandardItemModel *emojiModel_;
 };
 
-#endif // MESSAGEACTIONPANEL_H
+#endif  // MESSAGEACTIONPANEL_H
