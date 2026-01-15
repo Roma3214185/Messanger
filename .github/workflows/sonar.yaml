@@ -40,22 +40,12 @@ jobs:
           set -eux
           brew update
           brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format rabbitmq-c wget unzip gcovr sonar-scanner
-
       - name: Remove Homebrew protobuf (force vcpkg)
         run: |
           brew uninstall --ignore-dependencies protobuf || true
-
-      - name: Cache vcpkg repo
-        uses: actions/cache@v4
-        with:
-          path: external/vcpkg
-          key: vcpkg-src-${{ runner.os }}
-
-      - name: Clone vcpkg (if not cached)
-        run: |
-          if [ ! -d external/vcpkg/.git ]; then
-            git clone https://github.com/microsoft/vcpkg.git external/vcpkg
-          fi
+      # 5️⃣ Bootstrap vcpkg
+      - name: Bootstrap vcpkg
+        run: ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
       # 6️⃣ vcpkg binary cache only
       - name: Cache vcpkg binaries
@@ -65,15 +55,8 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ env.VCPKG_DEFAULT_TRIPLET }}
-
       - name: Setup vcpkg binary cache
-        run: |
-          echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
-          echo "VCPKG_FIXUP_MACHO_RPATH=0" >> $GITHUB_ENV
-
-      # 5️⃣ Bootstrap vcpkg
-      - name: Bootstrap vcpkg
-        run: ./external/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        run: echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/vcpkg-cache,readwrite" >> $GITHUB_ENV
 
       # - name: Install Sonar build-wrapper (macOS)
       #   run: |
@@ -103,11 +86,9 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=arm64-osx \
             -DTRACY_ENABLE=ON \
             -Wno-dev
-
       - name: Build project with Build Wrapper
         run: |
           build-wrapper-macosx-x86 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build/ --config Release
-
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
@@ -115,7 +96,6 @@ jobs:
         with:
           args: >
             --define sonar.cfamily.compile-commands="${{ env.BUILD_WRAPPER_OUT_DIR }}/compile_commands.json"
-
       # # 🔟 Run tests
       # - name: Run tests
       #   run: ctest --test-dir build --output-on-failure
