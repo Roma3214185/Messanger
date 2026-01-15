@@ -58,10 +58,7 @@ std::optional<Message> MessageModel::getOldestMessage() const {
   return messages_.front();
 }
 
-void MessageModel::saveMessage(const Message &msg /*, const User& user*/) {
-  LOG_INFO("[MessageModel::saveMessage]Msg id {} ans local_id {}, and status {}", msg.id, msg.local_id.toStdString(),
-           msg.status_sended);
-
+void MessageModel::saveMessage(const Message &msg) {
   const std::lock_guard<std::mutex> lock(messages_mutex_);
   auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto &other) {
     return msg.local_id == other.local_id;  //|| msg.id == other.id;
@@ -72,16 +69,14 @@ void MessageModel::saveMessage(const Message &msg /*, const User& user*/) {
              it->text.toStdString());
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
     it->updateFrom(msg);
-    // it->receiver_read_status = msg.receiver_read_status;
-    // it->read_counter = msg.read_counter;
     endInsertRows();
-    return;
+  } else {
+    LOG_INFO("Add new message {}", msg.toString());
+    beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
+    messages_.push_front(msg);
+    sortMessagesByTimestamp();
+    endInsertRows();
   }
-
-  beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-  messages_.push_front(msg);
-  sortMessagesByTimestamp();
-  endInsertRows();
 }
 
 void MessageModel::deleteMessage(const Message &message) {

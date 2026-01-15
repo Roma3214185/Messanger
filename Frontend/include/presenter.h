@@ -43,7 +43,7 @@ class Presenter : public QObject {
 
   void deleteMessage(const Message &message);
   void updateMessage(Message &message);
-  void reactionClicked(Message &message, int reaction_id);
+  void reactionClicked(const Message &message, long long reaction_id);
 
   MessageDelegate *getMessageDelegate();
   UserDelegate *getUserDelegate();
@@ -70,6 +70,8 @@ class Presenter : public QObject {
   void openChat(long long chat_id);
   void onErrorOccurred(const QString &error);
   void initialHandlers();
+  void saveReaction(const Reaction& reaction);
+  void deleteReaction(const Reaction& reaction);
 
   SocketHandlersMap socket_responce_handlers_;
   IMainWindow *view_;

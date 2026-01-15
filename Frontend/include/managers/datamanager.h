@@ -43,15 +43,13 @@ class DataManager : public QObject {
   void readMessage(long long message_id, long long readed_by);
   std::optional<ReactionInfo> getReactionInfo(long long reaction_id);
   void saveReaction(const Reaction &reaction);
-  void saveReaction(Message &message, const Reaction &reaction);
-  void deleteReaction(Message &message, const Reaction &reaction_to_delete);
   void deleteReaction(const Reaction &reaction);
   void save(const ReactionInfo& reaction_info);
 
  Q_SIGNALS:
   void chatAdded(const ChatPtr &chat);
-  void messageAdded(const Message &message);
-  void messageDeleted(const Message &message);
+  void messageAdded(const Message message); //add messageChanged or rename messageSaved(both added and changeed something)
+  void messageDeleted(const Message message);
 
  protected:
   [[nodiscard]] int getNumberOfExistingUsers() const noexcept;
