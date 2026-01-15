@@ -7,6 +7,7 @@
 #include "entities/Message.h"
 #include "entities/MessageStatus.h"
 #include "entities/Reaction.h"
+#include "entities/ReactionInfo.h"
 
 class GenericRepository;
 class ISqlExecutor;
@@ -30,10 +31,12 @@ class MessageManager {
   std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
   bool saveMessageReaction(const Reaction &reaction);
   bool deleteMessageReaction(const Reaction &reaction);
+  bool saveMessageReactionInfo(const std::vector<ReactionInfo> &reaction_infos);
 
-  std::pair<std::unordered_map<int, int>, std::optional<int>> getReactions(long long message_id, long long receiver_id);
+  std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> getReactions(long long message_id,
+                                                                                    long long receiver_id);
+  std::optional<ReactionInfo> getReactionInfo(long long message_reaction_id);
 
- private:
   GenericRepository *repository_;
   ISqlExecutor *executor_;
   IIdGenerator *generator_;

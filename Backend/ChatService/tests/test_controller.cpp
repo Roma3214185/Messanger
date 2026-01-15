@@ -107,7 +107,7 @@ TEST_CASE("Test createPrivateChat") {
 
     auto r = crow::json::load(body);
 
-    REQUIRE(r.size() == 3);
+    REQUIRE(r.size() == 4);
     CHECK(r["id"].i() == chat_id);
     CHECK(r["type"].s() == "private");
     CHECK(r["user"]["id"].i() == user.id);
@@ -221,7 +221,7 @@ TEST_CASE("Test ChatController::GetChat") {
 
     auto r = crow::json::load(body);
 
-    REQUIRE(r.size() == 3);
+    REQUIRE(r.size() == 4);
     CHECK(r["id"].i() == std::stoi(chat_id));
     CHECK(r["type"].s() == "private");
     CHECK(r["user"]["id"].i() == other_user.id);

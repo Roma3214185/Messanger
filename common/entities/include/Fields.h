@@ -40,6 +40,16 @@ static std::string fullField(const std::string &field) { return std::string(Tabl
 
 }  // namespace MessageReactionTable
 
+namespace MessageReactionInfoTable {
+
+inline static constexpr const char *Table = "messages_reaction_info";
+inline static constexpr const char *Image = "image";
+inline static constexpr const char *Id = "id";
+
+static std::string fullField(const std::string &field) { return std::string(Table) + "." + field; }
+
+}  // namespace MessageReactionInfoTable
+
 namespace UserTable {
 
 inline static constexpr const char *Table = "users";

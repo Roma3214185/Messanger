@@ -10,10 +10,10 @@
 struct Reaction final {
   long long message_id;
   long long receiver_id;  // who makes reaction
-  int reaction_id;        // 1 -> like, 2 -> dislike, 3 -> smile, 4 -> heart
+  long long reaction_id;  // 1 -> like, 2 -> dislike, 3 -> smile, 4 -> heart
 
   Reaction() = default;
-  Reaction(long long p_message_id, long long p_receiver_id, int p_reaction_id)
+  Reaction(long long p_message_id, long long p_receiver_id, long long p_reaction_id)
       : message_id(p_message_id), receiver_id(p_receiver_id), reaction_id(p_reaction_id) {
     DBC_REQUIRE(checkInvariants());
     LOG_INFO("Reaction {} from {}, type is {}", message_id, receiver_id, reaction_id);

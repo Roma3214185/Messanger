@@ -43,7 +43,7 @@ class MessageDelegate : public QStyledItemDelegate {
   void drawText(QPainter *painter, const QRect &rect, const QString &text, bool is_mine) const;
   void drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &timestamp, bool is_mine) const;
   void drawStatus(QPainter *painter, const QRect &rect, bool is_sended, int read_cnt, bool is_mine) const;
-  void drawReactions(QPainter *painter, const QRect &rect, const std::unordered_map<int, int> &reactions,
+  void drawReactions(QPainter *painter, const QRect &rect, const std::unordered_map<long long, int> &reactions,
                      std::optional<int> my_reaction, long long message_id) const;
   void drawReadCounter(QPainter *painter, const QRect &rect, const int read_cnt, bool is_mine) const;
   QPixmap makeReactionIcon(const QString &imagePath, int count, std::optional<int> my_reaction, int reaction_id) const;

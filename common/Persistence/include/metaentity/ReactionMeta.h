@@ -11,7 +11,7 @@ struct Reflection<Reaction> {
     return Meta{.table_name = MessageReactionTable::Table,
                 .fields = {make_field<Reaction, long long>(MessageReactionTable::MessageId, &Reaction::message_id),
                            make_field<Reaction, long long>(MessageReactionTable::ReceiverId, &Reaction::receiver_id),
-                           make_field<Reaction, int>(MessageReactionTable::ReactionId, &Reaction::reaction_id)}};
+                           make_field<Reaction, long long>(MessageReactionTable::ReactionId, &Reaction::reaction_id)}};
   }
 };
 

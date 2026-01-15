@@ -12,6 +12,7 @@ class GetMessagePack;
 class MessageStatus;
 class IThreadPool;
 class RequestDTO;
+struct ReactionInfo;
 
 using StatusCode = int;
 using ResponceBody = std::string;
@@ -25,6 +26,8 @@ class Controller {
   Response deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str);
   Response getMessageById(const std::string &message_id_str);
   Response getMessagesFromChat(const RequestDTO &request_pack, const std::string &chat_id_str);
+  Response getReaction(const RequestDTO &request_pack, const std::string &chat_id_str);
+  Response setup();
 
  protected:
   virtual void handleSaveMessage(const std::string &payload);
@@ -41,6 +44,7 @@ class Controller {
   std::vector<MessageStatus> getMessagesStatus(const std::vector<Message> &messages, long long receiver_id);
   std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
   std::optional<long long> getUserIdFromToken(const std::string &token);
+  std::optional<std::vector<ReactionInfo>> loadReactions();
 
   MessageManager *manager_;
   IRabitMQClient *mq_client_;

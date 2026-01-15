@@ -37,3 +37,5 @@ vcpkg_installed/
 external/vcpkg_installed/
 external/vcpkg/buildtrees/
 external/vcpkg/packages/
+
+logs/

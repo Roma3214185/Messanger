@@ -10,10 +10,13 @@ struct SqlExecutorResult {
   std::string error;
 
   SqlExecutorResult() = default;
+  ~SqlExecutorResult() = default;
+
   SqlExecutorResult(std::unique_ptr<IQuery> p_query, std::string p_error)
       : query(std::move(p_query)), error(std::move(p_error)) {}
-  SqlExecutorResult(std::unique_ptr<IQuery> p_query) : query(std::move(p_query)) {}
-  SqlExecutorResult(std::string p_error) : query(nullptr), error(std::move(p_error)) {}
+  explicit SqlExecutorResult(std::unique_ptr<IQuery> p_query) : query(std::move(p_query)) {}
+  explicit SqlExecutorResult(std::string p_error) : query(nullptr), error(std::move(p_error)) {}
+
   SqlExecutorResult(const SqlExecutorResult&) = delete;
   SqlExecutorResult& operator=(const SqlExecutorResult&) = delete;
 

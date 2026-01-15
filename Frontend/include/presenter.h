@@ -50,6 +50,7 @@ class Presenter : public QObject {
   ChatItemDelegate *getChatDelegate();
 
   std::vector<Message> getListOfMessagesBySearch(const QString &prefix);
+  std::vector<ReactionInfo> getDefaultReactionsInChat(long long chat_id);
 
  Q_SIGNALS:
   void userSetted();

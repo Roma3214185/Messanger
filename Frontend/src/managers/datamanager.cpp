@@ -2,6 +2,15 @@
 
 #include "Debug_profiling.h"
 
+namespace {
+
+void decrease(std::unordered_map<long long, int> &reactions, long long reaction_id) {
+  reactions[reaction_id]--;
+  if (reactions[reaction_id] <= 0) reactions.erase(reaction_id);
+}
+
+}  // namespace
+
 auto DataManager::getIterMessageById(long long message_id) {
   DBC_REQUIRE(message_id > 0);
   return std::find_if(messages_.begin(), messages_.end(),
@@ -80,6 +89,7 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   bool chat_was = chats_by_id_.contains(chat->chat_id);
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
+  for (const auto &reaction : chat->default_reactions) save(reaction);
   if (!chat_was) Q_EMIT chatAdded(chat);
 }
 
@@ -162,9 +172,11 @@ void DataManager::readMessage(long long message_id, long long readed_by) {
   }
 }
 
-std::optional<std::string> DataManager::getReactionPath(long long reaction_id) {
-  reactions_[1] = "/Users/roma/QtProjects/Chat/images/like.jpeg";
-  reactions_[2] = "/Users/roma/QtProjects/Chat/images/dislike.jpeg";
+void DataManager::save(const ReactionInfo &reaction_info) {
+  reactions_[reaction_info.id] = reaction_info;  // todo: map of locks ??
+}
+
+std::optional<ReactionInfo> DataManager::getReactionInfo(long long reaction_id) {
   DBC_REQUIRE(reaction_id > 0);
   auto it = reactions_.find(reaction_id);
   return it != reactions_.end() ? std::make_optional(it->second) : std::nullopt;
@@ -201,10 +213,10 @@ void DataManager::deleteReaction(Message &message, const Reaction &reaction_to_d
   }
 
   // todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
-  message.reactions[reaction_to_delete.reaction_id]--;
+  decrease(message.reactions, reaction_to_delete.reaction_id);
 
   if (message.receiver_id == reaction_to_delete.receiver_id) {  // it's my reaction
-    message.receiver_reaction = std::nullopt;
+    message.receiver_reaction.reset();
   }
 
   auto it = getIterMessageByLocalId(message.local_id);
@@ -225,7 +237,8 @@ void DataManager::saveReaction(Message &message, const Reaction &reaction) {
   message.reactions[reaction.reaction_id]++;
 
   if (message.receiver_id == reaction.receiver_id) {
-    if (message.receiver_reaction.has_value()) message.reactions[*message.receiver_reaction]--;
+    if (message.receiver_reaction.has_value()) decrease(message.reactions, *message.receiver_reaction);
+    message.reactions[*message.receiver_reaction]--;
     message.receiver_reaction = reaction.reaction_id;
   }
 
