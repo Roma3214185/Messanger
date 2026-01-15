@@ -108,8 +108,8 @@ bool MessageManager::deleteMessageReaction(const Reaction &reaction) {
   return QueryFactory::getDeleteResult(res).success;
 }
 
-std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> MessageManager::getReactions(long long message_id,
-                                                                                         long long receiver_id) {
+std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> MessageManager::getReactions(
+    long long message_id, long long receiver_id) {
   auto custom_query = QueryFactory::createSelect<Reaction>(executor_, cache_);
   custom_query->where(MessageReactionTable::MessageId, message_id);
   auto res = custom_query->execute();
@@ -124,9 +124,9 @@ std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> MessageMana
   }
 
   std::unordered_map<ReactionInfo, int> message_reactions_infos;
-  for(const auto& [reaction_id, reaction_cnt]: message_reactions) {
+  for (const auto &[reaction_id, reaction_cnt] : message_reactions) {
     std::optional<ReactionInfo> reaction_info = getReactionInfo(reaction_id);
-    if(reaction_info.has_value()) {
+    if (reaction_info.has_value()) {
       message_reactions_infos.emplace(reaction_info.value(), reaction_cnt);
     } else {
       LOG_ERROR("Not found reaction with id {}", reaction_id);
@@ -145,9 +145,9 @@ std::optional<ReactionInfo> MessageManager::getReactionInfo(long long message_re
   return vector_of_reactions_infos.empty() ? std::nullopt : std::make_optional(vector_of_reactions_infos.front());
 }
 
-bool MessageManager::saveMessageReactionInfo(const std::vector<ReactionInfo>& reaction_infos) {
-  for(const auto& reaction_info: reaction_infos) {
-    if(!repository_->save(reaction_info)) return false; //todo: make pipeline
+bool MessageManager::saveMessageReactionInfo(const std::vector<ReactionInfo> &reaction_infos) {
+  for (auto &reaction_info : reaction_infos) {
+    if (!repository_->save(reaction_info)) return false;  // todo: make pipeline
   }
   return true;
 }

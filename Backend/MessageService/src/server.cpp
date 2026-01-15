@@ -1,12 +1,12 @@
 #include "messageservice/server.h"
 
+#include "config/codes.h"
 #include "entities/RequestDTO.h"
 #include "entities/UserMessage.h"
 #include "interfaces/IRabitMQClient.h"
 #include "messageservice/controller.h"
 #include "messageservice/dto/GetMessagePack.h"
 #include "messageservice/managers/JwtUtils.h"
-#include "config/codes.h"
 
 namespace {
 
@@ -20,9 +20,7 @@ void sendResponse(crow::response &res, int code, const std::string &text) {
 }  // namespace
 
 Server::Server(crow::SimpleApp &app, int port, Controller *controller)
-    : app_(app), port_(port), controller_(controller) {
-
-}
+    : app_(app), port_(port), controller_(controller) {}
 
 void Server::handleRoutes() {
   handleGetMessage();
@@ -54,7 +52,7 @@ void Server::handleGetMessage() {
 
 void Server::run() {
   LOG_INFO("[Message server is started on port '{}'", port_);
-  if(auto [status_code, error] = controller_->setup(); status_code != Config::StatusCodes::success) {
+  if (auto [status_code, error] = controller_->setup(); status_code != Config::StatusCodes::success) {
     throw std::runtime_error("Setup sever was failed: " + error);
   }
 
@@ -74,12 +72,12 @@ void Server::handleUpdateMessage() {
 
 void Server::handleGetReaction() {
   CROW_ROUTE(app_, "/reaction/<string>")
-  .methods(crow::HTTPMethod::GET)(
-      [this](const crow::request &req, crow::response &res, const std::string &reaction_id_str) {
-        PROFILE_SCOPE();
-        auto [code, body] = controller_->getReaction(utils::getDTO(req, "reaction/string"), reaction_id_str);
-        sendResponse(res, code, body);
-      });
+      .methods(crow::HTTPMethod::GET)(
+          [this](const crow::request &req, crow::response &res, const std::string &reaction_id_str) {
+            PROFILE_SCOPE();
+            auto [code, body] = controller_->getReaction(utils::getDTO(req, "reaction/string"), reaction_id_str);
+            sendResponse(res, code, body);
+          });
 }
 
 void Server::handleDeleteMessage() {

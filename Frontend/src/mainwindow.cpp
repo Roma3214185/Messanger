@@ -23,19 +23,17 @@
 
 namespace {
 
-std::string trim(const std::string& s) {
+std::string trim(const std::string &s) {
   size_t start = 0;
-  while (start < s.size() && std::isspace(static_cast<unsigned char>(s[start])))
-    ++start;
+  while (start < s.size() && std::isspace(static_cast<unsigned char>(s[start]))) ++start;
 
   size_t end = s.size();
-  while (end > start && std::isspace(static_cast<unsigned char>(s[end - 1])))
-    --end;
+  while (end > start && std::isspace(static_cast<unsigned char>(s[end - 1]))) --end;
 
   return s.substr(start, end - start);
 }
 
-}
+}  // namespace
 
 namespace MessageRoles {
 enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
@@ -324,6 +322,7 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
     presenter_->reactionClicked(m, reaction_id);
   });
 }
+
 void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << message.toString(); }
 
 void MainWindow::editMessage(const Message &message) {

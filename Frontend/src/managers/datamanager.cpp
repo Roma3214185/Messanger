@@ -5,11 +5,11 @@
 
 namespace {
 
-void decrease(std::unordered_map<long long, int>& reactions, long long reaction_id) {
+void decrease(std::unordered_map<long long, int> &reactions, long long reaction_id) {
   reactions[reaction_id]--;
-  if(reactions[reaction_id] <= 0) reactions.erase(reaction_id);
+  if (reactions[reaction_id] <= 0) reactions.erase(reaction_id);
 }
-
+  
 bool isMyReaction(const Message& message, const Reaction& reaction) {
   return message.receiver_id == reaction.receiver_id;
 }
@@ -94,7 +94,7 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   bool chat_was = chats_by_id_.contains(chat->chat_id);
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
-  for(const auto& reaction : chat->default_reactions) save(reaction);
+  for (const auto &reaction : chat->default_reactions) save(reaction);
   if (!chat_was) Q_EMIT chatAdded(chat);
 }
 
@@ -178,8 +178,8 @@ void DataManager::readMessage(long long message_id, long long readed_by) {
   }
 }
 
-void DataManager::save(const ReactionInfo& reaction_info) {
-  reactions_[reaction_info.id] = reaction_info; //todo: map of locks ??
+void DataManager::save(const ReactionInfo &reaction_info) {
+  reactions_[reaction_info.id] = reaction_info;  // todo: map of locks ??
 }
 
 std::optional<ReactionInfo> DataManager::getReactionInfo(long long reaction_id) {

@@ -7,11 +7,12 @@
 
 template <>
 struct Reflection<ReactionInfo> {
-    static Meta meta() {
-      return Meta{.table_name = MessageReactionInfoTable::Table,
-                  .fields = {make_field<ReactionInfo, long long>(MessageReactionInfoTable::Id, &ReactionInfo::id),
-                             make_field<ReactionInfo, std::string>(MessageReactionInfoTable::Image, &ReactionInfo::image)}};
-    }
+  static Meta meta() {
+    return Meta{
+        .table_name = MessageReactionInfoTable::Table,
+        .fields = {make_field<ReactionInfo, long long>(MessageReactionInfoTable::Id, &ReactionInfo::id),
+                   make_field<ReactionInfo, std::string>(MessageReactionInfoTable::Image, &ReactionInfo::image)}};
+  }
 };
 
 template <>
@@ -41,12 +42,11 @@ struct Builder<ReactionInfo> {
     }
 };
 
-inline constexpr auto ReactionInfoFields =
-    std::make_tuple(&ReactionInfo::id, &ReactionInfo::image);
+inline constexpr auto ReactionInfoFields = std::make_tuple(&ReactionInfo::id, &ReactionInfo::image);
 
 template <>
 struct EntityFields<ReactionInfo> {
-    static constexpr auto &fields = ReactionInfoFields;
+  static constexpr auto &fields = ReactionInfoFields;
 };
 
-#endif // REACTIONINFOMETA_H
+#endif  // REACTIONINFOMETA_H
