@@ -26,7 +26,7 @@ class MessageUseCase : public QObject {
   void deleteMessage(const Message &msg);
   void logout();
   void clearAllMessages();
-  void saveReactionInfo(const std::vector<ReactionInfo>& reaction_infos);
+  void saveReactionInfo(const std::vector<ReactionInfo> &reaction_infos);
 
  Q_SIGNALS:
   void messageAdded(const Message &);

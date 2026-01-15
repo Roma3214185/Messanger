@@ -150,14 +150,15 @@ void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &opt
   }
 }
 
-void MessageDelegate::drawReactions(QPainter *painter, const QRect &rect, const std::unordered_map<long long, int> &reactions,
-                                    std::optional<int> my_reaction, long long message_id) const {
+void MessageDelegate::drawReactions(QPainter *painter, const QRect &rect,
+                                    const std::unordered_map<long long, int> &reactions, std::optional<int> my_reaction,
+                                    long long message_id) const {
   DBC_REQUIRE(message_id > 0);
   int offset = 30;
   for (const auto &[reaction_id, reaction_cnt] : reactions) {
     if (reaction_cnt <= 0) continue;
     auto reaction_info = data_manager_->getReactionInfo(reaction_id);
-    if(!reaction_info.has_value()) {
+    if (!reaction_info.has_value()) {
       LOG_ERROR("No reaction_info for id {}", reaction_id);
       continue;
     }

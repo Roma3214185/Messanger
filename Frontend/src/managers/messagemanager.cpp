@@ -61,12 +61,12 @@ QList<Message> MessageManager::onGetChatMessages(const QByteArray &responce_data
   for (const auto &val : doc.array()) {
     auto [message, reactions] = this->entity_factory_->getMessageFromJson(val.toObject());
     messages.append(message);
-    for(auto reaction : reactions) {
+    for (auto reaction : reactions) {
       reactions_infos.insert(reaction);
     }
   }
 
-  for(auto reaction : reactions_infos) Q_EMIT saveReactionInfo(reaction);
+  for (auto reaction : reactions_infos) Q_EMIT saveReactionInfo(reaction);
   LOG_INFO("[onGetChatMessages] Loaded {} messages", messages.size());
   return messages;
 }

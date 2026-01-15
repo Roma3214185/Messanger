@@ -31,9 +31,10 @@ class MessageManager {
   std::vector<MessageStatus> getReadedMessageStatuses(long long message_id);
   bool saveMessageReaction(const Reaction &reaction);
   bool deleteMessageReaction(const Reaction &reaction);
-  bool saveMessageReactionInfo(const std::vector<ReactionInfo>& reaction_infos);
+  bool saveMessageReactionInfo(const std::vector<ReactionInfo> &reaction_infos);
 
-  std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> getReactions(long long message_id, long long receiver_id);
+  std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> getReactions(long long message_id,
+                                                                                    long long receiver_id);
   std::optional<ReactionInfo> getReactionInfo(long long message_reaction_id);
 
   GenericRepository *repository_;

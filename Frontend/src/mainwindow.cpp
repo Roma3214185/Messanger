@@ -22,19 +22,17 @@
 
 namespace {
 
-std::string trim(const std::string& s) {
+std::string trim(const std::string &s) {
   size_t start = 0;
-  while (start < s.size() && std::isspace(static_cast<unsigned char>(s[start])))
-    ++start;
+  while (start < s.size() && std::isspace(static_cast<unsigned char>(s[start]))) ++start;
 
   size_t end = s.size();
-  while (end > start && std::isspace(static_cast<unsigned char>(s[end - 1])))
-    --end;
+  while (end > start && std::isspace(static_cast<unsigned char>(s[end - 1]))) --end;
 
   return s.substr(start, end - start);
 }
 
-}
+}  // namespace
 
 namespace MessageRoles {
 enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
@@ -315,16 +313,16 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   QAction *editAction = menu.addAction("Edit");
   QAction *deleteAction = menu.addAction("Delete");
 
-  auto reactions_actions = std::unordered_map<QAction*, ReactionInfo>{};
+  auto reactions_actions = std::unordered_map<QAction *, ReactionInfo>{};
 
   if (msg.isOfflineSaved()) {
     editAction->setEnabled(false);
     deleteAction->setEnabled(false);
   } else {
     std::vector<ReactionInfo> reactions = presenter_->getDefaultReactionsInChat(msg.chat_id);
-    for(const auto &reaction : reactions) {
+    for (const auto &reaction : reactions) {
       LOG_INFO("Reaction to set in menu (id = {} and path : {}|", reaction.id, reaction.image);
-      if(msg.receiver_reaction == reaction.id) continue;
+      if (msg.receiver_reaction == reaction.id) continue;
       QIcon reaction_icon(QString::fromStdString(trim(reaction.image)));
       if (reaction_icon.isNull()) {
         LOG_ERROR("Failed to load icon: {}", reaction.image);
@@ -345,7 +343,7 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
     editMessage(msg);
   } else if (selected == deleteAction) {
     deleteMessage(msg);
-  } else if (auto it = reactions_actions.find(selected); it != reactions_actions.end()){
+  } else if (auto it = reactions_actions.find(selected); it != reactions_actions.end()) {
     presenter_->reactionClicked(msg, it->second.id);
   } else {
     LOG_ERROR("Invalid action");

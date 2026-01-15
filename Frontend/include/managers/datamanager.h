@@ -46,7 +46,7 @@ class DataManager : public QObject {
   void saveReaction(Message &message, const Reaction &reaction);
   void deleteReaction(Message &message, const Reaction &reaction_to_delete);
   void deleteReaction(const Reaction &reaction);
-  void save(const ReactionInfo& reaction_info);
+  void save(const ReactionInfo &reaction_info);
 
  Q_SIGNALS:
   void chatAdded(const ChatPtr &chat);

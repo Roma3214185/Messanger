@@ -37,9 +37,8 @@ MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<Messag
     if (added_messaage.id != 0) Q_EMIT messageAdded(added_messaage);  // this message from server, not offline
   });
 
-  connect(message_manager_.get(), &MessageManager::saveReactionInfo, this, [&](const ReactionInfo &reaction_info) {
-    data_manager_->save(reaction_info);
-  });
+  connect(message_manager_.get(), &MessageManager::saveReactionInfo, this,
+          [&](const ReactionInfo &reaction_info) { data_manager_->save(reaction_info); });
 }
 
 auto MessageUseCase::getChatMessages(long long chat_id, int limit) -> QList<Message> {
@@ -104,8 +103,8 @@ void MessageUseCase::clearAllMessages() {
   DBC_ENSURE(data_manager_->getNumberOfMessageModels() == 0);
 }
 
-void MessageUseCase::saveReactionInfo(const std::vector<ReactionInfo>& reaction_infos) {
-  for(auto& reaction_info: reaction_infos) data_manager_->save(reaction_info);
+void MessageUseCase::saveReactionInfo(const std::vector<ReactionInfo> &reaction_infos) {
+  for (auto &reaction_info : reaction_infos) data_manager_->save(reaction_info);
 }
 
 void MessageUseCase::getChatMessagesAsync(long long chat_id) {

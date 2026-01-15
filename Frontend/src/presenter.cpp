@@ -12,11 +12,11 @@
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/Reaction.h"
+#include "handlers/Handlers.h"
 #include "interfaces/IMainWindow.h"
 #include "interfaces/IMessageListView.h"
 #include "model.h"
 #include "models/messagemodel.h"
-#include "handlers/Handlers.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
@@ -46,8 +46,7 @@ void Presenter::initialHandlers() {
       std::make_unique<NewMessageResponceHandler>(manager_->entities(), manager_->message());
   socket_responce_handlers_[delete_message_type] =
       std::make_unique<DeleteMessageResponceHandler>(manager_->entities(), manager_->message());
-  socket_responce_handlers_[read_message_type] =
-      std::make_unique<ReadMessageHandler>(manager_->dataManager());
+  socket_responce_handlers_[read_message_type] = std::make_unique<ReadMessageHandler>(manager_->dataManager());
   socket_responce_handlers_[save_reaction_type] =
       std::make_unique<SaveMessageReactionHandler>(manager_->entities(), manager_->dataManager());
   socket_responce_handlers_[delete_reaction_type] =
@@ -296,7 +295,7 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix)
 }
 
 std::vector<ReactionInfo> Presenter::getDefaultReactionsInChat(long long chat_id) {
-  if(auto chat = manager_->dataManager()->getChat(chat_id); chat != nullptr) {
+  if (auto chat = manager_->dataManager()->getChat(chat_id); chat != nullptr) {
     return chat->default_reactions;
   }
   DBC_UNREACHABLE();
@@ -309,7 +308,7 @@ void Presenter::onUnreadMessage(Message &message) {
     DBC_UNREACHABLE();
     return;
   }
-  if(message.isOfflineSaved()) return;
+  if (message.isOfflineSaved()) return;
 
   long long current_user_id = manager_->tokenManager()->getCurrentUserId();
   manager_->dataManager()->readMessage(message.id, current_user_id);

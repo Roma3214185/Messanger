@@ -5,9 +5,9 @@
 #include "chatservice/AutoritizerProvider.h"
 #include "chatservice/interfaces/IChatManager.h"
 #include "config/codes.h"
+#include "entities/ReactionInfo.h"
 #include "entities/RequestDTO.h"
 #include "entities/User.h"
-#include "entities/ReactionInfo.h"
 
 using std::optional;
 using std::string;
@@ -31,9 +31,8 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 
 [[nodiscard]] Response sendResponse(int code, const std::string &text) { return std::make_pair(code, text); }
 
-[[nodiscard]] nlohmann::json buildChatJson(const Chat &chat, //todo: make entity that fully handles all required info
-                                           std::vector<ReactionInfo> reactions,
-                                           const std::optional<User> other_user,
+[[nodiscard]] nlohmann::json buildChatJson(const Chat &chat,  // todo: make entity that fully handles all required info
+                                           std::vector<ReactionInfo> reactions, const std::optional<User> other_user,
                                            std::optional<int> member_count) {
   nlohmann::json json;
   json["id"] = chat.id;
@@ -232,11 +231,12 @@ std::optional<User> ChatController::getUserById(long long id) { return network_f
 
 std::vector<ReactionInfo> ChatController::getReactionOfChat(long long chat_id) {
   DBC_REQUIRE(chat_id > 0);
-  std::vector<long long> ids_of_reactions{1, 2}; //todo: make table ChatReactions chat_id | reaction_id with default values
+  std::vector<long long> ids_of_reactions{
+      1, 2};  // todo: make table ChatReactions chat_id | reaction_id with default values
 
   std::vector<ReactionInfo> reactions_of_chat;
-  for(const auto& id_of_reactions: ids_of_reactions) {
-    if(auto reaction = network_facade_->msg().getReaction(id_of_reactions); reaction.has_value()) {
+  for (const auto &id_of_reactions : ids_of_reactions) {
+    if (auto reaction = network_facade_->msg().getReaction(id_of_reactions); reaction.has_value()) {
       DBC_REQUIRE(reaction->checkInvariants());
       reactions_of_chat.push_back(reaction.value());
     } else {
