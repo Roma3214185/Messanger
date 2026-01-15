@@ -11,6 +11,7 @@
 #include "../forms/ui_mainwindow.h"
 #include "DataInputService.h"
 #include "Debug_profiling.h"
+#include "MessageActionPanel.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
 #include "delegators/userdelegate.h"
@@ -306,48 +307,19 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   if (!index.isValid()) return;
 
   Message msg = index.data(MessageModel::Roles::FullMessage).value<Message>();
+  auto reactions = presenter_->getDefaultReactionsInChat(msg.chat_id);
+  auto *panel = new MessageActionPanel(msg, reactions, this);
 
-  QMenu menu(this);
+  panel->setAttribute(Qt::WA_DeleteOnClose);
+  panel->setWindowFlags(Qt::Popup);
+  panel->move(message_list_view_->viewport()->mapToGlobal(pos));
+  panel->show();
 
-  QAction *copyAction = menu.addAction("Copy");
-  QAction *editAction = menu.addAction("Edit");
-  QAction *deleteAction = menu.addAction("Delete");
-
-  auto reactions_actions = std::unordered_map<QAction *, ReactionInfo>{};
-
-  if (msg.isOfflineSaved()) {
-    editAction->setEnabled(false);
-    deleteAction->setEnabled(false);
-  } else {
-    std::vector<ReactionInfo> reactions = presenter_->getDefaultReactionsInChat(msg.chat_id);
-    for (const auto &reaction : reactions) {
-      LOG_INFO("Reaction to set in menu (id = {} and path : {}|", reaction.id, reaction.image);
-      if (msg.receiver_reaction == reaction.id) continue;
-      QIcon reaction_icon(QString::fromStdString(trim(reaction.image)));
-      if (reaction_icon.isNull()) {
-        LOG_ERROR("Failed to load icon: {}", reaction.image);
-      } else {
-        QAction *reaction_action = menu.addAction(reaction_icon, "");
-        reaction_action->setIconVisibleInMenu(true);
-        reactions_actions[reaction_action] = reaction;
-      }
-    }
-  }
-
-  QAction *selected = menu.exec(message_list_view_->viewport()->mapToGlobal(pos));
-  if (!selected) return;
-
-  if (selected == copyAction) {
-    copyMessage(msg);
-  } else if (selected == editAction) {
-    editMessage(msg);
-  } else if (selected == deleteAction) {
-    deleteMessage(msg);
-  } else if (auto it = reactions_actions.find(selected); it != reactions_actions.end()) {
-    presenter_->reactionClicked(msg, it->second.id);
-  } else {
-    LOG_ERROR("Invalid action");
-  }
+  connect(panel, &MessageActionPanel::copyClicked, this, &MainWindow::copyMessage);
+  connect(panel, &MessageActionPanel::editClicked, this, &MainWindow::editMessage);
+  connect(panel, &MessageActionPanel::deleteClicked, this, &MainWindow::deleteMessage);
+  connect(panel, &MessageActionPanel::reactionClicked,
+          [this](const Message &m, long long reaction_id) { presenter_->reactionClicked(m, reaction_id); });
 }
 
 void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << message.toString(); }

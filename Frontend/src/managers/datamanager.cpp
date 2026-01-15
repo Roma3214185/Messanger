@@ -1,12 +1,17 @@
 #include "managers/datamanager.h"
 
 #include "Debug_profiling.h"
+#include "Utils.h"
 
 namespace {
 
 void decrease(std::unordered_map<long long, int> &reactions, long long reaction_id) {
   reactions[reaction_id]--;
   if (reactions[reaction_id] <= 0) reactions.erase(reaction_id);
+}
+
+bool isMyReaction(const Message &message, const Reaction &reaction) {
+  return message.receiver_id == reaction.receiver_id;
 }
 
 }  // namespace
@@ -150,6 +155,7 @@ void DataManager::deleteMessage(const Message &msg) {
   Q_EMIT messageDeleted(msg);
 }
 void DataManager::readMessage(long long message_id, long long readed_by) {
+  std::lock_guard lock(messages_mutex_);
   DBC_REQUIRE(message_id > 0);
   DBC_REQUIRE(readed_by > 0);
   auto it = getIterMessageById(message_id);
@@ -182,68 +188,58 @@ std::optional<ReactionInfo> DataManager::getReactionInfo(long long reaction_id) 
   return it != reactions_.end() ? std::make_optional(it->second) : std::nullopt;
 }
 
-void DataManager::saveReaction(const Reaction &reaction) {
-  auto it = getIterMessageById(reaction.message_id);
-  if (it == messages_.end()) {
-    LOG_ERROR("TO save reaction message {} not found", reaction.message_id);
-    return;
-  }
-
-  saveReaction(*it, reaction);
-  // todo: if !reactions_.contains(reaction.reaction_id) Q_EMIT to send request on server to have info about image of
-  // this reaction
-}
-
-void DataManager::deleteReaction(const Reaction &reaction) {
-  auto it = getIterMessageById(reaction.message_id);
-  if (it == messages_.end()) {
-    LOG_ERROR("TO delete reaction message {} not found", reaction.message_id);
-    return;
-  }
-
-  deleteReaction(*it, reaction);
-}
-
-void DataManager::deleteReaction(Message &message, const Reaction &reaction_to_delete) {
-  DBC_REQUIRE(message.id > 0 && message.id == reaction_to_delete.message_id);
-
-  if (message.receiver_id == reaction_to_delete.receiver_id && message.receiver_reaction == std::nullopt) {
-    LOG_INFO("It's my reaction, and it already deleted");
+void DataManager::deleteReaction(const Reaction &reaction_to_delete) {
+  std::lock_guard lock(messages_mutex_);
+  DBC_REQUIRE(reaction_to_delete.checkInvariants());
+  auto iter_on_message = getIterMessageById(reaction_to_delete.message_id);
+  if (iter_on_message == messages_.end()) {
+    DBC_UNREACHABLE();
     return;
   }
 
   // todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
-  decrease(message.reactions, reaction_to_delete.reaction_id);
+  Message &message_to_delete_reaction = *iter_on_message;
+  bool my_reaction = isMyReaction(message_to_delete_reaction, reaction_to_delete);
 
-  if (message.receiver_id == reaction_to_delete.receiver_id) {  // it's my reaction
-    message.receiver_reaction.reset();
+  if (my_reaction && !utils::isSame(message_to_delete_reaction.receiver_reaction, reaction_to_delete.reaction_id)) {
+    LOG_INFO("It's my reaction, and {} reaction already was deleted", reaction_to_delete.reaction_id);
+    return;
   }
 
-  auto it = getIterMessageByLocalId(message.local_id);
-  DBC_REQUIRE(it != messages_.end());
-  it->updateFrom(message);
-  Q_EMIT messageAdded(message);  // todo: messageChanged
+  decrease(message_to_delete_reaction.reactions, reaction_to_delete.reaction_id);
+
+  if (my_reaction) {
+    message_to_delete_reaction.receiver_reaction.reset();
+  }
+  Q_EMIT messageAdded(message_to_delete_reaction);  // todo: messageChanged
 }
 
-void DataManager::saveReaction(Message &message, const Reaction &reaction) {
-  DBC_REQUIRE(message.id > 0 && message.id == reaction.message_id);
+void DataManager::saveReaction(const Reaction &reaction_to_save) {
+  std::lock_guard lock(messages_mutex_);
+  DBC_REQUIRE(reaction_to_save.checkInvariants());
+  auto iter_on_message = getIterMessageById(reaction_to_save.message_id);
+  if (iter_on_message == messages_.end()) {
+    DBC_UNREACHABLE();
+    return;
+  }
 
-  if (message.receiver_id == reaction.receiver_id && message.receiver_reaction == reaction.reaction_id) {
+  Message &message_to_save_reaction = *iter_on_message;
+  bool my_reaction = isMyReaction(message_to_save_reaction, reaction_to_save);
+
+  if (my_reaction && message_to_save_reaction.receiver_reaction == reaction_to_save.reaction_id) {
     LOG_INFO("It's my reaction, and it exists already");
     return;
   }
 
   // todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
-  message.reactions[reaction.reaction_id]++;
+  message_to_save_reaction.reactions[reaction_to_save.reaction_id]++;
 
-  if (message.receiver_id == reaction.receiver_id) {
-    if (message.receiver_reaction.has_value()) decrease(message.reactions, *message.receiver_reaction);
-    message.reactions[*message.receiver_reaction]--;
-    message.receiver_reaction = reaction.reaction_id;
+  if (my_reaction) {
+    // it's my reaction, so i need to delete my old reaction if it setted, and set new one
+    if (message_to_save_reaction.receiver_reaction.has_value())
+      decrease(message_to_save_reaction.reactions, message_to_save_reaction.receiver_reaction.value());
+    message_to_save_reaction.receiver_reaction = reaction_to_save.reaction_id;
   }
 
-  auto it = getIterMessageByLocalId(message.local_id);
-  DBC_REQUIRE(it != messages_.end());
-  it->updateFrom(message);
-  Q_EMIT messageAdded(message);  // todo: messageChanged
+  Q_EMIT messageAdded(message_to_save_reaction);  // todo: messageChanged
 }

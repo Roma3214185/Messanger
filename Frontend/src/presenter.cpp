@@ -9,6 +9,7 @@
 #include "DeleteMessageResponce.h"
 #include "JsonService.h"
 #include "MessageListView.h"
+#include "Utils.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/Reaction.h"
@@ -111,28 +112,36 @@ void Presenter::updateMessage(Message &message) {
   manager_->message()->updateMessage(message);
 }
 
-void Presenter::reactionClicked(Message &message, int reaction_id) {  // todo: can be const
+void Presenter::reactionClicked(const Message &message, long long reaction_id) {
   LOG_INFO("Make reaction {} id for message {}", reaction_id, message.toString());
   DBC_REQUIRE(message.checkInvariants());
+  DBC_REQUIRE(!message.isOfflineSaved());
+  if (message.isOfflineSaved()) return;  // temporary while contracts don't throw exceptions
 
-  Reaction reaction(message.id, manager_->tokenManager()->getCurrentUserId(), reaction_id);
+  long long current_user_id = manager_->tokenManager()->getCurrentUserId();
+  Reaction new_reaction(message.id, current_user_id, reaction_id);
 
   if (bool there_was_not_reaction = !message.receiver_reaction.has_value(); there_was_not_reaction) {
-    manager_->socket()->saveReaction(reaction);  // it faster and async than save (?)
-    manager_->dataManager()->saveReaction(message, reaction);
-  } else if (bool is_already_this_reaction =
-                 message.receiver_reaction.has_value() && *message.receiver_reaction == reaction_id;
-             is_already_this_reaction) {
+    saveReaction(new_reaction);
+  } else if (utils::isSame(message.receiver_reaction, reaction_id)) {
     LOG_INFO("Clicked on reaction that already setted, need to just delete current");
-    manager_->socket()->deleteReaction(reaction);
-    manager_->dataManager()->deleteReaction(message, reaction);
+    deleteReaction(new_reaction);
   } else {
-    Reaction old_reaction(reaction.message_id, reaction.receiver_id, message.receiver_reaction.value());
-    manager_->socket()->deleteReaction(old_reaction);
-    manager_->dataManager()->deleteReaction(message, old_reaction);
-    manager_->socket()->saveReaction(reaction);
-    manager_->dataManager()->saveReaction(message, reaction);
+    LOG_INFO("User changed reaction, from {} to {}", message.receiver_reaction.value(), reaction_id);
+    Reaction old_reaction(message.id, current_user_id, message.receiver_reaction.value());
+    deleteReaction(old_reaction);
+    saveReaction(new_reaction);
   }
+}
+
+void Presenter::saveReaction(const Reaction &reaction) {
+  manager_->socket()->saveReaction(reaction);  // it faster and async than save (?)
+  manager_->dataManager()->saveReaction(reaction);
+}
+
+void Presenter::deleteReaction(const Reaction &reaction) {
+  manager_->socket()->deleteReaction(reaction);
+  manager_->dataManager()->deleteReaction(reaction);
 }
 
 void Presenter::onScroll(int value) {  // todo: multithreaded event changed

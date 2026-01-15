@@ -25,13 +25,16 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   QString local_id;
 
   void updateFrom(const Message& other) {  // todo: copy asign operator
+    LOG_INFO("Update");
+    LOG_INFO("Update {}", this->toString());
+    LOG_INFO("From {}", other.toString());
+
     DBC_REQUIRE(local_id == other.local_id);
     DBC_REQUIRE(chat_id == other.chat_id);
     DBC_REQUIRE(sender_id == other.sender_id);
     DBC_REQUIRE(receiver_id == other.receiver_id);
     if (id != 0) DBC_REQUIRE(id == other.id);
 
-    LOG_INFO("Update {} | | from {}", this->toString(), other.toString());
     id = other.id;
     text = other.text;
     timestamp = other.timestamp;
@@ -42,6 +45,14 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     receiver_reaction = other.receiver_reaction;
     reactions = other.reactions;
     DBC_INVARIANT(checkInvariants());
+  }
+
+  inline bool operator==(const Message& other) {
+    return local_id == other.local_id && chat_id == other.chat_id && sender_id == other.sender_id &&
+           receiver_id == other.receiver_id && id == other.id && text == other.text && timestamp == other.timestamp &&
+           receiver_read_status == other.receiver_read_status && read_counter == other.read_counter &&
+           reactions == other.reactions && status_sended == other.status_sended &&
+           receiver_reaction == other.receiver_reaction && reactions == other.reactions;
   }
 
   bool isOfflineSaved() const noexcept {

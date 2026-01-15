@@ -16,7 +16,7 @@ struct UserMessage {  // todo: rename UserMessage -> Message
 
   struct {
     std::unordered_map<ReactionInfo, int> counts;  // type -> count
-    std::optional<int> my_reaction;
+    std::optional<long long> my_reaction;
   } reactions;
 };
 
