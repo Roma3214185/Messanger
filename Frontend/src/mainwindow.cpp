@@ -315,7 +315,6 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   panel->setAttribute(Qt::WA_DeleteOnClose);
   panel->setWindowFlags(Qt::Popup);
   panel->move(message_list_view_->viewport()->mapToGlobal(pos));
-  panel->show();
 
   connect(panel, &MessageActionPanel::copyClicked, this, &MainWindow::copyMessage);
   connect(panel, &MessageActionPanel::editClicked, this, &MainWindow::editMessage);
@@ -323,7 +322,10 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   connect(panel, &MessageActionPanel::reactionClicked, [this](const Message &m, long long reaction_id){
     presenter_->reactionClicked(m, reaction_id);
   });
+
+  panel->show();
 }
+
 void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << message.toString(); }
 
 void MainWindow::editMessage(const Message &message) {

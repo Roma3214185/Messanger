@@ -1,4 +1,5 @@
 #include "MessageActionPanel.h"
+#include "Debug_profiling.h"
 
 MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<ReactionInfo>& reactions, QWidget *parent)
     : QWidget(parent), msg_(msg), reactions_(reactions)
@@ -69,7 +70,7 @@ void MessageActionPanel::onActionClicked(const QModelIndex &index) {
 }
 
 void MessageActionPanel::onEmojiClicked(const QModelIndex &index) {
-  long long emojiId = index.data(Qt::UserRole + 1).toInt();
+  long long emojiId = index.data(Qt::UserRole + 1).toLongLong();
   Q_EMIT reactionClicked(msg_, emojiId);
   this->close();
 }

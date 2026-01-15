@@ -1,7 +1,7 @@
 #include "managers/datamanager.h"
 
 #include "Debug_profiling.h"
-#include "Utils.h"
+#include "utils.h"
 
 namespace {
 

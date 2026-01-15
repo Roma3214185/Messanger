@@ -72,9 +72,11 @@ void MessageModel::saveMessage(const Message &msg) {
     endInsertRows();
   } else {
     LOG_INFO("Add new message {}", msg.toString());
-    beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
-    messages_.push_front(msg);
-    sortMessagesByTimestamp();
+    auto insertPos = std::lower_bound(messages_.begin(), messages_.end(), msg,
+                                      [](const auto &a, const auto &b) { return a.timestamp < b.timestamp; });
+    int row = std::distance(messages_.begin(), insertPos);
+    beginInsertRows(QModelIndex(), row, row);
+    messages_.insert(insertPos, msg);
     endInsertRows();
   }
 }

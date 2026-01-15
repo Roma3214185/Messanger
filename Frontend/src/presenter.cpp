@@ -17,7 +17,7 @@
 #include "model.h"
 #include "models/messagemodel.h"
 #include "handlers/Handlers.h"
-#include "Utils.h"
+#include "utils.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
