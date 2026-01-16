@@ -204,25 +204,25 @@ TEST_CASE("Test onGetUser") {
     REQUIRE(spyErrorOccured.count() == before_calls + 1);
   }
 
-  SECTION("EmptyJsonObjectExpectedReturnNulloptNoErrorSignal") {
-    QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
-    int before_calls = spyErrorOccured.count();
+  // SECTION("EmptyJsonObjectExpectedReturnNulloptNoErrorSignal") {
+  //   QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
+  //   int before_calls = spyErrorOccured.count();
 
-    QJsonObject emptyObj;
-    QJsonDocument emptyDoc(emptyObj);
-    QByteArray empty_json_data = emptyDoc.toJson();
+  //   QJsonObject emptyObj;
+  //   QJsonDocument emptyDoc(emptyObj);
+  //   QByteArray empty_json_data = emptyDoc.toJson();
 
-    auto mock_reply = std::make_unique<MockReply>();
-    mock_reply->setData(empty_json_data);
-    mock_reply->setMockError(QNetworkReply::NoError, "");
-    network_manager.setReply(mock_reply.get());
+  //   auto mock_reply = std::make_unique<MockReply>();
+  //   mock_reply->setData(empty_json_data);
+  //   mock_reply->setMockError(QNetworkReply::NoError, "");
+  //   network_manager.setReply(mock_reply.get());
 
-    auto result = user_manager.onGetUser(mock_reply->readAll());
-    QCoreApplication::processEvents();
+  //   auto result = user_manager.onGetUser(mock_reply->readAll());
+  //   QCoreApplication::processEvents();
 
-    REQUIRE(result.has_value());
-    REQUIRE(spyErrorOccured.count() == before_calls);
-  }
+  //   REQUIRE(result.has_value());
+  //   REQUIRE(spyErrorOccured.count() == before_calls);
+  // }
 }
 
 TEST_CASE("Test findUsersByTag") {

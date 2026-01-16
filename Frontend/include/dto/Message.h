@@ -89,10 +89,9 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   }
 
   bool checkInvariants() const noexcept {
-    return id > 0  // todo: what if message saved as offline, them id will == 0,
-                   // state pattern??
+    return id > 0
            && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
-           !text.isEmpty() && read_counter > 0 && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
+           !text.isEmpty() && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
   }
 };
 
