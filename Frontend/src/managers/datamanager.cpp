@@ -1,7 +1,7 @@
 #include "managers/datamanager.h"
 
 #include "Debug_profiling.h"
-#include "Utils.h"
+#include "utils.h"
 
 namespace {
 
@@ -242,4 +242,11 @@ void DataManager::saveReaction(const Reaction &reaction_to_save) {
   }
 
   Q_EMIT messageAdded(message_to_save_reaction);  // todo: messageChanged
+}
+
+std::vector<ReactionInfo> DataManager::getEmojiesForMenu() {
+  // temporarely: return all available emojies, implement request on server for getting them first
+  std::vector<ReactionInfo> emojies;
+  for (auto &[id, emoji] : reactions_) emojies.push_back(emoji);
+  return emojies;
 }

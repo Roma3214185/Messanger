@@ -1,4 +1,5 @@
 #include "MessageActionPanel.h"
+#include "Debug_profiling.h"
 
 MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<ReactionInfo> &reactions, QWidget *parent)
     : QWidget(parent), msg_(msg), reactions_(reactions) {
@@ -11,6 +12,8 @@ MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<Rea
   actionList_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   actionList_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   actionList_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  setAttribute(Qt::WA_DeleteOnClose);
+  setWindowFlags(Qt::Popup);
 
   QFont font;
   constexpr int font_size = 18;
@@ -72,7 +75,7 @@ void MessageActionPanel::onActionClicked(const QModelIndex &index) {
 }
 
 void MessageActionPanel::onEmojiClicked(const QModelIndex &index) {
-  long long emojiId = index.data(Qt::UserRole + 1).toInt();
+  long long emojiId = index.data(Qt::UserRole + 1).toLongLong();
   Q_EMIT reactionClicked(msg_, emojiId);
   this->close();
 }

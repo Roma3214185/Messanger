@@ -51,6 +51,7 @@ class Presenter : public QObject {
 
   std::vector<Message> getListOfMessagesBySearch(const QString &prefix);
   std::vector<ReactionInfo> getDefaultReactionsInChat(long long chat_id);
+  std::vector<ReactionInfo> getReactionsForMenu();
 
  Q_SIGNALS:
   void userSetted();

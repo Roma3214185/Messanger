@@ -10,9 +10,8 @@ void UserDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
 QSize UserDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
   Q_UNUSED(option);
   Q_UNUSED(index);
-  constexpr int kWidth = 250;
-  constexpr int kHeight = 250;
-  return QSize(kWidth, kHeight);
+  constexpr int rowHeight = 55;
+  return QSize(0, rowHeight);
 }
 
 void UserDelegate::drawAvatar(QPainter *painter, const QRect &rect, const QPixmap &avatar) const {

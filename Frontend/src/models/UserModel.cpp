@@ -26,9 +26,12 @@ void UserModel::addUser(const User &user) {
 }
 
 void UserModel::clear() {
-  beginResetModel();
+  int count = users_.size();
+  if (count == 0) return;
+
+  beginRemoveRows(QModelIndex(), 0, count - 1);
   users_.clear();
-  endResetModel();
+  endRemoveRows();
 }
 
 QVariant UserModel::data(const QModelIndex &index, int role) const {

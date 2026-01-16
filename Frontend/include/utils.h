@@ -32,7 +32,7 @@ std::optional<T> get_optional_from_json(QJsonObject& json, const QString& key) {
   return variant.value<T>();
 }
 
-bool isSame(std::optional<long long> current_reaction, long long reaction_from_server) {
+inline bool isSame(std::optional<long long> current_reaction, long long reaction_from_server) {
   return current_reaction.has_value() && current_reaction.value() == reaction_from_server;
 }
 

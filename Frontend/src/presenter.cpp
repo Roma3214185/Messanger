@@ -18,6 +18,7 @@
 #include "interfaces/IMessageListView.h"
 #include "model.h"
 #include "models/messagemodel.h"
+#include "utils.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
@@ -29,8 +30,9 @@ void Presenter::initialise() {
   initialHandlers();
   manager_->setupConnections();
 
-  auto token_opt = manager_->checkToken();  // todo: signal and slot on Token finded(??)
-  if (token_opt) manager_->session()->authentificatesWithToken(*token_opt);
+  if (auto token_opt = manager_->checkToken(); token_opt.has_value()) {
+    manager_->session()->authentificatesWithToken(token_opt.value());  // todo: signal and slot on Token finded(??)
+  }
 }
 
 void Presenter::initialHandlers() {
@@ -323,3 +325,5 @@ void Presenter::onUnreadMessage(Message &message) {
   manager_->dataManager()->readMessage(message.id, current_user_id);
   manager_->socket()->sendReadMessageEvent(message, current_user_id);
 }
+
+std::vector<ReactionInfo> Presenter::getReactionsForMenu() { return manager_->dataManager()->getEmojiesForMenu(); }

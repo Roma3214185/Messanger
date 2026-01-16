@@ -45,6 +45,7 @@ class DataManager : public QObject {
   void saveReaction(const Reaction &reaction);
   void deleteReaction(const Reaction &reaction);
   void save(const ReactionInfo &reaction_info);
+  std::vector<ReactionInfo> getEmojiesForMenu();
 
  Q_SIGNALS:
   void chatAdded(const ChatPtr &chat);
