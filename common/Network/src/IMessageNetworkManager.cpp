@@ -1,10 +1,10 @@
 #include "interfaces/IMessageNetworkManager.h"
 
 #include "Debug_profiling.h"
+#include "Utils.h"
 #include "config/codes.h"
 #include "config/ports.h"
 #include "entities/ReactionInfo.h"
-#include "Utils.h"
 
 std::optional<long long> IMessageNetworkManager::getChatIdOfMessage(long long message_id) {
   const std::string path = "/message/" + std::to_string(message_id);
@@ -38,7 +38,7 @@ std::optional<long long> IMessageNetworkManager::getChatIdOfMessage(long long me
 }
 
 std::optional<ReactionInfo> IMessageNetworkManager::getReaction(long long reaction_id) {
-  const std::string path = "/reaction/" + std::to_string(reaction_id); //todo: new service
+  const std::string path = "/reaction/" + std::to_string(reaction_id);  // todo: new service
   auto [code, body] = forward(Config::Ports::reactionService, "", path, "GET");
   LOG_INFO("getChatIdOfMessage received {} and body {}", code, body);
   if (code != Config::StatusCodes::success) {

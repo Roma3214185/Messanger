@@ -9,9 +9,11 @@
 #include "DeleteMessageResponce.h"
 #include "JsonService.h"
 #include "MessageListView.h"
+#include "Utils.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/Reaction.h"
+#include "handlers/Handlers.h"
 #include "interfaces/IMainWindow.h"
 #include "interfaces/IMessageListView.h"
 #include "model.h"
@@ -48,8 +50,7 @@ void Presenter::initialHandlers() {
       std::make_unique<NewMessageResponceHandler>(manager_->entities(), manager_->message());
   socket_responce_handlers_[delete_message_type] =
       std::make_unique<DeleteMessageResponceHandler>(manager_->entities(), manager_->message());
-  socket_responce_handlers_[read_message_type] =
-      std::make_unique<ReadMessageHandler>(manager_->dataManager());
+  socket_responce_handlers_[read_message_type] = std::make_unique<ReadMessageHandler>(manager_->dataManager());
   socket_responce_handlers_[save_reaction_type] =
       std::make_unique<SaveMessageReactionHandler>(manager_->entities(), manager_->dataManager());
   socket_responce_handlers_[delete_reaction_type] =
@@ -118,7 +119,7 @@ void Presenter::reactionClicked(const Message &message, long long reaction_id) {
   LOG_INFO("Make reaction {} id for message {}", reaction_id, message.toString());
   DBC_REQUIRE(message.checkInvariants());
   DBC_REQUIRE(!message.isOfflineSaved());
-  if(message.isOfflineSaved()) return; // temporary while contracts don't throw exceptions
+  if (message.isOfflineSaved()) return;  // temporary while contracts don't throw exceptions
 
   long long current_user_id = manager_->tokenManager()->getCurrentUserId();
   Reaction new_reaction(message.id, current_user_id, reaction_id);
@@ -136,12 +137,12 @@ void Presenter::reactionClicked(const Message &message, long long reaction_id) {
   }
 }
 
-void Presenter::saveReaction(const Reaction& reaction) {
-  manager_->socket()->saveReaction(reaction); // it faster and async than save (?)
+void Presenter::saveReaction(const Reaction &reaction) {
+  manager_->socket()->saveReaction(reaction);  // it faster and async than save (?)
   manager_->dataManager()->saveReaction(reaction);
 }
 
-void Presenter::deleteReaction(const Reaction& reaction) {
+void Presenter::deleteReaction(const Reaction &reaction) {
   manager_->socket()->deleteReaction(reaction);
   manager_->dataManager()->deleteReaction(reaction);
 }
@@ -306,7 +307,7 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix)
 }
 
 std::vector<ReactionInfo> Presenter::getDefaultReactionsInChat(long long chat_id) {
-  if(auto chat = manager_->dataManager()->getChat(chat_id); chat != nullptr) {
+  if (auto chat = manager_->dataManager()->getChat(chat_id); chat != nullptr) {
     return chat->default_reactions;
   }
   DBC_UNREACHABLE();
@@ -319,7 +320,7 @@ void Presenter::onUnreadMessage(Message &message) {
     DBC_UNREACHABLE();
     return;
   }
-  if(message.isOfflineSaved()) return;
+  if (message.isOfflineSaved()) return;
 
   long long current_user_id = manager_->tokenManager()->getCurrentUserId();
   manager_->dataManager()->readMessage(message.id, current_user_id);

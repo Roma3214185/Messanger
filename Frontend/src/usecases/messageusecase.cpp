@@ -28,7 +28,7 @@ T waitForFuture(QFuture<T> &future) {
 MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<MessageManager> message_manager,
                                TokenManager *token_manager)
     : data_manager_(data_manager), message_manager_(std::move(message_manager)), token_manager_(token_manager) {
-  connect(data_manager_, &DataManager::messageAdded, this, [&](const Message &added_messaage) { //todo: not make copy
+  connect(data_manager_, &DataManager::messageAdded, this, [&](const Message &added_messaage) {  // todo: not make copy
     LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.text.toStdString());
     DBC_REQUIRE(added_messaage.chat_id > 0);
     auto message_model = data_manager_->getMessageModel(added_messaage.chat_id);
@@ -37,9 +37,8 @@ MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<Messag
     if (!added_messaage.isOfflineSaved()) Q_EMIT messageAdded(added_messaage);  // this message from server, not offline
   });
 
-  connect(message_manager_.get(), &MessageManager::saveReactionInfo, this, [&](const ReactionInfo &reaction_info) {
-    data_manager_->save(reaction_info);
-  });
+  connect(message_manager_.get(), &MessageManager::saveReactionInfo, this,
+          [&](const ReactionInfo &reaction_info) { data_manager_->save(reaction_info); });
 }
 
 auto MessageUseCase::getChatMessages(long long chat_id, int limit) -> QList<Message> {
@@ -104,8 +103,8 @@ void MessageUseCase::clearAllMessages() {
   DBC_ENSURE(data_manager_->getNumberOfMessageModels() == 0);
 }
 
-void MessageUseCase::saveReactionInfo(const std::vector<ReactionInfo>& reaction_infos) {
-  for(auto& reaction_info: reaction_infos) data_manager_->save(reaction_info);
+void MessageUseCase::saveReactionInfo(const std::vector<ReactionInfo> &reaction_infos) {
+  for (auto &reaction_info : reaction_infos) data_manager_->save(reaction_info);
 }
 
 void MessageUseCase::getChatMessagesAsync(long long chat_id) {

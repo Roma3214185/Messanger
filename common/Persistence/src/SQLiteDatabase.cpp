@@ -135,10 +135,18 @@ const QString CREATE_OUTBOX_TABLE = R"(CREATE TABLE IF NOT EXISTS outbox (
 }  // namespace
 
 bool SQLiteDatabase::initializeSchema() {
-  const std::vector<QString> tables = {
-      CREATE_USERS_TABLE,          CREATE_MESSAGES_TABLE,       CREATE_MESSAGES_STATUS_TABLE,  CREATE_CHATS_TABLE,
-      CREATE_CHAT_MEMBERS_TABLE,   CREATE_CREDENTIALS_TABLE,    CREATE_PRIVATE_CHATS_TABLE,    CREATE_OUTBOX_TABLE,
-      CREATE_USERS_BY_EMAIL_TABLE, CREATE_USERS_BY_EMAIL_INDEX, CREATE_MESSAGES_REACTION_TABLE, CREATE_MESSAGES_REACTION_INFO_TABLE};
+  const std::vector<QString> tables = {CREATE_USERS_TABLE,
+                                       CREATE_MESSAGES_TABLE,
+                                       CREATE_MESSAGES_STATUS_TABLE,
+                                       CREATE_CHATS_TABLE,
+                                       CREATE_CHAT_MEMBERS_TABLE,
+                                       CREATE_CREDENTIALS_TABLE,
+                                       CREATE_PRIVATE_CHATS_TABLE,
+                                       CREATE_OUTBOX_TABLE,
+                                       CREATE_USERS_BY_EMAIL_TABLE,
+                                       CREATE_USERS_BY_EMAIL_INDEX,
+                                       CREATE_MESSAGES_REACTION_TABLE,
+                                       CREATE_MESSAGES_REACTION_INFO_TABLE};
 
   for (const auto &sql : tables) {
     if (!executeSql(db(), sql)) {

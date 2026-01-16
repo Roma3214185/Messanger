@@ -7,4 +7,4 @@
 #include "ReadMessageHandler.h"
 #include "SaveMessageReactionHandler.h"
 
-#endif // HANDLERS_H
+#endif  // HANDLERS_H

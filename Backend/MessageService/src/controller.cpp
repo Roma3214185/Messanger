@@ -68,9 +68,7 @@ std::vector<MessageStatus> fetchReaded(const std::vector<MessageStatus> &message
 }  // namespace
 
 Controller::Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool)
-    : manager_(manager), mq_client_(mq_client), pool_(pool) {
-
-}
+    : manager_(manager), mq_client_(mq_client), pool_(pool) {}
 
 void Controller::handleSaveMessage(const std::string &payload) {
   std::optional<Message> msg = utils::parsePayload<Message>(payload);  // TODO: alias
@@ -373,25 +371,25 @@ void Controller::onSaveMessageReaction(const std::string &payload) {
   mq_client_->publish(request);
 }
 
-Response Controller::setup() {  //todo: here subscribers
+Response Controller::setup() {  // todo: here subscribers
   subscribeToSaveMessage();
   subscribeToSaveMessageStatus();
   subscribeToSaveMessageReaction();
   subscribeToDeleteMessageReaction();
 
-  //todo: if subscrive failre return StatusCode(500, "Failed to subscrive");
+  // todo: if subscrive failre return StatusCode(500, "Failed to subscrive");
   std::optional<std::vector<ReactionInfo>> reactions = loadReactions();
-  if(reactions.has_value() == false) {
-    return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Failed while loading reactions"));
+  if (reactions.has_value() == false) {
+    return std::make_pair(Config::StatusCodes::serverError, "Failed while loading reactions");
   }
 
-  if(!manager_->saveMessageReactionInfo(reactions.value()))
-    return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Failed to save reactions"));
+  if (!manager_->saveMessageReactionInfo(reactions.value()))
+    return std::make_pair(Config::StatusCodes::serverError, "Failed to save reactions");
 
   return std::make_pair(Config::StatusCodes::success, "Setup is correct");
 }
 
-std::optional<std::vector<ReactionInfo>> Controller::loadReactions() { //todo: from file
+std::optional<std::vector<ReactionInfo>> Controller::loadReactions() {  // todo: from file
   ReactionInfo like(1, "/Users/roma/QtProjects/Chat/images/like.jpeg");
   ReactionInfo dislike(2, "/Users/roma/QtProjects/Chat/images/dislike.jpeg");
 
@@ -400,9 +398,9 @@ std::optional<std::vector<ReactionInfo>> Controller::loadReactions() { //todo: f
 
 Response Controller::getReaction(const RequestDTO &request_pack, const std::string &reaction_id_str) {
   auto reaction_id_opt = utils::getIdFromStr(reaction_id_str);
-  if(!reaction_id_opt.has_value()) return std::make_pair(Config::StatusCodes::badRequest, "Invalid id");
+  if (!reaction_id_opt.has_value()) return std::make_pair(Config::StatusCodes::badRequest, "Invalid id");
 
   auto res = manager_->getReactionInfo(reaction_id_opt.value());
-  if(!res.has_value()) return std::make_pair(Config::StatusCodes::notFound, "Not found such reaction");
+  if (!res.has_value()) return std::make_pair(Config::StatusCodes::notFound, "Not found such reaction");
   return std::make_pair(Config::StatusCodes::success, nlohmann::json(res).dump());
 }

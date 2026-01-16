@@ -10,8 +10,8 @@
 #include "dto/ChatBase.h"
 #include "dto/Message.h"
 #include "dto/User.h"
-#include "managers/TokenManager.h"
 #include "entities/ReactionInfo.h"
+#include "managers/TokenManager.h"
 
 // struct MessageServerJsonAnswer {
 //     Message message;
@@ -103,7 +103,7 @@ class EntityFactory {
           if (pair.size() != 2) continue;
           int count = pair[1].toInt();
 
-          if(auto reaction_info = getReactionInfo(pair[0]); reaction_info.has_value()) {
+          if (auto reaction_info = getReactionInfo(pair[0]); reaction_info.has_value()) {
             msg.reactions[reaction_info->id]++;
             reactions_infos.push_back(reaction_info.value());
           } else {
@@ -160,11 +160,11 @@ class EntityFactory {
     if (type == "private") {
       const auto userObj = obj["user"].toObject();
       chat = std::make_shared<PrivateChat>();
-      //chat = dynamic_cast<PrivateChat>(chat);
+      // chat = dynamic_cast<PrivateChat>(chat);
       chat->chat_id = static_cast<long long>(obj["id"].toDouble());
       chat->title = userObj["name"].toString();
       chat->avatar_path = userObj["avatar"].toString();
-      //chat->user_id = static_cast<long long>(userObj["id"].toDouble());
+      // chat->user_id = static_cast<long long>(userObj["id"].toDouble());
       LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
       // todo: check invariants
     } else if (type == "group") {
@@ -172,7 +172,7 @@ class EntityFactory {
       chat->chat_id = static_cast<long long>(obj["id"].toDouble());
       chat->title = obj["name"].toString();
       chat->avatar_path = obj["avatar"].toString();
-      //chat->member_count = obj["member_count"].toInt();
+      // chat->member_count = obj["member_count"].toInt();
       LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
     } else {
       return nullptr;
@@ -180,11 +180,11 @@ class EntityFactory {
 
     chat->default_reactions.clear();
 
-    if(obj.contains("default_reactions")) {
+    if (obj.contains("default_reactions")) {
       const auto reactArr = obj["default_reactions"].toArray();
 
       for (const QJsonValue &v : reactArr) {
-        if(auto reaction_info = getReactionInfo(v); reaction_info.has_value()) {
+        if (auto reaction_info = getReactionInfo(v); reaction_info.has_value()) {
           chat->default_reactions.push_back(reaction_info.value());
         } else {
           LOG_ERROR("Unable to get reactionInfo from JsonValue");
@@ -208,8 +208,8 @@ class EntityFactory {
     return reaction;
   }
 
-  std::optional<ReactionInfo> getReactionInfo(const QJsonValue& value) {
-    if(value.isObject() == false) return std::nullopt;
+  std::optional<ReactionInfo> getReactionInfo(const QJsonValue &value) {
+    if (value.isObject() == false) return std::nullopt;
     const auto reaction_object = value.toObject();
     ReactionInfo reaction_info;
     reaction_info.id = static_cast<long long>(reaction_object["id"].toDouble());

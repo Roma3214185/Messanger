@@ -71,8 +71,8 @@ class Presenter : public QObject {
   void openChat(long long chat_id);
   void onErrorOccurred(const QString &error);
   void initialHandlers();
-  void saveReaction(const Reaction& reaction);
-  void deleteReaction(const Reaction& reaction);
+  void saveReaction(const Reaction &reaction);
+  void deleteReaction(const Reaction &reaction);
 
   SocketHandlersMap socket_responce_handlers_;
   IMainWindow *view_;
