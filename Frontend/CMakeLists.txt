@@ -12,15 +12,19 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui)
 
 set(FRONTEND_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(FRONTEND_FORMS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/forms)
+set(FRONTEND_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE MY_INCLUDES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
+list(FILTER MY_SOURCES EXCLUDE REGEX ".*/mainwindow\\.cpp$")
+list(FILTER MY_INCLUDES EXCLUDE REGEX ".*/mainwindow\\.h$")
+
 add_library(FrontendLib STATIC
     ${MY_SOURCES}
     ${MY_INCLUDES}
-    ${FRONTEND_FORMS_DIR}/mainwindow.ui
 )
+
 enable_clang_tidy(FrontendLib)
 enable_cppcheck(FrontendLib)
 enable_iwyu(FrontendLib)
@@ -47,7 +51,14 @@ target_compile_definitions(FrontendLib
 
 add_library(Frontend::Lib ALIAS FrontendLib)
 
-add_executable(Frontend main.cpp)
+add_executable(Frontend
+    main.cpp
+    ${FRONTEND_INC_DIR}/mainwindow.h
+    ${FRONTEND_SRC_DIR}/mainwindow.cpp
+    ${FRONTEND_FORMS_DIR}/mainwindow.ui
+    include/clickoutsideclosablelistview.h
+    src/ClickOutsideClosableListView.cpp
+)
 
 add_custom_command(TARGET Frontend POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -56,3 +67,5 @@ add_custom_command(TARGET Frontend POST_BUILD
 )
 
 target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
+
+target_include_directories(Frontend PRIVATE ${FRONTEND_FORMS_DIR})
