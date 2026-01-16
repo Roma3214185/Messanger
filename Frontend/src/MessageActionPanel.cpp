@@ -13,6 +13,8 @@ MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<Rea
   actionList_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   actionList_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   actionList_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  setAttribute(Qt::WA_DeleteOnClose);
+  setWindowFlags(Qt::Popup);
 
   QFont font;
   constexpr int font_size = 18;
