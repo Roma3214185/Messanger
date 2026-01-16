@@ -6,8 +6,8 @@
 #include <QStandardItemModel>
 #include <memory>
 
-#include "interfaces/IMainWindow.h"
 #include "OutsideClickFilter.h"
+#include "interfaces/IMainWindow.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -41,7 +41,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
 
   void setTheme(std::unique_ptr<ITheme> theme);
 
-  bool eventFilter(QObject*, QEvent* event) override;
+  bool eventFilter(QObject *, QEvent *event) override;
 
  Q_SIGNALS:
   void clickedOnPos(QPoint point);
@@ -65,7 +65,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void closeEmojiMenu(bool close_manually = true);
   void onEmojiButtonStateChanged(bool open);
 
-private:
+ private:
   void setMainWindow() const;
   void cancelSearchMessagesMode();
   void setSignInPage();
@@ -74,9 +74,9 @@ private:
   void setDelegators();
   void seupConnections();
   void setupUI();
-  //void adjustSearchResultsHeight();
+  // void adjustSearchResultsHeight();
   void openEmojiMenu();
-  void onEmojiClicked(const ReactionInfo& emoji);
+  void onEmojiClicked(const ReactionInfo &emoji);
 
   void copyMessage(const Message &message);
   void editMessage(const Message &message);
@@ -84,7 +84,7 @@ private:
 
   void setSearchMessageMode();
   void setTitleChatMode();
-  QStandardItemModel* getEmojiModel();
+  QStandardItemModel *getEmojiModel();
   void setupUserListView();
   void setupSearchMessageListView();
 
@@ -101,9 +101,9 @@ private:
                                              // Message will be
   std::unique_ptr<QStandardItemModel> searchResultsModel_;
 
-  ClickOutsideClosableListView* userListView_ = nullptr;
-  ClickOutsideClosableListView* searchMessageListView_ = nullptr;
-  ClickOutsideClosableListView* emoji_menu_ = nullptr;
+  ClickOutsideClosableListView *userListView_ = nullptr;
+  ClickOutsideClosableListView *searchMessageListView_ = nullptr;
+  ClickOutsideClosableListView *emoji_menu_ = nullptr;
 };
 
 #endif  // MAINWINDOW_H

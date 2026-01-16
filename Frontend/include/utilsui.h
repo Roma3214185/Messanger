@@ -2,19 +2,16 @@
 #define UTILS_UI_H
 
 #include <QListView>
-#include <QWidget>
 #include <QRect>
+#include <QWidget>
 
 namespace utils {
 
 enum class Direction : uint8_t { Above, Below };
 
-inline void updateViewVisibility(QListView *view, QWidget *anchor,
-                                Direction direction = Direction::Below,
-                                int maxVisibleRows = 8,
-                                int itemsPerRow = 1)
-{
-  if(!view) return;
+inline void updateViewVisibility(QListView *view, QWidget *anchor, Direction direction = Direction::Below,
+                                 int maxVisibleRows = 8, int itemsPerRow = 1) {
+  if (!view) return;
 
   if (!view->model()) {
     view->hide();
@@ -34,28 +31,28 @@ inline void updateViewVisibility(QListView *view, QWidget *anchor,
   }
 
   int visibleRows = qMin(rows, maxVisibleRows);
-  int frame = view->frameWidth()*2 + view->contentsMargins().top() + view->contentsMargins().bottom();
+  int frame = view->frameWidth() * 2 + view->contentsMargins().top() + view->contentsMargins().bottom();
   int height = visibleRows * rowHeight + frame;
 
   view->setFixedHeight(height);
   view->setFixedWidth(anchor->width() * itemsPerRow);
 
   // horizontally center
-  int x = anchor->mapToGlobal(QPoint(0,0)).x() + (anchor->width()/2) - (view->width()/2);
+  int x = anchor->mapToGlobal(QPoint(0, 0)).x() + (anchor->width() / 2) - (view->width() / 2);
 
   QRect screenRect = anchor->screen()->availableGeometry();
 
   int y = [&]() {
-    if(direction == Direction::Below) {
+    if (direction == Direction::Below) {
       const int belowY = anchor->mapToGlobal(QPoint(0, anchor->height())).y();
       return belowY + view->height() <= screenRect.bottom()
-                 ? belowY // fits below
-                 : qMax(screenRect.top(), anchor->mapToGlobal(QPoint(0,0)).y() - view->height()); // fallback above
+                 ? belowY                                                                           // fits below
+                 : qMax(screenRect.top(), anchor->mapToGlobal(QPoint(0, 0)).y() - view->height());  // fallback above
     } else {
-      const int aboveY = anchor->mapToGlobal(QPoint(0,0)).y() - view->height();
-      return aboveY >= screenRect.top()
-                 ? aboveY // fits above
-                 : qMin(screenRect.bottom() - view->height(), anchor->mapToGlobal(QPoint(0, anchor->height())).y()); // fallback below
+      const int aboveY = anchor->mapToGlobal(QPoint(0, 0)).y() - view->height();
+      return aboveY >= screenRect.top() ? aboveY  // fits above
+                                        : qMin(screenRect.bottom() - view->height(),
+                                               anchor->mapToGlobal(QPoint(0, anchor->height())).y());  // fallback below
     }
   }();
 
@@ -65,6 +62,6 @@ inline void updateViewVisibility(QListView *view, QWidget *anchor,
   view->show();
 }
 
-}  // namespace
+}  // namespace utils
 
-#endif // UTILS_UI_H
+#endif  // UTILS_UI_H

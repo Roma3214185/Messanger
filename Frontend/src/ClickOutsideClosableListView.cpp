@@ -4,7 +4,7 @@
 #include "mainwindow.h"
 
 ClickOutsideClosableListView::ClickOutsideClosableListView(QWidget* parent) : QListView(parent) {
-  //this->setAttribute(Qt::WA_DeleteOnClose);
+  // this->setAttribute(Qt::WA_DeleteOnClose);
   this->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::ToolTip);
   this->setAttribute(Qt::WA_ShowWithoutActivating);
   this->setResizeMode(QListView::Adjust);
@@ -34,7 +34,7 @@ void ClickOutsideClosableListView::closeEvent(QCloseEvent* event) {
 }
 
 void ClickOutsideClosableListView::addAcceptableClickableWidget(QWidget* widget) {
-  if(filter_) {
+  if (filter_) {
     filter_->addAcceptableClickableWidget(widget);
   }
 }
@@ -55,15 +55,13 @@ void ClickOutsideClosableListView::setOnCloseCallback(EventCallback close_callba
 }
 
 void ClickOutsideClosableListView::call_close_callback() {
-  if(close_callback_.has_value()) {
-    QTimer::singleShot(0, [cbCopy = close_callback_.value()]() {
-      cbCopy();
-    });
+  if (close_callback_.has_value()) {
+    QTimer::singleShot(0, [cbCopy = close_callback_.value()]() { cbCopy(); });
   }
 }
 
 void ClickOutsideClosableListView::update() {
-  if(update_callback_.has_value()) {
+  if (update_callback_.has_value()) {
     update_callback_.value()();
   }
 }

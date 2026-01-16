@@ -18,7 +18,6 @@
 #include "interfaces/IMessageListView.h"
 #include "model.h"
 #include "models/messagemodel.h"
-#include "handlers/Handlers.h"
 #include "utils.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
@@ -327,6 +326,4 @@ void Presenter::onUnreadMessage(Message &message) {
   manager_->socket()->sendReadMessageEvent(message, current_user_id);
 }
 
-std::vector<ReactionInfo> Presenter::getReactionsForMenu() {
-  return manager_->dataManager()->getEmojiesForMenu();
-}
+std::vector<ReactionInfo> Presenter::getReactionsForMenu() { return manager_->dataManager()->getEmojiesForMenu(); }

@@ -13,6 +13,7 @@
 #include "DataInputService.h"
 #include "Debug_profiling.h"
 #include "MessageActionPanel.h"
+#include "clickoutsideclosablelistview.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
 #include "delegators/userdelegate.h"
@@ -21,20 +22,17 @@
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
 #include "presenter.h"
-#include "MessageActionPanel.h"
 #include "utilsui.h"
-#include "clickoutsideclosablelistview.h"
 
 namespace MessageRoles {
 enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
 }
 
 class PopedAutoClosedList : QListView {
-    QAbstractItemModel* model_;
-  public:
-    PopedAutoClosedList(QAbstractItemModel* model, QWidget* parent = nullptr) : model_(model), QListView(parent) {
+  QAbstractItemModel *model_;
 
-    }
+ public:
+  PopedAutoClosedList(QAbstractItemModel *model, QWidget *parent = nullptr) : model_(model), QListView(parent) {}
 };
 
 MainWindow::MainWindow(Model *model, QWidget *parent)
@@ -89,9 +87,7 @@ void MainWindow::setMessageListView(QListView *list_view) {
   list_view->setItemDelegate(message_delegate_);
 }
 
-MainWindow::~MainWindow() {
-  delete ui;
-}
+MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::on_upSubmitButton_clicked() {
   SignUpRequest signup_request;
@@ -130,7 +126,7 @@ void MainWindow::showError(const QString &error) {
 }
 
 void MainWindow::setupUserListView() {
-  if(userListView_) return;
+  if (userListView_) return;
 
   userListView_ = new ClickOutsideClosableListView(this);
   auto *user_delegate = presenter_->getUserDelegate();
@@ -141,17 +137,16 @@ void MainWindow::setupUserListView() {
     presenter_->onUserClicked(user_id);
   });
 
-  constexpr int maxRows   = 5;
+  constexpr int maxRows = 5;
   userListView_->setUpdateCallback([=]() {
-    QTimer::singleShot(0, [=]() {
-      utils::updateViewVisibility(userListView_,  ui->userTextEdit, utils::Direction::Below, maxRows);
-    });
+    QTimer::singleShot(
+        0, [=]() { utils::updateViewVisibility(userListView_, ui->userTextEdit, utils::Direction::Below, maxRows); });
   });
 }
 
 void MainWindow::setUserModel(UserModel *user_model) {
   DBC_REQUIRE(user_model != nullptr);
-  setupUserListView(); // todo: DBC_REQUIRE(userListView_ != nullptr);
+  setupUserListView();  // todo: DBC_REQUIRE(userListView_ != nullptr);
 
   userListView_->setModel(user_model);
   userListView_->show();
@@ -300,9 +295,8 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   connect(panel, &MessageActionPanel::copyClicked, this, &MainWindow::copyMessage);
   connect(panel, &MessageActionPanel::editClicked, this, &MainWindow::editMessage);
   connect(panel, &MessageActionPanel::deleteClicked, this, &MainWindow::deleteMessage);
-  connect(panel, &MessageActionPanel::reactionClicked, [this](const Message &m, long long reaction_id){
-    presenter_->reactionClicked(m, reaction_id);
-  });
+  connect(panel, &MessageActionPanel::reactionClicked,
+          [this](const Message &m, long long reaction_id) { presenter_->reactionClicked(m, reaction_id); });
 
   panel->show();
 }
@@ -358,19 +352,17 @@ QModelIndex MainWindow::findIndexByMessageId(QAbstractItemModel *model, long lon
 }
 
 void MainWindow::setupSearchMessageListView() {
-  if(searchMessageListView_) return;
+  if (searchMessageListView_) return;
 
   searchMessageListView_ = new ClickOutsideClosableListView(this);
-  auto* anchor = ui->search_messages_line_edit;
+  auto *anchor = ui->search_messages_line_edit;
   constexpr int max_visible_rows = 3;
 
   searchMessageListView_->setUpdateCallback([=]() {
     utils::updateViewVisibility(searchMessageListView_, anchor, utils::Direction::Below, max_visible_rows);
   });
 
-  searchMessageListView_->setOnCloseCallback([=]() {
-    this->cancelSearchMessagesMode();
-  });
+  searchMessageListView_->setOnCloseCallback([=]() { this->cancelSearchMessagesMode(); });
 
   searchMessageListView_->addAcceptableClickableWidget(anchor);
 }
@@ -408,7 +400,7 @@ void MainWindow::on_search_messages_line_edit_textChanged(const QString &prefix)
   }
 
   for (const auto &message : list_of_message) {
-    QStandardItem *item = new QStandardItem(message.text); // todo: add delegators for this list (icons and some info)
+    QStandardItem *item = new QStandardItem(message.text);  // todo: add delegators for this list (icons and some info)
 
     item->setData(message.id, MessageRoles::MessageIdRole);
     item->setData(message.text, MessageRoles::MessageTextRole);
@@ -431,27 +423,27 @@ void MainWindow::on_serch_messages_list_view_clicked(const QModelIndex &index) {
   // highlightMessage(messageId);
 }
 
-QStandardItemModel* MainWindow::getEmojiModel() {
+QStandardItemModel *MainWindow::getEmojiModel() {
   auto emojiModel = new QStandardItemModel(this);
   auto reactions = presenter_->getReactionsForMenu();
   for (const auto &r : reactions) {
     QStandardItem *item = new QStandardItem;
     QIcon icon(QString::fromStdString(r.image));
-    if(icon.isNull()) continue;
+    if (icon.isNull()) continue;
     item->setIcon(icon);
-    item->setData(r.id, Qt::UserRole + 1);  //todo: already path ReactionInfo
+    item->setData(r.id, Qt::UserRole + 1);  // todo: already path ReactionInfo
     item->setData(QString::fromStdString(r.image), Qt::UserRole + 2);
     emojiModel->appendRow(item);
   }
   return emojiModel;
 }
 
-void MainWindow::openEmojiMenu() { //todo: implement EmojiMenu class as MessageActionPanel
-  if(!emoji_menu_) {
+void MainWindow::openEmojiMenu() {  // todo: implement EmojiMenu class as MessageActionPanel
+  if (!emoji_menu_) {
     emoji_menu_ = new ClickOutsideClosableListView(this);
     emoji_menu_->setViewMode(QListView::IconMode);
     constexpr int icons_size = 16;
-    emoji_menu_->setIconSize(QSize(icons_size,icons_size));
+    emoji_menu_->setIconSize(QSize(icons_size, icons_size));
 
     auto emojiModel = getEmojiModel();
     emoji_menu_->setModel(emojiModel);
@@ -459,18 +451,17 @@ void MainWindow::openEmojiMenu() { //todo: implement EmojiMenu class as MessageA
     constexpr int max_visible_rows = 6;
     constexpr int items_per_row = 5;
 
-    emoji_menu_->setUpdateCallback([=](){
-      utils::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::Direction::Above, max_visible_rows, items_per_row);
+    emoji_menu_->setUpdateCallback([=]() {
+      utils::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::Direction::Above, max_visible_rows,
+                                  items_per_row);
     });
 
-    emoji_menu_->setOnCloseCallback([=](){
-      this->closeEmojiMenu();
-    });
+    emoji_menu_->setOnCloseCallback([=]() { this->closeEmojiMenu(); });
 
     emoji_menu_->addAcceptableClickableWidget(ui->textEdit);
     emoji_menu_->addAcceptableClickableWidget(ui->emojiButton);
 
-    connect(emoji_menu_, &QListView::clicked, this, [this](const QModelIndex& index) {
+    connect(emoji_menu_, &QListView::clicked, this, [this](const QModelIndex &index) {
       long long emoji_id = index.data(Qt::UserRole + 1).toLongLong();
       QString emoji_path = index.data(Qt::UserRole + 2).toString();
       ReactionInfo emoji(emoji_id, emoji_path.toStdString());
@@ -482,13 +473,13 @@ void MainWindow::openEmojiMenu() { //todo: implement EmojiMenu class as MessageA
   emoji_menu_->show();
 }
 
-void MainWindow::onEmojiClicked(const ReactionInfo& emoji) {
+void MainWindow::onEmojiClicked(const ReactionInfo &emoji) {
   qDebug() << "Clicked on " << emoji.id << " with path: " << emoji.image;
 }
 
-bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
+bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
   if (event->type() == QEvent::MouseButtonPress) {
-    auto* me = static_cast<QMouseEvent*>(event);
+    auto *me = static_cast<QMouseEvent *>(event);
     Q_EMIT clickedOnPos(me->globalPos());
   } else if (obj == this && event->type() == QEvent::Resize) {
     Q_EMIT geometryChanged();
@@ -504,7 +495,7 @@ void MainWindow::closeEmojiMenu(bool close_manually /* = true */) {
 
   emoji_menu_->close();
 
-  if(close_manually) {
+  if (close_manually) {
     ui->emojiButton->blockSignals(true);
     ui->emojiButton->setChecked(false);
     ui->emojiButton->blockSignals(false);
@@ -512,10 +503,9 @@ void MainWindow::closeEmojiMenu(bool close_manually /* = true */) {
 }
 
 void MainWindow::onEmojiButtonStateChanged(bool on) {
-  if(on) {
+  if (on) {
     openEmojiMenu();
   } else {
     closeEmojiMenu(false);
   }
 }
-

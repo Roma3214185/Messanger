@@ -48,18 +48,11 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   }
 
   inline bool operator==(const Message& other) const {
-    return local_id == other.local_id &&
-      chat_id == other.chat_id &&
-      sender_id == other.sender_id &&
-      receiver_id == other.receiver_id &&
-      id == other.id &&
-      text == other.text &&
-      timestamp == other.timestamp &&
-      receiver_read_status == other.receiver_read_status &&
-      read_counter == other.read_counter &&
-      status_sended == other.status_sended &&
-      receiver_reaction == other.receiver_reaction &&
-      reactions == other.reactions;
+    return local_id == other.local_id && chat_id == other.chat_id && sender_id == other.sender_id &&
+           receiver_id == other.receiver_id && id == other.id && text == other.text && timestamp == other.timestamp &&
+           receiver_read_status == other.receiver_read_status && read_counter == other.read_counter &&
+           status_sended == other.status_sended && receiver_reaction == other.receiver_reaction &&
+           reactions == other.reactions;
   }
 
   bool isOfflineSaved() const noexcept {

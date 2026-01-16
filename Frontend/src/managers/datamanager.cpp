@@ -245,8 +245,8 @@ void DataManager::saveReaction(const Reaction &reaction_to_save) {
 }
 
 std::vector<ReactionInfo> DataManager::getEmojiesForMenu() {
-  //temporarely: return all available emojies, implement request on server for getting them first
+  // temporarely: return all available emojies, implement request on server for getting them first
   std::vector<ReactionInfo> emojies;
-  for(auto& [id, emoji] : reactions_) emojies.push_back(emoji);
+  for (auto &[id, emoji] : reactions_) emojies.push_back(emoji);
   return emojies;
 }
