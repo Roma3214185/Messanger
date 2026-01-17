@@ -15,8 +15,6 @@ class MockMainWindow : public IMainWindow {
 
   void showError(const QString &error) override {}
 
-  void setMessageListView(QListView *listView) override {}
-
   void setCurrentChatIndex(QModelIndex idx) override {}
 
   int call_setUser = 0;

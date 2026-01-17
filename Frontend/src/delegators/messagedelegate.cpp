@@ -5,6 +5,9 @@
 #include "models/messagemodel.h"
 #include "utils.h"
 
+MessageDelegate::MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent)
+    : data_manager_(data_manager), token_manager_(token_manager) {}
+
 void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
   if (!painter || !painter->isActive()) {
     qWarning() << "[Error] Painter error!";

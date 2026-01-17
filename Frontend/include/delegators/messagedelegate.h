@@ -27,8 +27,7 @@ class MessageDelegate : public QStyledItemDelegate {
   mutable std::unordered_map<MessageId, ReactionHitBoxes> hit_boxes_by_message_;
 
  public:
-  MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent = nullptr)
-      : data_manager_(data_manager), token_manager_(token_manager) {}
+  MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent = nullptr);
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
   std::optional<int> reactionAt(long long messageId, const QPoint &pos) const;
