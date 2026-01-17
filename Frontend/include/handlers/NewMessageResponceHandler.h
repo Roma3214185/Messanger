@@ -4,20 +4,20 @@
 #include "JsonService.h"
 #include "interfaces/ISocketResponceHandler.h"
 #include "managers/TokenManager.h"
-#include "usecases/messageusecase.h"
+#include "managers/datamanager.h"
 
 class NewMessageResponceHandler : public ISocketResponceHandler {
   EntityFactory *entity_factory_;
-  MessageUseCase *message_use_case_;
+  DataManager *data_manager_;
 
  public:
-  NewMessageResponceHandler(EntityFactory *entity_factory, MessageUseCase *message_use_case)
-      : entity_factory_(entity_factory), message_use_case_(message_use_case) {}
+  NewMessageResponceHandler(EntityFactory *entity_factory, DataManager *data_manager)
+      : entity_factory_(entity_factory), data_manager_(data_manager) {}
 
   void handle(const QJsonObject &json_object) override {
     auto [message, reactions] = entity_factory_->getMessageFromJson(json_object);
-    message_use_case_->addMessageToChat(message);
-    message_use_case_->saveReactionInfo(reactions);
+    data_manager_->save(message);
+    data_manager_->save(reactions);
   }
 };
 

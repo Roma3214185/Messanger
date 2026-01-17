@@ -29,8 +29,10 @@ TEST_CASE("Test MessageManager getChatMessages") {
   TestMessageManager message_manager(&network_manager, url, &entity_factory, timeout_ms);
 
   QJsonArray messages_array{
-      QJsonObject{{"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}},
-      QJsonObject{{"id", 2}, {"sender_id", 11}, {"text", "Hi"}, {"timestamp", "2025-11-03T12:01:00Z"}}};
+      QJsonObject{
+          {"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}, {"local_id", "1"}},
+      QJsonObject{
+          {"id", 2}, {"sender_id", 11}, {"text", "Hi"}, {"timestamp", "2025-11-03T12:01:00Z"}, {"local_id", "2"}}};
   QByteArray valid_json = QJsonDocument(messages_array).toJson();
 
   SECTION("Expected correct endpoint URL with query params") {
@@ -109,9 +111,9 @@ TEST_CASE("Test MessageManager getChatMessages") {
     REQUIRE(messages.size() == 2);
     REQUIRE(messages[0].id == 1);
     REQUIRE(messages[0].sender_id == 10);
-    REQUIRE(messages[0].text == "Hello");
+    REQUIRE(messages[0].getFullText().toStdString() == "Hello");
     REQUIRE(messages[1].id == 2);
-    REQUIRE(messages[1].text == "Hi");
+    REQUIRE(messages[1].getFullText().toStdString() == "Hi");
   }
 }
 
@@ -141,7 +143,7 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   }
 
   SECTION("Valid JSON returns correct message list") {
-    QJsonArray arr{QJsonObject{{"id", 10}, {"sender_id", 1}, {"text", "msg"}, {"timestamp", "t"}}};
+    QJsonArray arr{QJsonObject{{"id", 10}, {"sender_id", 1}, {"text", "msg"}, {"timestamp", "t"}, {"local_id", "3"}}};
     auto reply = std::make_unique<MockReply>();
     reply->setData(QJsonDocument(arr).toJson());
 
@@ -151,6 +153,6 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
     REQUIRE(spyError.count() == 0);
     REQUIRE(result.size() == 1);
     REQUIRE(result[0].id == 10);
-    REQUIRE(result[0].text == "msg");
+    REQUIRE(result[0].getFullText().toStdString() == "msg");
   }
 }

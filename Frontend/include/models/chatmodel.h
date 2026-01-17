@@ -18,7 +18,7 @@ class ChatModel : public QAbstractListModel {
   Q_OBJECT
 
  public:
-  enum Roles { ChatIdRole = Qt::UserRole + 1, TitleRole, LastMessageRole, UnreadRole, LastMessageTimeRole, AvatarRole };
+  enum Roles { ChatIdRole = Qt::UserRole + 1, TitleRole, LastMessageRole, UnreadRole, AvatarRole };
 
   explicit ChatModel(QObject *parent = nullptr);
 

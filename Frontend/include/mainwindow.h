@@ -21,6 +21,7 @@ class QListView;
 class ITheme;
 class MessageListView;
 class MessageDelegate;
+class MessageModel;
 class ClickOutsideClosableListView;
 
 class MainWindow : public QMainWindow, public IMainWindow {
@@ -35,8 +36,6 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setUserModel(UserModel *user_model) override;
   void clearFindUserEdit() override;
   void showError(const QString &error) override;
-
-  void setMessageListView(QListView *list_view) override;
   void setCurrentChatIndex(QModelIndex chat_idx) override;
 
   void setTheme(std::unique_ptr<ITheme> theme);
@@ -69,12 +68,12 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setMainWindow() const;
   void cancelSearchMessagesMode();
   void setSignInPage();
+  void setMessageListView();
   void setSignUpPage();
   void clearUpInput();
   void setDelegators();
   void seupConnections();
   void setupUI();
-  // void adjustSearchResultsHeight();
   void openEmojiMenu();
   void onEmojiClicked(const ReactionInfo &emoji);
 
@@ -87,6 +86,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   QStandardItemModel *getEmojiModel();
   void setupUserListView();
   void setupSearchMessageListView();
+  void setupEmojiMenu();
 
   void onMessageContextMenu(const QPoint &pos);
   void onReactionClicked(const QPoint &pos);
@@ -99,7 +99,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   MessageDelegate *message_delegate_;
   std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
                                              // Message will be
-  std::unique_ptr<QStandardItemModel> searchResultsModel_;
+  std::unique_ptr<MessageModel> searchResultsModel_;
 
   ClickOutsideClosableListView *userListView_ = nullptr;
   ClickOutsideClosableListView *searchMessageListView_ = nullptr;

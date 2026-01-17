@@ -56,7 +56,7 @@ void SocketUseCase::deleteReaction(const Reaction& reaction) {
 void SocketUseCase::sendMessage(const Message& msg) {
   PROFILE_SCOPE("Model::sendMessage");
 
-  if (msg.text.trimmed().isEmpty()) {
+  if (msg.tokens.empty()) {
     LOG_WARN("Empty message skipped. chatId={}, senderId={}", msg.chat_id, msg.sender_id);
     return;
   }
@@ -64,12 +64,12 @@ void SocketUseCase::sendMessage(const Message& msg) {
   auto json = QJsonObject{{"type", "send_message"},
                           {"sender_id", msg.sender_id},
                           {"chat_id", msg.chat_id},
-                          {"text", msg.text},
+                          {"text", msg.getFullText()},
                           {"timestamp", msg.timestamp.toString()},
                           {"local_id", msg.local_id}};
 
   LOG_INFO("[sendMessage] To send message to chatId={} from user {}: '{}'", msg.chat_id, msg.sender_id,
-           msg.text.toStdString());
+           msg.getFullText().toStdString());
   sendInSocket(json);
 }
 

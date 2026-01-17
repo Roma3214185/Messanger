@@ -5,6 +5,8 @@
 #include <QRect>
 #include <QString>
 
+#include <dto/Message.h>
+
 struct UserDrawData {
   QString name;
   QPixmap avatar;
@@ -13,9 +15,8 @@ struct UserDrawData {
 
 struct ChatDrawData {
   QString title;
-  QString last_message;
+  std::optional<Message> last_message;
   QString avatar_path;
-  QDateTime time;
   int unread;
 };
 

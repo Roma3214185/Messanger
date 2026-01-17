@@ -1,7 +1,7 @@
 #include "managers/datamanager.h"
 
 #include "Debug_profiling.h"
-#include "utils.h"
+#include "Utils.h"
 
 namespace {
 
@@ -98,7 +98,7 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
   if (!chat_was) Q_EMIT chatAdded(chat);
 }
 
-void DataManager::saveUser(const User &user) {
+void DataManager::save(const User &user) {
   DBC_REQUIRE(user.checkInvariants());
   const std::lock_guard<std::mutex> lock(user_mutex_);
   users_by_id_[user.id] = user;
@@ -118,19 +118,19 @@ std::optional<Message> DataManager::getMessageById(const long long message_id) {
   return it == messages_.end() ? std::nullopt : std::make_optional(*it);
 }
 
-void DataManager::saveMessage(const Message &message) {
+void DataManager::save(const Message &message) {
   const std::lock_guard<std::mutex> lock(messages_mutex_);
   auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto &existing_message) {
     return existing_message.local_id == message.local_id;  // id from server here can be null
   });
-  LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.text.toStdString(), message.id,
-           message.local_id.toStdString(), message.status_sended);
+  LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.getFullText().toStdString(),
+           message.id, message.local_id.toStdString(), message.status_sended);
   if (it != messages_.end()) {
-    LOG_INFO("Message {} already exist", message.text.toStdString());
+    LOG_INFO("Message {} already exist", message.getFullText().toStdString());
     DBC_REQUIRE(it->id == 0 || it->id == message.id);
     it->updateFrom(message);
   } else {
-    LOG_INFO("Message {} added", message.text.toStdString());
+    LOG_INFO("Message {} added", message.getFullText().toStdString());
     messages_.push_back(message);
   }
 
@@ -214,7 +214,7 @@ void DataManager::deleteReaction(const Reaction &reaction_to_delete) {
   Q_EMIT messageAdded(message_to_delete_reaction);  // todo: messageChanged
 }
 
-void DataManager::saveReaction(const Reaction &reaction_to_save) {
+void DataManager::save(const Reaction &reaction_to_save) {
   std::lock_guard lock(messages_mutex_);
   DBC_REQUIRE(reaction_to_save.checkInvariants());
   auto iter_on_message = getIterMessageById(reaction_to_save.message_id);

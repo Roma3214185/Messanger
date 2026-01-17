@@ -13,6 +13,7 @@ ClickOutsideClosableListView::ClickOutsideClosableListView(QWidget* parent) : QL
   this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   this->setAttribute(Qt::WA_Hover, false);
+  this->setSelectionMode(QAbstractItemView::NoSelection);
 
   filter_ = new OutsideClickFilter(this);
   this->installEventFilter(filter_);

@@ -15,7 +15,6 @@ class IMainWindow {
   virtual void setUserModel(UserModel *user_model) = 0;
   virtual void clearFindUserEdit() = 0;
   virtual void showError(const QString &error) = 0;
-  virtual void setMessageListView(QListView *list_view) = 0;
   virtual void setCurrentChatIndex(QModelIndex idx) = 0;
 };
 

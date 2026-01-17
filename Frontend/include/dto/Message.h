@@ -7,14 +7,16 @@
 #include <unordered_map>
 
 #include "Debug_profiling.h"
+#include "MessageToken.h"
 #include "entities/Reaction.h"
 #include "entities/ReactionInfo.h"
+#include "utils.h"
 
 struct Message {  // todo: make immutable messagedomein and mutable messageview
   long long id = 0;
   long long sender_id;
   long long chat_id;
-  QString text;
+  std::vector<MessageToken> tokens;
   QDateTime timestamp;
   bool receiver_read_status = false;
   int read_counter = 0;
@@ -36,7 +38,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     if (id != 0) DBC_REQUIRE(id == other.id);
 
     id = other.id;
-    text = other.text;
+    tokens = other.tokens;
     timestamp = other.timestamp;
     receiver_read_status = other.receiver_read_status;
     read_counter = other.read_counter;
@@ -49,10 +51,10 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
 
   inline bool operator==(const Message& other) const {
     return local_id == other.local_id && chat_id == other.chat_id && sender_id == other.sender_id &&
-           receiver_id == other.receiver_id && id == other.id && text == other.text && timestamp == other.timestamp &&
-           receiver_read_status == other.receiver_read_status && read_counter == other.read_counter &&
-           status_sended == other.status_sended && receiver_reaction == other.receiver_reaction &&
-           reactions == other.reactions;
+           receiver_id == other.receiver_id && id == other.id && tokens == other.tokens &&
+           timestamp == other.timestamp && receiver_read_status == other.receiver_read_status &&
+           read_counter == other.read_counter && status_sended == other.status_sended &&
+           receiver_reaction == other.receiver_reaction && reactions == other.reactions;
   }
 
   bool isOfflineSaved() const noexcept {
@@ -66,7 +68,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     res += "| id = " + std::to_string(id);
     res += " | sender_id = " + std::to_string(sender_id);
     res += " | chat_id = " + std::to_string(chat_id);
-    res += " | text = " + text.toStdString();
+    res += " | text = " + getFullText().toStdString();
     res += " | timestamp = " + timestamp.toString().toStdString();
     res += " | receiver_read_status = " + std::to_string(receiver_read_status + 0);
     if (receiver_reaction.has_value())
@@ -88,13 +90,23 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     return res;
   }
 
+  QString getPlainText() const {
+    QString res;
+    for (const auto& token : tokens) {
+      if (token.type == MessageTokenType::Text) res += token.getText();
+    }
+    return res;
+  }
+
+  QString getFullText() const { return utils::text::tokenize(tokens); }
+
   bool checkInvariants() const noexcept {
-    return id > 0  // todo: what if message saved as offline, them id will == 0,
-                   // state pattern??
-           && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
-           !text.isEmpty() && read_counter > 0 && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
+    return id > 0 && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
+           !tokens.empty() && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
   }
 };
+
+Q_DECLARE_METATYPE(Message)
 
 // todo:
 //  struct MessageView {

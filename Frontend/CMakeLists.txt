@@ -56,8 +56,6 @@ add_executable(Frontend
     ${FRONTEND_INC_DIR}/mainwindow.h
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
-    include/clickoutsideclosablelistview.h
-    src/ClickOutsideClosableListView.cpp
 )
 
 add_custom_command(TARGET Frontend POST_BUILD

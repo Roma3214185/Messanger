@@ -10,6 +10,7 @@
 #include "model.h"
 
 int main(int argc, char *argv[]) {
+  qRegisterMetaType<Message>("Message");
   initLogger("Frontend");
   RedisClient redis("tcp://127.0.0.1:6379");
   QWebSocket socket;
@@ -21,6 +22,7 @@ int main(int argc, char *argv[]) {
 
   Model model(url, &manager, &redis, &real_socket, &data_manager);
   MainWindow w(&model);
+
   w.show();
   return a.exec();
 }

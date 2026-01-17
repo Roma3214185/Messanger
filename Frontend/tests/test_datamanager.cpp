@@ -124,7 +124,7 @@ TEST_CASE("Test datamanager works with chats") {
 
   SECTION("Add valid user to empty storage expected number of users equals 1") {
     valid_user.id = 4;
-    data_manager.saveUser(valid_user);
+    data_manager.save(valid_user);
 
     REQUIRE(data_manager.getNumberOfExistingUsers() == 1);
   }
@@ -140,8 +140,8 @@ TEST_CASE("Test datamanager works with chats") {
     valid_user2.tag = "IvanTag";
     valid_user2.avatarPath = "user/avatar";
 
-    data_manager.saveUser(valid_user);
-    data_manager.saveUser(valid_user2);
+    data_manager.save(valid_user);
+    data_manager.save(valid_user2);
 
     REQUIRE(data_manager.getNumberOfExistingUsers() == 1);
     auto returned_user = data_manager.getUser(common_user_id);
@@ -154,13 +154,13 @@ TEST_CASE("Test datamanager works with chats") {
   SECTION("Add user with invalid id expecter throw exception") {
     User invalid_user;
     invalid_user.id = 0;
-    REQUIRE_THROWS(data_manager.saveUser(invalid_user));
+    REQUIRE_THROWS(data_manager.save(invalid_user));
   }
 
   SECTION("Clear method clear all data") {
     valid_user.id = 2;
     data_manager.addChat(private_chat1);
-    data_manager.saveUser(valid_user);
+    data_manager.save(valid_user);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
     REQUIRE(data_manager.getNumberOfMessageModels() == 1);
     REQUIRE(data_manager.getNumberOfExistingUsers() == 1);
