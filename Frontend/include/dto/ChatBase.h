@@ -13,7 +13,6 @@ struct ChatBase {
   QString title;
   std::optional<Message> last_message;
   int unread{0};
-  QDateTime last_message_time;
   QString avatar_path = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
   std::vector<ReactionInfo> default_reactions;
 

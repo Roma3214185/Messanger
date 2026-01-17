@@ -65,11 +65,11 @@ void MessageModel::saveMessage(const Message &msg) {
   });
 
   if (it != messages_.end()) {
-    LOG_INFO("Message already exist with id {} ans local id {} and text {}", it->id, it->local_id.toStdString(),
-             it->getFullText().toStdString());
-    beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
+    LOG_INFO("Message already exist with id {} and local id {}", it->id, it->local_id.toStdString());
+    int row = std::distance(messages_.begin(), it);
     it->updateFrom(msg);
-    endInsertRows();
+    QModelIndex idx = index(row);
+    Q_EMIT dataChanged(idx, idx);
   } else {
     LOG_INFO("Add new message {}", msg.toString());
     auto insertPos = std::lower_bound(messages_.begin(), messages_.end(), msg,
