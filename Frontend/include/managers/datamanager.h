@@ -33,18 +33,27 @@ class DataManager : public QObject {
   void clearAllUsers();
   void clearAllMessageModels();
   void addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
-  void saveUser(const User &);
+
+  void save(const User & user);
+  void save(const Message &message);
+  void save(const ReactionInfo &reaction_info);
+  void save(const Reaction &reaction);
+
+  template <typename T, template <typename...> class Container>
+  void save(const Container<T>& entities) {
+    for (const auto& entity : entities) {
+      save(entity);
+    }
+  }
+
   void clearAll();
   [[nodiscard]] OptionalUser getUser(UserId);
   [[nodiscard]] std::optional<Message> getMessageById(const long long id);
-  void saveMessage(const Message &message);
   [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
   void deleteMessage(const Message &msg);
   void readMessage(long long message_id, long long readed_by);
   std::optional<ReactionInfo> getReactionInfo(long long reaction_id);
-  void saveReaction(const Reaction &reaction);
   void deleteReaction(const Reaction &reaction);
-  void save(const ReactionInfo &reaction_info);
   std::vector<ReactionInfo> getEmojiesForMenu();
 
  Q_SIGNALS:
