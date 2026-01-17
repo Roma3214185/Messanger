@@ -26,16 +26,16 @@ class EntityFactory {
  public:
   explicit EntityFactory(TokenManager *token_manager) : token_manager_(token_manager) {}
 
-  Message createMessage(long long chat_id, long long sender_id, const QString &text, const QString &local_id,
+  Message createMessage(long long chat_id, long long sender_id, const std::vector<MessageToken> &tokens, const QString &local_id,
                         QDateTime timestamp = QDateTime::currentDateTime()) {
-    DBC_REQUIRE(!text.isEmpty());
+    DBC_REQUIRE(!tokens.empty());
     DBC_REQUIRE(!local_id.isEmpty());
     DBC_REQUIRE(sender_id > 0);
     DBC_REQUIRE(chat_id > 0);
     // todo: what about message_id??
     Message message{.chat_id = chat_id,
                     .sender_id = sender_id,
-                    .text = text,
+                    .tokens = tokens,
                     .receiver_id = token_manager_->getCurrentUserId(),
                     .status_sended = false,
                     .timestamp = timestamp,
@@ -75,7 +75,11 @@ class EntityFactory {
     if (obj.contains("id")) msg.id = obj["id"].toInteger();
     if (obj.contains("sender_id")) msg.sender_id = obj["sender_id"].toInteger();
     if (obj.contains("chat_id")) msg.chat_id = obj["chat_id"].toInteger();
-    if (obj.contains("text")) msg.text = obj["text"].toString();
+    if (obj.contains("text")) {
+      QString text = obj["text"].toString();
+      msg.tokens = utils::text::get_tokens_from_text(text);
+    }
+
     if (obj.contains("timestamp")) msg.timestamp = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
     if (obj.contains("local_id")) msg.local_id = obj["local_id"].toString();
     if (obj.contains("read")) {
@@ -126,7 +130,7 @@ class EntityFactory {
     obj["id"] = msg.id;
     obj["sender_id"] = msg.sender_id;
     obj["chat_id"] = msg.chat_id;
-    obj["text"] = msg.text;
+    obj["text"] = msg.getFullText();
     obj["timestamp"] = msg.timestamp.toSecsSinceEpoch();
     obj["local_id"] = msg.local_id;
 

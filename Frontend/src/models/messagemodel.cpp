@@ -18,8 +18,8 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const {
   switch (role) {
     case MessageIdRole:
       return msg.id;
-    case TextRole:
-      return msg.text;
+    case TextRole:  // todo: textRole -> textTokensRole
+      return msg.getFullText();
     case TimestampRole:
       return msg.timestamp;
     case SenderIdRole:
@@ -66,7 +66,7 @@ void MessageModel::saveMessage(const Message &msg) {
 
   if (it != messages_.end()) {
     LOG_INFO("Message already exist with id {} ans local id {} and text {}", it->id, it->local_id.toStdString(),
-             it->text.toStdString());
+             it->getFullText().toStdString());
     beginInsertRows(QModelIndex(), messages_.size(), messages_.size());
     it->updateFrom(msg);
     endInsertRows();

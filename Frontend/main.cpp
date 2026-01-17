@@ -21,6 +21,9 @@ int main(int argc, char *argv[]) {
 
   Model model(url, &manager, &redis, &real_socket, &data_manager);
   MainWindow w(&model);
+
+  qRegisterMetaType<Message>("Message");
+
   w.show();
   return a.exec();
 }

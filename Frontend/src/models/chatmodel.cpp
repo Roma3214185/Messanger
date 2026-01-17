@@ -21,11 +21,12 @@ QVariant ChatModel::data(const QModelIndex &index, int role) const {
     case TitleRole:
       return chat->title;
     case LastMessageRole:
-      return chat->last_message;
+      if (chat->last_message.has_value())
+        return QVariant::fromValue(chat->last_message.value());
+
+      return QVariant();
     case UnreadRole:
       return chat->unread;
-    case LastMessageTimeRole:
-      return chat->last_message_time;
     case AvatarRole:
       return chat->avatar_path;
     default:
@@ -38,7 +39,6 @@ QHash<int, QByteArray> ChatModel::roleNames() const {
           {TitleRole, "title"},
           {LastMessageRole, "lastMessage"},
           {UnreadRole, "unread"},
-          {LastMessageTimeRole, "lastMessageTime"},
           {AvatarRole, "avatar"}};
 }
 
@@ -72,9 +72,8 @@ void ChatModel::updateChatInfo(const long long chat_id, const std::optional<Mess
   auto it = std::find_if(chats_.begin(), chats_.end(), [&](const auto &chat) { return chat->chat_id == chat_id; });
   if (it == chats_.end()) return;
   // todo: make copy-asigned constructor
-  (*it)->last_message = message->text;
+  (*it)->last_message = message;
   (*it)->unread = 0;  // unread++;
-  (*it)->last_message_time = message->timestamp;
 
   sortChats();  // if delete was??? // what about focus???
   // QModelIndex idx = index(i);

@@ -29,7 +29,7 @@ MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<Messag
                                TokenManager *token_manager)
     : data_manager_(data_manager), message_manager_(std::move(message_manager)), token_manager_(token_manager) {
   connect(data_manager_, &DataManager::messageAdded, this, [&](const Message &added_messaage) {  // todo: not make copy
-    LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.text.toStdString());
+    LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.getFullText().toStdString());
     DBC_REQUIRE(added_messaage.chat_id > 0);
     auto message_model = data_manager_->getMessageModel(added_messaage.chat_id);
     DBC_REQUIRE(message_model);
@@ -63,30 +63,6 @@ MessageModel *MessageUseCase::getMessageModel(long long chat_id) {
   return message_model.get();
 }
 
-void MessageUseCase::addMessageToChat(Message &msg) {
-  // 1) Add message in data_manager
-  // 2) Connect DataManagerMessageAdded signal
-  // 3) When added -> message_model_->addMessage() + signal message Added
-  // 4) Model Connect MessageUseCase::MessageAdded
-  // 5) Model try to load user of message, and try to load chat history if chat
-  // not finded
-
-  PROFILE_SCOPE("MessageUseCase::addMessageToChat");
-  DBC_REQUIRE(!msg.local_id.isEmpty());
-  DBC_REQUIRE(msg.sender_id > 0);
-  msg.receiver_id = token_manager_->getCurrentUserId();  // todo: it's already in JsonService, can be delated
-  data_manager_->saveMessage(msg);
-}
-
-void MessageUseCase::updateMessage(Message &msg) {
-  long long current_id = token_manager_->getCurrentUserId();
-  qDebug() << "Message receiver id = "
-           << msg.receiver_id;  // todo: it's already in JsonService, can be delated, made const Message&
-  msg.receiver_id = current_id;
-  data_manager_->saveMessage(msg);
-  message_manager_->updateMessage(msg, token_manager_->getToken());
-}
-
 void MessageUseCase::deleteMessage(const Message &msg) {
   data_manager_->deleteMessage(msg);
   message_manager_->deleteMessage(msg, token_manager_->getToken());
@@ -101,51 +77,19 @@ void MessageUseCase::logout() {
 void MessageUseCase::clearAllMessages() {
   data_manager_->clearAllMessageModels();
   DBC_ENSURE(data_manager_->getNumberOfMessageModels() == 0);
-}
 
-void MessageUseCase::saveReactionInfo(const std::vector<ReactionInfo> &reaction_infos) {
-  for (auto &reaction_info : reaction_infos) data_manager_->save(reaction_info);
+  // todo: MessageUseCase seems as work with server, so or clearAllMessages in also must send on server, or refactor/move function
 }
 
 void MessageUseCase::getChatMessagesAsync(long long chat_id) {
   PROFILE_SCOPE("MessageUseCase::getChatMessagesAsync");
   DBC_REQUIRE(chat_id > 0);
 
-  // auto watcher = new QFutureWatcher<QList<Message>>(this);
-
-  // connect(
-  //     watcher, &QFutureWatcher<QList<Message>>::finished, this,
-  //     [this, watcher, chat_id]() {
-  //       try {
-  //         auto chat_messages = watcher->result();
-  //         LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages",
-  //                  chat_id, chat_messages.size());
-  //         for (auto &message : chat_messages) { // todo(roma): make pipeline
-  //           addMessageToChat(message);
-  //         }
-
-  //       } catch (...) {
-  //         LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id);
-  //       }
-
-  //       watcher->deleteLater();
-  //     });
-
-  // QFuture<QList<Message>> future = QtConcurrent::run([this, chat_id]() {
-  //   return getChatMessages(
-  //       chat_id); // todo: make manager_->getChatMessagesAsync(?)
-  // });
-
-  // watcher->setFuture(future);
-
   QtConcurrent::run([this, chat_id]() { return getChatMessages(chat_id); })
       .then(this,
             [this, chat_id](QList<Message> chat_messages) {
               LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages", chat_id, chat_messages.size());
-
-              for (auto &message : chat_messages) {
-                addMessageToChat(message);
-              }
+              data_manager_->save(chat_messages);
             })
       .onFailed(this, [chat_id]() { LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id); });
 }

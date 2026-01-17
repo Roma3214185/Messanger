@@ -18,6 +18,7 @@ class SignUpRequest;
 class UserModel;
 class User;
 class QJsonObject;
+class QTextDocument;
 
 template <typename T>
 using Optional = std::optional<T>;
@@ -37,12 +38,12 @@ class Presenter : public QObject {
   void onChatClicked(const long long chat_id);
   void findUserRequest(const QString &text);
   void onUserClicked(const long long user_id, const bool is_user = true);
-  void sendButtonClicked(const QString &text_to_send);
+  void sendButtonClicked(QTextDocument* doc);
   void onLogOutButtonClicked();
   void onScroll(int value);
+  void editMessage(Message& message_to_edit, QTextDocument* doc);
 
   void deleteMessage(const Message &message);
-  void updateMessage(Message &message);
   void reactionClicked(const Message &message, long long reaction_id);
 
   MessageDelegate *getMessageDelegate();
@@ -52,6 +53,7 @@ class Presenter : public QObject {
   std::vector<Message> getListOfMessagesBySearch(const QString &prefix);
   std::vector<ReactionInfo> getDefaultReactionsInChat(long long chat_id);
   std::vector<ReactionInfo> getReactionsForMenu();
+  std::optional<ReactionInfo> getReactionInfo(long long reaction_id);
 
  Q_SIGNALS:
   void userSetted();

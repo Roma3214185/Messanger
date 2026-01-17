@@ -4,6 +4,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <QTextDocument>
 
 #include "Debug_profiling.h"
 #include "DeleteMessageResponce.h"
@@ -46,7 +47,7 @@ void Presenter::initialHandlers() {
   socket_responce_handlers_[opened_type] =
       std::make_unique<OpenResponceHandler>(manager_->tokenManager(), manager_->socket());
   socket_responce_handlers_[new_message_type] =
-      std::make_unique<NewMessageResponceHandler>(manager_->entities(), manager_->message());
+      std::make_unique<NewMessageResponceHandler>(manager_->entities(), manager_->dataManager());
   socket_responce_handlers_[delete_message_type] =
       std::make_unique<DeleteMessageResponceHandler>(manager_->entities(), manager_->message());
   socket_responce_handlers_[read_message_type] = std::make_unique<ReadMessageHandler>(manager_->dataManager());
@@ -100,18 +101,13 @@ UserDelegate *Presenter::getUserDelegate() {
 }
 
 ChatItemDelegate *Presenter::getChatDelegate() {
-  if (!chat_delegate_) chat_delegate_ = std::make_unique<ChatItemDelegate>();
+  if (!chat_delegate_) chat_delegate_ = std::make_unique<ChatItemDelegate>(manager_->dataManager());
   return chat_delegate_.get();
 }
 
 void Presenter::deleteMessage(const Message &message) {
   DBC_REQUIRE(message.checkInvariants());
   manager_->message()->deleteMessage(message);
-}
-
-void Presenter::updateMessage(Message &message) {
-  DBC_REQUIRE(message.checkInvariants());
-  manager_->message()->updateMessage(message);
 }
 
 void Presenter::reactionClicked(const Message &message, long long reaction_id) {
@@ -138,7 +134,7 @@ void Presenter::reactionClicked(const Message &message, long long reaction_id) {
 
 void Presenter::saveReaction(const Reaction &reaction) {
   manager_->socket()->saveReaction(reaction);  // it faster and async than save (?)
-  manager_->dataManager()->saveReaction(reaction);
+  manager_->dataManager()->save(reaction);
 }
 
 void Presenter::deleteReaction(const Reaction &reaction) {
@@ -162,7 +158,7 @@ void Presenter::onScroll(int value) {  // todo: multithreaded event changed
 
   message_list_view_->preserveFocusWhile(message_model, [&] {
     for (auto &msg : new_messages) {
-      manager_->message()->addMessageToChat(msg);  // TODO: make pipeline
+      manager_->dataManager()->save(msg);  // TODO: make pipeline
     }
   });
   // TODO: think about future / then
@@ -183,7 +179,7 @@ void Presenter::setUser(const User &user, const QString &token) {
   manager_->saveData(token, user.id);
   manager_->socket()->connectSocket();
   manager_->chat()->loadChatsAsync();
-  manager_->dataManager()->saveUser(user);
+  manager_->dataManager()->save(user);
   DBC_ENSURE(current_user_ != std::nullopt);
   Q_EMIT userSetted();
 }
@@ -207,7 +203,7 @@ void Presenter::newMessage(Message &msg) {
   const int max = message_list_view_->getMaximumMessageScrollBar();
   const int value = message_list_view_->getMessageScrollBarValue();
 
-  manager_->message()->addMessageToChat(msg);
+  manager_->dataManager()->save(msg);
 
   if (current_opened_chat_id_.has_value() && current_opened_chat_id_ == msg.chat_id && max == value) {
     message_list_view_->scrollToBottom();
@@ -260,22 +256,29 @@ void Presenter::onUserClicked(long long user_id, bool is_user) {
   }
 }
 
-void Presenter::sendButtonClicked(const QString &text_to_send) {
+void Presenter::sendButtonClicked(QTextDocument* doc) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
-  QString trimmed_text = text_to_send.trimmed();
+  DBC_REQUIRE(doc != nullptr);
+  // TODO: what if multithreaded will make here current_user is nullopt, after checking (?)
 
-  if (trimmed_text.isEmpty()) {
+  if (doc->isEmpty()) {
     LOG_WARN("Presenter receive to send empty text");
     return;
   }
 
-  // TODO: what if multithreaded will make here current_user is nullopt, after
-  // checking (?)
-  auto message_to_send = manager_->entities()->createMessage(*current_opened_chat_id_, current_user_->id, trimmed_text,
+  auto tokens = utils::text::get_tokens_from_doc(doc);
+  //QString tokensize_text = utils::text::tokenize(tokens);
+
+  if (tokens.empty()) {
+    LOG_WARN("tokens to send empty text");
+    return;
+  }
+
+  auto message_to_send = manager_->entities()->createMessage(*current_opened_chat_id_, current_user_->id, tokens,
                                                              QUuid::createUuid().toString());
   LOG_INFO("Message to send {}", message_to_send.toString());
-  manager_->message()->addMessageToChat(message_to_send);
+  manager_->dataManager()->save(message_to_send);
   message_list_view_->scrollToBottom();
   manager_->socket()->sendMessage(message_to_send);  // todo: implement sending message via HHTP, not socket
 }
@@ -284,6 +287,9 @@ void Presenter::onLogOutButtonClicked() {
   manager_->logout();
   current_user_.reset();
   current_opened_chat_id_.reset();
+}
+std::optional<ReactionInfo> Presenter::getReactionInfo(long long reaction_id) {
+  return manager_->dataManager()->getReactionInfo(reaction_id);
 }
 
 std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix) {
@@ -297,7 +303,7 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix)
 
   auto ans = std::vector<Message>{};
   for (const auto &message : list_of_messages_of_chat) {
-    if (message.text.contains(prefix_trimmed)) {
+    if(QString text = message.getPlainText(); text.contains(prefix_trimmed)) {
       ans.push_back(message);
     }
   }
@@ -314,7 +320,6 @@ std::vector<ReactionInfo> Presenter::getDefaultReactionsInChat(long long chat_id
 }
 
 void Presenter::onUnreadMessage(Message &message) {
-  qDebug() << "Emit onUnreadMessage for message " << message.text;
   if (message.receiver_read_status == true) {
     DBC_UNREACHABLE();
     return;
@@ -327,3 +332,31 @@ void Presenter::onUnreadMessage(Message &message) {
 }
 
 std::vector<ReactionInfo> Presenter::getReactionsForMenu() { return manager_->dataManager()->getEmojiesForMenu(); }
+
+void Presenter::editMessage(Message& message_to_edit, QTextDocument* doc) {
+  DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
+  DBC_REQUIRE(current_user_ != std::nullopt);
+  DBC_REQUIRE(doc != nullptr);
+
+  if (doc->isEmpty()) {
+    LOG_WARN("Presenter receive to send empty doc");
+    return;
+  }
+
+  auto tokens = utils::text::get_tokens_from_doc(doc);
+
+  if (tokens.empty()) {
+    LOG_WARN("tokens to editMessage message is empty");
+    return;
+  }
+
+  if(message_to_edit.tokens == tokens) {
+    LOG_WARN("tokens to editMessage message is same as before, skip update");
+    return;
+  }
+
+  message_to_edit.tokens = tokens;
+
+  manager_->dataManager()->save(message_to_edit);
+  manager_->socket()->sendMessage(message_to_edit);
+}
