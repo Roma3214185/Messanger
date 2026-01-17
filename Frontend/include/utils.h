@@ -11,6 +11,7 @@
 
 #include "MessageToken.h"
 #include "entities/ReactionInfo.h"
+#include "Debug_profiling.h"
 
 namespace utils {
 
@@ -46,37 +47,53 @@ inline bool isSame(std::optional<long long> current_reaction, long long reaction
 
 namespace utils::text {
 
-inline std::vector<MessageToken> get_tokens_from_doc(QTextDocument* doc) {
-  std::vector<MessageToken> tokens;
-  for (QTextBlock b = doc->begin(); b != doc->end(); b = b.next()) {
+namespace details {
+
+inline void addImageToken(const QTextCharFormat& fmt, std::vector<MessageToken>& tokens) {
+  if(!fmt.isImageFormat()) {
+    DBC_UNREACHABLE();
+    return;
+  }
+
+  QTextImageFormat imgFmt = fmt.toImageFormat();
+
+  QVariant v = imgFmt.property(QTextFormat::UserProperty);
+
+  if (v.isValid()) {
+    long long emoji_id = v.toLongLong();
+    auto token = TokenFactory::createEmojiToken(emoji_id);
+    tokens.push_back(token);
+    LOG_INFO("Custom emoji with id ", emoji_id);
+  }
+}
+
+inline void addToken(const QTextFragment& fragment, std::vector<MessageToken>& tokens) {
+  if(!fragment.isValid()) return;
+  QTextCharFormat fmt = fragment.charFormat();
+
+  if (fmt.isImageFormat()) {
+    details::addImageToken(fmt, tokens);
+  } else {
+    QString text = fragment.text();
+    auto token = TokenFactory::createTextToken(text);
+    tokens.push_back(token);
+    LOG_INFO("Text: ", text.toStdString());
+  }
+}
+
+}  // namespace details
+
+inline std::vector<MessageToken> get_tokens_from_doc(const QTextDocument* doc) {
+  if(!doc) return {};
+  auto tokens = std::vector<MessageToken>{};
+
+  for (auto b = doc->begin(); b != doc->end(); b = b.next()) {
     for (auto it = b.begin(); !it.atEnd(); ++it) {
-      QTextFragment fragment = it.fragment();
-      if (!fragment.isValid()) continue;
-
-      QTextCharFormat fmt = fragment.charFormat();
-
-      if (fmt.isImageFormat()) {
-
-        QTextImageFormat imgFmt = fmt.toImageFormat();
-
-        QVariant v = imgFmt.property(QTextFormat::UserProperty);
-
-        if (v.isValid()) {
-          long long emoji_id = v.toLongLong();
-          auto token = TokenFactory::createEmojiToken(emoji_id);
-          tokens.push_back(token);
-          qDebug() << "Custom emoji:" << emoji_id;
-        }
-
-      } else {
-        QString text = fragment.text();
-        auto token = TokenFactory::createTextToken(text);
-        tokens.push_back(token);
-        qDebug() << "Text:" << text;
-      }
+      details::addToken(it.fragment(), tokens);
     }
   }
-    return tokens;
+
+  return tokens;
 }
 
 inline QString tokenize(const std::vector<MessageToken>& tokens) {
@@ -90,7 +107,7 @@ inline std::vector<MessageToken> get_tokens_from_text(const QString& text) {
   int pos = 0;
 
   while (pos < text.length()) {
-    int start = text.indexOf("{emoji:", pos);
+    int start = static_cast<int>(text.indexOf("{emoji:", pos));
     if (start == -1) {
       // No more emojis, take the rest as text
       if (pos < text.length()) {
@@ -107,7 +124,7 @@ inline std::vector<MessageToken> get_tokens_from_text(const QString& text) {
     }
 
     // Find end of emoji token
-    int end = text.indexOf('}', start);
+    int end = static_cast<int>(text.indexOf('}', start));
     if (end == -1) {
       // Malformed, take the rest as text
       QString t = text.mid(start);
