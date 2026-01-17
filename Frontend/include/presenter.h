@@ -38,18 +38,18 @@ class Presenter : public QObject {
   void onChatClicked(const long long chat_id);
   void findUserRequest(const QString &text);
   void onUserClicked(const long long user_id, const bool is_user = true);
-  void sendButtonClicked(QTextDocument* doc);
+  void sendButtonClicked(QTextDocument *doc);
   void onLogOutButtonClicked();
   void onScroll(int value);
   void onUnreadMessage(Message &message);
-  void editMessage(Message& message_to_edit, QTextDocument* doc);
+  void editMessage(Message &message_to_edit, QTextDocument *doc);
 
   void deleteMessage(const Message &message);
   void reactionClicked(const Message &message, long long reaction_id);
 
-  MessageDelegate* getMessageDelegate(QObject* parent);
-  UserDelegate *getUserDelegate(QObject* parent);
-  ChatItemDelegate *getChatDelegate(QObject* parent);
+  MessageDelegate *getMessageDelegate(QObject *parent);
+  UserDelegate *getUserDelegate(QObject *parent);
+  ChatItemDelegate *getChatDelegate(QObject *parent);
 
   std::vector<Message> getListOfMessagesBySearch(const QString &prefix);
   std::vector<ReactionInfo> getDefaultReactionsInChat(long long chat_id);

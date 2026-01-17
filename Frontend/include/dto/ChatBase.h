@@ -5,8 +5,8 @@
 #include <QString>
 #include <QStringList>
 #include <QVector>
-#include "entities/ReactionInfo.h"
 #include "dto/Message.h"
+#include "entities/ReactionInfo.h"
 
 struct ChatBase {
   long long chat_id{0};  // todo: make member only id
@@ -47,8 +47,9 @@ inline ChatBase::~ChatBase() = default;
 class ChatFactory {
  public:
   static ChatPtr createPrivateChat(const long long chat_id, const QString &title, const QString &user_tag,
-                                   const long long user_id, const QString &status, const std::optional<Message>& last_message = std::nullopt,
-                                    const QString &avatar_path = {}) {
+                                   const long long user_id, const QString &status,
+                                   const std::optional<Message> &last_message = std::nullopt,
+                                   const QString &avatar_path = {}) {
     auto chat = std::make_shared<PrivateChat>();
     chat->chat_id = chat_id;
     chat->title = title;
@@ -62,8 +63,9 @@ class ChatFactory {
 
   static ChatPtr createGroupChat(const long long chat_id, const QString &title, const int member_count,
                                  const QStringList &member_tags, const QVector<int> &members_id,
-                                 const QStringList &avatar_paths, const std::optional<Message>& last_message = std::nullopt
-                                 , const QString &avatar_path = {}) {
+                                 const QStringList &avatar_paths,
+                                 const std::optional<Message> &last_message = std::nullopt,
+                                 const QString &avatar_path = {}) {
     auto chat = std::make_shared<GroupChat>();
     chat->chat_id = chat_id;
     chat->title = title;

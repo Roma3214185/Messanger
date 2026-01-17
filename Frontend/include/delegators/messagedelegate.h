@@ -8,9 +8,9 @@
 #include <QStyleOptionViewItem>
 #include <QStyledItemDelegate>
 
+#include "MessageToken.h"
 #include "managers/TokenManager.h"
 #include "models/messagemodel.h"
-#include "MessageToken.h"
 
 struct ReactionHitBox {
   QRect rect;
@@ -41,7 +41,7 @@ class MessageDelegate : public QStyledItemDelegate {
                            bool is_mine) const;
   void drawAvatar(QPainter *painter, const QRect &rect, const QPixmap &avatar, bool is_mine) const;
   void drawUsername(QPainter *painter, const QRect &rect, const QString &username, bool is_mine) const;
-  void drawText(QPainter *painter, const QRect &rect, const std::vector<MessageToken>& tokens, bool is_mine) const;
+  void drawText(QPainter *painter, const QRect &rect, const std::vector<MessageToken> &tokens, bool is_mine) const;
   void drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &timestamp, bool is_mine) const;
   void drawStatus(QPainter *painter, const QRect &rect, bool is_sended, int read_cnt, bool is_mine) const;
   void drawReactions(QPainter *painter, const QRect &rect, const std::unordered_map<long long, int> &reactions,

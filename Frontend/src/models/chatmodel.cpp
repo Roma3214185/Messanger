@@ -21,8 +21,7 @@ QVariant ChatModel::data(const QModelIndex &index, int role) const {
     case TitleRole:
       return chat->title;
     case LastMessageRole:
-      if (chat->last_message.has_value())
-        return QVariant::fromValue(chat->last_message.value());
+      if (chat->last_message.has_value()) return QVariant::fromValue(chat->last_message.value());
 
       return QVariant();
     case UnreadRole:
@@ -57,9 +56,9 @@ void ChatModel::addChat(const ChatPtr &chat) {
 void ChatModel::sortChats() {
   beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
   std::sort(chats_.begin(), chats_.end(), [&](const auto &chat1, const auto &chat2) {
-    //todo: add 'pined' status
-    if(!chat1->last_message.has_value()) return true;
-    if(!chat2->last_message.has_value()) return false;
+    // todo: add 'pined' status
+    if (!chat1->last_message.has_value()) return true;
+    if (!chat2->last_message.has_value()) return false;
 
     return chat1->last_message->timestamp > chat2->last_message->timestamp;
   });

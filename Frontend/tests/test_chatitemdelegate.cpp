@@ -6,7 +6,6 @@
 struct TestChatItemDelegate : public ChatItemDelegate {
   using ChatItemDelegate::ChatItemDelegate;
   using ChatItemDelegate::extractChatData;
-
 };
 
 TEST_CASE("ChatItemDelegate::extractChatData") {

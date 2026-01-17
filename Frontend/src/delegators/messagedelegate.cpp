@@ -96,7 +96,8 @@ void MessageDelegate::drawUsername(QPainter *painter, const QRect &rect, const Q
   painter->restore();
 }
 
-void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const std::vector<MessageToken>& tokens, bool is_mine) const {
+void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const std::vector<MessageToken> &tokens,
+                               bool is_mine) const {
   constexpr int kTextFont = 12;
   const int emojiSize = 16;
 
@@ -106,10 +107,10 @@ void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const std::
   QTextCursor cursor(&doc);
   doc.setTextWidth(rect.width() - 90);
 
-  for (const auto& token : tokens) {
+  for (const auto &token : tokens) {
     if (token.type == MessageTokenType::Text) {
       cursor.insertText(token.value);
-    } else if (token.type == MessageTokenType::Emoji) { //todo: utils::ui::insert_token()
+    } else if (token.type == MessageTokenType::Emoji) {  // todo: utils::ui::insert_token()
       DBC_REQUIRE(token.emoji_id.has_value());
       long long emojiId = token.emoji_id.value();
       auto img_info_opt = data_manager_->getReactionInfo(emojiId);
@@ -129,7 +130,6 @@ void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const std::
   doc.drawContents(painter, QRectF(0, 0, rect.width() - 90, rect.height() - 40));
   painter->restore();
 }
-
 
 void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &time, bool is_mine) const {
   QString timestamp = time.toString("hh:mm dd.MM");

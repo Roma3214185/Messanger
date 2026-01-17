@@ -34,14 +34,14 @@ class DataManager : public QObject {
   void clearAllMessageModels();
   void addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
 
-  void save(const User & user);
+  void save(const User &user);
   void save(const Message &message);
   void save(const ReactionInfo &reaction_info);
   void save(const Reaction &reaction);
 
   template <typename T, template <typename...> class Container>
-  void save(const Container<T>& entities) {
-    for (const auto& entity : entities) {
+  void save(const Container<T> &entities) {
+    for (const auto &entity : entities) {
       save(entity);
     }
   }

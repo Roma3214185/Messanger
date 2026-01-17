@@ -4,10 +4,10 @@
 #include <QPainter>
 #include <QStyledItemDelegate>
 
-#include "dto/DrawData.h"
-#include "models/chatmodel.h"
-#include "managers/datamanager.h"
 #include "MessageToken.h"
+#include "dto/DrawData.h"
+#include "managers/datamanager.h"
+#include "models/chatmodel.h"
 
 struct ChatItemStyle {
   int avatar_size = 40;
@@ -33,7 +33,8 @@ struct ChatItemStyle {
 class ChatItemDelegate : public QStyledItemDelegate {
   Q_OBJECT
  public:
-  explicit ChatItemDelegate(DataManager* data_manager, QObject *parent = nullptr, const ChatItemStyle& style = ChatItemStyle());
+  explicit ChatItemDelegate(DataManager *data_manager, QObject *parent = nullptr,
+                            const ChatItemStyle &style = ChatItemStyle());
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
   QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
@@ -45,12 +46,13 @@ class ChatItemDelegate : public QStyledItemDelegate {
   void drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option) const;
   void drawAvatar(QPainter *painter, const QRect &rect, const QPixmap &avatar) const;
   void drawNameOfChat(QPainter *painter, const QRect &rect, const QString &title) const;
-  void drawLastMessage(QPainter *painter, const QRect &rect, const std::optional<std::vector<MessageToken>>& tokens) const;
+  void drawLastMessage(QPainter *painter, const QRect &rect,
+                       const std::optional<std::vector<MessageToken>> &tokens) const;
   void drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &timestamp) const;
   void drawUnread(QPainter *painter, const QRect &rect, const int unread) const;
 
  private:
-  DataManager* data_manager_;
+  DataManager *data_manager_;
   ChatItemStyle style_;
 };
 

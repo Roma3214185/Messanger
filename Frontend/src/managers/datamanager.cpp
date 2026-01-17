@@ -123,8 +123,8 @@ void DataManager::save(const Message &message) {
   auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto &existing_message) {
     return existing_message.local_id == message.local_id;  // id from server here can be null
   });
-  LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.getFullText().toStdString(), message.id,
-           message.local_id.toStdString(), message.status_sended);
+  LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.getFullText().toStdString(),
+           message.id, message.local_id.toStdString(), message.status_sended);
   if (it != messages_.end()) {
     LOG_INFO("Message {} already exist", message.getFullText().toStdString());
     DBC_REQUIRE(it->id == 0 || it->id == message.id);

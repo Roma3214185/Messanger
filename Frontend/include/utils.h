@@ -4,14 +4,14 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
-#include <optional>
+#include <QTextCursor>
 #include <QTextDocument>
 #include <QTextFragment>
-#include <QTextCursor>
+#include <optional>
 
+#include "Debug_profiling.h"
 #include "MessageToken.h"
 #include "entities/ReactionInfo.h"
-#include "Debug_profiling.h"
 
 namespace utils {
 
@@ -50,7 +50,7 @@ namespace utils::text {
 namespace details {
 
 inline void addImageToken(const QTextCharFormat& fmt, std::vector<MessageToken>& tokens) {
-  if(!fmt.isImageFormat()) {
+  if (!fmt.isImageFormat()) {
     DBC_UNREACHABLE();
     return;
   }
@@ -68,7 +68,7 @@ inline void addImageToken(const QTextCharFormat& fmt, std::vector<MessageToken>&
 }
 
 inline void addToken(const QTextFragment& fragment, std::vector<MessageToken>& tokens) {
-  if(!fragment.isValid()) return;
+  if (!fragment.isValid()) return;
   QTextCharFormat fmt = fragment.charFormat();
 
   if (fmt.isImageFormat()) {
@@ -84,7 +84,7 @@ inline void addToken(const QTextFragment& fragment, std::vector<MessageToken>& t
 }  // namespace details
 
 inline std::vector<MessageToken> get_tokens_from_doc(const QTextDocument* doc) {
-  if(!doc) return {};
+  if (!doc) return {};
   auto tokens = std::vector<MessageToken>{};
 
   for (auto b = doc->begin(); b != doc->end(); b = b.next()) {
@@ -98,7 +98,7 @@ inline std::vector<MessageToken> get_tokens_from_doc(const QTextDocument* doc) {
 
 inline QString tokenize(const std::vector<MessageToken>& tokens) {
   QString res;
-  for(const auto& token: tokens) res += token.getText();
+  for (const auto& token : tokens) res += token.getText();
   return res;
 }
 
@@ -133,7 +133,7 @@ inline std::vector<MessageToken> get_tokens_from_text(const QString& text) {
     }
 
     // Extract emoji id
-    QString emojiStr = text.mid(start + 7, end - (start + 7)); // skip "{emoji:"
+    QString emojiStr = text.mid(start + 7, end - (start + 7));  // skip "{emoji:"
     bool ok = false;
     long long emoji_id = emojiStr.toLongLong(&ok);
     if (ok) {
@@ -143,18 +143,18 @@ inline std::vector<MessageToken> get_tokens_from_text(const QString& text) {
       tokens.push_back(TokenFactory::createTextToken(text.mid(start, end - start + 1)));
     }
 
-    pos = end + 1; // move past this token
+    pos = end + 1;  // move past this token
   }
 
   return tokens;
 }
 
-} // namespace utils::text
-
+}  // namespace utils::text
 
 namespace utils::ui {
 
-inline void insert_emoji(QTextCursor& cursor, std::optional<ReactionInfo> img_info_opt, int size_of_image = 16, QString default_value = " ") {
+inline void insert_emoji(QTextCursor& cursor, std::optional<ReactionInfo> img_info_opt, int size_of_image = 16,
+                         QString default_value = " ") {
   if (img_info_opt.has_value()) {
     const ReactionInfo& info = img_info_opt.value();
     QTextImageFormat fmt;
@@ -168,6 +168,6 @@ inline void insert_emoji(QTextCursor& cursor, std::optional<ReactionInfo> img_in
   }
 }
 
-} // namespace utils::ui
+}  // namespace utils::ui
 
 #endif  // UTILS_H

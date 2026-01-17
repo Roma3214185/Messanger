@@ -2,7 +2,7 @@
 
 #include "utils.h"
 
-ChatItemDelegate::ChatItemDelegate(DataManager* data_manager, QObject *parent, const ChatItemStyle& style)
+ChatItemDelegate::ChatItemDelegate(DataManager *data_manager, QObject *parent, const ChatItemStyle &style)
     : data_manager_(data_manager), QStyledItemDelegate(parent), style_(style) {}
 
 void ChatItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
@@ -26,7 +26,7 @@ void ChatItemDelegate::drawBackgroundState(QPainter *painter, const QRect & /*re
 ChatDrawData ChatItemDelegate::extractChatData(const QModelIndex &index) const {
   ChatDrawData data;
   data.title = index.data(ChatModel::TitleRole).toString();
-  if(QVariant last_message_variant = index.data(ChatModel::LastMessageRole); last_message_variant.isValid()){
+  if (QVariant last_message_variant = index.data(ChatModel::LastMessageRole); last_message_variant.isValid()) {
     data.last_message = last_message_variant.value<Message>();
   }
 
@@ -42,8 +42,8 @@ void ChatItemDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &op
   drawAvatar(painter, rect, QPixmap(chat.avatar_path));
   drawNameOfChat(painter, rect, chat.title);
 
-  if(chat.last_message.has_value()) {
-    const Message& last_message = chat.last_message.value();
+  if (chat.last_message.has_value()) {
+    const Message &last_message = chat.last_message.value();
     drawLastMessage(painter, rect, last_message.tokens);
     drawTimestamp(painter, rect, last_message.timestamp);
   } else {
@@ -63,19 +63,13 @@ void ChatItemDelegate::drawNameOfChat(QPainter *painter, const QRect &rect, cons
   painter->drawText(rect.left() + 55, rect.top() + 20, username);
 }
 
-void ChatItemDelegate::drawLastMessage(
-    QPainter *painter,
-    const QRect &rect,
-    const std::optional<std::vector<MessageToken>>& tokens) const
-{
-  QFont font(style_.last_message_font_style,
-             style_.last_message_font_size);
+void ChatItemDelegate::drawLastMessage(QPainter *painter, const QRect &rect,
+                                       const std::optional<std::vector<MessageToken>> &tokens) const {
+  QFont font(style_.last_message_font_style, style_.last_message_font_size);
   painter->setFont(font);
 
   if (!tokens || tokens->empty()) {
-    painter->drawText(rect.left() + 55,
-                      rect.top() + 40,
-                      "There is no text...");
+    painter->drawText(rect.left() + 55, rect.top() + 40, "There is no text...");
     return;
   }
 
@@ -85,13 +79,12 @@ void ChatItemDelegate::drawLastMessage(
 
   QTextCursor cursor(&doc);
 
-  for (const auto& token : *tokens) {
+  for (const auto &token : *tokens) {
     if (token.type == MessageTokenType::Text) {
       cursor.insertText(token.value);
     } else if (token.type == MessageTokenType::Emoji) {
       DBC_REQUIRE(token.emoji_id.has_value());
-      auto img_info_opt =
-          data_manager_->getReactionInfo(*token.emoji_id);
+      auto img_info_opt = data_manager_->getReactionInfo(*token.emoji_id);
       utils::ui::insert_emoji(cursor, img_info_opt);
     }
   }
@@ -104,9 +97,7 @@ void ChatItemDelegate::drawLastMessage(
   cursor.select(QTextCursor::Document);
   cursor.setBlockFormat(blockFmt);
 
-  QRectF drawRect(0, 0,
-                  rect.width() - 90,
-                  rect.height() - 40);
+  QRectF drawRect(0, 0, rect.width() - 90, rect.height() - 40);
 
   painter->save();
   painter->translate(rect.left(), rect.top() + 40);

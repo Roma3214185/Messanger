@@ -22,8 +22,8 @@
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
 #include "presenter.h"
-#include "utilsui.h"
 #include "utils.h"
+#include "utilsui.h"
 
 namespace MessageRoles {
 enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
@@ -85,9 +85,8 @@ void MainWindow::setMessageListView() {
   ui->messageListViewLayout->addWidget(message_list_view_.get());
   message_delegate_ = presenter_->getMessageDelegate(message_list_view_.get());
   message_list_view_->setItemDelegate(message_delegate_);
-  connect(message_delegate_, &MessageDelegate::unreadMessage, this, [this](Message& message){
-    presenter_->onUnreadMessage(message);
-  });
+  connect(message_delegate_, &MessageDelegate::unreadMessage, this,
+          [this](Message &message) { presenter_->onUnreadMessage(message); });
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -134,7 +133,7 @@ void MainWindow::setupUserListView() {
   userListView_ = new ClickOutsideClosableListView(this);
   auto *user_delegate = presenter_->getUserDelegate(userListView_);
   userListView_->setItemDelegate(user_delegate);
-  //ui->find_user_layout->addWidget(userListView_);
+  // ui->find_user_layout->addWidget(userListView_);
 
   connect(userListView_, &QListView::clicked, this, [this](const QModelIndex &index) -> void {
     long long user_id = index.data(UserModel::UserIdRole).toLongLong();
@@ -266,7 +265,6 @@ void MainWindow::onPressEvent(QMouseEvent *event) {
   } else if (event->button() == Qt::LeftButton) {
     onReactionClicked(pos);
   }
-
 }
 
 void MainWindow::onReactionClicked(const QPoint &pos) {
@@ -308,12 +306,12 @@ void MainWindow::editMessage(const Message &message) {
   if (message.tokens.empty()) return;
 
   ui->inputEditStackedWidget->setCurrentIndex(1);
-  ui->editTextEdit->clear(); // todo: maybe not clear, but just remember, or always save in chat entity input tokens
+  ui->editTextEdit->clear();  // todo: maybe not clear, but just remember, or always save in chat entity input tokens
 
   auto cursor = ui->editTextEdit->textCursor();
 
-  for(const auto& token : message.tokens) {
-    if(token.type == MessageTokenType::Text) {
+  for (const auto &token : message.tokens) {
+    if (token.type == MessageTokenType::Text) {
       cursor.insertText(token.value);
     } else if (token.type == MessageTokenType::Emoji) {
       DBC_REQUIRE(token.emoji_id.has_value());
@@ -324,7 +322,6 @@ void MainWindow::editMessage(const Message &message) {
       DBC_UNREACHABLE();
     }
   }
-
 
   editable_message_ = message;
 }
@@ -345,7 +342,7 @@ void MainWindow::on_okEditButton_clicked() {
   DBC_REQUIRE(editable_message_ != std::nullopt);
   presenter_->editMessage(*editable_message_, ui->editTextEdit->document());
   setWriteMode();
-  ui->editTextEdit->clear();  
+  ui->editTextEdit->clear();
 }
 
 void MainWindow::on_editTextEdit_textChanged() {
@@ -369,7 +366,7 @@ void MainWindow::setupSearchMessageListView() {
   searchMessageListView_ = new ClickOutsideClosableListView(this);
   auto *anchor = ui->search_messages_line_edit;
   constexpr int max_visible_rows = 3;
-  auto* message_delegate = presenter_->getMessageDelegate(searchMessageListView_);
+  auto *message_delegate = presenter_->getMessageDelegate(searchMessageListView_);
   searchMessageListView_->setItemDelegate(message_delegate);
 
   searchMessageListView_->setUpdateCallback([=]() {
@@ -456,8 +453,7 @@ void MainWindow::setupEmojiMenu() {
   constexpr int items_per_row = 5;
 
   emoji_menu_->setUpdateCallback([=]() {
-    utils::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::Direction::Above, max_visible_rows,
-                                items_per_row);
+    utils::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::Direction::Above, max_visible_rows, items_per_row);
   });
 
   emoji_menu_->setOnCloseCallback([=]() { this->closeEmojiMenu(); });
@@ -467,7 +463,7 @@ void MainWindow::setupEmojiMenu() {
 
   connect(emoji_menu_, &QListView::clicked, this, [this](const QModelIndex &index) {
     long long emoji_id = index.data(Qt::UserRole + 1).toLongLong();
-    QString emoji_path = index.data(Qt::UserRole + 2).toString(); //todo: set data already ReactionInfo
+    QString emoji_path = index.data(Qt::UserRole + 2).toString();  // todo: set data already ReactionInfo
     ReactionInfo emoji(emoji_id, emoji_path.toStdString());
     onEmojiClicked(emoji);
     emoji_menu_->close();

@@ -1,10 +1,10 @@
 #include "presenter.h"
 
 #include <QJsonObject>
+#include <QTextDocument>
 #include <QtConcurrent/QtConcurrent>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <QTextDocument>
 
 #include "Debug_profiling.h"
 #include "DeleteMessageResponce.h"
@@ -87,19 +87,13 @@ void Presenter::onNewResponce(QJsonObject &json_object) {
   }
 }
 
-MessageDelegate* Presenter::getMessageDelegate(QObject* parent) {
-  return new MessageDelegate(
-      manager_->dataManager(),
-      manager_->tokenManager(),
-      parent
-      );
+MessageDelegate *Presenter::getMessageDelegate(QObject *parent) {
+  return new MessageDelegate(manager_->dataManager(), manager_->tokenManager(), parent);
 }
 
-UserDelegate *Presenter::getUserDelegate(QObject* parent) {
-  return new UserDelegate(parent);
-}
+UserDelegate *Presenter::getUserDelegate(QObject *parent) { return new UserDelegate(parent); }
 
-ChatItemDelegate *Presenter::getChatDelegate(QObject* parent) {
+ChatItemDelegate *Presenter::getChatDelegate(QObject *parent) {
   return new ChatItemDelegate(manager_->dataManager(), parent);
 }
 
@@ -154,9 +148,7 @@ void Presenter::onScroll(int value) {  // todo: multithreaded event changed
   auto *message_model = manager_->getMessageModel(chat_id);
   DBC_REQUIRE(message_model);
 
-  message_list_view_->preserveFocusWhile(message_model, [&] {
-    manager_->dataManager()->save(new_messages);
-  });
+  message_list_view_->preserveFocusWhile(message_model, [&] { manager_->dataManager()->save(new_messages); });
   // TODO: think about future / then
 }
 
@@ -252,7 +244,7 @@ void Presenter::onUserClicked(long long user_id, bool is_user) {
   }
 }
 
-void Presenter::sendButtonClicked(QTextDocument* doc) {
+void Presenter::sendButtonClicked(QTextDocument *doc) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
   DBC_REQUIRE(doc != nullptr);
@@ -264,7 +256,7 @@ void Presenter::sendButtonClicked(QTextDocument* doc) {
   }
 
   auto tokens = utils::text::get_tokens_from_doc(doc);
-  //QString tokensize_text = utils::text::tokenize(tokens);
+  // QString tokensize_text = utils::text::tokenize(tokens);
 
   if (tokens.empty()) {
     LOG_WARN("tokens to send empty text");
@@ -299,7 +291,7 @@ std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix)
 
   auto ans = std::vector<Message>{};
   for (const auto &message : list_of_messages_of_chat) {
-    if(QString text = message.getPlainText(); text.contains(prefix_trimmed)) {
+    if (QString text = message.getPlainText(); text.contains(prefix_trimmed)) {
       ans.push_back(message);
     }
   }
@@ -329,7 +321,7 @@ void Presenter::onUnreadMessage(Message &message) {
 
 std::vector<ReactionInfo> Presenter::getReactionsForMenu() { return manager_->dataManager()->getEmojiesForMenu(); }
 
-void Presenter::editMessage(Message& message_to_edit, QTextDocument* doc) {
+void Presenter::editMessage(Message &message_to_edit, QTextDocument *doc) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
   DBC_REQUIRE(doc != nullptr);
@@ -346,7 +338,7 @@ void Presenter::editMessage(Message& message_to_edit, QTextDocument* doc) {
     return;
   }
 
-  if(message_to_edit.tokens == tokens) {
+  if (message_to_edit.tokens == tokens) {
     LOG_WARN("tokens to editMessage message is same as before, skip update");
     return;
   }

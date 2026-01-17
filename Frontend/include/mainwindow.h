@@ -96,7 +96,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   Ui::MainWindow *ui;
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
-  MessageDelegate* message_delegate_;
+  MessageDelegate *message_delegate_;
   std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
                                              // Message will be
   std::unique_ptr<MessageModel> searchResultsModel_;

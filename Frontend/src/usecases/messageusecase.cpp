@@ -78,7 +78,8 @@ void MessageUseCase::clearAllMessages() {
   data_manager_->clearAllMessageModels();
   DBC_ENSURE(data_manager_->getNumberOfMessageModels() == 0);
 
-  // todo: MessageUseCase seems as work with server, so or clearAllMessages in also must send on server, or refactor/move function
+  // todo: MessageUseCase seems as work with server, so or clearAllMessages in also must send on server, or
+  // refactor/move function
 }
 
 void MessageUseCase::getChatMessagesAsync(long long chat_id) {
