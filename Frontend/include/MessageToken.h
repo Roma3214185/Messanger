@@ -16,11 +16,7 @@ struct MessageToken {
 
     QString getText() const { return value; }
 
-    bool operator==(const MessageToken& other) const {
-      return type == other.type &&
-             value == other.value &&
-             emoji_id == other.emoji_id;
-    }
+    bool operator==(const MessageToken& other) const = default;
 };
 
 struct TokenFactory {

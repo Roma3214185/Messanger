@@ -10,7 +10,7 @@
 #include "entities/Reaction.h"
 #include "entities/ReactionInfo.h"
 #include "MessageToken.h"
-#include "Utils.h"
+#include "utils.h"
 
 struct Message {  // todo: make immutable messagedomein and mutable messageview
   long long id = 0;

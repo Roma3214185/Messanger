@@ -32,10 +32,8 @@ struct ChatItemStyle {
 
 class ChatItemDelegate : public QStyledItemDelegate {
   Q_OBJECT
-    DataManager* data_manager_;
  public:
-  explicit ChatItemDelegate(DataManager* data_manager, QObject *parent = nullptr, ChatItemStyle style = ChatItemStyle())
-      : data_manager_(data_manager), QStyledItemDelegate(parent), style_(style) {}
+  explicit ChatItemDelegate(DataManager* data_manager, QObject *parent = nullptr, const ChatItemStyle& style = ChatItemStyle());
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
   QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
@@ -52,6 +50,7 @@ class ChatItemDelegate : public QStyledItemDelegate {
   void drawUnread(QPainter *painter, const QRect &rect, const int unread) const;
 
  private:
+  DataManager* data_manager_;
   ChatItemStyle style_;
 };
 

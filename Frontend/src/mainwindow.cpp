@@ -23,7 +23,7 @@
 #include "models/messagemodel.h"
 #include "presenter.h"
 #include "utilsui.h"
-#include "Utils.h"
+#include "utils.h"
 
 namespace MessageRoles {
 enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };
@@ -40,8 +40,8 @@ MainWindow::MainWindow(Model *model, QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       presenter_(std::make_unique<Presenter>(this, model)),
-      searchResultsModel_(std::make_unique<MessageModel>(this)),
-      message_list_view_(std::make_unique<MessageListView>()) {
+      message_list_view_(std::make_unique<MessageListView>()),
+      searchResultsModel_(std::make_unique<MessageModel>(this)) {
   ui->setupUi(this);
   qApp->installEventFilter(this);
 

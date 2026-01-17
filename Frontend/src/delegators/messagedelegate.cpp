@@ -3,7 +3,7 @@
 #include <QVariant>
 
 #include "models/messagemodel.h"
-#include "Utils.h"
+#include "utils.h"
 
 void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
   if (!painter || !painter->isActive()) {

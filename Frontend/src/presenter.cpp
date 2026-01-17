@@ -155,9 +155,7 @@ void Presenter::onScroll(int value) {  // todo: multithreaded event changed
   DBC_REQUIRE(message_model);
 
   message_list_view_->preserveFocusWhile(message_model, [&] {
-    for (auto &msg : new_messages) {
-      manager_->dataManager()->save(msg);  // TODO: make pipeline
-    }
+    manager_->dataManager()->save(new_messages);
   });
   // TODO: think about future / then
 }
