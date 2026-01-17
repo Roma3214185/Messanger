@@ -74,7 +74,6 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setDelegators();
   void seupConnections();
   void setupUI();
-  // void adjustSearchResultsHeight();
   void openEmojiMenu();
   void onEmojiClicked(const ReactionInfo &emoji);
 
@@ -87,6 +86,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   QStandardItemModel *getEmojiModel();
   void setupUserListView();
   void setupSearchMessageListView();
+  void setupEmojiMenu();
 
   void onMessageContextMenu(const QPoint &pos);
   void onReactionClicked(const QPoint &pos);
@@ -99,7 +99,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   MessageDelegate *message_delegate_;
   std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
                                              // Message will be
-  std::unique_ptr<QStandardItemModel> searchResultsModel_;
+  std::unique_ptr<MessageModel> searchResultsModel_;
 
   ClickOutsideClosableListView *userListView_ = nullptr;
   ClickOutsideClosableListView *searchMessageListView_ = nullptr;
