@@ -44,7 +44,7 @@ TEST_CASE("ChatItemDelegate sizeHint returns configured size") {
   ChatItemStyle style;
   style.chat_item_width = 300;
   style.chat_item_height = 80;
-  ChatItemDelegate delegate(nullptr, style);
+  ChatItemDelegate delegate(nullptr, nullptr, style);
 
   QSize size = delegate.sizeHint(QStyleOptionViewItem{}, QModelIndex{});
   REQUIRE(size.width() == 300);

@@ -60,7 +60,7 @@ void Presenter::initialHandlers() {
 void Presenter::setMessageListView(IMessageListView *message_list_view) {
   DBC_REQUIRE(message_list_view != nullptr);
   message_list_view_ = message_list_view;
-  view_->setMessageListView(static_cast<QListView *>(message_list_view));
+  connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter::onScroll);
 }
 
 void Presenter::signIn(const LogInRequest &login_request) { manager_->session()->signIn(login_request); }
@@ -70,8 +70,6 @@ void Presenter::signUp(const SignUpRequest &req) { manager_->session()->signUp(r
 void Presenter::initialConnections() {
   connect(manager_->session(), &SessionUseCase::userCreated, this, &Presenter::setUser);
   connect(manager_->socket(), &SocketUseCase::newResponce, this, &Presenter::onNewResponce);
-  connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter::onScroll);
-  connect(message_delegate_.get(), &MessageDelegate::unreadMessage, this, &Presenter::onUnreadMessage);
 }
 
 void Presenter::onNewResponce(QJsonObject &json_object) {
@@ -89,20 +87,20 @@ void Presenter::onNewResponce(QJsonObject &json_object) {
   }
 }
 
-MessageDelegate *Presenter::getMessageDelegate() {
-  if (!message_delegate_)
-    message_delegate_ = std::make_unique<MessageDelegate>(manager_->dataManager(), manager_->tokenManager());
-  return message_delegate_.get();
+MessageDelegate* Presenter::getMessageDelegate(QObject* parent) {
+  return new MessageDelegate(
+      manager_->dataManager(),
+      manager_->tokenManager(),
+      parent
+      );
 }
 
-UserDelegate *Presenter::getUserDelegate() {
-  if (!user_delegate_) user_delegate_ = std::make_unique<UserDelegate>();
-  return user_delegate_.get();
+UserDelegate *Presenter::getUserDelegate(QObject* parent) {
+  return new UserDelegate(parent);
 }
 
-ChatItemDelegate *Presenter::getChatDelegate() {
-  if (!chat_delegate_) chat_delegate_ = std::make_unique<ChatItemDelegate>(manager_->dataManager());
-  return chat_delegate_.get();
+ChatItemDelegate *Presenter::getChatDelegate(QObject* parent) {
+  return new ChatItemDelegate(manager_->dataManager(), parent);
 }
 
 void Presenter::deleteMessage(const Message &message) {

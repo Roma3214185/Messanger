@@ -60,55 +60,56 @@ void ChatItemDelegate::drawNameOfChat(QPainter *painter, const QRect &rect, cons
   painter->drawText(rect.left() + 55, rect.top() + 20, username);
 }
 
-void ChatItemDelegate::drawLastMessage(QPainter *painter, const QRect &rect, const std::optional<std::vector<MessageToken>>& tokens) const {
-  QFont font(style_.last_message_font_style, style_.last_message_font_size);
+void ChatItemDelegate::drawLastMessage(
+    QPainter *painter,
+    const QRect &rect,
+    const std::optional<std::vector<MessageToken>>& tokens) const
+{
+  QFont font(style_.last_message_font_style,
+             style_.last_message_font_size);
   painter->setFont(font);
 
-  if (!tokens.has_value() || tokens->empty()) {
-    painter->drawText(rect.left() + 55, rect.top() + 40, "There is no text...");
+  if (!tokens || tokens->empty()) {
+    painter->drawText(rect.left() + 55,
+                      rect.top() + 40,
+                      "There is no text...");
     return;
   }
 
   QTextDocument doc;
-  doc.setDefaultFont(QFont(style_.last_message_font_style, style_.last_message_font_size));
-  int total_width = rect.width() - 90;
-  doc.setTextWidth(total_width);
+  doc.setDefaultFont(font);
+  doc.setTextWidth(rect.width() - 90);
+
   QTextCursor cursor(&doc);
 
-  QRectF drawRect(0, 0, rect.width() - 90, rect.height() - 40); // your fixed drawing area
-  painter->save();
-  painter->translate(rect.left(), rect.top() + 40);
-  painter->setClipRect(drawRect);       // <-- clip everything outside
-  doc.drawContents(painter, drawRect);  // only visible inside drawRect
-  painter->restore();
-
-
-  for (const auto& token : tokens.value()) {
-      if (token.type == MessageTokenType::Text) {
-          cursor.insertText(token.value);
-      } else if (token.type == MessageTokenType::Emoji) {
-        DBC_REQUIRE(token.emoji_id.has_value());
-        long long emojiId = token.emoji_id.value();
-        DBC_REQUIRE(emojiId > 0);
-        auto img_info_opt = data_manager_->getReactionInfo(emojiId);
-        utils::ui::insert_emoji(cursor, img_info_opt);
-      }
+  for (const auto& token : *tokens) {
+    if (token.type == MessageTokenType::Text) {
+      cursor.insertText(token.value);
+    } else if (token.type == MessageTokenType::Emoji) {
+      DBC_REQUIRE(token.emoji_id.has_value());
+      auto img_info_opt =
+          data_manager_->getReactionInfo(*token.emoji_id);
+      utils::ui::insert_emoji(cursor, img_info_opt);
+    }
   }
 
   QTextBlockFormat blockFmt;
   blockFmt.setAlignment(Qt::AlignLeft);
   blockFmt.setLeftMargin(55);
   blockFmt.setRightMargin(20);
+
   cursor.select(QTextCursor::Document);
   cursor.setBlockFormat(blockFmt);
 
+  QRectF drawRect(0, 0,
+                  rect.width() - 90,
+                  rect.height() - 40);
+
   painter->save();
   painter->translate(rect.left(), rect.top() + 40);
-  doc.drawContents(painter, QRectF(0, 0, rect.width() - 90, rect.height() - 40));
+  painter->setClipRect(drawRect);
+  doc.drawContents(painter, drawRect);
   painter->restore();
-
-  // painter->setFont(QFont(style_.last_message_font_style, style_.last_message_font_size));
-  // painter->drawText(rect.left() + 55, rect.top() + 40, text);
 }
 
 void ChatItemDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &timestamp) const {
@@ -127,14 +128,6 @@ void ChatItemDelegate::drawUnread(QPainter *painter, const QRect &rect, const in
   painter->setPen(Qt::white);
   painter->setFont(QFont(style_.unread_font_style, style_.unread_label_font, QFont::Bold));
   painter->drawText(circle_rect, Qt::AlignCenter, QString::number(unread));
-}
-
-std::optional<std::vector<MessageToken>> ChatItemDelegate::getLastMessageTokens(const QString &msg) const {
-  if (bool chat_empty = msg.isEmpty(); chat_empty == true) {
-    return std::nullopt;
-  }
-
-  return utils::text::get_tokens_from_text(msg);
 }
 
 QSize ChatItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {

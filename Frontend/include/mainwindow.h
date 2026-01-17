@@ -21,6 +21,7 @@ class QListView;
 class ITheme;
 class MessageListView;
 class MessageDelegate;
+class MessageModel;
 class ClickOutsideClosableListView;
 
 class MainWindow : public QMainWindow, public IMainWindow {
@@ -35,8 +36,6 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setUserModel(UserModel *user_model) override;
   void clearFindUserEdit() override;
   void showError(const QString &error) override;
-
-  void setMessageListView(QListView *list_view) override;
   void setCurrentChatIndex(QModelIndex chat_idx) override;
 
   void setTheme(std::unique_ptr<ITheme> theme);
@@ -69,6 +68,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setMainWindow() const;
   void cancelSearchMessagesMode();
   void setSignInPage();
+  void setMessageListView();
   void setSignUpPage();
   void clearUpInput();
   void setDelegators();
@@ -96,7 +96,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   Ui::MainWindow *ui;
   std::unique_ptr<Presenter> presenter_;
   std::unique_ptr<MessageListView> message_list_view_;
-  MessageDelegate *message_delegate_;
+  MessageDelegate* message_delegate_;
   std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
                                              // Message will be
   std::unique_ptr<MessageModel> searchResultsModel_;
