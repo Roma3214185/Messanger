@@ -3,6 +3,7 @@
 #include <QVariant>
 
 #include "models/messagemodel.h"
+#include "Utils.h"
 
 void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
   if (!painter || !painter->isActive()) {
@@ -95,17 +96,40 @@ void MessageDelegate::drawUsername(QPainter *painter, const QRect &rect, const Q
   painter->restore();
 }
 
-void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const QString &text, bool is_mine) const {
+void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const std::vector<MessageToken>& tokens, bool is_mine) const {
   constexpr int kTextFont = 12;
+  const int emojiSize = 16;
+
   painter->setFont(QFont("Arial", kTextFont));
 
-  auto text_rect = [&]() {
-    return is_mine ? QRect(rect.left() + 20, rect.top() + 40, rect.width() - 90, rect.height() - 40)
-                   : QRect(rect.left() + 55, rect.top() + 40, rect.width() - 90, rect.height() - 40);
-  };
+  QTextDocument doc;
+  QTextCursor cursor(&doc);
+  doc.setTextWidth(rect.width() - 90);
 
-  painter->drawText(text_rect(), (is_mine ? Qt::AlignRight : Qt::AlignLeft) | Qt::TextWordWrap, text);
+  for (const auto& token : tokens) {
+    if (token.type == MessageTokenType::Text) {
+      cursor.insertText(token.value);
+    } else if (token.type == MessageTokenType::Emoji) { //todo: utils::ui::insert_token()
+      DBC_REQUIRE(token.emoji_id.has_value());
+      long long emojiId = token.emoji_id.value();
+      auto img_info_opt = data_manager_->getReactionInfo(emojiId);
+      utils::ui::insert_emoji(cursor, img_info_opt, emojiSize);
+    }
+  }
+
+  QTextBlockFormat blockFmt;
+  blockFmt.setAlignment(is_mine ? Qt::AlignRight : Qt::AlignLeft);
+  blockFmt.setLeftMargin(is_mine ? 0 : 55);
+  blockFmt.setRightMargin(is_mine ? 20 : 0);
+  cursor.select(QTextCursor::Document);
+  cursor.setBlockFormat(blockFmt);
+
+  painter->save();
+  painter->translate(rect.left(), rect.top() + 40);
+  doc.drawContents(painter, QRectF(0, 0, rect.width() - 90, rect.height() - 40));
+  painter->restore();
 }
+
 
 void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &time, bool is_mine) const {
   QString timestamp = time.toString("hh:mm dd.MM");
@@ -141,7 +165,8 @@ void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &opt
   drawAvatar(painter, rect, QPixmap(user.avatarPath), is_mine);
   drawUsername(painter, rect, user.name, is_mine);
   drawTimestamp(painter, rect, msg.timestamp, is_mine);
-  drawText(painter, rect, msg.text, is_mine);
+
+  drawText(painter, rect, msg.tokens, is_mine);
   drawStatus(painter, rect, msg.status_sended, msg.read_counter, is_mine);
   if (!msg.isOfflineSaved()) {
     DBC_REQUIRE(msg.isMine());
