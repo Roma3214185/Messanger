@@ -109,9 +109,9 @@ TEST_CASE("Test MessageManager getChatMessages") {
     REQUIRE(messages.size() == 2);
     REQUIRE(messages[0].id == 1);
     REQUIRE(messages[0].sender_id == 10);
-    REQUIRE(messages[0].text == "Hello");
+    REQUIRE(messages[0].getFullText().toStdString() == "Hello");
     REQUIRE(messages[1].id == 2);
-    REQUIRE(messages[1].text == "Hi");
+    REQUIRE(messages[1].getFullText().toStdString() == "Hi");
   }
 }
 
@@ -151,6 +151,6 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
     REQUIRE(spyError.count() == 0);
     REQUIRE(result.size() == 1);
     REQUIRE(result[0].id == 10);
-    REQUIRE(result[0].text == "msg");
+    REQUIRE(result[0].getFullText().toStdString() == "msg");
   }
 }

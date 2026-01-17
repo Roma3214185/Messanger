@@ -6,36 +6,27 @@
 struct TestChatItemDelegate : public ChatItemDelegate {
   using ChatItemDelegate::ChatItemDelegate;
   using ChatItemDelegate::extractChatData;
-  using ChatItemDelegate::refactorLastMessage;
+
 };
 
-TEST_CASE("ChatItemDelegate::refactorLastMessage") {
-  ChatItemStyle style;
-  TestChatItemDelegate delegate(nullptr, style);
-
-  SECTION("empty message returns default text") {
-    REQUIRE(delegate.refactorLastMessage("") == style.no_message_status);
-  }
-
-  SECTION("short message remains unchanged") { REQUIRE(delegate.refactorLastMessage("Hello") == "Hello"); }
-
-  SECTION("long message is truncated") {
-    QString long_msg = "This is a very long message that should be truncated";
-    QString result = delegate.refactorLastMessage(long_msg);
-    REQUIRE(result.length() <= 25);
-    REQUIRE(result.endsWith("..."));
-  }
-}
-
 TEST_CASE("ChatItemDelegate::extractChatData") {
-  TestChatItemDelegate delegate;
+  DataManager data_manager;
+  TestChatItemDelegate delegate(&data_manager);
+  Message message;
+  std::string last_message = "Last_message";
+  message.id = 12;
+  message.chat_id = 11;
+  message.local_id = "123";
+  message.receiver_id = 121;
+  message.sender_id = 1213;
+  auto token = TokenFactory::createTextToken(QString::fromStdString(last_message));
+  message.tokens.push_back(token);
 
   QStandardItemModel model;
   QStandardItem *item = new QStandardItem();
   item->setData("Chat Title", ChatModel::TitleRole);
-  item->setData("Last message", ChatModel::LastMessageRole);
+  item->setData(QVariant::fromValue(message), ChatModel::LastMessageRole);
   item->setData("avatar.png", ChatModel::AvatarRole);
-  item->setData(QDateTime(QDate(2025, 11, 12), QTime(12, 0)), ChatModel::LastMessageTimeRole);
   item->setData(3, ChatModel::UnreadRole);
   model.appendRow(item);
 
@@ -43,10 +34,10 @@ TEST_CASE("ChatItemDelegate::extractChatData") {
   ChatDrawData data = delegate.extractChatData(index);
 
   REQUIRE(data.title == "Chat Title");
-  REQUIRE(data.last_message == "Last message");
+  REQUIRE(data.last_message.has_value());
+  REQUIRE(data.last_message.value().getFullText().toStdString() == last_message);
   REQUIRE(data.avatar_path == "avatar.png");
   REQUIRE(data.unread == 3);
-  REQUIRE(data.time == QDateTime(QDate(2025, 11, 12), QTime(12, 0)));
 }
 
 TEST_CASE("ChatItemDelegate sizeHint returns configured size") {
