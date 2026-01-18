@@ -24,7 +24,7 @@ void fillCursorWithTokens(QTextCursor &cursor, DataManager &data_manager, const 
 }  // namespace
 
 MessageDelegate::MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent)
-    : data_manager_(data_manager), token_manager_(token_manager) {}
+    : QStyledItemDelegate(parent), data_manager_(data_manager), token_manager_(token_manager) {}
 
 void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
   if (!painter || !painter->isActive()) {
