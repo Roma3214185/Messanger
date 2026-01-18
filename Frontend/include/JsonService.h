@@ -97,10 +97,11 @@ class EntityFactory {
 
     if (obj.contains("reactions")) {
       const QJsonObject &react = obj["reactions"].toObject();
-      if (react.contains("receiver_reaction"))
+      if (react.contains("receiver_reaction") && !react["receiver_reaction"].isNull()) {
         msg.receiver_reaction = react["receiver_reaction"].toInt();
-      else
+      } else {
         msg.receiver_reaction.reset();
+      }
 
       if (react.contains("counts") && react["counts"].isArray()) {
         const QJsonArray countsArr = react["counts"].toArray();

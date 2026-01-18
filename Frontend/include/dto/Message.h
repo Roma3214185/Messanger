@@ -81,7 +81,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     }
 
     if (answer_on.has_value()) {
-      res += " |answer_on = " + std::to_string(answer_on.value());
+      res += " | answer_on = " + std::to_string(answer_on.value());
     } else {
       res += " | no answer_on ";
     }
@@ -112,8 +112,14 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   QString getFullText() const { return utils::text::tokenize(tokens); }
 
   bool checkInvariants() const noexcept {
-    return id > 0 && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
-           !tokens.empty() && (!receiver_reaction.has_value() || receiver_reaction.value() > 0) &&
+    return id > 0 &&
+           sender_id > 0 &&
+           chat_id > 0 &&
+           !local_id.isEmpty() &&
+           read_counter >= 0 &&
+           receiver_id > 0 &&
+           !tokens.empty() &&
+           (!receiver_reaction.has_value() || receiver_reaction.value() > 0) &&
            (!answer_on.has_value() || answer_on.value() > 0);
   }
 };

@@ -244,11 +244,14 @@ void Presenter::onUserClicked(long long user_id, bool is_user) {
   }
 }
 
-void Presenter::sendButtonClicked(QTextDocument *doc) {
+void Presenter::sendButtonClicked(QTextDocument *doc, std::optional<long long> answer_on_message_id) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
   DBC_REQUIRE(doc != nullptr);
   // TODO: what if multithreaded will make here current_user is nullopt, after checking (?)
+
+  if(answer_on_message_id.has_value()) qDebug() << "Anwer on " << answer_on_message_id;
+  else qDebug() << "Message with no answer on";
 
   if (doc->isEmpty()) {
     LOG_WARN("Presenter receive to send empty text");
@@ -264,7 +267,7 @@ void Presenter::sendButtonClicked(QTextDocument *doc) {
   }
 
   auto message_to_send = manager_->entities()->createMessage(*current_opened_chat_id_, current_user_->id, tokens,
-                                                             QUuid::createUuid().toString());
+                                                             QUuid::createUuid().toString(), answer_on_message_id);
   LOG_INFO("Message to send {}", message_to_send.toString());
   manager_->dataManager()->save(message_to_send);
   message_list_view_->scrollToBottom();

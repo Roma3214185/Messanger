@@ -488,6 +488,9 @@
                      <widget class="QWidget" name="page">
                       <layout class="QVBoxLayout" name="verticalLayout_11">
                        <item>
+                        <layout class="QHBoxLayout" name="answer_on_layout"/>
+                       </item>
+                       <item>
                         <widget class="QWidget" name="horizontalWidget" native="true">
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
