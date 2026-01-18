@@ -102,7 +102,15 @@ inline Message from_crow_json(const crow::json::rvalue &json_message) {
   }
 
   if (json_message.has(MessageTable::AnswerOn)) {
-    message.answer_on = static_cast<long long>(json_message[MessageTable::AnswerOn]);
+    const auto &ans = json_message[MessageTable::AnswerOn];
+    if (ans.t() == crow::json::type::Number) {
+      message.answer_on = static_cast<long long>(ans.i());
+    } else if (ans.t() == crow::json::type::Null) {
+      message.answer_on.reset();
+    } else {
+      LOG_ERROR("Unexpected AnswerOn type");
+      message.answer_on.reset();
+    }
   } else {
     message.answer_on.reset();
   }
