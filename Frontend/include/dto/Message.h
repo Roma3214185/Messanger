@@ -25,6 +25,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
   std::optional<long long> receiver_reaction{std::nullopt};
   std::unordered_map<long long, int> reactions;
   QString local_id;
+  std::optional<long long> answer_on;
 
   void updateFrom(const Message& other) {  // todo: copy asign operator
     LOG_INFO("Update");
@@ -46,6 +47,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     status_sended = other.status_sended;
     receiver_reaction = other.receiver_reaction;
     reactions = other.reactions;
+    answer_on = other.answer_on;
     DBC_INVARIANT(checkInvariants());
   }
 
@@ -71,10 +73,19 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
     res += " | text = " + getFullText().toStdString();
     res += " | timestamp = " + timestamp.toString().toStdString();
     res += " | receiver_read_status = " + std::to_string(receiver_read_status + 0);
-    if (receiver_reaction.has_value())
+
+    if (receiver_reaction.has_value()) {
       res += " | my reaction id is = " + std::to_string(*receiver_reaction);
-    else
+    } else {
       res += " | no my reaction ";
+    }
+
+    if (answer_on.has_value()) {
+      res += " |answer_on = " + std::to_string(answer_on.value());
+    } else {
+      res += " | no answer_on ";
+    }
+
     res += " | read_counter = " + std::to_string(read_counter + 0);
     res += " | status_sended = " + std::to_string(status_sended + 0);
     res += " | local_id = " + local_id.toStdString();
@@ -102,7 +113,8 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
 
   bool checkInvariants() const noexcept {
     return id > 0 && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
-           !tokens.empty() && (!receiver_reaction.has_value() || receiver_reaction.value() > 0);
+           !tokens.empty() && (!receiver_reaction.has_value() || receiver_reaction.value() > 0) &&
+           (!answer_on.has_value() || answer_on.value() > 0);
   }
 };
 

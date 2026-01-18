@@ -27,7 +27,7 @@ class EntityFactory {
   explicit EntityFactory(TokenManager *token_manager) : token_manager_(token_manager) {}
 
   Message createMessage(long long chat_id, long long sender_id, const std::vector<MessageToken> &tokens,
-                        const QString &local_id, QDateTime timestamp = QDateTime::currentDateTime()) {
+                        const QString &local_id, std::optional<long long> answer_on = std::nullopt, QDateTime timestamp = QDateTime::currentDateTime()) {
     DBC_REQUIRE(!tokens.empty());
     DBC_REQUIRE(!local_id.isEmpty());
     DBC_REQUIRE(sender_id > 0);
@@ -39,7 +39,8 @@ class EntityFactory {
                     .receiver_id = token_manager_->getCurrentUserId(),
                     .status_sended = false,
                     .timestamp = timestamp,
-                    .local_id = local_id};
+                    .local_id = local_id,
+                    .answer_on = answer_on};
 
     // if(message.isMine()) {
     //   message.receiver_read_status = true;
@@ -78,6 +79,12 @@ class EntityFactory {
     if (obj.contains("text")) {
       QString text = obj["text"].toString();
       msg.tokens = utils::text::get_tokens_from_text(text);
+    }
+
+    if (obj.contains("answer_on")) {
+      msg.answer_on = obj["answer_on"].toInteger();
+    } else {
+      msg.answer_on.reset();
     }
 
     if (obj.contains("timestamp")) msg.timestamp = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
