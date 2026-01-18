@@ -222,16 +222,16 @@ void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &opt
   QRect contentRect = fullRect;
 
   if (msg.answer_on.has_value() && draw_answer_on) {
-    replyRect = QRect(fullRect.left(), fullRect.top(), fullRect.width(), replyHeight);
-
-    contentRect =
-        QRect(fullRect.left(), fullRect.top() + replyHeight, fullRect.width(), fullRect.height() - replyHeight);
-
-    QColor color = option.palette.color(QPalette::Base);
-    QColor darker = color.darker(110);
-    drawAnswerOnStatus(painter, replyRect, darker, data_manager_->getMessageById(msg.answer_on.value()), msg.id);
+    const auto answer_on_msg = data_manager_->getMessageById(msg.answer_on.value());
+    if (answer_on_msg) {
+      replyRect = QRect(fullRect.left(), fullRect.top(), fullRect.width(), replyHeight);
+      contentRect =
+          QRect(fullRect.left(), fullRect.top() + replyHeight, fullRect.width(), fullRect.height() - replyHeight);
+      QColor color = option.palette.color(QPalette::Base);
+      QColor darker = color.darker(110);
+      drawAnswerOnStatus(painter, replyRect, darker, *answer_on_msg, msg.id);
+    }
   }
-
   bool is_mine = msg.isMine();
 
   drawBackgroundState(painter, contentRect, option, is_mine);
@@ -427,13 +427,12 @@ std::optional<int> MessageDelegate::reactionAt(long long message_id, const QPoin
 }
 
 void MessageDelegate::drawAnswerOnStatus(QPainter *painter, QRect &recte, const QColor &color,
-                                         std::optional<Message> answer_on, long long message_id) const {
-  if (!answer_on || !draw_answer_on) {
+                                         const Message& answer_on_message, long long message_id) const {
+  if (!draw_answer_on) {
     DBC_UNREACHABLE();
     return;
   }
 
-  Message &answer_on_message = answer_on.value();
   DBC_REQUIRE(!answer_on_message.isOfflineSaved());
   DBC_REQUIRE(answer_on_message.id != message_id);
 

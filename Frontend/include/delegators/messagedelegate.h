@@ -52,7 +52,7 @@ class MessageDelegate : public QStyledItemDelegate {
   void addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, int reaction_id, long long message_id,
                  int &reaction_of_set) const;
 
-  void drawAnswerOnStatus(QPainter *painter, QRect &rect, const QColor &color, std::optional<Message> answer_on,
+  void drawAnswerOnStatus(QPainter *painter, QRect &rect, const QColor &color, const Message& answer_on_message,
                           long long message_id) const;
   int calculateTextHeight(const QString &text, int textWidth, const QFont &font) const;
 
