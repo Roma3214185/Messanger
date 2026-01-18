@@ -27,7 +27,8 @@ class EntityFactory {
   explicit EntityFactory(TokenManager *token_manager) : token_manager_(token_manager) {}
 
   Message createMessage(long long chat_id, long long sender_id, const std::vector<MessageToken> &tokens,
-                        const QString &local_id, std::optional<long long> answer_on = std::nullopt, QDateTime timestamp = QDateTime::currentDateTime()) {
+                        const QString &local_id, std::optional<long long> answer_on = std::nullopt,
+                        QDateTime timestamp = QDateTime::currentDateTime()) {
     DBC_REQUIRE(!tokens.empty());
     DBC_REQUIRE(!local_id.isEmpty());
     DBC_REQUIRE(sender_id > 0);

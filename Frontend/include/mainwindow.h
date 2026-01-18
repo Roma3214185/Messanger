@@ -76,7 +76,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setupUI();
   void openEmojiMenu();
   void onEmojiClicked(const ReactionInfo &emoji);
-  void scrollTo(const QModelIndex& index);
+  void scrollTo(const QModelIndex &index);
   void copyMessage(const Message &message);
   void editMessage(const Message &message);
   void deleteMessage(const Message &message);
@@ -88,7 +88,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setupSearchMessageListView();
   void setupEmojiMenu();
   void resetAnswerMode();
-  void setAnswerMode(const Message& message);
+  void setAnswerMode(const Message &message);
 
   void onMessageContextMenu(const QPoint &pos);
   void onReactionClicked(const QPoint &pos);

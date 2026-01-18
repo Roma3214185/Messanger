@@ -60,7 +60,8 @@ struct Builder<Message> {
 };
 
 inline constexpr auto MessageFields =
-    std::make_tuple(&Message::id, &Message::chat_id, &Message::sender_id, &Message::text, &Message::timestamp, &Message::local_id, &Message::answer_on);
+    std::make_tuple(&Message::id, &Message::chat_id, &Message::sender_id, &Message::text, &Message::timestamp,
+                    &Message::local_id, &Message::answer_on);
 
 template <>
 struct EntityFields<Message> {

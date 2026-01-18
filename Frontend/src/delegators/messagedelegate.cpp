@@ -7,7 +7,8 @@
 
 namespace {
 
-void fillCursorWithTokens(QTextCursor& cursor, DataManager& data_manager, const std::vector<MessageToken>& tokens, int emojiSize) { //todo: span??
+void fillCursorWithTokens(QTextCursor &cursor, DataManager &data_manager, const std::vector<MessageToken> &tokens,
+                          int emojiSize) {  // todo: span??
   for (const auto &token : tokens) {
     if (token.type == MessageTokenType::Text) {
       cursor.insertText(token.value);
@@ -82,9 +83,8 @@ QSize MessageDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     }
   }();
 
-
   constexpr int replyHeight = 30;
-  if(message.answer_on.has_value() && draw_answer_on) {
+  if (message.answer_on.has_value() && draw_answer_on) {
     kAdditionalSpace += replyHeight;
   }
 
@@ -96,11 +96,7 @@ QSize MessageDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
   return {bubble_width, height};
 }
 
-int MessageDelegate::calculateTextHeight(
-    const QString& text,
-    int textWidth,
-    const QFont& font
-    ) const {
+int MessageDelegate::calculateTextHeight(const QString &text, int textWidth, const QFont &font) const {
   QTextDocument doc;
   doc.setDefaultFont(font);
   doc.setTextWidth(textWidth);
@@ -108,7 +104,6 @@ int MessageDelegate::calculateTextHeight(
 
   return qCeil(doc.size().height());
 }
-
 
 void MessageDelegate::drawBackgroundState(QPainter *painter, const QRect &rect, const QStyleOptionViewItem &option,
                                           bool is_mine) const {
@@ -172,7 +167,8 @@ void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const std::
   painter->restore();
 }
 
-// void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &time, bool is_mine) const {
+// void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const QDateTime &time, bool is_mine) const
+// {
 //   QString timestamp = time.toString("hh:mm dd.MM");
 //   painter->setFont(QFont("Arial", 7));
 //   QRect timeRect;
@@ -194,15 +190,9 @@ void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const 
   constexpr int margin = 6;
 
   if (is_mine) {
-    timeRect = QRect(rect.left() + margin,
-                     rect.bottom() - 12,
-                     rect.width() - 2*margin,
-                     12);
+    timeRect = QRect(rect.left() + margin, rect.bottom() - 12, rect.width() - 2 * margin, 12);
   } else {
-    timeRect = QRect(rect.left() + margin,
-                     rect.bottom() - 12,
-                     rect.width() - 2*margin,
-                     12);
+    timeRect = QRect(rect.left() + margin, rect.bottom() - 12, rect.width() - 2 * margin, 12);
   }
 
   painter->drawText(timeRect, Qt::AlignRight | Qt::AlignVCenter, timestamp);
@@ -230,24 +220,15 @@ void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &opt
   QRect contentRect = fullRect;
 
   if (msg.answer_on.has_value() && draw_answer_on) {
-    replyRect = QRect(
-        fullRect.left(),
-        fullRect.top(),
-        fullRect.width(),
-        replyHeight
-        );
+    replyRect = QRect(fullRect.left(), fullRect.top(), fullRect.width(), replyHeight);
 
-    contentRect = QRect(
-        fullRect.left(),
-        fullRect.top() + replyHeight,
-        fullRect.width(),
-        fullRect.height() - replyHeight
-        );
+    contentRect =
+        QRect(fullRect.left(), fullRect.top() + replyHeight, fullRect.width(), fullRect.height() - replyHeight);
 
     QColor color = option.palette.color(QPalette::Base);
     QColor darker = color.darker(110);
     drawAnswerOnStatus(painter, replyRect, darker, data_manager_->getMessageById(msg.answer_on.value()), msg.id);
-    }
+  }
 
   bool is_mine = msg.isMine();
 
@@ -269,7 +250,7 @@ void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &opt
 void MessageDelegate::drawReactions(QPainter *painter, const QRect &rect,
                                     const std::unordered_map<long long, int> &reactions, std::optional<int> my_reaction,
                                     long long message_id) const {
-  if(!draw_reactions) return;
+  if (!draw_reactions) return;
   DBC_REQUIRE(message_id > 0);
   int offset = 30;
   for (const auto &[reaction_id, reaction_cnt] : reactions) {
@@ -344,9 +325,8 @@ void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect, cons
   constexpr int kLeftOffset = 10;
 
   // Use rect.left/top/bottom relative to translated rectangle
-  int x = is_mine ? rect.left() + kLeftOffset / 2
-                  : rect.right() - kLeftOffset - kSize;
-  int y = rect.bottom() - kTopOffset - kSize; // always relative to bottom of rect
+  int x = is_mine ? rect.left() + kLeftOffset / 2 : rect.right() - kLeftOffset - kSize;
+  int y = rect.bottom() - kTopOffset - kSize;  // always relative to bottom of rect
 
   QRect circle_rect(x, y, kSize, kSize);
 
@@ -365,7 +345,6 @@ void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect, cons
 
   painter->restore();
 }
-
 
 QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, std::optional<int> my_reaction,
                                           int reaction_id) const {
@@ -445,19 +424,14 @@ std::optional<int> MessageDelegate::reactionAt(long long message_id, const QPoin
   return std::nullopt;
 }
 
-void MessageDelegate::drawAnswerOnStatus(
-    QPainter* painter,
-    QRect& recte,
-    const QColor& color,
-    std::optional<Message> answer_on,
-    long long message_id) const
-{
+void MessageDelegate::drawAnswerOnStatus(QPainter *painter, QRect &recte, const QColor &color,
+                                         std::optional<Message> answer_on, long long message_id) const {
   if (!answer_on || !draw_answer_on) {
     DBC_UNREACHABLE();
     return;
   }
 
-  Message& answer_on_message = answer_on.value();
+  Message &answer_on_message = answer_on.value();
   DBC_REQUIRE(!answer_on_message.isOfflineSaved());
   DBC_REQUIRE(answer_on_message.id != message_id);
 
@@ -491,11 +465,8 @@ void MessageDelegate::drawAnswerOnStatus(
   body = bodyFm.elidedText(body, Qt::ElideRight, maxTextWidth);
 
   painter->setPen(QColor(60, 60, 60));
-  painter->drawText(
-      replyRect.adjusted(padding, padding + spacing, -padding, -padding),
-      Qt::AlignLeft | Qt::AlignTop,
-      body
-      );
+  painter->drawText(replyRect.adjusted(padding, padding + spacing, -padding, -padding), Qt::AlignLeft | Qt::AlignTop,
+                    body);
 
   recte.translate(0, replyHeight);
 

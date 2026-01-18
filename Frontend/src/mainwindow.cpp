@@ -301,14 +301,14 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   panel->show();
 }
 
-void MainWindow::setAnswerMode(const Message& message) {
-  if(message.isOfflineSaved()) return;
+void MainWindow::setAnswerMode(const Message &message) {
+  if (message.isOfflineSaved()) return;
   utils::clearLayout(ui->answer_on_layout);
   answer_on_message_ = message.id;
   auto list_view = new QListView(this);
-  auto* model = new MessageModel(this);
+  auto *model = new MessageModel(this);
   list_view->setModel(model);
-  auto* delegate = presenter_->getMessageDelegate(list_view);
+  auto *delegate = presenter_->getMessageDelegate(list_view);
   delegate->setDrawAnswerOn(false);
   delegate->setSaveHitboxes(false);
   delegate->setDrawReactions(false);
@@ -319,7 +319,7 @@ void MainWindow::setAnswerMode(const Message& message) {
   list_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   list_view->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
-  auto* cancel_button = new QPushButton(this);
+  auto *cancel_button = new QPushButton(this);
   cancel_button->setText("X");
 
   ui->answer_on_layout->addWidget(list_view);
@@ -440,7 +440,7 @@ void MainWindow::on_search_messages_line_edit_textChanged(const QString &prefix)
   }
 }
 
-void MainWindow::scrollTo(const QModelIndex& index) {
+void MainWindow::scrollTo(const QModelIndex &index) {
   if (!index.isValid()) {
     return;
   }

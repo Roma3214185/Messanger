@@ -62,7 +62,7 @@ inline void updateViewVisibility(QListView *view, QWidget *anchor, Direction dir
   view->show();
 }
 
-void clearLayout(QLayout* layout) {
+void clearLayout(QLayout *layout) {
   while (auto item = layout->takeAt(0)) {
     if (auto w = item->widget()) {
       w->deleteLater();

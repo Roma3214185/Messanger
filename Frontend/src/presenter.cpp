@@ -250,8 +250,10 @@ void Presenter::sendButtonClicked(QTextDocument *doc, std::optional<long long> a
   DBC_REQUIRE(doc != nullptr);
   // TODO: what if multithreaded will make here current_user is nullopt, after checking (?)
 
-  if(answer_on_message_id.has_value()) qDebug() << "Anwer on " << answer_on_message_id;
-  else qDebug() << "Message with no answer on";
+  if (answer_on_message_id.has_value())
+    qDebug() << "Anwer on " << answer_on_message_id;
+  else
+    qDebug() << "Message with no answer on";
 
   if (doc->isEmpty()) {
     LOG_WARN("Presenter receive to send empty text");

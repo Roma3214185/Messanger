@@ -171,7 +171,7 @@ bool SQLiteDatabase::executeSql(QSqlDatabase db, const QString &sql) {
 bool SQLiteDatabase::deleteTable(const QString &name) {
   const QString sql = QString("DROP TABLE IF EXISTS \"%1\"").arg(name);
   bool res = executeSql(db(), sql);
-  if(res) LOG_WARN("Deleted table: {}", name.toStdString());
+  if (res) LOG_WARN("Deleted table: {}", name.toStdString());
   return res;
 }
 

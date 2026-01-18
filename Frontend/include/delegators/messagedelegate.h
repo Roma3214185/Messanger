@@ -33,7 +33,7 @@ class MessageDelegate : public QStyledItemDelegate {
   [[nodiscard]] QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
  Q_SIGNALS:
-  void unreadMessage(Message &message) const; //todo: remove this signal
+  void unreadMessage(Message &message) const;  // todo: remove this signal
 
  private:
   void drawAll(QPainter *painter, const QStyleOptionViewItem &option, const Message &msg, const User &sender) const;
@@ -52,8 +52,9 @@ class MessageDelegate : public QStyledItemDelegate {
   void addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, int reaction_id, long long message_id,
                  int &reaction_of_set) const;
 
-  void drawAnswerOnStatus(QPainter *painter, QRect &rect, const QColor& color, std::optional<Message> answer_on, long long message_id) const;
-  int calculateTextHeight(const QString& text, int textWidth, const QFont& font) const;
+  void drawAnswerOnStatus(QPainter *painter, QRect &rect, const QColor &color, std::optional<Message> answer_on,
+                          long long message_id) const;
+  int calculateTextHeight(const QString &text, int textWidth, const QFont &font) const;
 
   DataManager *data_manager_;
   TokenManager *token_manager_;  // todo: can be delated

@@ -4,9 +4,9 @@
 #include <crow.h>  //TODO: remove crow from here
 
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <string>
 #include <tuple>
-#include <optional>
 
 #include "Debug_profiling.h"
 #include "Fields.h"
@@ -20,7 +20,7 @@ struct Message final {
   std::string text;
   std::string local_id;
   std::optional<long long> answer_on;
-  //todo: bool is_resented or std::optional<long long> resented_from
+  // todo: bool is_resented or std::optional<long long> resented_from
 
   Message() = default;
 
@@ -36,8 +36,10 @@ struct Message final {
     DBC_REQUIRE(checkInvariants());
   }
 
-  bool checkInvariants() const { return id > 0 && chat_id > 0 && sender_id > 0 && !text.empty() && timestamp != 0 &&
-                                        !local_id.empty() &&  (!answer_on.has_value() || answer_on.value() > 0); }
+  bool checkInvariants() const {
+    return id > 0 && chat_id > 0 && sender_id > 0 && !text.empty() && timestamp != 0 && !local_id.empty() &&
+           (!answer_on.has_value() || answer_on.value() > 0);
+  }
 };
 
 namespace nlohmann {
@@ -121,7 +123,7 @@ inline crow::json::wvalue to_crow_json(const Message &message) {
   json_message[MessageTable::Timestamp] = message.timestamp;
   json_message[MessageTable::LocalId] = message.local_id;
 
-  if(message.answer_on.has_value()) {
+  if (message.answer_on.has_value()) {
     json_message[MessageTable::AnswerOn] = message.answer_on.value();
   }
 

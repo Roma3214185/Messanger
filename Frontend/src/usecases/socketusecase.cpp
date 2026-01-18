@@ -69,7 +69,7 @@ void SocketUseCase::sendMessage(const Message& msg) {
                           {"local_id", msg.local_id}};
 
   if (msg.answer_on.has_value()) {
-    json["answer_on"] = msg.answer_on.value(); //todo: form Json In JsonService
+    json["answer_on"] = msg.answer_on.value();  // todo: form Json In JsonService
   }
 
   LOG_INFO("[sendMessage] To send message to chatId={} from user {}: '{}'", msg.chat_id, msg.sender_id,
@@ -80,7 +80,7 @@ void SocketUseCase::sendMessage(const Message& msg) {
 void SocketUseCase::sendReadMessageEvent(const Message& message, long long current_user_id) {
   // todo: maybe pass only id, not full Message
   auto json = QJsonObject{{"type", "read_message"}, {"message_id", message.id}, {"readed_by", current_user_id}};
-  //todo: readed_by -> receiver_id
+  // todo: readed_by -> receiver_id
 
   sendInSocket(json);
   // socket_manager_->sendText(QString(QString::fromUtf8(QJsonDocument(json).toJson(QJsonDocument::Compact))));

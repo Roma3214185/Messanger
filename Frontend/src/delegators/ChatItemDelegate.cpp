@@ -102,7 +102,7 @@ void ChatItemDelegate::drawLastMessage(QPainter *painter, const QRect &rect,
 
   painter->save();
   painter->translate(rect.left(), rect.top() + 40);
-  //painter->setClipRect(drawRect);
+  // painter->setClipRect(drawRect);
   doc.drawContents(painter, drawRect);
   painter->restore();
 }
