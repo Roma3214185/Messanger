@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
   initLogger("MessageService");
   QCoreApplication a(argc, argv);
   SQLiteDatabase bd("message_service_conn");
+
   if (!bd.initializeSchema()) {
     qFatal("Cannot initialise DB");
   }

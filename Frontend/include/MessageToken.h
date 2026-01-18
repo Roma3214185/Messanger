@@ -2,6 +2,8 @@
 #define MESSAGETOKEN_H
 
 #include <QString>
+#include <optional>
+
 #include "entities/ReactionInfo.h"
 
 enum class MessageTokenType { Text, Emoji };

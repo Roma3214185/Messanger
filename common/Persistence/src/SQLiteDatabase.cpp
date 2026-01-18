@@ -49,7 +49,8 @@ const QString CREATE_MESSAGES_TABLE = R"(
             sender_id INT,
             text TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            local_id TEXT
+            local_id TEXT,
+            answer_on INT NULL
         );
     )";
 
@@ -167,13 +168,15 @@ bool SQLiteDatabase::executeSql(QSqlDatabase db, const QString &sql) {
   return true;
 }
 
-bool SQLiteDatabase::deleteTable(QSqlDatabase db, const QString &name) {
+bool SQLiteDatabase::deleteTable(const QString &name) {
   const QString sql = QString("DROP TABLE IF EXISTS \"%1\"").arg(name);
-  return executeSql(db, sql);
+  bool res = executeSql(db(), sql);
+  if (res) LOG_WARN("Deleted table: {}", name.toStdString());
+  return res;
 }
 
-bool SQLiteDatabase::tableExists(QSqlDatabase db, const QString &table_name) {
-  QSqlQuery query(db);
+bool SQLiteDatabase::tableExists(const QString &table_name) {
+  QSqlQuery query(db());
   query.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?;");
   query.addBindValue(table_name);
   if (!query.exec()) return false;

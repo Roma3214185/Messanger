@@ -22,7 +22,7 @@ MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<Rea
 
   constexpr int itemHeight = 24;
   actionList_->setItemDelegate(new FixedHeightDelegate(itemHeight, actionList_));
-  actionModel_ = new QStringListModel({"Copy", "Edit", "Delete"}, this);
+  actionModel_ = new QStringListModel({"Copy", "Edit", "Delete", "Answer"}, this);
   actionList_->setModel(actionModel_);
 
   const int itemCount = actionModel_->rowCount();
@@ -69,6 +69,8 @@ void MessageActionPanel::onActionClicked(const QModelIndex &index) {
     Q_EMIT editClicked(msg_);
   else if (action == "Delete")
     Q_EMIT deleteClicked(msg_);
+  else if (action == "Answer")
+    Q_EMIT onAnswerClicked(msg_);
   else
     LOG_ERROR("Invalid action");
   this->close();

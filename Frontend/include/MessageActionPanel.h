@@ -32,6 +32,7 @@ class MessageActionPanel : public QWidget {
   void copyClicked(const Message &msg);
   void editClicked(const Message &msg);
   void deleteClicked(const Message &msg);
+  void onAnswerClicked(const Message &msg);
   void reactionClicked(const Message &msg, long long emojiId);
 
  private:

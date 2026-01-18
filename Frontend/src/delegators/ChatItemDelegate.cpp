@@ -37,6 +37,7 @@ ChatDrawData ChatItemDelegate::extractChatData(const QModelIndex &index) const {
 
 void ChatItemDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &option, const ChatDrawData &chat) const {
   QRect rect = option.rect.normalized();
+  rect.setHeight(65);
 
   drawBackgroundState(painter, rect, option);
   drawAvatar(painter, rect, QPixmap(chat.avatar_path));
@@ -101,7 +102,7 @@ void ChatItemDelegate::drawLastMessage(QPainter *painter, const QRect &rect,
 
   painter->save();
   painter->translate(rect.left(), rect.top() + 40);
-  painter->setClipRect(drawRect);
+  // painter->setClipRect(drawRect);
   doc.drawContents(painter, drawRect);
   painter->restore();
 }

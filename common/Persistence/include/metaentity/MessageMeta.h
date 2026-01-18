@@ -13,7 +13,8 @@ struct Reflection<Message> {
                            make_field<Message, long long>(MessageTable::ChatId, &Message::chat_id),
                            make_field<Message, std::string>(MessageTable::Text, &Message::text),
                            make_field<Message, long long>(MessageTable::Timestamp, &Message::timestamp),
-                           make_field<Message, std::string>(MessageTable::LocalId, &Message::local_id)}};
+                           make_field<Message, std::string>(MessageTable::LocalId, &Message::local_id),
+                           make_field<Message, std::optional<long long>>(MessageTable::AnswerOn, &Message::answer_on)}};
   }
 };
 
@@ -26,7 +27,14 @@ struct Builder<Message> {
     auto assign = [&](auto &field) -> void {
       using TField = std::decay_t<decltype(field)>;
       const QVariant value = query.value(idx++);
-      if constexpr (std::is_same_v<TField, long long>) {
+
+      if constexpr (std::is_same_v<TField, std::optional<long long>>) {
+        if (value.isNull()) {
+          field = std::nullopt;
+        } else {
+          field = value.toLongLong();
+        }
+      } else if constexpr (std::is_same_v<TField, long long>) {
         field = value.toLongLong();
       } else if constexpr (std::is_same_v<TField, int>) {
         field = value.toInt();
@@ -45,13 +53,15 @@ struct Builder<Message> {
     assign(message.timestamp);
     assign(message.text);
     assign(message.local_id);
+    assign(message.answer_on);
 
     return message;
   }
 };
 
 inline constexpr auto MessageFields =
-    std::make_tuple(&Message::id, &Message::chat_id, &Message::sender_id, &Message::text, &Message::timestamp);
+    std::make_tuple(&Message::id, &Message::chat_id, &Message::sender_id, &Message::text, &Message::timestamp,
+                    &Message::local_id, &Message::answer_on);
 
 template <>
 struct EntityFields<Message> {

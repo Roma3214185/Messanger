@@ -22,17 +22,18 @@ using ReactionHitBoxes = std::vector<ReactionHitBox>;
 
 class MessageDelegate : public QStyledItemDelegate {
   Q_OBJECT
-  DataManager *data_manager_;
-  TokenManager *token_manager_;  // todo: can be delated
-  mutable std::unordered_map<MessageId, ReactionHitBoxes> hit_boxes_by_message_;
-
  public:
-  MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent = nullptr)
-      : data_manager_(data_manager), token_manager_(token_manager) {}
+  MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent = nullptr);
 
+  void setDrawReactions(bool status) { draw_reactions = status; }
+  void setDrawAnswerOn(bool status) { draw_answer_on = status; }
+  void setSaveHitboxes(bool status) { draw_hit_boxes = status; }
   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
   std::optional<int> reactionAt(long long messageId, const QPoint &pos) const;
   [[nodiscard]] QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
+ Q_SIGNALS:
+  void unreadMessage(Message &message) const;  // todo: remove this signal
 
  private:
   void drawAll(QPainter *painter, const QStyleOptionViewItem &option, const Message &msg, const User &sender) const;
@@ -51,9 +52,16 @@ class MessageDelegate : public QStyledItemDelegate {
   void addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, int reaction_id, long long message_id,
                  int &reaction_of_set) const;
 
- Q_SIGNALS:
-  void unreadMessage(Message &message) const;
-  // todo: this signal have to me in QlistView
+  void drawAnswerOnStatus(QPainter *painter, QRect &rect, const QColor &color, std::optional<Message> answer_on,
+                          long long message_id) const;
+  int calculateTextHeight(const QString &text, int textWidth, const QFont &font) const;
+
+  DataManager *data_manager_;
+  TokenManager *token_manager_;  // todo: can be delated
+  mutable std::unordered_map<MessageId, ReactionHitBoxes> hit_boxes_by_message_;
+  bool draw_reactions = true;
+  bool draw_answer_on = true;
+  bool draw_hit_boxes = true;
 };
 
 #endif  // CHATDELEGATE_H

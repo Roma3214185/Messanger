@@ -54,7 +54,7 @@ void ChatModel::addChat(const ChatPtr &chat) {
 }
 
 void ChatModel::sortChats() {
-  beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
+  Q_EMIT layoutAboutToBeChanged();
   std::sort(chats_.begin(), chats_.end(), [&](const auto &chat1, const auto &chat2) {
     // todo: add 'pined' status
     if (!chat1->last_message.has_value()) return true;
@@ -62,7 +62,7 @@ void ChatModel::sortChats() {
 
     return chat1->last_message->timestamp > chat2->last_message->timestamp;
   });
-  endInsertRows();
+  Q_EMIT layoutChanged();
 }
 
 void ChatModel::updateChatInfo(const long long chat_id, const std::optional<Message> &message

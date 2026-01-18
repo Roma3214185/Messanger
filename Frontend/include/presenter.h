@@ -38,7 +38,7 @@ class Presenter : public QObject {
   void onChatClicked(const long long chat_id);
   void findUserRequest(const QString &text);
   void onUserClicked(const long long user_id, const bool is_user = true);
-  void sendButtonClicked(QTextDocument *doc);
+  void sendButtonClicked(QTextDocument *doc, std::optional<long long> answer_on_message_id);
   void onLogOutButtonClicked();
   void onScroll(int value);
   void onUnreadMessage(Message &message);

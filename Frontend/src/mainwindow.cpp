@@ -167,8 +167,9 @@ void MainWindow::on_textEdit_textChanged() {
 }
 
 void MainWindow::on_sendButton_clicked() {
-  presenter_->sendButtonClicked(ui->textEdit->document());
+  presenter_->sendButtonClicked(ui->textEdit->document(), answer_on_message_);
   ui->textEdit->clear();
+  resetAnswerMode();
 }
 
 void MainWindow::clearFindUserEdit() { ui->userTextEdit->clear(); }
@@ -290,6 +291,7 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
   auto *panel = new MessageActionPanel(msg, reactions, this);
   panel->move(message_list_view_->viewport()->mapToGlobal(pos));
 
+  connect(panel, &MessageActionPanel::onAnswerClicked, this, &MainWindow::setAnswerMode);
   connect(panel, &MessageActionPanel::copyClicked, this, &MainWindow::copyMessage);
   connect(panel, &MessageActionPanel::editClicked, this, &MainWindow::editMessage);
   connect(panel, &MessageActionPanel::deleteClicked, this, &MainWindow::deleteMessage);
@@ -297,6 +299,39 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
           [this](const Message &m, long long reaction_id) { presenter_->reactionClicked(m, reaction_id); });
 
   panel->show();
+}
+
+void MainWindow::setAnswerMode(const Message &message) {
+  if (message.isOfflineSaved()) return;
+  utils::clearLayout(ui->answer_on_layout);
+  answer_on_message_ = message.id;
+  auto list_view = new QListView(this);
+  auto *model = new MessageModel(this);
+  list_view->setModel(model);
+  auto *delegate = presenter_->getMessageDelegate(list_view);
+  delegate->setDrawAnswerOn(false);
+  delegate->setSaveHitboxes(false);
+  delegate->setDrawReactions(false);
+
+  model->saveMessage(message);
+  list_view->setItemDelegate(delegate);
+  list_view->setFixedHeight(70);
+  list_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  list_view->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+  auto *cancel_button = new QPushButton(this);
+  cancel_button->setText("X");
+
+  ui->answer_on_layout->addWidget(list_view);
+  ui->answer_on_layout->addWidget(cancel_button);
+
+  connect(cancel_button, &QPushButton::clicked, this, &MainWindow::resetAnswerMode);
+  connect(list_view, &QListView::clicked, this, &MainWindow::scrollTo);
+}
+
+void MainWindow::resetAnswerMode() {
+  utils::clearLayout(ui->answer_on_layout);
+  answer_on_message_.reset();
 }
 
 void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << message.toString(); }
@@ -405,11 +440,25 @@ void MainWindow::on_search_messages_line_edit_textChanged(const QString &prefix)
   }
 }
 
+void MainWindow::scrollTo(const QModelIndex &index) {
+  if (!index.isValid()) {
+    return;
+  }
+
+  long long messageId = index.data(MessageModel::MessageIdRole).toLongLong();
+  QModelIndex target = findIndexByMessageId(message_list_view_->model(), messageId);
+  if (!target.isValid()) return;
+
+  message_list_view_->scrollTo(target, QAbstractItemView::PositionAtCenter);
+  message_list_view_->setCurrentIndex(target);
+}
+
 void MainWindow::on_serch_messages_list_view_clicked(const QModelIndex &index) {
   if (!index.isValid()) {
     return;
   }
 
+  scrollTo(index);
   long long messageId = index.data(MessageModel::MessageIdRole).toLongLong();
   QModelIndex target = findIndexByMessageId(message_list_view_->model(), messageId);
   if (!target.isValid()) return;

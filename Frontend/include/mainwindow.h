@@ -76,7 +76,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setupUI();
   void openEmojiMenu();
   void onEmojiClicked(const ReactionInfo &emoji);
-
+  void scrollTo(const QModelIndex &index);
   void copyMessage(const Message &message);
   void editMessage(const Message &message);
   void deleteMessage(const Message &message);
@@ -87,6 +87,8 @@ class MainWindow : public QMainWindow, public IMainWindow {
   void setupUserListView();
   void setupSearchMessageListView();
   void setupEmojiMenu();
+  void resetAnswerMode();
+  void setAnswerMode(const Message &message);
 
   void onMessageContextMenu(const QPoint &pos);
   void onReactionClicked(const QPoint &pos);
@@ -100,6 +102,7 @@ class MainWindow : public QMainWindow, public IMainWindow {
   std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which
                                              // Message will be
   std::unique_ptr<MessageModel> searchResultsModel_;
+  std::optional<long long> answer_on_message_;
 
   ClickOutsideClosableListView *userListView_ = nullptr;
   ClickOutsideClosableListView *searchMessageListView_ = nullptr;

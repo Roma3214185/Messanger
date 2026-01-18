@@ -12,6 +12,7 @@ inline static constexpr const char *Timestamp = "timestamp";
 inline static constexpr const char *SenderId = "sender_id";
 inline static constexpr const char *Text = "text";
 inline static constexpr const char *LocalId = "local_id";
+inline static constexpr const char *AnswerOn = "answer_on";
 
 static std::string fullField(const std::string &field) { return std::string(Table) + "." + field; }
 
