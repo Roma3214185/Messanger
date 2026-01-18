@@ -40,6 +40,41 @@ struct Message final {
                                         !local_id.empty() &&  (!answer_on.has_value() || answer_on.value() > 0); }
 };
 
+namespace nlohmann {
+
+template <>
+struct adl_serializer<Message> {
+  static void to_json(nlohmann::json &json_message, const Message &message) {
+    json_message = nlohmann::json{{MessageTable::Id, message.id},
+                                  {MessageTable::ChatId, message.chat_id},
+                                  {MessageTable::SenderId, message.sender_id},
+                                  {MessageTable::Text, message.text},
+                                  {MessageTable::Timestamp, message.timestamp},
+                                  {MessageTable::LocalId, message.local_id}};
+
+    if (message.answer_on.has_value()) {
+      json_message[MessageTable::AnswerOn] = *message.answer_on;
+    }
+  }
+
+  static void from_json(const nlohmann::json &json_message, Message &message) {
+    json_message.at(MessageTable::Id).get_to(message.id);
+    json_message.at(MessageTable::ChatId).get_to(message.chat_id);
+    json_message.at(MessageTable::SenderId).get_to(message.sender_id);
+    json_message.at(MessageTable::Text).get_to(message.text);
+    json_message.at(MessageTable::Timestamp).get_to(message.timestamp);
+    json_message.at(MessageTable::LocalId).get_to(message.local_id);
+
+    if (json_message.contains(MessageTable::AnswerOn)) {
+      message.answer_on = json_message.at(MessageTable::AnswerOn).get<long long>();
+    } else {
+      message.answer_on.reset();
+    }
+  }
+};
+
+}  // namespace nlohmann
+
 namespace utils::entities {
 
 inline Message from_crow_json(const crow::json::rvalue &json_message) {
@@ -70,10 +105,14 @@ inline Message from_crow_json(const crow::json::rvalue &json_message) {
     message.answer_on.reset();
   }
 
+  LOG_INFO("From crow get message: {}", nlohmann::json(message).dump());
+
   return message;
 }
 
 inline crow::json::wvalue to_crow_json(const Message &message) {
+  LOG_INFO("To crow set message: {}", nlohmann::json(message).dump());
+
   crow::json::wvalue json_message;
   json_message[MessageTable::Id] = message.id;
   json_message[MessageTable::ChatId] = message.chat_id;
@@ -92,38 +131,5 @@ inline crow::json::wvalue to_crow_json(const Message &message) {
 }
 
 }  // namespace utils::entities
-
-namespace nlohmann {
-
-template <>
-struct adl_serializer<Message> {
-  static void to_json(nlohmann::json &json_message, const Message &message) {
-    json_message = nlohmann::json{{MessageTable::Id, message.id},
-                                  {MessageTable::ChatId, message.chat_id},
-                                  {MessageTable::SenderId, message.sender_id},
-                                  {MessageTable::Text, message.text},
-                                  {MessageTable::Timestamp, message.timestamp},
-                                  {MessageTable::LocalId, message.local_id}};
-
-    if (message.answer_on.has_value()) {
-      json_message[MessageTable::AnswerOn] = *message.answer_on;
-    }
-  }
-
-  static void from_json(const nlohmann::json &json_message, Message &message) {
-    json_message.at(MessageTable::Id).get_to(message.id);
-    json_message.at(MessageTable::ChatId).get_to(message.chat_id);
-    json_message.at(MessageTable::SenderId).get_to(message.sender_id);
-    json_message.at(MessageTable::Text).get_to(message.text);
-    json_message.at(MessageTable::Timestamp).get_to(message.timestamp);
-    json_message.at(MessageTable::LocalId).get_to(message.local_id);
-
-    if(message.answer_on.has_value()) {
-      json_message.at(MessageTable::AnswerOn).get_to(message.answer_on.value());
-    }
-  }
-};
-
-}  // namespace nlohmann
 
 #endif  // BACKEND_MESSAGESERVICE_HEADERS_MESSAGE_H_
