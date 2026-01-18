@@ -76,7 +76,9 @@ QSize MessageDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
   auto message = [&]() -> Message {
     try {
       auto value_message = index.data(MessageModel::FullMessage);
-      value_message.canConvert<Message>();
+      if (!value_message.canConvert<Message>()) {
+        throw std::runtime_error("Cannot convert to Message");
+      }
       return value_message.value<Message>();
     } catch (...) {
       throw std::runtime_error("Message in invalid in extractMessageData");
