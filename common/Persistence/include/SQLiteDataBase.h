@@ -59,8 +59,8 @@ class SQLiteDatabase : public IDataBase {
 
   bool initializeSchema();
 
-  bool tableExists(QSqlDatabase db, const QString &table_name);
-  bool deleteTable(QSqlDatabase db, const QString &name);
+  bool tableExists(const QString &table_name);
+  bool deleteTable(const QString &name);
 
  protected:
   bool executeSql(QSqlDatabase db, const QString &sql);

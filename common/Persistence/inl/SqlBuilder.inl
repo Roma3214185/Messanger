@@ -5,6 +5,16 @@
 #include "Meta.h"
 #include "SqlBuilder.h"
 
+namespace {
+
+template <typename T>
+QVariant optionalToVariant(const std::optional<T>& opt) {
+  return opt.has_value() ? QVariant::fromValue(opt.value()) : QVariant();
+  // if (!opt.has_value())
+  //   return QVariant(); // NULL
+  // return QVariant::fromValue(*opt);
+}
+
 template <EntityJson T>
 QVariant toVariant(const Field& f, const T& entity) {
   std::any val = f.get(&entity);
@@ -19,13 +29,22 @@ QVariant toVariant(const Field& f, const T& entity) {
     return static_cast<int>(std::any_cast<bool>(val));
   if (f.type == typeid(int))
     return QVariant::fromValue(std::any_cast<int>(val));
+  if (f.type == typeid(std::optional<long long>))
+    return optionalToVariant(std::any_cast<std::optional<long long>>(val));
 
   LOG_ERROR("iNvalid toVariant {}", f.type.name());
   return {};
 }
 
+} // namespace
 template <EntityJson T>
 std::any SqlBuilder::getFieldValue(const QVariant& v, const Field& f) {
+  if (f.type == typeid(std::optional<long long>)) {
+    if (v.isNull())
+      return std::any(std::optional<long long>{});
+    return std::any(std::optional<long long>{v.toLongLong()});
+  }
+
   if (!v.isValid()) {
     LOG_ERROR("v.isValid == false");
     return {};
