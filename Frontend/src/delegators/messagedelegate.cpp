@@ -427,7 +427,7 @@ std::optional<int> MessageDelegate::reactionAt(long long message_id, const QPoin
 }
 
 void MessageDelegate::drawAnswerOnStatus(QPainter *painter, QRect &recte, const QColor &color,
-                                         const Message& answer_on_message, long long message_id) const {
+                                         const Message &answer_on_message, long long message_id) const {
   if (!draw_answer_on) {
     DBC_UNREACHABLE();
     return;
