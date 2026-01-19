@@ -2,11 +2,11 @@ name: CodeQL analysis
 
 on:
   push:
-    #branches: [ main ]
-  pull_request:
     branches: [ main ]
+  pull_request:
+    #branches: [ main ]
   schedule:
-    - cron: '38 0 * * 5'
+    - cron: '0 20 * * 1'
 
 jobs:
   build-and-test:
@@ -53,7 +53,7 @@ jobs:
           brew uninstall --ignore-dependencies protobuf || true
       # Initialize CodeQL
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v3
         with:
           languages: cpp
 
@@ -90,4 +90,4 @@ jobs:
 
       # Perform CodeQL analysis
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@v3

@@ -19,13 +19,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Crow)
 
+set(OPENSSL_USE_STATIC_LIBS ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Sql Widgets Gui)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SODIUM REQUIRED libsodium)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(SODIUM REQUIRED libsodium)
+find_package(unofficial-sodium CONFIG REQUIRED)
 
-link_directories(/opt/homebrew/lib /usr/local/lib)
+#link_directories(/opt/homebrew/lib /usr/local/lib)
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
@@ -33,7 +35,7 @@ add_library(AuthServiceCore STATIC ${MY_SOURCES})
 
 target_include_directories(AuthServiceCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${SODIUM_INCLUDE_DIRS}
+    #${SODIUM_INCLUDE_DIRS}
 )
 
 enable_clang_tidy(AuthServiceCore)
@@ -46,11 +48,12 @@ target_compile_options(AuthServiceCore PRIVATE -Wno-deprecated-declarations)
 target_link_libraries(AuthServiceCore PUBLIC
     Qt6::Core Qt6::Sql Qt6::Widgets Qt6::Gui
     OpenSSL::SSL OpenSSL::Crypto
-    ${SODIUM_LIBRARIES}
+    #${SODIUM_LIBRARIES}
+    unofficial-sodium::sodium
     Crow::Crow
     jwt-cpp
     Metrics
-    sodium
+    #sodium
     Constants
     Entities
     Network
