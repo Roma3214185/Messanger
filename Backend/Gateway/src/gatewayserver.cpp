@@ -92,39 +92,26 @@ void GatewayServer::registerRoutes() {
 void GatewayServer::registerRoute(const std::string &base_path, int port) {
   app_.route_dynamic(base_path + "/<path>")
       .methods("GET"_method, crow::HTTPMethod::DELETE, crow::HTTPMethod::PUT)(
-          [this, port, base_path](const crow::request &req, crow::response &res, std::string path) {
-            // pool_->enqueue([this, req = std::move(req), &res, port,
-            // base_path, path]() mutable {
+          [this, port, base_path](const crow::request &req, crow::response &res,
+                                  std::string path /*NOLINT(performance-unnecessary-value-param)*/) {
             handleProxyRequest(req, res, port, base_path + "/" + path);
-            // TODO: res.end() here or in handleProxyRequest
-            // TODO: make async
-            // });
           });
 
   app_.route_dynamic(base_path + "/<path>")
-      .methods("POST"_method)([this, port, base_path](const crow::request &req, crow::response &res, std::string path) {
-        // pool_->enqueue([this, req = std::move(req), &res, port, base_path,
-        // path]() mutable {
-        handlePostRequest(req, res, port, base_path + "/" + path);
-        // TODO: res.end() here or in handleProxyRequest
-        // TODO: make async
-        //  });
-      });
+      .methods("POST"_method)(
+          [this, port, base_path](const crow::request &req, crow::response &res,
+                                  std::string path /*NOLINT(performance-unnecessary-value-param)*/) {
+            handlePostRequest(req, res, port, base_path + "/" + path);
+          });
 
   app_.route_dynamic(base_path).methods("GET"_method, crow::HTTPMethod::DELETE, crow::HTTPMethod::PUT)(
       [this, port, base_path](const crow::request &req, crow::response &res) {
-        // pool_->enqueue([this, req = std::move(req), &res, port, base_path]()
-        // mutable {
         handleProxyRequest(req, res, port, base_path);
-        //});
       });
 
   app_.route_dynamic(base_path).methods("POST"_method)(
       [this, port, base_path](const crow::request &req, crow::response &res) {
-        // pool_->enqueue([this, req = std::move(req), &res, port, base_path]()
-        // mutable {
         handlePostRequest(req, res, port, base_path);
-        //});
       });
 }
 

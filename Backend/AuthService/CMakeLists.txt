@@ -19,7 +19,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Crow)
 
-set(OPENSSL_USE_STATIC_LIBS ON)
+#set(OPENSSL_USE_STATIC_LIBS ON)
+find_package(OpenSSL REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Sql Widgets Gui)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -38,10 +39,25 @@ target_include_directories(AuthServiceCore PUBLIC
     #${SODIUM_INCLUDE_DIRS}
 )
 
-enable_clang_tidy(AuthServiceCore)
-enable_cppcheck(AuthServiceCore)
-enable_iwyu(AuthServiceCore)
-enable_sanitizers(AuthServiceCore)
+if(ENABLE_CLANG_TIDY)
+    enable_clang_tidy(AuthServiceCore)
+endif()
+
+if(ENABLE_CPPCHECK)
+    enable_cppcheck(AuthServiceCore)
+endif()
+
+if(ENABLE_INCLUDE_WHAT_YOU_USE)
+    enable_iwyu(AuthServiceCore)
+endif()
+
+if(ENABLE_SANITIZER_ADDRESS OR ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
+    enable_sanitizers(AuthServiceCore)
+endif()
+
+if(ENABLE_CLANG_FORMAT)
+    enable_clang_format(AuthServiceCore)
+endif()
 
 target_compile_options(AuthServiceCore PRIVATE -Wno-deprecated-declarations)
 

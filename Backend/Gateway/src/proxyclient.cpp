@@ -1,14 +1,12 @@
 #include "proxyclient.h"
 
-using namespace std;
-
 constexpr int kBadGatewayCode = 502;
-const string kBadGatewayMessage = "Bad Gateway: downstream no response";
+const std::string kBadGatewayMessage = "Bad Gateway: downstream no response";
 
 namespace {
 
-string getFullPath(const RequestDTO &request_info) {
-  string full_path = request_info.path;
+std::string getFullPath(const RequestDTO &request_info) {
+  std::string full_path = request_info.path;
   // auto   keys      = req.url_params.keys();
   // if (!keys.empty()) {
   //   full_path += "?";
@@ -33,11 +31,11 @@ httplib::Headers getHeaders(const RequestDTO &request_info) {
   return headers;
 }
 
-std::string get_host_with_port(int port) { return "localhost:" + to_string(port); }
+std::string get_host_with_port(int port) { return "localhost:" + std::to_string(port); }
 
 httplib::Params getParams(const std::unordered_map<std::string, std::string> &map) {
   httplib::Params params;
-  for (auto [k, v] : map) params.emplace(k, v);
+  for (const auto &[k, v] : map) params.emplace(k, v);
   return params;
 }
 

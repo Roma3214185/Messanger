@@ -292,7 +292,7 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
     std::vector<MessageStatus> message_statuses = getReadedMessageStatuses(message.id);
     UserMessage user_message;
     user_message.message = message;
-    user_message.read.count = message_statuses.size();
+    user_message.read.count = static_cast<int>(message_statuses.size());
 
     bool is_read_by_me = false;
     for (auto &message_status : message_statuses) {
@@ -383,8 +383,9 @@ Response Controller::setup() {  // todo: here subscribers
     return std::make_pair(Config::StatusCodes::serverError, "Failed while loading reactions");
   }
 
-  if (!manager_->saveMessageReactionInfo(reactions.value()))
+  if (!manager_->saveMessageReactionInfo(reactions.value())) {
     return std::make_pair(Config::StatusCodes::serverError, "Failed to save reactions");
+  }
 
   return std::make_pair(Config::StatusCodes::success, "Setup is correct");
 }

@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.22)
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        CACHE FILEPATH "vcpkg toolchain file")
-endif()
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    CACHE FILEPATH "vcpkg toolchain file")
+
 set(VCPKG_TARGET_TRIPLET arm64-osx)
+
+set(QT_CREATOR_SKIP_VCPKG_SETUP ON CACHE BOOL "Skip Qt Creator vcpkg auto-setup")
+
+set(VCPKG_INSTALLED_DIR
+    "${CMAKE_SOURCE_DIR}/vcpkg_installed"
+    CACHE PATH "vcpkg install directory")
 
 project(Chat LANGUAGES CXX)
 
@@ -36,9 +41,13 @@ set(WITH_PROMETHEUS OFF)
 set(WITH_ZIPKIN OFF)
 set(BUILD_TESTING OFF)
 set(WITH_EXAMPLES OFF)
-#set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 
 add_definitions(-DQT_NO_KEYWORDS -DCROW_USE_ASIO)
+
+set(Protobuf_ROOT
+    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}"
+    CACHE PATH "")
 
 # -------------------------
 # Global INTERFACE target for warnings, sanitizers, PCH
@@ -56,6 +65,13 @@ add_library(ProjectOptions INTERFACE)
 # endif()
 
 option(ENABLE_WARNINGS "Enable compiler warnings" OFF)
+option(ENABLE_CLANG_FORMAT "Enable clang format" OFF)
+option(ENABLE_CLANG_TIDY "Enable clang tidy" ON)
+option(ENABLE_CPPCHECK "Enable cpp check" OFF)
+option(ENABLE_INCLUDE_WHAT_YOU_USE "Enable include what you use" OFF)
+set(ENABLE_SANITIZER_ADDRESS ON CACHE BOOL "" FORCE)
+set(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR ON CACHE BOOL "" FORCE)
+
 if (ENABLE_WARNINGS)
     include(cmake/CompilerWarnings.cmake)
     set_project_warnings(ProjectOptions)
@@ -80,22 +96,18 @@ target_include_directories(ProjectOptions
 # Static analyzers
 # -------------------------
 include(cmake/StaticAnalyzers.cmake)
+include(cmake/ClangFormat.cmake)
 
 # -------------------------
 # Sanitizers
 # -------------------------
-set(ENABLE_SANITIZER_ADDRESS ON CACHE BOOL "" FORCE)
-set(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR ON CACHE BOOL "" FORCE)
+set(CLANG_TIDY_EXE "/opt/homebrew/opt/llvm/bin/clang-tidy")
 include(cmake/Sanitizers.cmake)
 
 # -------------------------
 # Submodules
 # -------------------------
-add_subdirectory(external/IXWebSocket)
-add_subdirectory(external/jwt-cpp)
-add_subdirectory(external/tracy)
-add_subdirectory(external/SimpleAmqpClient)
-add_subdirectory(external/prometheus-cpp)
+add_subdirectory(external)
 
 # -------------------------
 # Common Libraries
@@ -133,14 +145,14 @@ if (DEFINED TARGET)
     endif()
 
     add_subdirectory(Backend/${TARGET})
-    target_link_libraries(${TARGET} INTERFACE ProjectOptions)
+    target_link_libraries(${TARGET} PRIVATE ProjectOptions)
 
 else()
     message(STATUS "Building ALL targets")
 
     foreach(service ${ALL_SERVICES})
         add_subdirectory(Backend/${service})
-        target_link_libraries(${service} INTERFACE ProjectOptions)
+        target_link_libraries(${service} PRIVATE ProjectOptions)
     endforeach()
 
     # Frontend

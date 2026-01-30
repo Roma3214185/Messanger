@@ -5,7 +5,7 @@
 
 void SocketsManager::saveConnections(UserId user_id, SocketPtr socket) {
   std::scoped_lock lock(ws_mutex_);
-  user_sockets_[user_id] = socket;
+  user_sockets_[user_id] = std::move(socket);
 }
 
 void SocketsManager::deleteConnections(SocketPtr conn_to_delete) {  // todo: on close user send message (e.g "deinit")

@@ -152,7 +152,7 @@ void NotificationManager::handleOnMessageDeleted(const std::string &payload) {
 void NotificationManager::deleteConnections(const SocketPtr &socket) { socket_manager_->deleteConnections(socket); }
 
 void NotificationManager::userConnected(long long user_id, SocketPtr socket) {
-  socket_manager_->saveConnections(user_id, socket);
+  socket_manager_->saveConnections(user_id, std::move(socket));
   // notify users who communicate with this user
 }
 
@@ -219,7 +219,7 @@ std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {
 }
 
 bool NotificationManager::notifyMember(long long user_id, nlohmann::json json_message,
-                                       const std::string type) {  // todo: implement enum
+                                       std::string type) {  // todo: implement enum
   auto socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {

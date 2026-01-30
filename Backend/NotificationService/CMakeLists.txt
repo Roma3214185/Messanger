@@ -25,10 +25,25 @@ FetchContent_MakeAvailable(Crow)
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(NotificationServiceCore STATIC ${MY_SOURCES})
 
-enable_clang_tidy(NotificationServiceCore)
-enable_cppcheck(NotificationServiceCore)
-enable_iwyu(NotificationServiceCore)
-enable_sanitizers(NotificationServiceCore)
+if(ENABLE_CLANG_TIDY)
+    enable_clang_tidy(NotificationServiceCore)
+endif()
+
+if(ENABLE_CPPCHECK)
+    enable_cppcheck(NotificationServiceCore)
+endif()
+
+if(ENABLE_INCLUDE_WHAT_YOU_USE)
+    enable_iwyu(NotificationServiceCore)
+endif()
+
+if(ENABLE_SANITIZER_ADDRESS OR ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
+    enable_sanitizers(NotificationServiceCore)
+endif()
+
+if(ENABLE_CLANG_FORMAT)
+    enable_clang_format(NotificationServiceCore)
+endif()
 
 target_include_directories(NotificationServiceCore PUBLIC
     ${NOTIFICATION_SERVICE_INCLUDE_DIR}
@@ -56,6 +71,7 @@ add_executable(NotificationService
     Dockerfile
     include/handlers/SaveMessageReaction.h
     include/handlers/DeleteMessageReaction.h
+    src/handlers/DeleteMessageReactionHandler.cpp
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore)

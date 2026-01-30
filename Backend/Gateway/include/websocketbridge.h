@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WEB_SOCKET_BRIDGE
+#define WEB_SOCKET_BRIDGE
 
 #include <crow.h>
 #include <ixwebsocket/IXWebSocket.h>
@@ -27,3 +28,5 @@ class WebSocketBridge {
 
   BackendSocket createBackendConnection(const ClientId &client_id);
 };
+
+#endif // WEB_SOCKET_BRIDGE

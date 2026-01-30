@@ -18,13 +18,14 @@
     "qtbase",
     "qtwebsockets",
     "fmt",
+    "protobuf",
     {
         "name": "opentelemetry-cpp",
         "features": [
             "otlp-grpc"
         ]
     },
-    "protobuf",
-    "grpc"
+    "grpc",
+    "tracy"
   ]
 }

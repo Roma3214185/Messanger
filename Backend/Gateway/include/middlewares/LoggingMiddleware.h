@@ -38,9 +38,8 @@ struct LoggingMiddleware {
 
   template <typename ParentCtx>
   void after_handle(const crow::request &req, crow::response &res, context &ctx, ParentCtx & /*unused*/) {
-    using namespace std::chrono;
-    auto duration = steady_clock::now() - ctx.start_time;
-    auto ms = duration_cast<milliseconds>(duration).count();
+    auto duration = std::chrono::steady_clock::now() - ctx.start_time;
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
     nlohmann::json json;
     json["request_id"] = ctx.request_id;

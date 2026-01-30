@@ -130,7 +130,7 @@ std::vector<ID> ChatManager::getMembersOfChat(ID chat_id) {
   // TODO: make select only id of chat_members
   LOG_INFO("[getMembersOfChat] for chat_id {} finded {} members", chat_id, chat_members.size());
   std::vector<ID> chat_members_id;
-  for (auto member : chat_members) {
+  for (const auto &member : chat_members) {
     if (!checkIdValid(member.user_id)) {
       LOG_ERROR("Chat member with invalid id: {}", nlohmann::json(member).dump());
     } else {
@@ -147,6 +147,7 @@ std::vector<ID> ChatManager::getChatsIdOfUser(ID user_id) {
   LOG_INFO("chats_where_user {} is member is {} size", user_id, (int)chats_where_user_member.size());
 
   std::vector<ID> ids;
+  ids.reserve(chats_where_user_member.size());
   for (const auto &member : chats_where_user_member) ids.push_back(member.chat_id);
 
   return ids;
@@ -154,7 +155,7 @@ std::vector<ID> ChatManager::getChatsIdOfUser(ID user_id) {
 
 int ChatManager::getMembersCount(ID chat_id) {
   auto members_id = getMembersOfChat(chat_id);
-  return members_id.size();
+  return static_cast<int>(members_id.size());
 }
 
 std::optional<ID> ChatManager::getOtherMemberId(ID chat_id, ID user_id) {

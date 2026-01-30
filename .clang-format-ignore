@@ -1,0 +1,6 @@
+.github
+
+external/**
+build/**
+
+**/vcpkg_installed/**

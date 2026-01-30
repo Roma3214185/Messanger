@@ -1,6 +1,5 @@
 #include <QCoreApplication>
 
-#include "Batcher.h"
 #include "Debug_profiling.h"
 #include "GeneratorId.h"
 #include "GenericRepository.h"

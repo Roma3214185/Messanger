@@ -10,11 +10,7 @@ class DeleteMessageReactionHandler : public IMessageHandler {
  public:
   void handle(const crow::json::rvalue &message,
               const std::shared_ptr<ISocket> &socket,  // todo: in handle ONLY crow::json::rvalue
-              NotificationManager &manager) override {
-    if (auto reaction = utils::entities::parseReaction(message); reaction.has_value()) {
-      manager.deleteReaction(*reaction);
-    }
-  }
+              NotificationManager &manager) override;
 };
 
 #endif  // DELETEMESSAGEREACTION_H

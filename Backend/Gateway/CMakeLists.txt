@@ -30,10 +30,25 @@ target_include_directories(GatewayCore PUBLIC
     /opt/homebrew/include
 )
 
-enable_clang_tidy(GatewayCore)
-enable_cppcheck(GatewayCore)
-enable_iwyu(GatewayCore)
-enable_sanitizers(GatewayCore)
+if(ENABLE_CLANG_TIDY)
+   enable_clang_tidy(GatewayCore)
+endif()
+
+if(ENABLE_CPPCHECK)
+    enable_cppcheck(GatewayCore)
+endif()
+
+if(ENABLE_INCLUDE_WHAT_YOU_USE)
+    enable_iwyu(GatewayCore)
+endif()
+
+if(ENABLE_SANITIZER_ADDRESS OR ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
+    enable_sanitizers(GatewayCore)
+endif()
+
+if(ENABLE_CLANG_FORMAT)
+    enable_clang_format(GatewayCore)
+endif()
 
 target_link_libraries(GatewayCore PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}

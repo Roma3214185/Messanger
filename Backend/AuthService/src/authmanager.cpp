@@ -39,11 +39,12 @@ std::optional<UserCredentials> AuthManager::findUserCredentials(long long user_i
                     ->where(UserCredentialsTable::UserId, user_id)
                     .execute();
   auto select_result = QueryFactory::getSelectResult(result);
-  if (select_result.result.empty())
+  if (select_result.result.empty()) {
     LOG_ERROR("findUserCredentials for id {} is failed");
-  else
+  } else {
     LOG_INFO("findUserCredentials for id {} is succed, hash is {}", user_id,
              select_result.result.front().hash_password);
+  }
   return select_result.result.empty() ? std::nullopt : std::make_optional(select_result.result.front());
 }
 
