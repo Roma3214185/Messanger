@@ -71,6 +71,7 @@ add_executable(Gateway
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     src/GatewayMetrics.cpp
     src/MetricsTracker.cpp
+    src/RateLimiter.cpp
 )
 
 target_link_libraries(Gateway PRIVATE GatewayCore)
