@@ -79,5 +79,6 @@ target_link_libraries(AuthServiceCore PUBLIC
 
 add_executable(AuthService ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     openapi.yaml
-    src/JwtGenerator.cpp)
+    src/JwtGenerator.cpp
+    src/PasswordService.cpp)
 target_link_libraries(AuthService PRIVATE AuthServiceCore)
