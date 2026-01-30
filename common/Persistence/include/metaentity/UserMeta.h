@@ -31,16 +31,17 @@ struct Builder<User> {
     auto assign = [&](auto &field) {
       using TField = std::decay_t<decltype(field)>;
       QVariant value = query.value(i++);
-      if constexpr (std::is_same_v<TField, long long>)
+      if constexpr (std::is_same_v<TField, long long>) {
         field = value.toLongLong();
-      else if constexpr (std::is_same_v<TField, int>)
+      } else if constexpr (std::is_same_v<TField, int>) {
         field = value.toInt();
-      else if constexpr (std::is_same_v<TField, std::string>)
+      } else if constexpr (std::is_same_v<TField, std::string>) {
         field = value.toString().toStdString();
-      else if constexpr (std::is_same_v<TField, QString>)
+      } else if constexpr (std::is_same_v<TField, QString>) {
         field = value.toString();
-      else
+      } else {
         field = value.value<TField>();
+      }
     };
 
     assign(user.id);

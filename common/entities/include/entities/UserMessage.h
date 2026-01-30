@@ -30,10 +30,11 @@ struct adl_serializer<UserMessage> {
 
     j["reactions"]["counts"] = m.reactions.counts;
 
-    if (m.reactions.my_reaction.has_value())
+    if (m.reactions.my_reaction.has_value()) {
       j["reactions"]["receiver_reaction"] = *m.reactions.my_reaction;
-    else
+    } else {
       j["reactions"]["receiver_reaction"] = nullptr;
+    }
   }
 
   static void from_json(const nlohmann::json &j, UserMessage &m) {

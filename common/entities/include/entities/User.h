@@ -17,8 +17,8 @@ struct User final {
   User() = default;
 
   User(long long id, std::string username, std::string email, std::string tag,
-       std::string avatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg")
-      : id(id), username(std::move(username)), email(std::move(email)), tag(std::move(tag)), avatar(std::move(avatar)) {
+       const std::string &avatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg")
+      : id(id), username(std::move(username)), email(std::move(email)), tag(std::move(tag)), avatar(avatar) {
     DBC_REQUIRE(checkInvariants());
   }
 

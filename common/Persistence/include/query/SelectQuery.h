@@ -13,7 +13,7 @@ struct Meta;
 template <typename T>
 struct Reflection;
 
-enum class OrderDirection { ASC, DESC };
+enum class OrderDirection : std::uint8_t { ASC, DESC };
 
 template <EntityJson T>
 class SelectQuery : public IBaseQuery<T> {
@@ -28,7 +28,7 @@ class SelectQuery : public IBaseQuery<T> {
 
   // todo: extract from this class work with cache
  private:
-  void saveEntityInCache(const T &entity, std::chrono::hours ttl = std::chrono::hours(24)) const;
+  void saveEntityInCache(const T &entity, std::chrono::hours ttl = std::chrono::hours{24}) const;
   int getEntityId(const T &entity) const;  // todo: make concept requires there is field id
   [[nodiscard]] QString buildQuery() const override;
   auto getGenerations() const;

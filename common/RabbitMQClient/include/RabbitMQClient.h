@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RABBITMQCLIENT
+#define RABBITMQCLIENT
 
 #include <SimpleAmqpClient/SimpleAmqpClient.h>
 
@@ -49,3 +50,5 @@ class RabbitMQClient : public IRabitMQClient {
   std::unordered_set<std::string> declared_exchanges_;
   const RabbitMQConfig &rabit_mq_config_;
 };
+
+#endif // RABBITMQCLIENT

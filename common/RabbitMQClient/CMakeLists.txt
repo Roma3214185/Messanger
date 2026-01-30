@@ -17,6 +17,7 @@ enable_clang_tidy(RabbitMQClient)
 enable_cppcheck(RabbitMQClient)
 enable_iwyu(RabbitMQClient)
 enable_sanitizers(RabbitMQClient)
+enable_clang_format(RabbitMQClient)
 
 target_include_directories(RabbitMQClient
     PUBLIC

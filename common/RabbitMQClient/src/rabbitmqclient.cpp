@@ -87,13 +87,13 @@ void RabbitMQClient::subscribe(const SubscribeRequest &subscribe_request, const 
     }
   });
 
-  std::lock_guard<std::mutex> lock(consumer_threads_mutex_);
+  std::scoped_lock lock(consumer_threads_mutex_);
   consumer_threads_.emplace_back(std::move(consumer_thread));
 }
 
 void RabbitMQClient::stop() {
   running_ = false;
-  std::lock_guard<std::mutex> lock(consumer_threads_mutex_);
+  std::scoped_lock lock(consumer_threads_mutex_);
   for (auto &thread : consumer_threads_) {
     if (thread.joinable()) thread.join();
   }

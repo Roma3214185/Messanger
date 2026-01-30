@@ -49,7 +49,7 @@ IBaseQuery<T>& IBaseQuery<T>::where(const std::string& field, const std::string&
 template <EntityJson T>
 IBaseQuery<T>& IBaseQuery<T>::where(const std::string& field, const QVariant& value) & {
   std::string field_trimmed = trim(field);
-  filters_.push_back(QString("%1 = ?").arg(QString::fromStdString(field)));
+  filters_.push_back(QString("%1 = ?").arg(QString::fromStdString(field_trimmed)));
   values_.push_back(value);
   return *this;
 }

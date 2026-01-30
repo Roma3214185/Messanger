@@ -1,4 +1,5 @@
-#pragma once
+#ifndef INL_SQL_BUILDER
+#define INL_SQL_BUILDER
 
 #include <nlohmann/json.hpp>
 
@@ -19,19 +20,19 @@ template <EntityJson T>
 QVariant toVariant(const Field& f, const T& entity) {
   std::any val = f.get(&entity);
 
-  if (f.type == typeid(long long))
+    if (f.type == typeid(long long)) {
     return QVariant::fromValue(std::any_cast<long long>(val));
-  if (f.type == typeid(int))
+    } if (f.type == typeid(int)) {
     return  QVariant::fromValue(std::any_cast<int>(val));
-  if (f.type == typeid(std::string))
+} if (f.type == typeid(std::string)) {
     return QString::fromStdString(std::any_cast<std::string>(val));
-  if (f.type == typeid(bool))
+} if (f.type == typeid(bool)) {
     return static_cast<int>(std::any_cast<bool>(val));
-  if (f.type == typeid(int))
+} if (f.type == typeid(int)) {
     return QVariant::fromValue(std::any_cast<int>(val));
-  if (f.type == typeid(std::optional<long long>))
+} if (f.type == typeid(std::optional<long long>)) {
     return optionalToVariant(std::any_cast<std::optional<long long>>(val));
-
+}
   LOG_ERROR("iNvalid toVariant {}", f.type.name());
   return {};
 }
@@ -40,8 +41,9 @@ QVariant toVariant(const Field& f, const T& entity) {
 template <EntityJson T>
 std::any SqlBuilder::getFieldValue(const QVariant& v, const Field& f) {
   if (f.type == typeid(std::optional<long long>)) {
-    if (v.isNull())
+        if (v.isNull()) {
       return std::any(std::optional<long long>{});
+        }
     return std::any(std::optional<long long>{v.toLongLong()});
   }
 
@@ -52,17 +54,21 @@ std::any SqlBuilder::getFieldValue(const QVariant& v, const Field& f) {
 
   //TODO: free function???
 
-  if (f.type == typeid(long long))
+  if (f.type == typeid(long long)) {
     return std::any(v.toLongLong());
+  }
 
-  if (f.type == typeid(std::string))
+  if (f.type == typeid(std::string)) {
     return std::any(v.toString().toStdString());
+  }
 
-  if (f.type == typeid(bool))
+  if (f.type == typeid(bool)) {
     return std::any(static_cast<bool>(v.toInt()));
+  }
 
-  if (f.type == typeid(int))
+  if (f.type == typeid(int)) {
     return std::any(v.toInt());
+  }
 
   LOG_ERROR("Unexpected typeid in getFieldValue {}", f.type.name());
   return {};
@@ -121,3 +127,5 @@ std::vector<T> SqlBuilder::buildResults(std::unique_ptr<IQuery>& query) const {
 
   return results;
 }
+
+#endif // INL_SQL_BUILDER

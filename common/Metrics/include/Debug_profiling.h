@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DEBUG_PROFILING
+#define DEBUG_PROFILING
 
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -166,7 +167,7 @@ inline void initLogger(const std::string &service_name) {
   }
 }
 
-enum class ContractLevel { Precondition, Postcondition, Invariant, Assert, Unreachable };
+enum class ContractLevel : std::uint8_t { Precondition, Postcondition, Invariant, Assert, Unreachable };
 
 struct ContractViolation {
   ContractLevel level;
@@ -210,27 +211,14 @@ class ContractViolationError : public std::logic_error {
   }
 };
 
-inline void throwOnViolation(const ContractViolation &v) { throw ContractViolationError(v); }
-
-inline void logContract(const ContractViolation &v) {
-  spdlog::error("[CONTRACT] {} failed: {} at {}:{} ({})", toString(v.level), v.expr, v.file, v.line, v.func);
+[[noreturn]] inline void handleContractViolation(const ContractViolation& v) {
+  throw ContractViolationError(v);
 }
-
-inline ContractHandler &contractHandler() {
-#if defined(NDEBUG)
-  static ContractHandler handler = logContract;  // Release
-#else
-  static ContractHandler handler = throwOnViolation;  // Debug
-#endif
-  return handler;
-}
-
-inline void setContractHandler(ContractHandler h) { contractHandler() = h; }
 
 #define CONTRACT_CHECK(level, expr)                                    \
   do {                                                                 \
     if (!(expr)) {                                                     \
-      contractHandler()({level, #expr, __FILE__, __LINE__, __func__}); \
+      handleContractViolation({level, #expr, __FILE__, __LINE__, __func__}); \
     }                                                                  \
   } while (0)
 
@@ -251,3 +239,5 @@ inline void setContractHandler(ContractHandler h) { contractHandler() = h; }
 #  define DBC_ASSERT_INTERNAL(expr) ((void)0)
 #  define DBC_UNREACHABLE() ((void)0)
 #endif
+
+#endif // DEBUG_PROFILING

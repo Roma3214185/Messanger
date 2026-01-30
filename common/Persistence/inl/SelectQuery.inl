@@ -1,4 +1,5 @@
-#pragma once
+#ifndef INL_SELECT_QUERY
+#define INL_SELECT_QUERY
 
 #include <nlohmann/json.hpp>
 
@@ -11,8 +12,9 @@ namespace {
 
 std::size_t hashParams(const  QVector<QVariant>& values) {
   std::size_t params_hash = 0;
-  for (const auto& v : values)
+    for (const auto& v : values) {
     params_hash ^= std::hash<std::string>{}(v.toString().toStdString());
+    }
   return params_hash;
 }
 
@@ -20,8 +22,9 @@ using Table = std::string;
 std::size_t hashGenerations(
     const std::unordered_map<Table, std::string>& generations) {
   std::size_t generation_hash = 0;
-  for (const auto& [table, gen] : generations)
+    for (const auto& [table, gen] : generations) {
     generation_hash ^= std::hash<std::string>{}(table + gen);
+    }
   return generation_hash;
 }
 
@@ -98,8 +101,8 @@ void SelectQuery<T>::updateCache(const std::string& key, const std::vector<T>& r
     entities_keys.push_back(buildEntityKey(this->table_name_.toStdString(), entity_key));
   }
 
-  cache_.setPipelines(entities_keys, entities_strings, std::chrono::seconds(30));
-  cache_.set(key, nlohmann::json(results).dump(), std::chrono::seconds(30));
+  cache_.setPipelines(entities_keys, entities_strings, std::chrono::seconds{30});
+  cache_.set(key, nlohmann::json(results).dump(), std::chrono::seconds{30});
 }
 
 /*
@@ -155,3 +158,5 @@ SelectQuery<T>& SelectQuery<T>::orderBy(const std::string& field,
     .arg(direct);
   return *this;
 }
+
+#endif // INL_SELECT_QUERY

@@ -28,6 +28,7 @@ if(NOT TARGET Network)
     enable_clang_tidy(Network)
     enable_cppcheck(Network)
     enable_iwyu(Network)
+    enable_clang_format(Network)
 
     # Include directories
     target_include_directories(Network

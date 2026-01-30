@@ -26,5 +26,6 @@ if(NOT TARGET Metrics)
     enable_cppcheck(Metrics)
     enable_iwyu(Metrics)
     enable_sanitizers(Metrics)
+    enable_clang_format(Metrics)
 
 endif()

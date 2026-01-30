@@ -10,31 +10,21 @@
 
 class SQLiteQuery : public IQuery {
  public:
-  explicit SQLiteQuery(QSqlDatabase db) : q_(db) {}
+    explicit SQLiteQuery(const QSqlDatabase &db);
 
-  bool prepare(const QString &sql) {
-    bool res = q_.prepare(sql);
-    if (!res)
-      LOG_ERROR("[SQLiteQuery] Prepare failed for sql {}: {}", sql.toStdString(), q_.lastError().text().toStdString());
-    return res;
-  }
+     bool prepare(const QString &sql);
 
-  void bind(const QVariant &v) override { q_.addBindValue(v); }
+    void bind(const QVariant &v) override;
 
-  bool exec() override {
-    bool res = q_.exec();
-    // LOG_INFO("Exec : {}", res);
-    if (!res) LOG_INFO("Error {}", q_.lastError().text().toStdString());
-    return res;
-  }
+     bool exec() override;
 
-  bool next() override { return q_.next(); }
+  bool next() override;
 
-  QVariant value(int i) const override { return q_.value(i); }
+  QVariant value(int i) const override;
 
-  QVariant value(const std::string &field) const override { return q_.value(field); }
+  QVariant value(const std::string &field) const override;
 
-  QString error() override { return q_.lastError().text(); }
+  QString error() override;
 
  private:
   QSqlQuery q_;
