@@ -11,13 +11,9 @@ class OpenResponceHandler : public ISocketResponceHandler {
   SocketUseCase *socket_use_case_;
 
  public:
-  OpenResponceHandler(TokenManager *token_manager, SocketUseCase *socket_use_case)
-      : token_manager_(token_manager), socket_use_case_(socket_use_case) {}
+  OpenResponceHandler(TokenManager *token_manager, SocketUseCase *socket_use_case);
 
-  void handle([[maybe_unused]] const QJsonObject &json_object) override {
-    const long long id = token_manager_->getCurrentUserId();
-    socket_use_case_->initSocket(id);
-  }
+  void handle([[maybe_unused]] const QJsonObject &json_object) override;
 };
 
 #endif  // OPENRESPONCEHANDLER_H

@@ -10,13 +10,8 @@ class DeleteMessageReactionHandler : public ISocketResponceHandler {
   DataManager *data_manager_;
 
  public:
-  DeleteMessageReactionHandler(EntityFactory *entity_factory, DataManager *data_manager)
-      : entity_factory_(entity_factory), data_manager_(data_manager) {}
-
-  void handle(const QJsonObject &json_object) override {
-    auto reaction = entity_factory_->getReaction(json_object);  // entity_factory_->get<Reaction>(json_object);
-    data_manager_->deleteReaction(reaction);
-  }
+  DeleteMessageReactionHandler(EntityFactory *entity_factory, DataManager *data_manager);
+  void handle(const QJsonObject &json_object) override;
 };
 
 #endif  // DELETEMESSAGEREACTIONHANDLER_H

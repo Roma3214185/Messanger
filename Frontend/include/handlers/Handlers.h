@@ -2,6 +2,7 @@
 #define HANDLERS_H
 
 #include "DeleteMessageReactionHandler.h"
+#include "DeleteMessageResponceHandler.h"
 #include "NewMessageResponceHandler.h"
 #include "OpenResponceHandler.h"
 #include "ReadMessageHandler.h"

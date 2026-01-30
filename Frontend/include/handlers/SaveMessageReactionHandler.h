@@ -10,13 +10,9 @@ class SaveMessageReactionHandler : public ISocketResponceHandler {
   DataManager *data_manager_;
 
  public:
-  SaveMessageReactionHandler(EntityFactory *entity_factory, DataManager *data_manager)
-      : entity_factory_(entity_factory), data_manager_(data_manager) {}
+  SaveMessageReactionHandler(EntityFactory *entity_factory, DataManager *data_manager);
 
-  void handle(const QJsonObject &json_object) override {
-    auto reaction = entity_factory_->getReaction(json_object);
-    data_manager_->save(reaction);
-  }
+  void handle(const QJsonObject &json_object) override;
 };
 
 #endif  // SAVEMESSAGEREACTIONHANDLER_H
