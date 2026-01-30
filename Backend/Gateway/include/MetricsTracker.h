@@ -10,40 +10,15 @@ struct MetricsTracker {
   std::chrono::steady_clock::time_point start;
   MetricsTracker() = default;
 
-  void startTimer(IMetrics* metrics) {
-    metrics_ = metrics;
-    start = std::chrono::steady_clock::now();
-  }
+  void startTimer(IMetrics* metrics);
 
   MetricsTracker(const MetricsTracker&) = delete;
   MetricsTracker& operator=(const MetricsTracker&) = delete;
 
-  MetricsTracker(MetricsTracker&& other) noexcept : metrics_(other.metrics_), start(other.start) {
-    other.metrics_ = nullptr;
-  }
+  MetricsTracker(MetricsTracker&& other) noexcept;
+  MetricsTracker& operator=(MetricsTracker&& other) noexcept;
 
-  MetricsTracker& operator=(MetricsTracker&& other) noexcept {
-    if (this != &other) {
-      if (metrics_) {
-        auto end = std::chrono::steady_clock::now();
-        double latency = std::chrono::duration<double>(end - start).count();
-        metrics_->saveRequestLatency(latency);
-      }
-
-      metrics_ = other.metrics_;
-      start = other.start;
-      other.metrics_ = nullptr;
-    }
-    return *this;
-  }
-
-  ~MetricsTracker() {
-    if (!metrics_) return;
-
-    auto end = std::chrono::steady_clock::now();
-    double latency = std::chrono::duration<double>(end - start).count();
-    metrics_->saveRequestLatency(latency);
-  }
+  ~MetricsTracker();
 };
 
 #endif  // METRICSTRACKER_H
