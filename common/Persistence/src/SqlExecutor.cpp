@@ -11,7 +11,7 @@ SqlExecutorResult SqlExecutor::execute(const QString &sql, const QList<QVariant>
     return SqlExecutorResult("Failed to prepare");
   }
 
-  for (const auto& value: values) outQuery->bind(value);
+  for (const auto &value : values) outQuery->bind(value);
 
   LOG_INFO("[SqlExecutor] Executing SQL: {}", sql.toStdString());
 

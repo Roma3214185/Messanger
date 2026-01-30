@@ -72,6 +72,10 @@ add_executable(NotificationService
     include/handlers/SaveMessageReaction.h
     include/handlers/DeleteMessageReaction.h
     src/handlers/DeleteMessageReactionHandler.cpp
+    src/handlers/InitMessageHandler.cpp
+    src/handlers/MarkReadMessageHandler.cpp
+    src/handlers/SaveMessageReactionHandler.cpp
+    src/handlers/SendMessageHandler.cpp
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore)

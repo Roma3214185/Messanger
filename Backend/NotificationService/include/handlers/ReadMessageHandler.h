@@ -1,4 +1,0 @@
-#ifndef READMESSAGE_H
-#define READMESSAGE_H
-
-#endif  // READMESSAGE_H
