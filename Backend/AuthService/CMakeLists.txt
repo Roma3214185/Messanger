@@ -19,13 +19,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Crow)
 
+#set(OPENSSL_USE_STATIC_LIBS ON)
+find_package(OpenSSL REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Sql Widgets Gui)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SODIUM REQUIRED libsodium)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(SODIUM REQUIRED libsodium)
+find_package(unofficial-sodium CONFIG REQUIRED)
 
-link_directories(/opt/homebrew/lib /usr/local/lib)
+#link_directories(/opt/homebrew/lib /usr/local/lib)
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
@@ -33,24 +36,40 @@ add_library(AuthServiceCore STATIC ${MY_SOURCES})
 
 target_include_directories(AuthServiceCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${SODIUM_INCLUDE_DIRS}
+    #${SODIUM_INCLUDE_DIRS}
 )
 
-enable_clang_tidy(AuthServiceCore)
-enable_cppcheck(AuthServiceCore)
-enable_iwyu(AuthServiceCore)
-enable_sanitizers(AuthServiceCore)
+if(ENABLE_CLANG_TIDY)
+    enable_clang_tidy(AuthServiceCore)
+endif()
+
+if(ENABLE_CPPCHECK)
+    enable_cppcheck(AuthServiceCore)
+endif()
+
+if(ENABLE_INCLUDE_WHAT_YOU_USE)
+    enable_iwyu(AuthServiceCore)
+endif()
+
+if(ENABLE_SANITIZER_ADDRESS OR ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
+    enable_sanitizers(AuthServiceCore)
+endif()
+
+if(ENABLE_CLANG_FORMAT)
+    enable_clang_format(AuthServiceCore)
+endif()
 
 target_compile_options(AuthServiceCore PRIVATE -Wno-deprecated-declarations)
 
 target_link_libraries(AuthServiceCore PUBLIC
     Qt6::Core Qt6::Sql Qt6::Widgets Qt6::Gui
     OpenSSL::SSL OpenSSL::Crypto
-    ${SODIUM_LIBRARIES}
+    #${SODIUM_LIBRARIES}
+    unofficial-sodium::sodium
     Crow::Crow
     jwt-cpp
     Metrics
-    sodium
+    #sodium
     Constants
     Entities
     Network

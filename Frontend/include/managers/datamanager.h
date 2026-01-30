@@ -20,6 +20,7 @@ using MessageModelMap = std::unordered_map<MessageId, MessageModelPtr>;
 using UserMap = std::unordered_map<UserId, User>;
 using OptionalUser = std::optional<User>;
 using ListMessage = std::vector<Message>;
+using ReactionsById = std::unordered_map<long long, ReactionInfo>;
 
 class DataManager : public QObject {
   Q_OBJECT
@@ -32,7 +33,7 @@ class DataManager : public QObject {
                          // message-models
   void clearAllUsers();
   void clearAllMessageModels();
-  void addChat(ChatPtr chat, MessageModelPtr message_model = nullptr);
+  void addChat(const ChatPtr &chat, MessageModelPtr message_model = nullptr);
 
   void save(const User &user);
   void save(const Message &message);
@@ -49,7 +50,9 @@ class DataManager : public QObject {
   void clearAll();
   [[nodiscard]] OptionalUser getUser(UserId);
   [[nodiscard]] std::optional<Message> getMessageById(const long long id);
-  [[nodiscard]] int getNumberOfMessageModels() const noexcept { return message_models_by_chat_id_.size(); }
+  [[nodiscard]] int getNumberOfMessageModels() const noexcept {
+    return static_cast<int>(message_models_by_chat_id_.size());
+  }
   void deleteMessage(const Message &msg);
   void readMessage(long long message_id, long long readed_by);
   std::optional<ReactionInfo> getReactionInfo(long long reaction_id);
@@ -74,7 +77,7 @@ class DataManager : public QObject {
   ListMessage messages_;
   MessageModelMap message_models_by_chat_id_;
 
-  std::unordered_map<int, ReactionInfo> reactions_;
+  ReactionsById reactions_;
 
   std::mutex messages_mutex_;
   std::mutex chat_mutex_;

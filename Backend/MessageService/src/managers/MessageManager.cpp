@@ -59,10 +59,11 @@ std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<M
     custom_query->where(MessageStatusTable::MessageId, msg.id).where(MessageStatusTable::ReceiverId, receiver_id);
     auto res = custom_query->execute();
     auto returned_list = QueryFactory::getSelectResult(res).result;
-    if (returned_list.size() != 1)
+    if (returned_list.size() != 1) {
       LOG_WARN("Returned {}", returned_list.size());
-    else
+    } else {
       ans.emplace_back(returned_list.front());
+    }
   }
 
   return ans;
@@ -115,8 +116,8 @@ std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> MessageMana
   auto res = custom_query->execute();
   std::vector<Reaction> vector_of_reactions = QueryFactory::getSelectResult(res).result;
 
-  std::optional<int> receiver_id_reactions;
-  std::unordered_map<int, int> message_reactions;
+  std::optional<long long> receiver_id_reactions;
+  std::unordered_map<long long, int> message_reactions;
 
   for (const Reaction &reaction : vector_of_reactions) {
     message_reactions[reaction.reaction_id]++;

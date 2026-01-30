@@ -19,9 +19,7 @@ namespace {
 
 template <typename Duration>
 std::chrono::seconds getRangedTtl(Duration ttl) {
-  using namespace std::chrono;
-
-  const auto base_ms = duration_cast<seconds>(ttl).count();
+  const auto base_ms = std::chrono::duration_cast<std::chrono::seconds>(ttl).count();
   constexpr int kMinTimeOfTtl = 300;
 
   static std::random_device rd;
@@ -30,7 +28,7 @@ std::chrono::seconds getRangedTtl(Duration ttl) {
                                           30 * 60 * 1000);  // +-30 min in ms
   const int jitter_ms = dist(gen);
 
-  return seconds(std::max(static_cast<int>(base_ms + jitter_ms), kMinTimeOfTtl));
+  return std::chrono::seconds(std::max(static_cast<int>(base_ms + jitter_ms), kMinTimeOfTtl));
 }
 
 }  // namespace

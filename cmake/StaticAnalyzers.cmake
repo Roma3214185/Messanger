@@ -20,6 +20,8 @@ function(enable_cppcheck TARGET)
         -i${CMAKE_SOURCE_DIR}/build/_deps
     )
 
+    message(STATUS "cppcheck runs on target: ${TARGET}")
+
     set_target_properties(${TARGET} PROPERTIES
         CXX_CPPCHECK "${CPPCHECK_EXE};${CPPCHECK_OPTIONS}"
     )
@@ -46,6 +48,8 @@ function(enable_clang_tidy TARGET)
         -header-filter=${HEADER_FILTER_REGEX}
     )
 
+    message(STATUS "clang-tidy runs on target: ${TARGET}")
+
     set_target_properties(${TARGET} PROPERTIES
         CXX_CLANG_TIDY "${CLANG_TIDY_EXE};${CLANG_TIDY_OPTIONS}"
     )
@@ -70,6 +74,8 @@ function(enable_iwyu TARGET)
         #-Xiwyu --exclude=${CMAKE_SOURCE_DIR}/_deps
         -Xiwyu --exclude=${CMAKE_BINARY_DIR}/_deps
     )
+
+    message(STATUS "IWYU runs on target: ${TARGET}")
 
     set_target_properties(${TARGET} PROPERTIES
         CXX_INCLUDE_WHAT_YOU_USE "${IWYU_EXE};${IWYU_OPTIONS}"

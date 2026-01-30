@@ -17,7 +17,7 @@ class MessageModel : public QAbstractListModel {
   Q_OBJECT
 
  public:
-  enum Roles {
+  enum Roles : std::uint16_t {
     MessageIdRole = Qt::UserRole + 1,
     TextRole,
     TimestampRole,

@@ -26,7 +26,7 @@ class EntityFactory {
  public:
   explicit EntityFactory(TokenManager *token_manager) : token_manager_(token_manager) {}
 
-  Message createMessage(long long chat_id, long long sender_id, const std::vector<MessageToken> &tokens,
+  Message createMessage(long long chat_id, long long sender_id, std::vector<MessageToken> tokens,
                         const QString &local_id, std::optional<long long> answer_on = std::nullopt,
                         QDateTime timestamp = QDateTime::currentDateTime()) {
     DBC_REQUIRE(!tokens.empty());
@@ -34,12 +34,12 @@ class EntityFactory {
     DBC_REQUIRE(sender_id > 0);
     DBC_REQUIRE(chat_id > 0);
     // todo: what about message_id??
-    Message message{.chat_id = chat_id,
-                    .sender_id = sender_id,
-                    .tokens = tokens,
-                    .receiver_id = token_manager_->getCurrentUserId(),
+    Message message{.sender_id = sender_id,
+                    .chat_id = chat_id,
+                    .tokens = std::move(tokens),
+                    .timestamp = std::move(timestamp),
                     .status_sended = false,
-                    .timestamp = timestamp,
+                    .receiver_id = token_manager_->getCurrentUserId(),
                     .local_id = local_id,
                     .answer_on = answer_on};
 
@@ -109,7 +109,7 @@ class EntityFactory {
 
         msg.reactions.clear();
 
-        for (const QJsonValue &v : countsArr) {
+        for (const auto &v : countsArr) {
           if (!v.isArray()) continue;  // skip invalid entries
 
           QJsonArray pair = v.toArray();
@@ -196,7 +196,7 @@ class EntityFactory {
     if (obj.contains("default_reactions")) {
       const auto reactArr = obj["default_reactions"].toArray();
 
-      for (const QJsonValue &v : reactArr) {
+      for (const auto &v : reactArr) {
         if (auto reaction_info = getReactionInfo(v); reaction_info.has_value()) {
           chat->default_reactions.push_back(reaction_info.value());
         } else {

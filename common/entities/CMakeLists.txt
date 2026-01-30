@@ -13,6 +13,7 @@ if (NOT TARGET Entities)
     target_link_libraries(Entities INTERFACE
         nlohmann_json::nlohmann_json
         Crow::Crow
+        ProjectOptions
         Metrics
     )
 

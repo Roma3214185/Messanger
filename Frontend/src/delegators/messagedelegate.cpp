@@ -14,6 +14,7 @@ void fillCursorWithTokens(QTextCursor &cursor, DataManager &data_manager, const 
       cursor.insertText(token.value);
     } else if (token.type == MessageTokenType::Emoji) {
       DBC_REQUIRE(token.emoji_id.has_value());
+      if (!token.emoji_id.has_value()) continue;
       long long emojiId = token.emoji_id.value();
       auto img_info_opt = data_manager.getReactionInfo(emojiId);
       utils::ui::insert_emoji(cursor, img_info_opt, emojiSize);
@@ -222,16 +223,16 @@ void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &opt
   QRect contentRect = fullRect;
 
   if (msg.answer_on.has_value() && draw_answer_on) {
-    replyRect = QRect(fullRect.left(), fullRect.top(), fullRect.width(), replyHeight);
-
-    contentRect =
-        QRect(fullRect.left(), fullRect.top() + replyHeight, fullRect.width(), fullRect.height() - replyHeight);
-
-    QColor color = option.palette.color(QPalette::Base);
-    QColor darker = color.darker(110);
-    drawAnswerOnStatus(painter, replyRect, darker, data_manager_->getMessageById(msg.answer_on.value()), msg.id);
+    const auto answer_on_msg = data_manager_->getMessageById(msg.answer_on.value());
+    if (answer_on_msg) {
+      replyRect = QRect(fullRect.left(), fullRect.top(), fullRect.width(), replyHeight);
+      contentRect =
+          QRect(fullRect.left(), fullRect.top() + replyHeight, fullRect.width(), fullRect.height() - replyHeight);
+      QColor color = option.palette.color(QPalette::Base);
+      QColor darker = color.darker(110);
+      drawAnswerOnStatus(painter, replyRect, darker, *answer_on_msg, msg.id);
+    }
   }
-
   bool is_mine = msg.isMine();
 
   drawBackgroundState(painter, contentRect, option, is_mine);
@@ -348,8 +349,8 @@ void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect, cons
   painter->restore();
 }
 
-QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, std::optional<int> my_reaction,
-                                          int reaction_id) const {
+QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, std::optional<long long> my_reaction,
+                                          long long reaction_id) const {
   constexpr int iconSize = 20;
   constexpr int padding = 4;
   constexpr int badgeMinWidth = 14;
@@ -398,7 +399,7 @@ QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, s
   return result;
 }
 
-void MessageDelegate::addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, int reaction_id,
+void MessageDelegate::addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, long long reaction_id,
                                 long long message_id, int &reaction_x_offset) const {
   constexpr int spacing = 6;
 
@@ -427,13 +428,12 @@ std::optional<int> MessageDelegate::reactionAt(long long message_id, const QPoin
 }
 
 void MessageDelegate::drawAnswerOnStatus(QPainter *painter, QRect &recte, const QColor &color,
-                                         std::optional<Message> answer_on, long long message_id) const {
-  if (!answer_on || !draw_answer_on) {
+                                         const Message &answer_on_message, long long message_id) const {
+  if (!draw_answer_on) {
     DBC_UNREACHABLE();
     return;
   }
 
-  Message &answer_on_message = answer_on.value();
   DBC_REQUIRE(!answer_on_message.isOfflineSaved());
   DBC_REQUIRE(answer_on_message.id != message_id);
 

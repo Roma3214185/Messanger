@@ -5,7 +5,7 @@
 namespace {
 
 std::string makeClientId(crow::websocket::connection &client) {
-  return client.get_remote_ip() + ":" + std::to_string((uintptr_t)&client);
+  return client.get_remote_ip() + ":" + std::to_string(reinterpret_cast<uintptr_t>(&client));
 }
 
 }  // namespace
@@ -17,21 +17,34 @@ std::shared_ptr<ix::WebSocket> WebSocketBridge::createBackendConnection(const st
   backend_ws->setUrl(backend_url_);
 
   using enum ix::WebSocketMessageType;
-  backend_ws->setOnMessageCallback([this, client_id](const ix::WebSocketMessagePtr &msg) {
-    switch (msg->type) {
-      case Open:
-        LOG_INFO("Backend WS connected");
-        break;
-      case Message:
-        clients_.at(client_id)->send_text(msg->str);
-        break;
-      case Close:
-        LOG_INFO("Backend WS closed: code={}, reason={}", msg->closeInfo.code, msg->closeInfo.reason);
-        break;
-      case Error:
-        break;
-      default:
-        break;
+  backend_ws->setOnMessageCallback([this, client_id](const ix::WebSocketMessagePtr &msg) noexcept {
+    try {
+      switch (msg->type) {
+        case Open:
+          LOG_INFO("Backend WS connected");
+          break;
+        case Message: {
+          auto it = clients_.find(client_id);
+          if (it != clients_.end()) {
+            it->second->send_text(msg->str);
+          } else {
+            LOG_WARN("Client {} not found", client_id);
+          }
+          break;
+        }
+        case Close:
+          LOG_INFO("Backend WS closed: code={}, reason={}", msg->closeInfo.code, msg->closeInfo.reason);
+          break;
+        case Error:
+          LOG_ERROR("Backend WS error occurred");
+          break;
+        default:
+          break;
+      }
+    } catch (const std::exception &e) {
+      LOG_ERROR("Exception in WS callback: {}", e.what());
+    } catch (...) {
+      LOG_ERROR("Unknown exception in WS callback");
     }
   });
 

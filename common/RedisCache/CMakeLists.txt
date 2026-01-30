@@ -34,6 +34,7 @@ enable_clang_tidy(RedisCache)
 enable_cppcheck(RedisCache)
 enable_iwyu(RedisCache)
 enable_sanitizers(RedisCache)
+enable_clang_format(RedisCache)
 
 target_include_directories(RedisCache
   PUBLIC

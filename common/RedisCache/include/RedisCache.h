@@ -23,10 +23,10 @@ class RedisCache : public ICacheService {
   void clearCache() override;
 
   void setPipelines(const std::vector<std::string> &keys, const std::vector<std::string> &results,
-                    std::chrono::seconds ttl = std::chrono::seconds(5)) override;
+                    std::chrono::seconds ttl = std::chrono::seconds{5}) override;
 
   void set(const std::string &key, const std::string &value,
-           std::chrono::seconds ttl = std::chrono::seconds(5)) override;
+           std::chrono::seconds ttl = std::chrono::seconds{5}) override;
 
   std::optional<std::string> get(const std::string &key) override;
 
@@ -38,7 +38,6 @@ class RedisCache : public ICacheService {
   int getTtlWithJitter(std::chrono::seconds ttl);
 
   RedisCache() = default;
-  ~RedisCache() = default;
 };
 
 #endif  // BACKEND_REDISCACHE_REDISCACHE_H_

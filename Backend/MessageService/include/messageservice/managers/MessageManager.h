@@ -1,7 +1,6 @@
 #ifndef BACKEND_MESSAGE_SERVICE_MESSAGEMANAGER_H
 #define BACKEND_MESSAGE_SERVICE_MESSAGEMANAGER_H
 
-#include "Batcher.h"
 #include "GenericRepository.h"
 #include "RedisCache.h"
 #include "entities/Message.h"

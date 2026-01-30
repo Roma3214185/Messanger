@@ -18,14 +18,6 @@ struct Field {
   std::function<void(void *, const std::any &)> set;
 };
 
-// template <typename T>
-// struct Field {
-//     const char *name;
-//     const std::type_info &type;
-//     std::function<std::any(const T *)> get;
-//     std::function<void(T *, const std::any &)> set;
-// };
-
 struct Meta {
   const char *name;
   const char *table_name;
@@ -63,16 +55,17 @@ struct FastBuilder {
     auto assign = [&](auto ptr) {
       using MemberType = std::decay_t<decltype(entity.*ptr)>;
       QVariant value = query.value(i++);
-      if constexpr (std::is_same_v<MemberType, long long>)
+      if constexpr (std::is_same_v<MemberType, long long>) {
         entity.*ptr = value.toLongLong();
-      else if constexpr (std::is_same_v<MemberType, int>)
+      } else if constexpr (std::is_same_v<MemberType, int>) {
         entity.*ptr = value.toInt();
-      else if constexpr (std::is_same_v<MemberType, std::string>)
+      } else if constexpr (std::is_same_v<MemberType, std::string>) {
         entity.*ptr = value.toString().toStdString();
-      else if constexpr (std::is_same_v<MemberType, QString>)
+      } else if constexpr (std::is_same_v<MemberType, QString>) {
         entity.*ptr = value.toString();
-      else
+      } else {
         entity.*ptr = value.value<MemberType>();
+      }
     };
 
     std::apply([&](auto... ptrs) { (assign(ptrs), ...); }, fields);

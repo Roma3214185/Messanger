@@ -28,7 +28,6 @@ class GenericRepository {
  public:
   GenericRepository(ISqlExecutor *executor, ICacheService &cache, IThreadPool *pool_ = nullptr,
                     IOutboxWorker *outbox_worker = nullptr);
-  ~GenericRepository();
 
   ICacheService &getCache() { return cache_; }
 

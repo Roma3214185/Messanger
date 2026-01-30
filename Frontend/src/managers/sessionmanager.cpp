@@ -14,7 +14,7 @@
 
 namespace {
 
-auto getRequestWithToken(QUrl endpoint, const QString &current_token) -> QNetworkRequest {
+auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", current_token.toUtf8());
@@ -45,7 +45,7 @@ void SessionManager::onReplyFinished(const QByteArray &responce) {
   LOG_INFO("Raw responce: {}", responce.toStdString());
   auto jsonResponse = QJsonDocument::fromJson(responce);
   auto responseObj = jsonResponse.object();
-  if (!responseObj.contains("user")) {  // TODO: common checkField(responseObj, "user") function;
+  if (!responseObj.contains("user")) {  // TODO(roma): common checkField(responseObj, "user") function;
     LOG_ERROR("Reply doen't contain 'user' filed");
     return;
   }
@@ -59,7 +59,7 @@ void SessionManager::onReplyFinished(const QByteArray &responce) {
   QString current_token = responseObj["token"].toString();
 
   LOG_INFO("[onReplyFinished] User created. User: '{}', Token: '{}'", createdUser.name.toStdString(),
-           current_token.toStdString());  // TODO: debug(createdUser);
+           current_token.toStdString());  // TODO(roma): debug(createdUser);
   Q_EMIT userCreated(createdUser, current_token);
 }
 

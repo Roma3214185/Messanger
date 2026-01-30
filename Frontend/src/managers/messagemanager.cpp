@@ -11,7 +11,7 @@
 
 namespace {
 
-auto getRequestWithToken(QUrl endpoint, QString current_token) -> QNetworkRequest {
+auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", current_token.toUtf8());
@@ -61,12 +61,12 @@ QList<Message> MessageManager::onGetChatMessages(const QByteArray &responce_data
   for (const auto &val : doc.array()) {
     auto [message, reactions] = this->entity_factory_->getMessageFromJson(val.toObject());
     messages.append(message);
-    for (auto reaction : reactions) {
+    for (const auto &reaction : reactions) {
       reactions_infos.insert(reaction);
     }
   }
 
-  for (auto reaction : reactions_infos) Q_EMIT saveReactionInfo(reaction);
+  for (const auto &reaction : reactions_infos) Q_EMIT saveReactionInfo(reaction);
   LOG_INFO("[onGetChatMessages] Loaded {} messages", messages.size());
   return messages;
 }

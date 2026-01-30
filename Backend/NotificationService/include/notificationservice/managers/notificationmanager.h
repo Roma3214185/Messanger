@@ -26,7 +26,7 @@ class NotificationManager {
   virtual void userConnected(long long user_id, SocketPtr conn);
   void saveMessageStatus(MessageStatus &status);
   void saveDeliveryStatus(const Message &msg, long long receiver_id);
-  bool notifyMember(long long user_id, nlohmann::json json_message, const std::string type);
+  bool notifyMember(long long user_id, nlohmann::json json_message, std::string type);
   virtual void onSendMessage(Message &message);
   virtual void onMessageStatusSaved(const std::string &payload);
   virtual void onMessageSaved(const std::string &payload);

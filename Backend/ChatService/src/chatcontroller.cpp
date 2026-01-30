@@ -32,17 +32,17 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 [[nodiscard]] Response sendResponse(int code, const std::string &text) { return std::make_pair(code, text); }
 
 [[nodiscard]] nlohmann::json buildChatJson(const Chat &chat,  // todo: make entity that fully handles all required info
-                                           std::vector<ReactionInfo> reactions, const std::optional<User> other_user,
-                                           std::optional<int> member_count) {
+                                           const std::vector<ReactionInfo> &reactions,
+                                           const std::optional<User> &other_user, std::optional<int> member_count) {
   nlohmann::json json;
   json["id"] = chat.id;
   json["type"] = chat.is_group ? "group" : "private";
 
-  if (chat.is_group) {
+  if (chat.is_group) {  // todo: implement factory create(Private/Group)ChatJson()
     json["name"] = chat.name;
     json["avatar"] = chat.avatar;
     json["member_count"] = member_count.value_or(0);
-  } else {
+  } else if (other_user.has_value()) {
     json["user"]["id"] = other_user->id;
     json["user"]["name"] = other_user->username;
     json["user"]["avatar"] = other_user->avatar;
@@ -69,10 +69,11 @@ Response ChatController::createPrivateChat(const RequestDTO &req) {
 
   auto body = crow::json::load(req.body);
   if (!body || !body.has("user_id")) {
-    if (!body)
+    if (!body) {
       LOG_ERROR("Invalid body");
-    else
+    } else {
       LOG_ERROR("Missing 'user_id' value");
+    }
     return sendResponse(Config::StatusCodes::userError, utils::details::formError("Missing user_id value"));
   }
 

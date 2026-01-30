@@ -24,12 +24,12 @@ class MessageDelegate;
 class MessageModel;
 class ClickOutsideClosableListView;
 
-class MainWindow : public QMainWindow, public IMainWindow {
+class MainWindow final : public QMainWindow, public IMainWindow {
   Q_OBJECT
 
  public:
   explicit MainWindow(Model *model, QWidget *parent = nullptr);
-  ~MainWindow();
+  ~MainWindow() final;
 
   void setChatWindow(std::shared_ptr<ChatBase> chat) override;
   void setChatModel(ChatModel *model) override;

@@ -6,7 +6,7 @@
 
 #include "entities/ReactionInfo.h"
 
-enum class MessageTokenType { Text, Emoji };
+enum class MessageTokenType : std::uint8_t { Text, Emoji };
 
 struct MessageToken {
   MessageTokenType type;

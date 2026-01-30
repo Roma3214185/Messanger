@@ -36,8 +36,8 @@ inline std::string timestampToISO8601(std::time_t timestamp) {
 namespace utils::time {
 
 inline long long getCurrentTime() {
-  using namespace std::chrono;
-  return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+    return std::chrono::duration_cast<std::chrono::seconds>(
+               std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 }  // namespace utils::time

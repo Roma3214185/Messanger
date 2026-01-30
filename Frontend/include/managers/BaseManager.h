@@ -19,7 +19,7 @@ class BaseManager : public QObject {
  public:
   BaseManager(INetworkAccessManager *network_manager, const QUrl &base_url, EntityFactory *enity_factory,
               std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
-  virtual ~BaseManager();
+  ~BaseManager() override;
 
  protected:
   template <typename T, typename Callback>
@@ -69,7 +69,8 @@ class BaseManager : public QObject {
     return future;
   }
 
-  QFuture<void> handleReplyWithTimeoutVoid(QNetworkReply *reply, std::function<void(const QByteArray &)> on_finished,
+  QFuture<void> handleReplyWithTimeoutVoid(QNetworkReply *reply,
+                                           const std::function<void(const QByteArray &)> &on_finished,
                                            std::chrono::milliseconds timeout_ms) {
     auto promise_ptr = std::make_shared<QPromise<void>>();
     auto future = promise_ptr->future();
@@ -92,7 +93,7 @@ class BaseManager : public QObject {
                          return;
                        }
 
-                       // TODO: if(!checkReply(reply) {
+                       // TODO(roma): if(!checkReply(reply) {
 
                        int http_status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
                        LOG_INFO("http_status = ", http_status);
@@ -129,7 +130,7 @@ class BaseManager : public QObject {
 
       QEventLoop loop;
       QObject::connect(reply, &QNetworkReply::finished, &loop,
-                       &QEventLoop::quit);  // TODO: "wait for" function
+                       &QEventLoop::quit);  // TODO(roma): "wait for" function
       loop.exec();
 
       QByteArray raw = reply->readAll();

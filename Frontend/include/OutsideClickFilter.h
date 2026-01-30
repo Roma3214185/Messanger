@@ -12,12 +12,12 @@ class OutsideClickFilter final : public QObject {
   using EventCallback = std::function<void()>;
 
   OutsideClickFilter(QWidget *popupWidget);
-  void checkClickOutside(QPoint point);
+  void checkClickOutside(QPointF point);
   void addAcceptableClickableWidget(QWidget *widget);  // click on this widget will not close popupWidget
 
  private:
   bool eventFilter(QObject *obj, QEvent *event) override;
-  bool clickIsOutside(QPoint point);
+  bool clickIsOutside(QPointF point);
 
   QWidget *popup_;
   std::vector<QWidget *> clickable_widgets_;

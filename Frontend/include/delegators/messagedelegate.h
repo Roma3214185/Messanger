@@ -14,7 +14,7 @@
 
 struct ReactionHitBox {
   QRect rect;
-  int reaction_id;
+  long long reaction_id;
 };
 
 using MessageId = long long;
@@ -48,11 +48,12 @@ class MessageDelegate : public QStyledItemDelegate {
   void drawReactions(QPainter *painter, const QRect &rect, const std::unordered_map<long long, int> &reactions,
                      std::optional<int> my_reaction, long long message_id) const;
   void drawReadCounter(QPainter *painter, const QRect &rect, const int read_cnt, bool is_mine) const;
-  QPixmap makeReactionIcon(const QString &imagePath, int count, std::optional<int> my_reaction, int reaction_id) const;
-  void addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, int reaction_id, long long message_id,
+  QPixmap makeReactionIcon(const QString &imagePath, int count, std::optional<long long> my_reaction,
+                           long long reaction_id) const;
+  void addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, long long reaction_id, long long message_id,
                  int &reaction_of_set) const;
 
-  void drawAnswerOnStatus(QPainter *painter, QRect &rect, const QColor &color, std::optional<Message> answer_on,
+  void drawAnswerOnStatus(QPainter *painter, QRect &rect, const QColor &color, const Message &answer_on_message,
                           long long message_id) const;
   int calculateTextHeight(const QString &text, int textWidth, const QFont &font) const;
 

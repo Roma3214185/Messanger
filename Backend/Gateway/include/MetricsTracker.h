@@ -25,9 +25,8 @@ struct MetricsTracker {
   MetricsTracker& operator=(MetricsTracker&& other) noexcept {
     if (this != &other) {
       if (metrics_) {
-        using namespace std::chrono;
         auto end = std::chrono::steady_clock::now();
-        auto latency = duration<double>(end - start).count();
+        double latency = std::chrono::duration<double>(end - start).count();
         metrics_->saveRequestLatency(latency);
       }
 
@@ -40,10 +39,9 @@ struct MetricsTracker {
 
   ~MetricsTracker() {
     if (!metrics_) return;
-    using namespace std::chrono;
 
-    auto end = steady_clock::now();
-    auto latency = duration<double>(end - start).count();
+    auto end = std::chrono::steady_clock::now();
+    double latency = std::chrono::duration<double>(end - start).count();
     metrics_->saveRequestLatency(latency);
   }
 };

@@ -25,10 +25,25 @@ add_library(FrontendLib STATIC
     ${MY_INCLUDES}
 )
 
-enable_clang_tidy(FrontendLib)
-enable_cppcheck(FrontendLib)
-enable_iwyu(FrontendLib)
-enable_sanitizers(FrontendLib)
+if(ENABLE_CLANG_TIDY)
+    enable_clang_tidy(FrontendLib)
+endif()
+
+if(ENABLE_CPPCHECK)
+    enable_cppcheck(FrontendLib)
+endif()
+
+if(ENABLE_INCLUDE_WHAT_YOU_USE)
+    enable_iwyu(FrontendLib)
+endif()
+
+if(ENABLE_SANITIZER_ADDRESS OR ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
+    enable_sanitizers(FrontendLib)
+endif()
+
+if(ENABLE_CLANG_FORMAT)
+    enable_clang_format(FrontendLib)
+endif()
 
 
 target_include_directories(FrontendLib
@@ -39,6 +54,7 @@ target_include_directories(FrontendLib
 
 target_link_libraries(FrontendLib PUBLIC
     Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Gui
+    ProjectOptions
     Metrics
     RedisCache
     Entities

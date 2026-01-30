@@ -6,7 +6,7 @@ ChatModel::ChatModel(QObject *parent) : QAbstractListModel(parent) {}
 
 int ChatModel::rowCount(const QModelIndex &parent) const {
   Q_UNUSED(parent);
-  return (int)chats_.size();
+  return static_cast<int>(chats_.size());
 }
 
 QVariant ChatModel::data(const QModelIndex &index, int role) const {
@@ -47,7 +47,8 @@ void ChatModel::addChat(const ChatPtr &chat) {
     return;
   }
 
-  beginInsertRows(QModelIndex(), chats_.size(), chats_.size());
+  int size = rowCount();
+  beginInsertRows(QModelIndex(), size, size);
   chats_.push_back(chat);
   sortChats();
   endInsertRows();
@@ -55,7 +56,7 @@ void ChatModel::addChat(const ChatPtr &chat) {
 
 void ChatModel::sortChats() {
   Q_EMIT layoutAboutToBeChanged();
-  std::sort(chats_.begin(), chats_.end(), [&](const auto &chat1, const auto &chat2) {
+  std::ranges::sort(chats_, [&](const auto &chat1, const auto &chat2) {
     // todo: add 'pined' status
     if (!chat1->last_message.has_value()) return true;
     if (!chat2->last_message.has_value()) return false;
@@ -70,7 +71,7 @@ void ChatModel::updateChatInfo(const long long chat_id, const std::optional<Mess
   if (message == std::nullopt) return;
   DBC_REQUIRE(chat_id > 0);
 
-  auto it = std::find_if(chats_.begin(), chats_.end(), [&](const auto &chat) { return chat->chat_id == chat_id; });
+  auto it = std::ranges::find_if(chats_, [&](const auto &chat) { return chat->chat_id == chat_id; });
   if (it == chats_.end()) return;
   // todo: make copy-asigned constructor
   (*it)->last_message = message;
@@ -84,7 +85,8 @@ void ChatModel::updateChatInfo(const long long chat_id, const std::optional<Mess
 
 OptionalChatIndex ChatModel::findIndexByChatId(long long chat_id) const {
   DBC_REQUIRE(chat_id > 0);
-  for (size_t i = 0; i < chats_.size(); ++i) {
+  const auto number_of_chats = static_cast<long long>(chats_.size());
+  for (long long i = 0; i < number_of_chats; ++i) {
     if (chats_[i]->chat_id == chat_id) {
       return i;
     }
@@ -95,7 +97,7 @@ OptionalChatIndex ChatModel::findIndexByChatId(long long chat_id) const {
 
 void ChatModel::clear() {
   if (!chats_.isEmpty()) {
-    beginRemoveRows(QModelIndex(), 0, chats_.size() - 1);
+    beginRemoveRows(QModelIndex(), 0, rowCount() - 1);
     chats_.clear();
     endRemoveRows();
   }

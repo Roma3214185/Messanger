@@ -37,10 +37,25 @@ target_link_libraries(ChatServiceCore PUBLIC
     Network
 )
 
-enable_clang_tidy(ChatServiceCore)
-enable_cppcheck(ChatServiceCore)
-enable_iwyu(ChatServiceCore)
-enable_sanitizers(ChatServiceCore)
+if(ENABLE_CLANG_TIDY)
+  enable_clang_tidy(ChatServiceCore)
+endif()
+
+if(ENABLE_CPPCHECK)
+    enable_cppcheck(ChatServiceCore)
+endif()
+
+if(ENABLE_INCLUDE_WHAT_YOU_USE)
+    enable_iwyu(ChatServiceCore)
+endif()
+
+if(ENABLE_SANITIZER_ADDRESS OR ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
+    enable_sanitizers(ChatServiceCore)
+endif()
+
+if(ENABLE_CLANG_FORMAT)
+    enable_clang_format(ChatServiceCore)
+endif()
 
 target_include_directories(ChatServiceCore PUBLIC
   ${httplib_SOURCE_DIR}

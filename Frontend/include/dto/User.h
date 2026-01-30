@@ -15,7 +15,7 @@ struct User {
     return id > 0 && !email.isEmpty() && !name.isEmpty() && !tag.isEmpty();  //&& !avatarPath.isEmpty();
   }
 
-  std::string toString() const noexcept {
+  std::string toString() const {
     std::string res;
     res += " | id = " + std::to_string(id);
     res += " | email = " + email.toStdString();

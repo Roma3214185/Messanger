@@ -1,4 +1,5 @@
-#pragma once
+#ifndef INL_GENERIC_REPOSITORY
+#define INL_GENERIC_REPOSITORY
 
 #include "interfaces/IBaseQuery.h"
 #include "interfaces/ICacheService.h"
@@ -20,13 +21,13 @@ template <EntityJson T>
 inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) const {
   std::any val = f.get(&entity);
 
-  if (f.type == typeid(long long))
+  if (f.type == typeid(long long)) {
     return QVariant::fromValue(std::any_cast<long long>(val));
-  if (f.type == typeid(std::string))
+  } if (f.type == typeid(std::string)) {
     return QString::fromStdString(std::any_cast<std::string>(val));
-  if (f.type == typeid(bool))
+    } if (f.type == typeid(bool)) {
     return QVariant::fromValue(static_cast<int>(std::any_cast<bool>(val)));
-  if (f.type == typeid(QDateTime)) {
+    } if (f.type == typeid(QDateTime)) {
     auto dt = std::any_cast<QDateTime>(val);
 
     if (!dt.isValid()) {
@@ -69,7 +70,7 @@ bool GenericRepository::save(const T& entity) {
 
   LOG_INFO("Save succeed for json: {}", entity_json);
 
-  cache_.set(makeKey<T>(entity), entity_json, std::chrono::seconds(30));
+  cache_.set(makeKey<T>(entity), entity_json, std::chrono::seconds{30});
   cache_.incr(std::string("table_generation:") + meta.table_name);
   return true;
 }
@@ -133,13 +134,12 @@ bool GenericRepository::deleteById(long long entity_id) {
   QString sql = QString("DELETE FROM %1 WHERE id = ?")
                     .arg(QString::fromStdString(meta.table_name));
 
-  std::string stmKey = meta.table_name + std::string(":deleteById");
-
   if(auto result = executor_->execute(sql, {entity_id}); !result.query) {
     LOG_ERROR("Failed to delete by id {}, error {}", entity_id, result.error);
     return false;
   }
 
+  // todo: std::string stmKey = meta.table_name + std::string(":deleteById");
   cache_.incr(std::string("table_generation:") + meta.table_name);
   cache_.remove(makeKey<T>(entity_id));
   return true;
@@ -186,3 +186,5 @@ long long GenericRepository::getId(const T& obj) const {
   if (auto f = meta.find("id")) return std::any_cast<long long>(f->get(&obj));
   return 0;
 }
+
+#endif

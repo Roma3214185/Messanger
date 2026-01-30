@@ -10,7 +10,7 @@ class UserModel : public QAbstractListModel {
  public:
   using ListOfUsers = QVector<User>;
 
-  enum Roles { UserIdRole = Qt::UserRole + 1, NameRole, TagRole, EmailRole, AvatarRole };
+  enum Roles : std::uint16_t { UserIdRole = Qt::UserRole + 1, NameRole, TagRole, EmailRole, AvatarRole };
 
   explicit UserModel(QObject *parent = nullptr);
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;

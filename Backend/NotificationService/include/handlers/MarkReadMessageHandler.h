@@ -7,8 +7,8 @@ class MarkReadMessageHandler : public IMessageHandler {
  public:
   void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
               NotificationManager &manager) override {
-    long long read_by = static_cast<long long>(message["readed_by"].d());
-    long long message_id = static_cast<long long>(message["message_id"].d());
+    const auto read_by = static_cast<long long>(message["readed_by"].d());
+    const auto message_id = static_cast<long long>(message["message_id"].d());
     MessageStatus message_status;
     // todo: check if this user is member of chat in message service
     message_status.is_read = true;

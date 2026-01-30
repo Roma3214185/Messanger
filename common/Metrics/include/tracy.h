@@ -67,15 +67,12 @@ class ScopedTimer final {
   ScopedTimer(ScopedTimer &&) = delete;
   ScopedTimer &operator=(ScopedTimer &&) = delete;
 
-  ~ScopedTimer() noexcept {
+  ~ScopedTimer() {
     const auto end = std::chrono::high_resolution_clock::now();
     const double duration_seconds = std::chrono::duration<double>(end - start_).count();
 
-    try {
-      // span_->End();
-      spdlog::info("{} took {:.3f} s", name_, duration_seconds);
-    } catch (...) {
-    }
+    // span_->End();
+    spdlog::info("{} took {:.3f} s", name_, duration_seconds);
   }
 };
 

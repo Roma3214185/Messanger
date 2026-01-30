@@ -7,28 +7,9 @@
 
 class GeneratorId : public IIdGenerator {
  public:
-  explicit GeneratorId(uint8_t serviceId) : serviceId(serviceId) {}
+  explicit GeneratorId(uint8_t serviceId);
 
-  long long generateId() override {
-    using namespace std::chrono;
-    std::lock_guard<std::mutex> lock(mtx);
-
-    uint64_t now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-
-    if (now == lastTs) {
-      seq = (seq + 1) & SEQ_MASK;
-      if (seq == 0) {
-        while (now <= lastTs) {
-          now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-        }
-      }
-    } else {
-      lastTs = now;
-      seq = 0;
-    }
-
-    return (long long)(now << TIME_SHIFT) | (static_cast<uint64_t>(serviceId) << SERVICE_SHIFT) | seq;
-  }
+  long long generateId() override;
 
  private:
   static constexpr uint64_t SEQ_BITS = 14;

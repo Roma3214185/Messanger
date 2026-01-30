@@ -34,7 +34,7 @@ inline std::string formError(const std::string &error_text) { return nlohmann::j
 
 namespace utils {
 
-inline RequestDTO getDTO(const crow::request &req, const std::string &path, const int request_id = -1) {
+inline RequestDTO getDTO(const crow::request &req, const std::string &path, const std::string &request_id = "-1") {
   RequestDTO request_info;
   request_info.method = crow::method_name(req.method);
   request_info.path = path;

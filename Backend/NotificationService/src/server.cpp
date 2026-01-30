@@ -74,7 +74,7 @@ void Server::handleSocketOnMessage(const std::shared_ptr<ISocket> &socket, const
   const std::string &type = message_ptr["type"].s();
   if (auto it = handlers_.find(type); it != handlers_.end()) {
     LOG_INFO("Type is valid {}", type);
-    it->second->handle(message_ptr, std::move(socket), *notification_manager_);
+    it->second->handle(message_ptr, socket, *notification_manager_);
   } else {
     LOG_ERROR("Type isn't valid {}", type);
   }
