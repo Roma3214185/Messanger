@@ -76,6 +76,8 @@ add_executable(NotificationService
     src/handlers/MarkReadMessageHandler.cpp
     src/handlers/SaveMessageReactionHandler.cpp
     src/handlers/SendMessageHandler.cpp
+    src/CrowSocket.cpp
+    src/JwtUtils.cpp
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore)
