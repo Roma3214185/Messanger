@@ -10,9 +10,6 @@
 [submodule "external/jwt-cpp"]
 	path = external/jwt-cpp
 	url = https://github.com/Thalhammer/jwt-cpp.git
-[submodule "external/tracy"]
-	path = external/tracy
-	url = https://github.com/wolfpld/tracy.git
 [submodule "external/vcpkg"]
 	path = external/vcpkg
 	url = https://github.com/microsoft/vcpkg.git

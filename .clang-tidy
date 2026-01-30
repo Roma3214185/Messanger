@@ -1,4 +1,3 @@
-# from https://github.com/OpenAtomFoundation/pikiwidb/blob/5ea7bc0949cbd49122633cf086322143121c5985/.clang-tidy
 Checks:     '
             bugprone-*,
             clang-analyzer-*,
@@ -8,11 +7,14 @@ Checks:     '
             portability-*,
             -readability-*,
             -cppcoreguidelines-*,
+            -portability-template-virtual-member-function,
             -bugprone-easily-swappable-parameters,
             -bugprone-implicit-widening-of-multiplication-result,
             -bugprone-reserved-identifier,
             -bugprone-signed-char-misuse,
             -bugprone-branch-clone,
+            -bugprone-exception-escape,
+            -clang-diagnostic-deprecated-declarations,
             -clang-analyzer-cplusplus.NewDelete,
             -clang-analyzer-cplusplus.NewDeleteLeaks,
             -clang-analyzer-security.insecureAPI.rand,
@@ -26,11 +28,14 @@ Checks:     '
             -google-default-arguments,
             -google-explicit-constructor,
             -google-runtime-int,
+            -google-readability-todo,
             -modernize-avoid-c-arrays,
             -modernize-use-nodiscard,
             -modernize-use-trailing-return-type,
             -modernize-pass-by-value,
             -modernize-concat-nested-namespaces,
+            -modernize-raw-string-literal,
+            -modernize-type-traits,
             -modernize-return-braced-init-list,
                               -modernize-use-equals-delete,
                               -modernize-redundant-void-arg,
@@ -38,12 +43,7 @@ Checks:     '
             -readability-identifier-length,
             -readability-function-cognitive-complexity,
             -readability-magic-numbers,
-            -readability-make-member-function-const,
-            -readability-qualified-auto,
-            -readability-redundant-access-specifiers,
             -readability-function-size,
-            -readability-else-after-return,
-            -readability-use-anyofallof,
             -readability-implicit-bool-conversion,
             -use_of_tag_name_without_tag,
             '
@@ -79,6 +79,7 @@ CheckOptions:
   - { key: readability-identifier-naming.ProtectedMethodCase,      value: camelBack  }
   - { key: readability-identifier-naming.MemberCase,               value: lower_case }
   - { key: readability-identifier-naming.MemberSuffix,             value: _          }
+  - { key: modernize-use-override.IgnoreDestructors,               value: 'true' }
 
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(Frontend|Backend|common)/.+\.h$'
