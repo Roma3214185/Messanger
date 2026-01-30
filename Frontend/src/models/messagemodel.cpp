@@ -59,22 +59,22 @@ std::optional<Message> MessageModel::getOldestMessage() const {
 }
 
 void MessageModel::saveMessage(const Message &msg) {
-  const std::lock_guard<std::mutex> lock(messages_mutex_);
-  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto &other) {
+  const std::scoped_lock lock(messages_mutex_);
+  auto it = std::ranges::find_if(messages_, [&](const auto &other) {
     return msg.local_id == other.local_id;  //|| msg.id == other.id;
   });
 
   if (it != messages_.end()) {
     LOG_INFO("Message already exist with id {} and local id {}", it->id, it->local_id.toStdString());
-    int row = std::distance(messages_.begin(), it);
+    const auto row = static_cast<int>(std::distance(messages_.begin(), it));
     it->updateFrom(msg);
     QModelIndex idx = index(row);
     Q_EMIT dataChanged(idx, idx);
   } else {
     LOG_INFO("Add new message {}", msg.toString());
-    auto insertPos = std::lower_bound(messages_.begin(), messages_.end(), msg,
-                                      [](const auto &a, const auto &b) { return a.timestamp < b.timestamp; });
-    int row = std::distance(messages_.begin(), insertPos);
+    auto insertPos = std::ranges::lower_bound(messages_, msg,
+                                              [](const auto &a, const auto &b) { return a.timestamp < b.timestamp; });
+    const auto row = static_cast<int>(std::distance(messages_.begin(), insertPos));
     beginInsertRows(QModelIndex(), row, row);
     messages_.insert(insertPos, msg);
     endInsertRows();
@@ -84,16 +84,15 @@ void MessageModel::saveMessage(const Message &msg) {
 void MessageModel::deleteMessage(const Message &message) {
   LOG_INFO("Message model try to delete message {}", message.toString());
 
-  const std::lock_guard<std::mutex> lock(messages_mutex_);
-  auto it = std::find_if(messages_.begin(), messages_.end(),
-                         [&](const auto &other) { return message.local_id == other.local_id; });
+  const std::scoped_lock lock(messages_mutex_);
+  auto it = std::ranges::find_if(messages_, [&](const auto &other) { return message.local_id == other.local_id; });
 
   if (it == messages_.end()) {
     LOG_INFO("Message already doesn't exist)");
     return;
   }
 
-  const int row = std::distance(messages_.begin(), it);
+  const auto row = static_cast<int>(std::distance(messages_.begin(), it));
 
   beginRemoveRows(QModelIndex(), row, row);
   messages_.erase(it);
@@ -101,9 +100,9 @@ void MessageModel::deleteMessage(const Message &message) {
 }
 
 void MessageModel::sortMessagesByTimestamp() {
-  std::sort(messages_.begin(), messages_.end(), [](const auto &a, const auto &b) { return a.timestamp < b.timestamp; });
+  std::ranges::sort(messages_, [](const auto &a, const auto &b) { return a.timestamp < b.timestamp; });
 
-  // const std::lock_guard<std::mutex> lock(messages_mutex_);
+  // const std::scoped_lock lock(messages_mutex_);
   // std::sort(messages_.begin(), messages_.end(), [](const auto& first_message,
   // const auto& second_message){
   //   return first_message.timestamp < second_message.timestamp;
@@ -115,7 +114,7 @@ void MessageModel::clear() {
     return;
   }
 
-  beginRemoveRows(QModelIndex(), 0, messages_.size() - 1);
+  beginRemoveRows(QModelIndex(), 0, rowCount() - 1);
   messages_.clear();
   // users_by_message_id_.clear();
   endRemoveRows();
@@ -129,5 +128,5 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
 
 int MessageModel::rowCount(const QModelIndex &parent) const {
   Q_UNUSED(parent);
-  return (int)messages_.size();
+  return static_cast<int>(messages_.size());
 }

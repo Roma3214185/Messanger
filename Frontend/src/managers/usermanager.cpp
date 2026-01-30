@@ -12,7 +12,7 @@
 
 namespace {
 
-auto getRequestWithToken(QUrl endpoint, const QString &current_token) -> QNetworkRequest {
+auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", current_token.toUtf8());

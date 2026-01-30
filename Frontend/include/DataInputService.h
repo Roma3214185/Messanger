@@ -15,17 +15,17 @@ struct ValidationResult {
 };
 
 struct Config {
-  size_t kMinLenOfName = 4;
-  size_t kMaxLenOfName = 64;
+  int kMinLenOfName = 4;
+  int kMaxLenOfName = 64;
 
-  size_t kMinPasswordLength = 8;
-  size_t kMaxPasswordLength = 64;
+  int kMinPasswordLength = 8;
+  int kMaxPasswordLength = 64;
 
-  size_t kMinTagLength = 4;
-  size_t kMaxTagLength = 32;
+  int kMinTagLength = 4;
+  int kMaxTagLength = 32;
 
-  size_t kMinEmailLocalPartLength = 4;
-  size_t kMaxEmailLocalPartLength = 64;
+  int kMinEmailLocalPartLength = 4;
+  int kMaxEmailLocalPartLength = 64;
   QString kConfigDomainsPath = "/Users/roma/QtProjects/Chat/Frontend/config/domains.txt";
   mutable QList<QString> kDomains;
 };

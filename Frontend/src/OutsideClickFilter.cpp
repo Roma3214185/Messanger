@@ -4,14 +4,11 @@
 
 namespace {
 
-bool clickedInsideWidget(QWidget *widget, QPoint globalPoint) {
+bool clickedInsideWidget(const QWidget *widget, QPointF globalPoint) {
   if (!widget) return false;
 
-  QRect globalRect = widget->rect();
-  QPoint topLeft = widget->mapToGlobal(globalRect.topLeft());
-  QRect mappedRect(topLeft, widget->size());
-
-  return mappedRect.contains(globalPoint);
+  QRectF globalRect(widget->mapToGlobal(QPoint(0, 0)), widget->size());
+  return globalRect.contains(globalPoint);
 }
 
 }  // namespace
@@ -22,13 +19,13 @@ OutsideClickFilter::OutsideClickFilter(QWidget *popupWidget) : popup_(popupWidge
 
 bool OutsideClickFilter::eventFilter(QObject *obj, QEvent *event) {
   if (event->type() == QEvent::MouseButtonPress) {
-    QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-    checkClickOutside(mouseEvent->globalPos());
+    auto *mouseEvent = static_cast<QMouseEvent *>(event);
+    checkClickOutside(mouseEvent->globalPosition());
   }
   return QObject::eventFilter(obj, event);
 }
 
-void OutsideClickFilter::checkClickOutside(QPoint point) {
+void OutsideClickFilter::checkClickOutside(QPointF point) {
   if (!popup_) return;
 
   if (clickIsOutside(point)) {
@@ -39,7 +36,7 @@ void OutsideClickFilter::checkClickOutside(QPoint point) {
 
 void OutsideClickFilter::addAcceptableClickableWidget(QWidget *widget) { clickable_widgets_.push_back(widget); }
 
-bool OutsideClickFilter::clickIsOutside(QPoint point) {
+bool OutsideClickFilter::clickIsOutside(QPointF point) {
   for (auto &widget : clickable_widgets_) {
     if (clickedInsideWidget(widget, point)) return false;
   }

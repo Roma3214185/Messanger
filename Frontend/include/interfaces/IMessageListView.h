@@ -10,7 +10,6 @@ class IMessageListView : public QListView {
   Q_OBJECT
  public:
   explicit IMessageListView(QWidget *parent = nullptr);
-  virtual ~IMessageListView() = default;
 
   virtual void setMessageModel(MessageModel *model) = 0;
 

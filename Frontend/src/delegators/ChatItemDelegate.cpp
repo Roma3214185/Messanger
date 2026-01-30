@@ -85,6 +85,9 @@ void ChatItemDelegate::drawLastMessage(QPainter *painter, const QRect &rect,
       cursor.insertText(token.value);
     } else if (token.type == MessageTokenType::Emoji) {
       DBC_REQUIRE(token.emoji_id.has_value());
+      if (!token.emoji_id.has_value()) {
+        continue;
+      }
       auto img_info_opt = data_manager_->getReactionInfo(*token.emoji_id);
       utils::ui::insert_emoji(cursor, img_info_opt);
     }

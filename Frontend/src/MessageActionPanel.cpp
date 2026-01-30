@@ -52,7 +52,7 @@ MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<Rea
 
 void MessageActionPanel::loadEmojiReactions() {
   for (const auto &r : reactions_) {
-    QStandardItem *item = new QStandardItem;
+    auto *item = new QStandardItem;
     QIcon icon(QString::fromStdString(r.image));
     if (icon.isNull()) continue;
     item->setIcon(icon);
@@ -63,16 +63,17 @@ void MessageActionPanel::loadEmojiReactions() {
 
 void MessageActionPanel::onActionClicked(const QModelIndex &index) {
   QString action = index.data().toString();
-  if (action == "Copy")
+  if (action == "Copy") {
     Q_EMIT copyClicked(msg_);
-  else if (action == "Edit")
+  } else if (action == "Edit") {
     Q_EMIT editClicked(msg_);
-  else if (action == "Delete")
+  } else if (action == "Delete") {
     Q_EMIT deleteClicked(msg_);
-  else if (action == "Answer")
+  } else if (action == "Answer") {
     Q_EMIT onAnswerClicked(msg_);
-  else
+  } else {
     LOG_ERROR("Invalid action");
+  }
   this->close();
 }
 

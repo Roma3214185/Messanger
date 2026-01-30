@@ -14,7 +14,6 @@ TEST_CASE("Test datamanager works with chats") {
   auto private_chat2 = ChatFactory::createPrivateChat(2, "Roma", "roma228", 5, "offline");
   auto private_chat3 = ChatFactory::createPrivateChat(3, "Sanya", "sanya228", 6, "offline");
   auto private_chat4 = ChatFactory::createPrivateChat(4, "Kolya", "kolya228", 7, "offline");
-  setContractHandler(throwOnViolation);
 
   User valid_user;
   valid_user.id = 5;

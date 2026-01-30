@@ -10,19 +10,18 @@
 
 using ChatPtr = std::shared_ptr<ChatBase>;
 using ListOfChats = QList<ChatPtr>;
-using std::optional;
-using ChatIndex = size_t;
+using ChatIndex = long long;
 using OptionalChatIndex = std::optional<ChatIndex>;
 
 class ChatModel : public QAbstractListModel {
   Q_OBJECT
 
  public:
-  enum Roles { ChatIdRole = Qt::UserRole + 1, TitleRole, LastMessageRole, UnreadRole, AvatarRole };
+  enum Roles : std::uint16_t { ChatIdRole = Qt::UserRole + 1, TitleRole, LastMessageRole, UnreadRole, AvatarRole };
 
   explicit ChatModel(QObject *parent = nullptr);
 
-  int rowCount(const QModelIndex &parent) const override;
+  int rowCount(const QModelIndex &parent = QModelIndex()) const override;
   QVariant data(const QModelIndex &index, int role) const override;
   QHash<int, QByteArray> roleNames() const override;
   void addChat(const ChatPtr &chat);

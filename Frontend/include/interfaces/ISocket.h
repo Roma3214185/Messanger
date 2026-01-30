@@ -8,7 +8,6 @@ class ISocket : public QObject {
   Q_OBJECT
 
  public:
-  virtual ~ISocket() = default;
   virtual void open(const QUrl &url) = 0;
   virtual void sendTextMessage(const QString &msg) = 0;
   virtual void close() = 0;

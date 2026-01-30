@@ -154,7 +154,7 @@ inline std::vector<MessageToken> get_tokens_from_text(const QString& text) {
 namespace utils::ui {
 
 inline void insert_emoji(QTextCursor& cursor, std::optional<ReactionInfo> img_info_opt, int size_of_image = 16,
-                         QString default_value = " ") {
+                         const QString& default_value = " ") {
   if (img_info_opt.has_value()) {
     const ReactionInfo& info = img_info_opt.value();
     QTextImageFormat fmt;

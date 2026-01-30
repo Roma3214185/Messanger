@@ -14,6 +14,7 @@ void fillCursorWithTokens(QTextCursor &cursor, DataManager &data_manager, const 
       cursor.insertText(token.value);
     } else if (token.type == MessageTokenType::Emoji) {
       DBC_REQUIRE(token.emoji_id.has_value());
+      if (!token.emoji_id.has_value()) continue;
       long long emojiId = token.emoji_id.value();
       auto img_info_opt = data_manager.getReactionInfo(emojiId);
       utils::ui::insert_emoji(cursor, img_info_opt, emojiSize);
@@ -348,8 +349,8 @@ void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect, cons
   painter->restore();
 }
 
-QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, std::optional<int> my_reaction,
-                                          int reaction_id) const {
+QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, std::optional<long long> my_reaction,
+                                          long long reaction_id) const {
   constexpr int iconSize = 20;
   constexpr int padding = 4;
   constexpr int badgeMinWidth = 14;
@@ -398,7 +399,7 @@ QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, s
   return result;
 }
 
-void MessageDelegate::addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, int reaction_id,
+void MessageDelegate::addInRect(QPainter *painter, const QRect &rect, const QPixmap &icon, long long reaction_id,
                                 long long message_id, int &reaction_x_offset) const {
   constexpr int spacing = 6;
 
@@ -427,7 +428,7 @@ std::optional<int> MessageDelegate::reactionAt(long long message_id, const QPoin
 }
 
 void MessageDelegate::drawAnswerOnStatus(QPainter *painter, QRect &recte, const QColor &color,
-                                         const Message& answer_on_message, long long message_id) const {
+                                         const Message &answer_on_message, long long message_id) const {
   if (!draw_answer_on) {
     DBC_UNREACHABLE();
     return;

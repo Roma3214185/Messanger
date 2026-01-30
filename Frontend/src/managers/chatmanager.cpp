@@ -17,7 +17,7 @@ const QString kServerNotRespondError = "Server didn't respond";
 
 namespace {
 
-auto getRequestWithToken(QUrl endpoint, const QString &current_token) -> QNetworkRequest {
+auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> QNetworkRequest {
   auto request = QNetworkRequest(endpoint);
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setRawHeader("Authorization", current_token.toUtf8());
@@ -56,10 +56,11 @@ auto ChatManager::onLoadChats(const QByteArray &responce_data) -> QList<ChatPtr>
   auto chats = QList<ChatPtr>{};
   for (const auto &val : doc.object()["chats"].toArray()) {
     auto chat = this->entity_factory_->getChatFromJson(val.toObject());
-    if (chat)
+    if (chat) {
       chats.append(chat);
-    else
+    } else {
       spdlog::warn("[onLoadChats] Skipping invalid chat object");
+    }
   }
 
   LOG_INFO("[onLoadChats] Loaded {} chats", chats.size());

@@ -48,7 +48,7 @@ auto MessageUseCase::getChatMessages(long long chat_id, int limit) -> QList<Mess
 
   long long id_of_oldest_message = oldestMessage.has_value() ? oldestMessage->id : 0ll;
 
-  // TODO: cache request result for {chat_id before_id}
+  // TODO(roma): cache request result for {chat_id before_id}
   LOG_INFO(
       "[getChatMessages] Loading messages for chatId={}, "
       "id_of_oldest_message = '{}'",
@@ -88,7 +88,7 @@ void MessageUseCase::getChatMessagesAsync(long long chat_id) {
 
   QtConcurrent::run([this, chat_id]() { return getChatMessages(chat_id); })
       .then(this,
-            [this, chat_id](QList<Message> chat_messages) {
+            [this, chat_id](const QList<Message> &chat_messages) {
               LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages", chat_id, chat_messages.size());
               data_manager_->save(chat_messages);
             })

@@ -96,7 +96,7 @@ void ChatUseCase::loadChatsAsync() {
   // watcher->setFuture(chat_manager_->loadChats(token_manager_->getToken()));
   chat_manager_->loadChats(token_manager_->getToken())
       .then(this,
-            [this](QList<ChatPtr> chats) {
+            [this](const QList<ChatPtr> &chats) {
               for (const auto &chat : chats) {
                 addChat(chat);
               }

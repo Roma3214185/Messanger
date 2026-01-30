@@ -12,10 +12,11 @@ BaseManager::~BaseManager() = default;
 
 bool BaseManager::checkReply(QNetworkReply *reply) {
   if (!reply || reply->error() != QNetworkReply::NoError) {
-    if (reply)
+    if (reply) {
       LOG_ERROR("[onReplyFinished] Network error: '{}'", reply->errorString().toStdString());
-    else
+    } else {
       LOG_ERROR("Reply is nullptr");
+    }
     Q_EMIT errorOccurred("Reply is failed");
     return false;
   }

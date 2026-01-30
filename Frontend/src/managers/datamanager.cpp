@@ -1,7 +1,7 @@
 #include "managers/datamanager.h"
 
 #include "Debug_profiling.h"
-#include "Utils.h"
+#include "utils.h"
 
 namespace {
 
@@ -18,18 +18,18 @@ bool isMyReaction(const Message &message, const Reaction &reaction) {
 
 auto DataManager::getIterMessageById(long long message_id) {
   DBC_REQUIRE(message_id > 0);
-  return std::find_if(messages_.begin(), messages_.end(),
-                      [&](const auto &existing_message) { return existing_message.id == message_id; });
+  return std::ranges::find_if(messages_,
+                              [&](const auto &existing_message) { return existing_message.id == message_id; });
 }
 
 auto DataManager::getIterMessageByLocalId(const QString &local_id) {
   DBC_REQUIRE(!local_id.isEmpty());
-  return std::find_if(messages_.begin(), messages_.end(),
-                      [&](const auto &existing_message) { return existing_message.local_id == local_id; });
+  return std::ranges::find_if(messages_,
+                              [&](const auto &existing_message) { return existing_message.local_id == local_id; });
 }
 
 ChatPtr DataManager::getPrivateChatWithUser(long long user_id) {
-  for (auto [_, chat] : chats_by_id_) {
+  for (auto &[_, chat] : chats_by_id_) {
     if (chat->isPrivate()) {
       auto *pchat = static_cast<PrivateChat *>(chat.get());
       if (pchat->user_id == user_id) {
@@ -52,15 +52,16 @@ MessageModelPtr DataManager::getMessageModel(long long chat_id) {
 
 ChatPtr DataManager::getChat(long long chat_id) {
   auto chat_iter = chats_by_id_.find(chat_id);
-  if (chat_iter == chats_by_id_.end())
+  if (chat_iter == chats_by_id_.end()) {
     return nullptr;  // todo: maybe return empty chat but then load all
                      // messages??
+  }
   return chat_iter->second;
 }
 
-int DataManager::getNumberOfExistingChats() const noexcept { return chats_by_id_.size(); }
+int DataManager::getNumberOfExistingChats() const noexcept { return static_cast<int>(chats_by_id_.size()); }
 
-int DataManager::getNumberOfExistingUsers() const noexcept { return users_by_id_.size(); }
+int DataManager::getNumberOfExistingUsers() const noexcept { return static_cast<int>(users_by_id_.size()); }
 
 void DataManager::clearAllChats() { chats_by_id_.clear(); }
 
@@ -86,11 +87,11 @@ void DataManager::clearAll() {
 //    }
 // }
 
-void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
+void DataManager::addChat(const ChatPtr &chat, MessageModelPtr message_model) {
   DBC_REQUIRE(chat->chat_id > 0);
   if (!message_model) message_model = std::make_shared<MessageModel>();
 
-  const std::lock_guard<std::mutex> lock(chat_mutex_);
+  const std::scoped_lock lock(chat_mutex_);
   bool chat_was = chats_by_id_.contains(chat->chat_id);
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
@@ -100,27 +101,26 @@ void DataManager::addChat(ChatPtr chat, MessageModelPtr message_model) {
 
 void DataManager::save(const User &user) {
   DBC_REQUIRE(user.checkInvariants());
-  const std::lock_guard<std::mutex> lock(user_mutex_);
+  const std::scoped_lock lock(user_mutex_);
   users_by_id_[user.id] = user;
 }
 
 std::optional<User> DataManager::getUser(UserId user_id) {
   DBC_REQUIRE(user_id > 0);
-  const std::lock_guard<std::mutex> lock(user_mutex_);
+  const std::scoped_lock lock(user_mutex_);
   auto it = users_by_id_.find(user_id);
   return it == users_by_id_.end() ? std::nullopt : std::make_optional(it->second);
 }
 
 std::optional<Message> DataManager::getMessageById(const long long message_id) {
   DBC_REQUIRE(message_id > 0);
-  auto it =
-      std::find_if(messages_.begin(), messages_.end(), [&](const auto &message) { return message.id == message_id; });
+  auto it = std::ranges::find_if(messages_, [&](const auto &message) { return message.id == message_id; });
   return it == messages_.end() ? std::nullopt : std::make_optional(*it);
 }
 
 void DataManager::save(const Message &message) {
-  const std::lock_guard<std::mutex> lock(messages_mutex_);
-  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const auto &existing_message) {
+  const std::scoped_lock lock(messages_mutex_);
+  auto it = std::ranges::find_if(messages_, [&](const auto &existing_message) {
     return existing_message.local_id == message.local_id;  // id from server here can be null
   });
   LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.getFullText().toStdString(),
@@ -139,8 +139,8 @@ void DataManager::save(const Message &message) {
 }
 
 void DataManager::deleteMessage(const Message &msg) {
-  const std::lock_guard<std::mutex> lock(messages_mutex_);
-  auto it = std::find_if(messages_.begin(), messages_.end(), [&](const Message &existing_message) {
+  const std::scoped_lock lock(messages_mutex_);
+  auto it = std::ranges::find_if(messages_, [&](const Message &existing_message) {
     return existing_message.local_id == msg.local_id;  // id from server here can be null
   });
 
@@ -155,7 +155,7 @@ void DataManager::deleteMessage(const Message &msg) {
   Q_EMIT messageDeleted(msg);
 }
 void DataManager::readMessage(long long message_id, long long readed_by) {
-  std::lock_guard lock(messages_mutex_);
+  std::scoped_lock lock(messages_mutex_);
   DBC_REQUIRE(message_id > 0);
   DBC_REQUIRE(readed_by > 0);
   auto it = getIterMessageById(message_id);
@@ -189,7 +189,7 @@ std::optional<ReactionInfo> DataManager::getReactionInfo(long long reaction_id) 
 }
 
 void DataManager::deleteReaction(const Reaction &reaction_to_delete) {
-  std::lock_guard lock(messages_mutex_);
+  std::scoped_lock lock(messages_mutex_);
   DBC_REQUIRE(reaction_to_delete.checkInvariants());
   auto iter_on_message = getIterMessageById(reaction_to_delete.message_id);
   if (iter_on_message == messages_.end()) {
@@ -215,7 +215,7 @@ void DataManager::deleteReaction(const Reaction &reaction_to_delete) {
 }
 
 void DataManager::save(const Reaction &reaction_to_save) {
-  std::lock_guard lock(messages_mutex_);
+  std::scoped_lock lock(messages_mutex_);
   DBC_REQUIRE(reaction_to_save.checkInvariants());
   auto iter_on_message = getIterMessageById(reaction_to_save.message_id);
   if (iter_on_message == messages_.end()) {
@@ -236,8 +236,9 @@ void DataManager::save(const Reaction &reaction_to_save) {
 
   if (my_reaction) {
     // it's my reaction, so i need to delete my old reaction if it setted, and set new one
-    if (message_to_save_reaction.receiver_reaction.has_value())
+    if (message_to_save_reaction.receiver_reaction.has_value()) {
       decrease(message_to_save_reaction.reactions, message_to_save_reaction.receiver_reaction.value());
+    }
     message_to_save_reaction.receiver_reaction = reaction_to_save.reaction_id;
   }
 

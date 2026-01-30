@@ -10,7 +10,6 @@
 #include "DeleteMessageResponce.h"
 #include "JsonService.h"
 #include "MessageListView.h"
-#include "Utils.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/Reaction.h"
@@ -137,6 +136,7 @@ void Presenter::deleteReaction(const Reaction &reaction) {
 void Presenter::onScroll(int value) {  // todo: multithreaded event changed
                                        // current_opened_chat_id_ (?)
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
+  if (current_opened_chat_id_.has_value() == false) return;
   if (bool chat_list_is_on_top = (value == 0); !chat_list_is_on_top) return;
 
   PROFILE_SCOPE("Presenter::onScroll");
@@ -248,12 +248,10 @@ void Presenter::sendButtonClicked(QTextDocument *doc, std::optional<long long> a
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
   DBC_REQUIRE(doc != nullptr);
-  // TODO: what if multithreaded will make here current_user is nullopt, after checking (?)
-
-  if (answer_on_message_id.has_value())
-    qDebug() << "Anwer on " << answer_on_message_id;
-  else
-    qDebug() << "Message with no answer on";
+  // TODO(roma): what if multithreaded will make here current_user is nullopt, after checking (?)
+  if (!current_opened_chat_id_ || !current_user_) {
+    return;
+  }
 
   if (doc->isEmpty()) {
     LOG_WARN("Presenter receive to send empty text");
@@ -287,6 +285,8 @@ std::optional<ReactionInfo> Presenter::getReactionInfo(long long reaction_id) {
 
 std::vector<Message> Presenter::getListOfMessagesBySearch(const QString &prefix) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
+  if (current_opened_chat_id_ == std::nullopt) return {};
+
   QString prefix_trimmed = prefix.trimmed();
   if (prefix_trimmed.isEmpty()) {
     return {};
@@ -330,6 +330,7 @@ void Presenter::editMessage(Message &message_to_edit, QTextDocument *doc) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
   DBC_REQUIRE(doc != nullptr);
+  if (!doc) return;
 
   if (doc->isEmpty()) {
     LOG_WARN("Presenter receive to send empty doc");

@@ -6,27 +6,28 @@ UserModel::UserModel(QObject *parent) : QAbstractListModel(parent) {}
 
 int UserModel::rowCount(const QModelIndex &parent) const {
   Q_UNUSED(parent);
-  return users_.size();
+  return static_cast<int>(users_.size());
 }
 
 void UserModel::addUser(const User &user) {
   if (user.id <= 0) throw std::runtime_error("Invalid user id");
 
-  for (auto existing_user : users_) {
+  for (const auto &existing_user : users_) {
     if (existing_user.id == user.id) {
       LOG_ERROR("User with id {} already exist", user.id);
       return;
     }
   }
 
-  beginInsertRows(QModelIndex(), users_.size(), users_.size());
+  int size = rowCount();
+  beginInsertRows(QModelIndex(), size, size);
   LOG_INFO("User model add user ({}) with email: {}", user.name.toStdString(), user.email.toStdString());
   users_.push_back(user);
   endInsertRows();
 }
 
 void UserModel::clear() {
-  int count = users_.size();
+  int count = rowCount();
   if (count == 0) return;
 
   beginRemoveRows(QModelIndex(), 0, count - 1);

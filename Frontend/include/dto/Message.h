@@ -65,7 +65,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
 
   bool isMine() const noexcept { return sender_id == receiver_id; }
 
-  std::string toString() const noexcept {
+  std::string toString() const {
     std::string res;
     res += "| id = " + std::to_string(id);
     res += " | sender_id = " + std::to_string(sender_id);
@@ -111,7 +111,7 @@ struct Message {  // todo: make immutable messagedomein and mutable messageview
 
   QString getFullText() const { return utils::text::tokenize(tokens); }
 
-  bool checkInvariants() const noexcept {
+  bool checkInvariants() const {
     return id > 0 && sender_id > 0 && chat_id > 0 && !local_id.isEmpty() && read_counter >= 0 && receiver_id > 0 &&
            !tokens.empty() && (!receiver_reaction.has_value() || receiver_reaction.value() > 0) &&
            (!answer_on.has_value() || answer_on.value() > 0);
