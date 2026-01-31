@@ -1,0 +1,28 @@
+name: Architecture Diagrams
+
+on:
+  pull_request:
+    paths:
+      - "docs/architecture/**"
+  push:
+    #branches: [ main ] // todo: uncomment
+
+jobs:
+  plantuml:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate diagrams
+        uses: plantuml/plantuml-action@v1
+        with:
+          args: >
+            -tsvg
+            docs/architecture/**/*.puml
+
+      - name: Upload diagrams
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture
+          path: docs/architecture/**/*.svg

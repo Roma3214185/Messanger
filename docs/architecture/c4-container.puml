@@ -1,0 +1,24 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System_Boundary(backend, "Backend") {
+
+  Container(gateway, "Gateway", "C++", "API Gateway")
+  Container(auth, "AuthService", "C++", "Authentication")
+  Container(chat, "ChatService", "C++", "Chat management")
+  Container(message, "MessageService", "C++", "Message handling")
+  Container(notification, "NotificationService", "C++", "Push notifications")
+
+  ContainerDb(redis, "Redis", "Cache")
+  ContainerQueue(rabbit, "RabbitMQ", "Message broker")
+}
+
+Rel(gateway, auth, "HTTP/gRPC")
+Rel(gateway, chat, "HTTP/gRPC")
+Rel(chat, message, "Publishes events", "AMQP")
+Rel(message, notification, "Events", "AMQP")
+
+Rel(message, redis, "Cache")
+Rel(chat, rabbit, "Uses")
+
+@enduml
