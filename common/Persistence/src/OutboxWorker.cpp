@@ -70,7 +70,7 @@ void OutboxWorker::processBatch(IDataBase &db) {
       User user = nlohmann::json::parse(payload_str.toStdString());  // todo: try catch
       LOG_INFO("User: {}", nlohmann::json(user).dump());
 
-      const std::string first_command = "INSERT OR REPLACE INTO users_by_email VALUES(?, ?, ?, ?";
+      const std::string first_command = "INSERT OR REPLACE INTO users_by_email VALUES(?, ?, ?, ?)";
       auto query1 = db.prepare(first_command);
       if (!query1) continue;
       query1->bind(user.id);
@@ -78,7 +78,7 @@ void OutboxWorker::processBatch(IDataBase &db) {
       query1->bind(QString::fromStdString(user.username));
       query1->bind(QString::fromStdString(user.username));
 
-      const std::string second_command = "INSERT OR REPLACE INTO users_by_tag VALUES(?, ?, ?, ?";
+      const std::string second_command = "INSERT OR REPLACE INTO users_by_tag VALUES(?, ?, ?, ?)";
       auto query2 = db.prepare(second_command);
       if (!query2) continue;
       query2->bind(user.id);
