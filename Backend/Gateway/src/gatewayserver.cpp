@@ -93,6 +93,7 @@ void GatewayServer::registerRoute(const std::string &base_path, int port) {
   app_.route_dynamic(base_path + "/<path>")
       .methods("GET"_method, crow::HTTPMethod::DELETE, crow::HTTPMethod::PUT)(
           [this, port, base_path](const crow::request &req, crow::response &res,
+                                  // cppcheck-suppress passedByValue
                                   std::string path /*NOLINT(performance-unnecessary-value-param)*/) {
             handleProxyRequest(req, res, port, base_path + "/" + path);
           });
@@ -100,6 +101,7 @@ void GatewayServer::registerRoute(const std::string &base_path, int port) {
   app_.route_dynamic(base_path + "/<path>")
       .methods("POST"_method)(
           [this, port, base_path](const crow::request &req, crow::response &res,
+                                  // cppcheck-suppress passedByValue
                                   std::string path /*NOLINT(performance-unnecessary-value-param)*/) {
             handlePostRequest(req, res, port, base_path + "/" + path);
           });

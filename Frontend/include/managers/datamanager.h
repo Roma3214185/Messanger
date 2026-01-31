@@ -61,9 +61,9 @@ class DataManager : public QObject {
 
  Q_SIGNALS:
   void chatAdded(const ChatPtr &chat);
-  void messageAdded(
-      const Message message);  // add messageChanged or rename messageSaved(both added and changeed something)
-  void messageDeleted(const Message message);
+  void messageAdded(const Message &message);
+  // add messageChanged or rename messageSaved(both added and changeed something)
+  void messageDeleted(const Message &message);
 
  protected:
   [[nodiscard]] int getNumberOfExistingUsers() const noexcept;

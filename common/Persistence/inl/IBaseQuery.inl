@@ -27,8 +27,8 @@ inline std::string trim(std::string_view sv) {
 } // namespace
 
 template <EntityJson T>
-IBaseQuery<T>::IBaseQuery(ISqlExecutor* executor) : executor_(executor) {
-  table_name_ = QString::fromStdString(Reflection<T>::meta().table_name);
+IBaseQuery<T>::IBaseQuery(ISqlExecutor* executor) : executor_(executor),
+    table_name_(QString::fromStdString(Reflection<T>::meta().table_name)) {
   involved_tables_.push_back(table_name_);
 }
 

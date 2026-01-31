@@ -14,17 +14,27 @@ function(enable_cppcheck TARGET)
     message(STATUS "BINARY_DIR=${CMAKE_BINARY_DIR}")
 
     set(CPPCHECK_OPTIONS
+        --max-ctu-depth=3
         --enable=warning,performance,portability
+        #--enable=all
         --inline-suppr
         --suppress=missingIncludeSystem
         -i${CMAKE_SOURCE_DIR}/external
         -i${CMAKE_BINARY_DIR}/
         --suppress=*:*/_deps/*
         --suppress=*:*/external/*
+        --suppress=unmatchedSuppression
         -DQT_BEGIN_NAMESPACE=;
         -DQT_END_NAMESPACE=;
-        -DQT_NO_KEYWORDS=1
+        -DQT_NO_KEYWORDS=1;
+        -DQ_SLOTS=;
+        -DQ_DECLARE_METATYPE=;
+        --language=c++
+        --error-exitcode=666
     )
+
+    #cppcheck --max-ctu-depth=3 --enable=all --inline-suppr --suppress=*:*thrust/complex* --suppress=missingInclude --suppress=syntaxError --suppress=unmatchedSuppression --suppress=preprocessorErrorDirective --language=c++ --std=c++14 --error-exitcode=666
+
 
     message(STATUS "cppcheck runs on target: ${TARGET}")
 
