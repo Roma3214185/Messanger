@@ -78,17 +78,17 @@ void OutboxWorker::processBatch(IDataBase &db) {
       auto query1 = db.prepare(first_command);
       if (!query1) continue;
       query1->bind(user.id);
+      query1->bind(QString::fromStdString(user.username));
       query1->bind(QString::fromStdString(user.email));
-      query1->bind(QString::fromStdString(user.username));
-      query1->bind(QString::fromStdString(user.username));
+      query1->bind(QString::fromStdString(user.tag));
 
       const std::string second_command = "INSERT OR REPLACE INTO users_by_tag VALUES(?, ?, ?, ?";
       auto query2 = db.prepare(second_command);
       if (!query2) continue;
       query2->bind(user.id);
+      query2->bind(QString::fromStdString(user.username));
       query2->bind(QString::fromStdString(user.email));
-      query2->bind(QString::fromStdString(user.username));
-      query2->bind(QString::fromStdString(user.username));
+      query2->bind(QString::fromStdString(user.tag));
 
       if (!query1->exec() || !query2->exec()) continue;
     }
