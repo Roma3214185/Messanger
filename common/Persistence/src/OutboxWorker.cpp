@@ -1,5 +1,7 @@
 #include "OutboxWorker.h"
 
+#include "utils.h"
+
 OutboxWorker::OutboxWorker(IDataBase &db) : db_(db) {}
 
 OutboxWorker::~OutboxWorker() {
@@ -67,7 +69,9 @@ void OutboxWorker::processBatch(IDataBase &db) {
     if (table_triggered == "user_table") {
       LOG_INFO("Triggered user_table");
 
-      User user = nlohmann::json::parse(payload_str.toStdString());  // todo: try catch
+      std::optional<User> user_opt = utils::parsePayload<User>(payload_str.toStdString());
+      if (!user_opt.has_value()) continue;
+      User user = user_opt.value();
       LOG_INFO("User: {}", nlohmann::json(user).dump());
 
       const std::string first_command = "INSERT OR REPLACE INTO users_by_email VALUES(?, ?, ?, ?";
