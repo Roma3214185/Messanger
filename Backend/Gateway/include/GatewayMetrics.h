@@ -32,7 +32,7 @@ class GatewayMetrics : public IMetrics {
   void backendStatus(const std::string &path, int status);
 
   void authOk(const std::string &path);
-  void authFail(const std::string &path); //todo: group related funcitons in 1
+  void authFail(const std::string &path);  // todo: group related funcitons in 1
   void userConnected() override;
   void userDisconnected() override;
   void saveRequestLatency(const double latency) override;

@@ -21,6 +21,9 @@ function(enable_cppcheck TARGET)
         -i${CMAKE_BINARY_DIR}/
         --suppress=*:*/_deps/*
         --suppress=*:*/external/*
+        -DQT_BEGIN_NAMESPACE=;
+        -DQT_END_NAMESPACE=;
+        -DQT_NO_KEYWORDS=1
     )
 
     message(STATUS "cppcheck runs on target: ${TARGET}")

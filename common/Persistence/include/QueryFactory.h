@@ -35,7 +35,7 @@ class QueryFactory {
 
  private:
   template <EntityJson T, typename VariantResult>
-  requires VariantResultInQueryResult<VariantResult, QueryResult<T>>
+    requires VariantResultInQueryResult<VariantResult, QueryResult<T>>
   static VariantResult &expect_type(QueryResult<T> &value) {
     if (auto *p = std::get_if<VariantResult>(&value)) return *p;
     throw std::runtime_error("Unexpected query result type");

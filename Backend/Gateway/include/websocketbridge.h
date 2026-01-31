@@ -29,4 +29,4 @@ class WebSocketBridge {
   BackendSocket createBackendConnection(const ClientId &client_id);
 };
 
-#endif // WEB_SOCKET_BRIDGE
+#endif  // WEB_SOCKET_BRIDGE

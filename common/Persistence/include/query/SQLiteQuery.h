@@ -10,13 +10,13 @@
 
 class SQLiteQuery : public IQuery {
  public:
-    explicit SQLiteQuery(const QSqlDatabase &db);
+  explicit SQLiteQuery(const QSqlDatabase &db);
 
-     bool prepare(const QString &sql);
+  bool prepare(const QString &sql);
 
-    void bind(const QVariant &v) override;
+  void bind(const QVariant &v) override;
 
-     bool exec() override;
+  bool exec() override;
 
   bool next() override;
 

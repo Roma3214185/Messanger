@@ -6,7 +6,7 @@
 class SendMessageHandler : public IMessageHandler {
  public:
   void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
-            NotificationManager &manager) override;
+              NotificationManager &manager) override;
 };
 
 #endif  // SENDMESSAGEHANDLER_H

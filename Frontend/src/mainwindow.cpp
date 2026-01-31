@@ -142,8 +142,9 @@ void MainWindow::setupUserListView() {
 
   constexpr int maxRows = 5;
   userListView_->setUpdateCallback([=]() {
-    QTimer::singleShot(
-        0, [=]() { utils::ui::updateViewVisibility(userListView_, ui->userTextEdit, utils::ui::Direction::Below, maxRows); });
+    QTimer::singleShot(0, [=]() {
+      utils::ui::updateViewVisibility(userListView_, ui->userTextEdit, utils::ui::Direction::Below, maxRows);
+    });
   });
 }
 
@@ -502,7 +503,8 @@ void MainWindow::setupEmojiMenu() {
   constexpr int items_per_row = 5;
 
   emoji_menu_->setUpdateCallback([=]() {
-    utils::ui::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::ui::Direction::Above, max_visible_rows, items_per_row);
+    utils::ui::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::ui::Direction::Above, max_visible_rows,
+                                    items_per_row);
   });
 
   emoji_menu_->setOnCloseCallback([=]() { this->closeEmojiMenu(); });

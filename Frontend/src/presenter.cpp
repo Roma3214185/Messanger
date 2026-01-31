@@ -19,7 +19,8 @@
 #include "models/messagemodel.h"
 #include "utils.h"
 
-Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
+Presenter::Presenter(IMainWindow *window, Model *manager)
+    : view_(window), manager_(manager), message_list_view_(nullptr) {}
 
 void Presenter::initialise() {
   view_->setChatModel(manager_->getChatModel());

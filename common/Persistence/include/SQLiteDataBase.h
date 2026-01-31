@@ -9,7 +9,6 @@
 #include "query/SQLiteQuery.h"
 
 class SQLiteDatabase : public IDataBase {
-
  public:
   explicit SQLiteDatabase(QString db_name) : db_name_(std::move(db_name)) {}
 

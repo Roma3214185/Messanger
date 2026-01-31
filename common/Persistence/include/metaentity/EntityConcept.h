@@ -13,9 +13,7 @@ concept JsonRoundTrip = requires(const nlohmann::json &j, const T &t) {
 // concept Entity = std::derived_from<T, IEntity>;
 
 template <typename T>
-concept Entity = requires(const T &t) {
-  t.checkInvariants();
-};
+concept Entity = requires(const T &t) { t.checkInvariants(); };
 
 template <typename T>
 concept EntityJson = Entity<T> && JsonRoundTrip<T>;
