@@ -8,9 +8,9 @@
 #include "Debug_profiling.h"
 
 struct Reaction final {
-  long long message_id;
-  long long receiver_id;  // who makes reaction
-  long long reaction_id;  // 1 -> like, 2 -> dislike, 3 -> smile, 4 -> heart
+  long long message_id{0};
+  long long receiver_id{0};  // who makes reaction
+  long long reaction_id{0};  // 1 -> like, 2 -> dislike, 3 -> smile, 4 -> heart
 
   Reaction() = default;
   Reaction(long long p_message_id, long long p_receiver_id, long long p_reaction_id)

@@ -11,13 +11,16 @@ function(enable_cppcheck TARGET)
         message(FATAL_ERROR "cppcheck not found")
     endif()
 
+    message(STATUS "BINARY_DIR=${CMAKE_BINARY_DIR}")
+
     set(CPPCHECK_OPTIONS
         --enable=warning,performance,portability
         --inline-suppr
         --suppress=missingIncludeSystem
         -i${CMAKE_SOURCE_DIR}/external
-        -i${CMAKE_BINARY_DIR}/_deps
-        -i${CMAKE_SOURCE_DIR}/build/_deps
+        -i${CMAKE_BINARY_DIR}/
+        --suppress=*:*/_deps/*
+        --suppress=*:*/external/*
     )
 
     message(STATUS "cppcheck runs on target: ${TARGET}")
@@ -25,6 +28,29 @@ function(enable_cppcheck TARGET)
     set_target_properties(${TARGET} PROPERTIES
         CXX_CPPCHECK "${CPPCHECK_EXE};${CPPCHECK_OPTIONS}"
     )
+endfunction()
+
+# -----------------------------------------------------------------------------
+# Disable Cppcheck for a target
+# -----------------------------------------------------------------------------
+function(disable_cppcheck target)
+  set_target_properties(${target} PROPERTIES
+    C_CPPCHECK ""
+    CXX_CPPCHECK ""
+  )
+endfunction()
+
+# -----------------------------------------------------------------------------
+# Disable Cppcheck for a directory
+# -----------------------------------------------------------------------------
+function(disable_cppcheck_in_dir dir)
+  get_property(targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+  foreach(t ${targets})
+    set_target_properties(${t} PROPERTIES
+      C_CPPCHECK ""
+      CXX_CPPCHECK ""
+    )
+  endforeach()
 endfunction()
 
 # -----------------------------------------------------------------------------

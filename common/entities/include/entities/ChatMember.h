@@ -17,7 +17,7 @@ struct ChatMember final {
   ChatMember() = default;
 
   ChatMember(long long chat_id, long long user_id, long long added_at = utils::time::getCurrentTime(),
-             const std::string& status = "test_status")
+             const std::string &status = "test_status")
       : chat_id(chat_id), user_id(user_id), status(status), added_at(added_at) {
     DBC_REQUIRE(checkInvariants());
   }
