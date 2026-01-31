@@ -11,14 +11,9 @@ class NewMessageResponceHandler : public ISocketResponceHandler {
   DataManager *data_manager_;
 
  public:
-  NewMessageResponceHandler(EntityFactory *entity_factory, DataManager *data_manager)
-      : entity_factory_(entity_factory), data_manager_(data_manager) {}
+  NewMessageResponceHandler(EntityFactory *entity_factory, DataManager *data_manager);
 
-  void handle(const QJsonObject &json_object) override {
-    auto [message, reactions] = entity_factory_->getMessageFromJson(json_object);
-    data_manager_->save(message);
-    data_manager_->save(reactions);
-  }
+  void handle(const QJsonObject &json_object) override;
 };
 
 #endif  // NEWMESSAGERESPONCEHANDLER_H

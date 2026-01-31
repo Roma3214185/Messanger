@@ -7,7 +7,6 @@ if(NOT TARGET Network)
 
     include(FetchContent)
 
-    # Fetch cpp-httplib
     FetchContent_Declare(
         httplib
         GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
@@ -15,7 +14,6 @@ if(NOT TARGET Network)
     )
     FetchContent_MakeAvailable(httplib)
 
-    # Create Network library
     add_library(Network STATIC
         src/IChatNetworkManager.cpp
         src/INetworkManagerBase.cpp
@@ -30,12 +28,11 @@ if(NOT TARGET Network)
     enable_iwyu(Network)
     enable_clang_format(Network)
 
-    # Include directories
     target_include_directories(Network
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE
-            SYSTEM          # SYSTEM tells compiler these are external headers
+            SYSTEM
             ${httplib_SOURCE_DIR}/
     )
 
@@ -50,7 +47,6 @@ if(NOT TARGET Network)
     )
     endif()
 
-    # Link libraries
     target_link_libraries(Network PRIVATE
         Entities
         Metrics

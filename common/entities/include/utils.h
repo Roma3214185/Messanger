@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef COMMON_ENTITIES_INCLUDE_UTILS_H
+#define COMMON_ENTITIES_INCLUDE_UTILS_H
 
 #include <nlohmann/json.hpp>
 #include <optional>
@@ -17,15 +17,8 @@ inline std::optional<T> parsePayload(const std::string &payload) {
   }
 }
 
-inline std::optional<long long> getIdFromStr(const std::string &str) {
-  try {
-    return std::stoll(str);
-  } catch (...) {
-    LOG_ERROR("Error while get stoll of {}", str);
-    return std::nullopt;
-  }
-}
+std::optional<long long> getIdFromStr(const std::string &str);
 
 }  // namespace utils
 
-#endif  // UTILS_H
+#endif  // COMMON_ENTITIES_INCLUDE_UTILS_H

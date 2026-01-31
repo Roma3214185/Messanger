@@ -1,16 +1,17 @@
 cmake_minimum_required(VERSION 3.22)
 
 if (NOT TARGET Entities)
+    find_package(nlohmann_json REQUIRED)
 
-    add_library(Entities INTERFACE)
-    #target_compile_features(Entities PUBLIC cxx_std_20)
-
-    target_include_directories(Entities INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/
+    add_library(Entities STATIC
+        src/utils.cpp
     )
 
-    target_link_libraries(Entities INTERFACE
+    target_include_directories(Entities PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+    target_link_libraries(Entities PUBLIC
         nlohmann_json::nlohmann_json
         Crow::Crow
         ProjectOptions
@@ -21,6 +22,7 @@ if (NOT TARGET Entities)
     enable_cppcheck(Entities)
     enable_iwyu(Entities)
     enable_sanitizers(Entities)
+    enable_clang_format(Entities)
 
 endif()
 

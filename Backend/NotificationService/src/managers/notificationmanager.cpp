@@ -2,10 +2,10 @@
 
 #include "Debug_profiling.h"
 #include "NetworkFacade.h"
-#include "Utils.h"
 #include "config/Routes.h"
 #include "interfaces/IRabitMQClient.h"
 #include "notificationservice/managers/socketmanager.h"
+#include "utils.h"
 
 NotificationManager::NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager,
                                          NetworkFacade &network_facade)

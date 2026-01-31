@@ -3,7 +3,7 @@
 #include <QVariant>
 
 #include "models/messagemodel.h"
-#include "utils.h"
+#include "utilsui.h"
 
 namespace {
 
@@ -327,9 +327,8 @@ void MessageDelegate::drawReadCounter(QPainter *painter, const QRect &rect, cons
   constexpr int kTopOffset = 5;
   constexpr int kLeftOffset = 10;
 
-  // Use rect.left/top/bottom relative to translated rectangle
   int x = is_mine ? rect.left() + kLeftOffset / 2 : rect.right() - kLeftOffset - kSize;
-  int y = rect.bottom() - kTopOffset - kSize;  // always relative to bottom of rect
+  int y = rect.bottom() - kTopOffset - kSize;
 
   QRect circle_rect(x, y, kSize, kSize);
 
@@ -380,17 +379,14 @@ QPixmap MessageDelegate::makeReactionIcon(const QString &imagePath, int count, s
   p.setRenderHint(QPainter::Antialiasing);
   p.setFont(font);
 
-  // highlight if my reaction
   if (my_reaction && *my_reaction == reaction_id) {
     p.setBrush(QColor(0, 120, 215, 60));
     p.setPen(Qt::NoPen);
     p.drawRoundedRect(result.rect(), 6, 6);
   }
 
-  // draw icon
   p.drawPixmap(padding, (height - iconSize) / 2, icon);
 
-  // draw count
   p.setPen(Qt::black);
   QRect textRect(iconSize + padding * 2, 0, textWidth, height);
 
@@ -451,17 +447,14 @@ void MessageDelegate::drawAnswerOnStatus(QPainter *painter, QRect &recte, const 
   painter->save();
   painter->setRenderHint(QPainter::Antialiasing);
 
-  // Draw reply background
   painter->setBrush(color);
   painter->setPen(Qt::NoPen);
   painter->drawRoundedRect(replyRect, radius, radius);
 
-  // Prepare font
   QFont bodyFont = painter->font();
   bodyFont.setPointSize(bodyFont.pointSize() - 1);
   painter->setFont(bodyFont);
 
-  // Draw reply text
   QFontMetrics bodyFm(bodyFont);
   QString body = answer_on_message.getFullText();
   body = bodyFm.elidedText(body, Qt::ElideRight, maxTextWidth);

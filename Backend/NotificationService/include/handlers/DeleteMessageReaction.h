@@ -1,8 +1,6 @@
 #ifndef DELETEMESSAGEREACTION_H
 #define DELETEMESSAGEREACTION_H
 
-#include "Utils.h"
-#include "entities/Reaction.h"
 #include "interfaces/IMessageHandler.h"
 #include "notificationservice/managers/notificationmanager.h"
 

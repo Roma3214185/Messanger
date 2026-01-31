@@ -3,75 +3,23 @@
 
 #include <QListView>
 #include <QRect>
+#include <QTextCursor>
 #include <QWidget>
 
-namespace utils {
+class ReactionInfo;
+
+namespace utils::ui {
 
 enum class Direction : uint8_t { Above, Below };
 
-inline void updateViewVisibility(QListView *view, QWidget *anchor, Direction direction = Direction::Below,
-                                 int maxVisibleRows = 8, int itemsPerRow = 1) {
-  if (!view) return;
+void updateViewVisibility(QListView *view, QWidget *anchor, Direction direction = Direction::Below,
+                          int maxVisibleRows = 8, int itemsPerRow = 1);
 
-  if (!view->model()) {
-    view->hide();
-    return;
-  }
+void clearLayout(QLayout *layout);
 
-  int rows = view->model()->rowCount();
-  if (rows == 0) {
-    view->hide();
-    return;
-  }
+void insert_emoji(QTextCursor &cursor, std::optional<ReactionInfo> img_info_opt, int size_of_image = 16,
+                  const QString &default_value = " ");
 
-  int rowHeight = view->sizeHintForRow(0);
-  if (rowHeight <= 0) {
-    view->hide();
-    return;
-  }
-
-  int visibleRows = qMin(rows, maxVisibleRows);
-  int frame = view->frameWidth() * 2 + view->contentsMargins().top() + view->contentsMargins().bottom();
-  int height = visibleRows * rowHeight + frame;
-
-  view->setFixedHeight(height);
-  view->setFixedWidth(anchor->width() * itemsPerRow);
-
-  // horizontally center
-  int x = anchor->mapToGlobal(QPoint(0, 0)).x() + (anchor->width() / 2) - (view->width() / 2);
-
-  QRect screenRect = anchor->screen()->availableGeometry();
-
-  int y = [&]() {
-    if (direction == Direction::Below) {
-      const int belowY = anchor->mapToGlobal(QPoint(0, anchor->height())).y();
-      return belowY + view->height() <= screenRect.bottom()
-                 ? belowY                                                                           // fits below
-                 : qMax(screenRect.top(), anchor->mapToGlobal(QPoint(0, 0)).y() - view->height());  // fallback above
-    } else {
-      const int aboveY = anchor->mapToGlobal(QPoint(0, 0)).y() - view->height();
-      return aboveY >= screenRect.top() ? aboveY  // fits above
-                                        : qMin(screenRect.bottom() - view->height(),
-                                               anchor->mapToGlobal(QPoint(0, anchor->height())).y());  // fallback below
-    }
-  }();
-
-  x = qMax(screenRect.left(), qMin(x, screenRect.right() - view->width()));
-
-  view->move(x, y);
-  view->show();
-}
-
-inline void clearLayout(QLayout *layout) {
-  if (!layout) return;
-  while (auto item = layout->takeAt(0)) {
-    if (auto w = item->widget()) {
-      w->deleteLater();
-    }
-    delete item;
-  }
-}
-
-}  // namespace utils
+}  // namespace utils::ui
 
 #endif  // UTILS_UI_H

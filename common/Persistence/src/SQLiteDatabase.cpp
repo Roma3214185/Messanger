@@ -184,40 +184,40 @@ bool SQLiteDatabase::tableExists(const QString &table_name) {
 }
 
 QSqlDatabase SQLiteDatabase::db() const {
-    const QString conn = QString("%1_%2").arg(db_name_).arg(reinterpret_cast<quintptr>(QThread::currentThreadId()));
+  const QString conn = QString("%1_%2").arg(db_name_).arg(reinterpret_cast<quintptr>(QThread::currentThreadId()));
 
-    if (!QSqlDatabase::contains(conn)) {
-        auto db = QSqlDatabase::addDatabase("QSQLITE", conn);
-        db.setDatabaseName(db_name_);
-        if (!db.open()) {
-            qFatal("Failed to open DB");
-        }
-        return db;
+  if (!QSqlDatabase::contains(conn)) {
+    auto db = QSqlDatabase::addDatabase("QSQLITE", conn);
+    db.setDatabaseName(db_name_);
+    if (!db.open()) {
+      qFatal("Failed to open DB");
     }
+    return db;
+  }
 
-    return QSqlDatabase::database(conn);
+  return QSqlDatabase::database(conn);
 }
 
 bool SQLiteDatabase::exec(const QString &sql) {
-    QSqlQuery q(db());
-    LOG_INFO("To execute {}", sql.toStdString());
-    if (!q.exec(sql)) {
-        LOG_ERROR("For sql {} execute failed: {}", sql.toStdString(), q.lastError().text().toStdString());
-        return false;
-    }
-    LOG_INFO("Execute succced, affected : {} rows", q.numRowsAffected());
-    return true;
+  QSqlQuery q(db());
+  LOG_INFO("To execute {}", sql.toStdString());
+  if (!q.exec(sql)) {
+    LOG_ERROR("For sql {} execute failed: {}", sql.toStdString(), q.lastError().text().toStdString());
+    return false;
+  }
+  LOG_INFO("Execute succced, affected : {} rows", q.numRowsAffected());
+  return true;
 }
 
 bool SQLiteDatabase::commit() { return db().commit(); }
 
 std::unique_ptr<IQuery> SQLiteDatabase::prepare(const QString &sql) {
-    auto query = std::make_unique<SQLiteQuery>(db());  // TODO: factory??
-    if (!query->prepare(sql)) {
-        LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(), query->error().toStdString());
-        return nullptr;
-    }
-    return query;
+  auto query = std::make_unique<SQLiteQuery>(db());  // TODO: factory??
+  if (!query->prepare(sql)) {
+    LOG_ERROR("For sql {} prepare failed: {}", sql.toStdString(), query->error().toStdString());
+    return nullptr;
+  }
+  return query;
 }
 
 std::unique_ptr<IQuery> SQLiteDatabase::prepare(const std::string &sql) { return prepare(QString::fromStdString(sql)); }

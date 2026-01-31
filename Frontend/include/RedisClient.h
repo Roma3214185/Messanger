@@ -8,23 +8,16 @@
 
 class RedisClient : public ICache {
  public:
-  explicit RedisClient(std::string url) : redis(url) {}
+  explicit RedisClient(std::string url);
 
-  OptionalToken get(const Key &key) override {
-    try {
-      return redis.get(key);
-    } catch (const sw::redis::Error &e) {
-      spdlog::error("Redis error: '{}'", e.what());
-      return std::nullopt;
-    }
-  }
+  OptionalToken get(const Key &key) override;
 
-  void saveToken(const Key &key, const Token &token) override { redis.set(key, token); }
+  void saveToken(const Key &key, const Token &token) override;
 
-  void deleteToken(const Key &key) override { redis.del(key); }
+  void deleteToken(const Key &key) override;
 
  private:
-  sw::redis::Redis redis;
+  sw::redis::Redis redis;  // todo: Impl idiom to remove #include <sw/redis++/redis++.h>
 };
 
 #endif  // REDISCLIENT_H

@@ -5,7 +5,6 @@
 
 #include "Debug_profiling.h"
 #include "RabbitMQClient.h"
-#include "Utils.h"
 #include "config/Routes.h"
 #include "config/codes.h"
 #include "entities/Message.h"
@@ -16,6 +15,7 @@
 #include "messageservice/dto/GetMessagePack.h"
 #include "messageservice/managers/JwtUtils.h"
 #include "messageservice/managers/MessageManager.h"
+#include "utils.h"
 
 namespace {
 
