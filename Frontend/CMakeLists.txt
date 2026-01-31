@@ -73,6 +73,7 @@ add_executable(Frontend
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
     src/MessageListView.cpp
+    src/TokenFactory.cpp
 )
 
 add_custom_command(TARGET Frontend POST_BUILD
