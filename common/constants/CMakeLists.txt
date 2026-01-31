@@ -11,5 +11,6 @@ if (NOT TARGET Constants)
     enable_cppcheck(Constants)
     enable_iwyu(Constants)
     enable_sanitizers(Constants)
+    enable_clang_format(Constants)
 
 endif()
