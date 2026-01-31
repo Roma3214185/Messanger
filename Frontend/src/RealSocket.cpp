@@ -14,4 +14,4 @@ void RealSocket::sendTextMessage(const QString &msg) {
 
 void RealSocket::close() { socket_->close(); }
 
-void RealSocket::disconnectSocket() { socket_->disconnect(); }
+void RealSocket::disconnectSocket() { socket_->close(); }
