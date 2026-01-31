@@ -2,7 +2,11 @@
 #
 # https://github.com/lefticus/cppbestpractices/blob/master/02-Use_the_Tools_Available.md
 
-function(set_project_warnings project_name)
+function(enable_project_warnings TARGET)
+    if(NOT ENABLE_WARNINGS)
+        return()
+    endif()
+
     option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
     set(MSVC_WARNINGS
@@ -73,6 +77,30 @@ function(set_project_warnings project_name)
         message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
     endif ()
 
-    target_compile_options(${project_name} INTERFACE ${PROJECT_WARNINGS})
+    get_target_property(target_sources ${TARGET} SOURCES)
+    if(NOT target_sources)
+        message(WARNING "Target ${TARGET} has no sources to apply warnings")
+        return()
+    endif()
 
+    foreach(file IN LISTS target_sources)
+        if(NOT file MATCHES "_deps/|external/")
+            target_compile_options(${TARGET} PRIVATE ${PROJECT_WARNINGS})
+            break()
+        endif()
+    endforeach()
+
+    foreach(file IN LISTS target_sources)
+        if(file MATCHES "_deps/|external/")
+            if(MSVC)
+                target_compile_options(${TARGET} PRIVATE
+                    $<$<COMPILE_FILE:${file}>:/w>  # disable all warnings
+                )
+            else()
+                target_compile_options(${TARGET} PRIVATE
+                    $<$<COMPILE_FILE:${file}>:-w>  # disable all warnings
+                )
+            endif()
+        endif()
+    endforeach()
 endfunction()
