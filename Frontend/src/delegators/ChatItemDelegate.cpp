@@ -1,6 +1,6 @@
 #include "delegators/chatitemdelegate.h"
 
-#include "utils.h"
+#include "utilsui.h"
 
 ChatItemDelegate::ChatItemDelegate(DataManager *data_manager, QObject *parent, const ChatItemStyle &style)
     : data_manager_(data_manager), QStyledItemDelegate(parent), style_(style) {}

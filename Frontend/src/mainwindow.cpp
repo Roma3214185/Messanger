@@ -143,7 +143,7 @@ void MainWindow::setupUserListView() {
   constexpr int maxRows = 5;
   userListView_->setUpdateCallback([=]() {
     QTimer::singleShot(
-        0, [=]() { utils::updateViewVisibility(userListView_, ui->userTextEdit, utils::Direction::Below, maxRows); });
+        0, [=]() { utils::ui::updateViewVisibility(userListView_, ui->userTextEdit, utils::ui::Direction::Below, maxRows); });
   });
 }
 
@@ -303,7 +303,7 @@ void MainWindow::onMessageContextMenu(const QPoint &pos) {
 
 void MainWindow::setAnswerMode(const Message &message) {
   if (message.isOfflineSaved()) return;
-  utils::clearLayout(ui->answer_on_layout);
+  utils::ui::clearLayout(ui->answer_on_layout);
   answer_on_message_ = message.id;
   auto list_view = new QListView(this);
   auto *model = new MessageModel(this);
@@ -330,7 +330,7 @@ void MainWindow::setAnswerMode(const Message &message) {
 }
 
 void MainWindow::resetAnswerMode() {
-  utils::clearLayout(ui->answer_on_layout);
+  utils::ui::clearLayout(ui->answer_on_layout);
   answer_on_message_.reset();
 }
 
@@ -405,7 +405,7 @@ void MainWindow::setupSearchMessageListView() {
   searchMessageListView_->setItemDelegate(message_delegate);
 
   searchMessageListView_->setUpdateCallback([=]() {
-    utils::updateViewVisibility(searchMessageListView_, anchor, utils::Direction::Below, max_visible_rows);
+    utils::ui::updateViewVisibility(searchMessageListView_, anchor, utils::ui::Direction::Below, max_visible_rows);
   });
 
   searchMessageListView_->setOnCloseCallback([=]() { this->cancelSearchMessagesMode(); });
@@ -502,7 +502,7 @@ void MainWindow::setupEmojiMenu() {
   constexpr int items_per_row = 5;
 
   emoji_menu_->setUpdateCallback([=]() {
-    utils::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::Direction::Above, max_visible_rows, items_per_row);
+    utils::ui::updateViewVisibility(emoji_menu_, ui->emojiButton, utils::ui::Direction::Above, max_visible_rows, items_per_row);
   });
 
   emoji_menu_->setOnCloseCallback([=]() { this->closeEmojiMenu(); });
