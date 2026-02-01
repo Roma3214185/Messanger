@@ -25,20 +25,24 @@ T waitForFuture(QFuture<T> &future) {
 
 }  // namespace
 
-MessageUseCase::MessageUseCase(DataManager *data_manager, std::unique_ptr<MessageManager> message_manager,
+MessageUseCase::MessageUseCase(IMessageDataManager *data_manager, std::unique_ptr<MessageManager> message_manager,
                                TokenManager *token_manager)
     : data_manager_(data_manager), message_manager_(std::move(message_manager)), token_manager_(token_manager) {
-  connect(data_manager_, &DataManager::messageAdded, this, [&](const Message &added_messaage) {  // todo: not make copy
-    LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.getFullText().toStdString());
-    DBC_REQUIRE(added_messaage.chat_id > 0);
-    auto message_model = data_manager_->getMessageModel(added_messaage.chat_id);
-    DBC_REQUIRE(message_model);
-    message_model->saveMessage(added_messaage);
-    if (!added_messaage.isOfflineSaved()) Q_EMIT messageAdded(added_messaage);  // this message from server, not offline
-  });
+  // todo: now program will not work, it's essential connections
 
-  connect(message_manager_.get(), &MessageManager::saveReactionInfo, this,
-          [&](const ReactionInfo &reaction_info) { data_manager_->save(reaction_info); });
+  // connect(data_manager_, &IMessageDataManager::messageAdded, this, [&](const Message &added_messaage) {  // todo: not
+  // make copy
+  //   LOG_INFO("Received DataManager::messageAdded (text is {})", added_messaage.getFullText().toStdString());
+  //   DBC_REQUIRE(added_messaage.chat_id > 0);
+  //   auto message_model = data_manager_->getMessageModel(added_messaage.chat_id);
+  //   DBC_REQUIRE(message_model);
+  //   message_model->saveMessage(added_messaage);
+  //   if (!added_messaage.isOfflineSaved()) Q_EMIT messageAdded(added_messaage);  // this message from server, not
+  //   offline
+  // });
+
+  // connect(message_manager_.get(), &MessageManager::saveReactionInfo, this,
+  //         [&](const ReactionInfo &reaction_info) { data_manager_->save(reaction_info); });
 }
 
 auto MessageUseCase::getChatMessages(long long chat_id, int limit) -> QList<Message> {
@@ -68,20 +72,6 @@ void MessageUseCase::deleteMessage(const Message &msg) {
   message_manager_->deleteMessage(msg, token_manager_->getToken());
 }
 
-void MessageUseCase::logout() {
-  PROFILE_SCOPE("MessageUseCase::logout");
-  clearAllMessages();
-  LOG_INFO("[logout] Logout message use case is completed");
-}
-
-void MessageUseCase::clearAllMessages() {
-  data_manager_->clearAllMessageModels();
-  DBC_ENSURE(data_manager_->getNumberOfMessageModels() == 0);
-
-  // todo: MessageUseCase seems as work with server, so or clearAllMessages in also must send on server, or
-  // refactor/move function
-}
-
 void MessageUseCase::getChatMessagesAsync(long long chat_id) {
   PROFILE_SCOPE("MessageUseCase::getChatMessagesAsync");
   DBC_REQUIRE(chat_id > 0);
@@ -90,7 +80,9 @@ void MessageUseCase::getChatMessagesAsync(long long chat_id) {
       .then(this,
             [this, chat_id](const QList<Message> &chat_messages) {
               LOG_INFO("[getChatMessagesAsync] For chat '{}' loaded '{}' messages", chat_id, chat_messages.size());
-              data_manager_->save(chat_messages);
+              for (const auto &message : chat_messages) {
+                data_manager_->save(message);
+              }
             })
       .onFailed(this, [chat_id]() { LOG_ERROR("Error in getChatMessagesAsync for chat_id {}", chat_id); });
 }
