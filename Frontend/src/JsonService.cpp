@@ -1,11 +1,21 @@
 #include "JsonService.h"
 
+#include <QDateTime>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QString>
+
 #include "Debug_profiling.h"
+#include "dto/ChatBase.h"
+#include "dto/Message.h"
+#include "dto/User.h"
+#include "entities/MessageStatus.h"
+#include "entities/ReactionInfo.h"
+#include "managers/TokenManager.h"
 
-EntityFactory::EntityFactory(TokenManager *token_manager) : token_manager_(token_manager) {}
-
-Message EntityFactory::createMessage(long long chat_id, long long sender_id, std::vector<MessageToken> tokens,
-                                     const QString &local_id, std::optional<long long> answer_on, QDateTime timestamp) {
+Message MessageFactory::createMessage(long long current_user_id, long long chat_id, long long sender_id,
+                                      std::vector<MessageToken> tokens, const QString &local_id,
+                                      std::optional<long long> answer_on, QDateTime timestamp) {
   DBC_REQUIRE(!tokens.empty());
   DBC_REQUIRE(!local_id.isEmpty());
   DBC_REQUIRE(sender_id > 0);
@@ -16,7 +26,7 @@ Message EntityFactory::createMessage(long long chat_id, long long sender_id, std
                   .tokens = std::move(tokens),
                   .timestamp = std::move(timestamp),
                   .status_sended = false,
-                  .receiver_id = token_manager_->getCurrentUserId(),
+                  .receiver_id = current_user_id,
                   .local_id = local_id,
                   .answer_on = answer_on};
 
@@ -28,7 +38,9 @@ Message EntityFactory::createMessage(long long chat_id, long long sender_id, std
   return message;
 }
 
-User EntityFactory::getUserFromResponse(const QJsonObject &res) {
+JsonService::JsonService(TokenManager *token_manager) : token_manager_(token_manager) {}
+
+User JsonService::getUserFromResponse(const QJsonObject &res) {
   if (!res.contains("email")) LOG_ERROR("No email field");
   if (!res.contains("tag")) LOG_ERROR("No tag field");
   if (!res.contains("name")) LOG_ERROR("No name field");
@@ -48,7 +60,7 @@ User EntityFactory::getUserFromResponse(const QJsonObject &res) {
   return user;
 }
 
-MessageServerJsonAnswer EntityFactory::getMessageFromJson(const QJsonObject &obj) {
+IMessageJsonService::MessageServerJsonAnswer JsonService::getMessageFromJson(const QJsonObject &obj) {
   Message msg;
   std::vector<ReactionInfo> reactions_infos;
   if (obj.contains("id")) msg.id = obj["id"].toInteger();
@@ -111,7 +123,7 @@ MessageServerJsonAnswer EntityFactory::getMessageFromJson(const QJsonObject &obj
   return std::make_pair(msg, std::move(reactions_infos));
 }
 
-QJsonObject EntityFactory::toJson(const Message &msg) {
+QJsonObject JsonService::toJson(const Message &msg) {
   QJsonObject obj;
   obj["id"] = msg.id;
   obj["sender_id"] = msg.sender_id;
@@ -133,7 +145,7 @@ QJsonObject EntityFactory::toJson(const Message &msg) {
   return obj;
 }
 
-ChatPtr EntityFactory::getChatFromJson(const QJsonObject &obj) {
+ChatPtr JsonService::getChatFromJson(const QJsonObject &obj) {
   if (!obj.contains("id")) {
     LOG_ERROR("There is no id field");
     return nullptr;
@@ -185,7 +197,7 @@ ChatPtr EntityFactory::getChatFromJson(const QJsonObject &obj) {
   return chat;
 }
 
-Reaction EntityFactory::getReaction(const QJsonObject &obj) {
+Reaction JsonService::getReaction(const QJsonObject &obj) {
   if (!obj.contains("reaction_id")) LOG_ERROR("Obj for reaction doesn't contains 'reaction_id' field");
   if (!obj.contains("message_id")) LOG_ERROR("Obj for reaction doesn't contains 'message_id' field");
   if (!obj.contains("receiver_id")) LOG_ERROR("Obj for reaction doesn't contains 'receiver_id' field");
@@ -198,11 +210,33 @@ Reaction EntityFactory::getReaction(const QJsonObject &obj) {
   return reaction;
 }
 
-std::optional<ReactionInfo> EntityFactory::getReactionInfo(const QJsonValue &value) {
+std::optional<ReactionInfo> JsonService::getReactionInfo(const QJsonValue &value) {
   if (value.isObject() == false) return std::nullopt;
   const auto reaction_object = value.toObject();
   ReactionInfo reaction_info;
   reaction_info.id = static_cast<long long>(reaction_object["id"].toDouble());
   reaction_info.image = reaction_object["image"].toString().toStdString();
   return reaction_info.checkInvariants() ? std::make_optional(reaction_info) : std::nullopt;
+}
+
+std::optional<MessageStatus> JsonService::getMessageStatus(const QJsonObject &json_object) {
+  MessageStatus status;
+  if (!json_object.contains("message_id")) {
+    LOG_ERROR("getMessageStatus doen't have field message_id");
+    return std::nullopt;
+  }
+
+  if (!json_object.contains("receiver_id")) {
+    LOG_ERROR("getMessageStatus doen't have field receiver_id");
+    return std::nullopt;
+  }
+
+  status.message_id = json_object["message_id"].toInteger();
+  status.receiver_id = json_object["receiver_id"].toInteger();
+  status.is_read = true;  // todo: implememnt correct json from server
+  // status.is_read = json_object["is_read"].toBool();
+  // status.read_at = json_object["is_read"].toInteger();
+
+  // todo: maybe already checkInvariants call and return std::nullopt if incorrect ??
+  return status;
 }
