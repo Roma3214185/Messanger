@@ -1,6 +1,12 @@
 #include "handlers/Handlers.h"
+#include "JsonService.h"
+#include "entities/MessageStatus.h"
+#include "managers/TokenManager.h"
+#include "managers/datamanager.h"
+#include "usecases/socketusecase.h"
 
-DeleteMessageReactionHandler::DeleteMessageReactionHandler(EntityFactory *entity_factory, DataManager *data_manager)
+DeleteMessageReactionHandler::DeleteMessageReactionHandler(IReactionJsonService *entity_factory,
+                                                           IReactionDataManager *data_manager)
     : entity_factory_(entity_factory), data_manager_(data_manager) {}
 
 void DeleteMessageReactionHandler::handle(const QJsonObject &json_object) {
@@ -8,42 +14,51 @@ void DeleteMessageReactionHandler::handle(const QJsonObject &json_object) {
   data_manager_->deleteReaction(reaction);
 }
 
-NewMessageResponceHandler::NewMessageResponceHandler(EntityFactory *entity_factory, DataManager *data_manager)
-    : entity_factory_(entity_factory), data_manager_(data_manager) {}
+DeleteMessageHandler::DeleteMessageHandler(IMessageJsonService *entity_factory,
+                                           IMessageDataManager *message_data_manager)
+    : entity_factory_(entity_factory), message_data_manager_(message_data_manager) {}
 
-void NewMessageResponceHandler::handle(const QJsonObject &json_object) {
+void DeleteMessageHandler::handle(const QJsonObject &json_object) {
   auto [message, reactions] = entity_factory_->getMessageFromJson(json_object);
-  data_manager_->save(message);
-  data_manager_->save(reactions);
+  message_data_manager_->deleteMessage(message);
 }
 
-OpenResponceHandler::OpenResponceHandler(TokenManager *token_manager, SocketUseCase *socket_use_case)
+NewMessageHandler::NewMessageHandler(IMessageJsonService *entity_factory, IMessageDataManager *data_manager,
+                                     IReactionDataManager *reaction_data_manager)
+    : entity_factory_(entity_factory),
+      message_data_manager_(data_manager),
+      reaction_data_manager_(reaction_data_manager) {}
+
+void NewMessageHandler::handle(const QJsonObject &json_object) {
+  auto [message, reactions] = entity_factory_->getMessageFromJson(json_object);
+  message_data_manager_->save(message);
+  for (const auto &reaction : reactions) {
+    reaction_data_manager_->save(reaction);
+  }
+}
+
+OpenSocketHandler::OpenSocketHandler(TokenManager *token_manager, ISocketUseCase *socket_use_case)
     : token_manager_(token_manager), socket_use_case_(socket_use_case) {}
 
-void OpenResponceHandler::handle([[maybe_unused]] const QJsonObject &json_object) {
+void OpenSocketHandler::handle([[maybe_unused]] const QJsonObject &json_object) {
   const long long id = token_manager_->getCurrentUserId();
   socket_use_case_->initSocket(id);
 }
 
-ReadMessageHandler::ReadMessageHandler(DataManager *data_manager) : data_manager_(data_manager) {}
+ReadMessageHandler::ReadMessageHandler(IMessageStatusJsonService *json_service, IMessageStatusDataManager *data_manager)
+    : data_manager_(data_manager), json_service_(json_service) {}
 
 void ReadMessageHandler::handle(const QJsonObject &json_object) {
-  if (!json_object.contains("message_id")) {
-    LOG_ERROR("ReadMessageHandler doen't have field message_id");
-    return;
+  auto read_status = json_service_->getMessageStatus(json_object);
+  if (read_status.has_value()) {
+    data_manager_->save(read_status.value());
+  } else {
+    LOG_ERROR("Invalid read_status");
   }
-
-  if (!json_object.contains("receiver_id")) {
-    LOG_ERROR("ReadMessageHandler doen't have field receiver_id");
-    return;
-  }
-
-  long long message_id = json_object["message_id"].toInteger();
-  long long readed_by = json_object["receiver_id"].toInteger();
-  data_manager_->readMessage(message_id, readed_by);
 }
 
-SaveMessageReactionHandler::SaveMessageReactionHandler(EntityFactory *entity_factory, DataManager *data_manager)
+SaveMessageReactionHandler::SaveMessageReactionHandler(IReactionJsonService *entity_factory,
+                                                       IReactionDataManager *data_manager)
     : entity_factory_(entity_factory), data_manager_(data_manager) {}
 
 void SaveMessageReactionHandler::handle(const QJsonObject &json_object) {

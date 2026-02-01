@@ -1,15 +1,17 @@
 #ifndef READMESSAGEHANDLER_H
 #define READMESSAGEHANDLER_H
 
-#include "Debug_profiling.h"
 #include "interfaces/ISocketResponceHandler.h"
-#include "usecases/messageusecase.h"
+
+class IMessageStatusJsonService;
+class IMessageStatusDataManager;
 
 class ReadMessageHandler : public ISocketResponceHandler {
-  DataManager *data_manager_;
+  IMessageStatusJsonService *json_service_;
+  IMessageStatusDataManager *data_manager_;
 
  public:
-  explicit ReadMessageHandler(DataManager *data_manager);
+  explicit ReadMessageHandler(IMessageStatusJsonService *json_service, IMessageStatusDataManager *data_manager);
   void handle(const QJsonObject &json_object) override;
 };
 
