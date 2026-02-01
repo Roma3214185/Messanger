@@ -4,11 +4,6 @@
 #include <QPainter>
 #include <QStyledItemDelegate>
 
-#include "MessageToken.h"
-#include "dto/DrawData.h"
-#include "managers/datamanager.h"
-#include "models/chatmodel.h"
-
 struct ChatItemStyle {
   int avatar_size = 40;
   int name_font_size = 12;
@@ -30,10 +25,14 @@ struct ChatItemStyle {
   QString no_message_status = "There is no messages";
 };
 
+class IReactionDataManager;
+class ChatDrawData;
+class MessageToken;
+
 class ChatItemDelegate : public QStyledItemDelegate {
   Q_OBJECT
  public:
-  explicit ChatItemDelegate(DataManager *data_manager, QObject *parent = nullptr,
+  explicit ChatItemDelegate(IReactionDataManager *data_manager, QObject *parent = nullptr,
                             const ChatItemStyle &style = ChatItemStyle());
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
@@ -52,7 +51,7 @@ class ChatItemDelegate : public QStyledItemDelegate {
   void drawUnread(QPainter *painter, const QRect &rect, const int unread) const;
 
  private:
-  DataManager *data_manager_;
+  IReactionDataManager *data_manager_;
   ChatItemStyle style_;
 };
 

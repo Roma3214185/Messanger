@@ -1,13 +1,21 @@
 #include "delegators/messagedelegate.h"
 
+#include <QDateTime>
+#include <QFile>
+#include <QModelIndex>
+#include <QPainter>
+#include <QStyleOptionViewItem>
+#include <QStyledItemDelegate>
 #include <QVariant>
 
+#include "managers/datamanager.h"
 #include "models/messagemodel.h"
 #include "utilsui.h"
 
 namespace {
 
-void fillCursorWithTokens(QTextCursor &cursor, DataManager &data_manager, const std::vector<MessageToken> &tokens,
+void fillCursorWithTokens(QTextCursor &cursor, IReactionDataManager &reaction_data_manager,
+                          const std::vector<MessageToken> &tokens,
                           int emojiSize) {  // todo: span??
   for (const auto &token : tokens) {
     if (token.type == MessageTokenType::Text) {
@@ -16,7 +24,7 @@ void fillCursorWithTokens(QTextCursor &cursor, DataManager &data_manager, const 
       DBC_REQUIRE(token.emoji_id.has_value());
       if (!token.emoji_id.has_value()) continue;
       long long emojiId = token.emoji_id.value();
-      auto img_info_opt = data_manager.getReactionInfo(emojiId);
+      auto img_info_opt = reaction_data_manager.getReactionInfo(emojiId);
       utils::ui::insert_emoji(cursor, img_info_opt, emojiSize);
     }
   }
@@ -24,8 +32,12 @@ void fillCursorWithTokens(QTextCursor &cursor, DataManager &data_manager, const 
 
 }  // namespace
 
-MessageDelegate::MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent)
-    : QStyledItemDelegate(parent), data_manager_(data_manager), token_manager_(token_manager) {}
+MessageDelegate::MessageDelegate(IMessageDataManager *message_manager, IUserDataManager *user_data_manager,
+                                 IReactionDataManager *reaction_data_manager, QObject *parent)
+    : QStyledItemDelegate(parent),
+      message_data_manager_(message_manager),
+      user_data_manager_(user_data_manager),
+      reaction_data_manager_(reaction_data_manager) {}
 
 void MessageDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
   if (!painter || !painter->isActive()) {
@@ -155,7 +167,7 @@ void MessageDelegate::drawText(QPainter *painter, const QRect &rect, const std::
   QTextDocument doc;
   QTextCursor cursor(&doc);
   doc.setTextWidth(rect.width() - 90);
-  fillCursorWithTokens(cursor, *data_manager_, tokens, emojiSize);
+  fillCursorWithTokens(cursor, *reaction_data_manager_, tokens, emojiSize);
 
   QTextBlockFormat blockFmt;
   blockFmt.setAlignment(is_mine ? Qt::AlignRight : Qt::AlignLeft);
@@ -202,7 +214,7 @@ void MessageDelegate::drawTimestamp(QPainter *painter, const QRect &rect, const 
 }
 
 User MessageDelegate::extractSender(long long sender_id) const {
-  if (auto sender = data_manager_->getUser(sender_id)) {
+  if (auto sender = user_data_manager_->getUser(sender_id)) {
     sender->avatarPath = "/Users/roma/QtProjects/Chat/images/default_avatar.jpg";
     return *sender;
   }
@@ -223,7 +235,7 @@ void MessageDelegate::drawAll(QPainter *painter, const QStyleOptionViewItem &opt
   QRect contentRect = fullRect;
 
   if (msg.answer_on.has_value() && draw_answer_on) {
-    const auto answer_on_msg = data_manager_->getMessageById(msg.answer_on.value());
+    const auto answer_on_msg = message_data_manager_->getMessageById(msg.answer_on.value());
     if (answer_on_msg) {
       replyRect = QRect(fullRect.left(), fullRect.top(), fullRect.width(), replyHeight);
       contentRect =
@@ -258,7 +270,7 @@ void MessageDelegate::drawReactions(QPainter *painter, const QRect &rect,
   int offset = 30;
   for (const auto &[reaction_id, reaction_cnt] : reactions) {
     if (reaction_cnt <= 0) continue;
-    auto reaction_info = data_manager_->getReactionInfo(reaction_id);
+    auto reaction_info = reaction_data_manager_->getReactionInfo(reaction_id);
     if (!reaction_info.has_value()) {
       LOG_ERROR("No reaction_info for id {}", reaction_id);
       continue;

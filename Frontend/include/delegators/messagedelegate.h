@@ -1,16 +1,18 @@
 #ifndef CHATDELEGATE_H
 #define CHATDELEGATE_H
 
-#include <QDateTime>
-#include <QFile>
-#include <QModelIndex>
-#include <QPainter>
-#include <QStyleOptionViewItem>
+#include <QRect>
 #include <QStyledItemDelegate>
 
 #include "MessageToken.h"
-#include "managers/TokenManager.h"
-#include "models/messagemodel.h"
+
+class IMessageDataManager;
+class IUserDataManager;
+class IReactionDataManager;
+class MessageModel;
+class Message;
+class QPainter;
+class User;
 
 struct ReactionHitBox {
   QRect rect;
@@ -23,7 +25,8 @@ using ReactionHitBoxes = std::vector<ReactionHitBox>;
 class MessageDelegate : public QStyledItemDelegate {
   Q_OBJECT
  public:
-  MessageDelegate(DataManager *data_manager, TokenManager *token_manager, QObject *parent = nullptr);
+  MessageDelegate(IMessageDataManager *message_manager, IUserDataManager *user_data_manager,
+                  IReactionDataManager *reaction_data_manager, QObject *parent = nullptr);
 
   void setDrawReactions(bool status) { draw_reactions = status; }
   void setDrawAnswerOn(bool status) { draw_answer_on = status; }
@@ -57,8 +60,9 @@ class MessageDelegate : public QStyledItemDelegate {
                           long long message_id) const;
   int calculateTextHeight(const QString &text, int textWidth, const QFont &font) const;
 
-  DataManager *data_manager_;
-  TokenManager *token_manager_;  // todo: can be delated
+  IMessageDataManager *message_data_manager_;
+  IUserDataManager *user_data_manager_;
+  IReactionDataManager *reaction_data_manager_;
   mutable std::unordered_map<MessageId, ReactionHitBoxes> hit_boxes_by_message_;
   bool draw_reactions = true;
   bool draw_answer_on = true;
