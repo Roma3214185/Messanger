@@ -25,7 +25,7 @@ T waitForFuture(QFuture<T> &future) {
 
 }  // namespace
 
-UserUseCase::UserUseCase(DataManager *data_manager, std::unique_ptr<UserManager> user_manager,
+UserUseCase::UserUseCase(IUserDataManager *data_manager, std::unique_ptr<UserManager> user_manager,
                          TokenManager *token_manager)
     : user_manager_(std::move(user_manager)), data_manager_(data_manager), token_manager_(token_manager) {}
 

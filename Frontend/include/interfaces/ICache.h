@@ -5,8 +5,8 @@
 #include <string>
 
 using Key = std::string;
-using Token = std::string;
-using OptionalToken = std::optional<Token>;
+using TokenStd = std::string;
+using OptionalToken = std::optional<TokenStd>;
 
 class ICache {
  public:
@@ -19,7 +19,7 @@ class ICache {
   virtual ~ICache() = 0;
 
   [[nodiscard]] virtual auto get(const Key &key) -> OptionalToken = 0;
-  virtual void saveToken(const Key &key, const Token &token) = 0;
+  virtual void saveToken(const Key &key, const TokenStd &token) = 0;
   virtual void deleteToken(const Key &key) = 0;
 };
 

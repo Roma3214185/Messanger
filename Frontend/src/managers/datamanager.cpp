@@ -1,6 +1,7 @@
 #include "managers/datamanager.h"
 
 #include "Debug_profiling.h"
+#include "entities/MessageStatus.h"
 #include "utils.h"
 
 namespace {
@@ -87,7 +88,7 @@ void DataManager::clearAll() {
 //    }
 // }
 
-void DataManager::addChat(const ChatPtr &chat, MessageModelPtr message_model) {
+void DataManager::save(const ChatPtr &chat, MessageModelPtr message_model) {
   DBC_REQUIRE(chat->chat_id > 0);
   if (!message_model) message_model = std::make_shared<MessageModel>();
 
@@ -95,7 +96,8 @@ void DataManager::addChat(const ChatPtr &chat, MessageModelPtr message_model) {
   bool chat_was = chats_by_id_.contains(chat->chat_id);
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
-  for (const auto &reaction : chat->default_reactions) save(reaction);
+  save(chat->default_reactions);
+  // for (const auto &reaction : chat->default_reactions) save(reaction);
   if (!chat_was) Q_EMIT chatAdded(chat);
 }
 
@@ -154,14 +156,15 @@ void DataManager::deleteMessage(const Message &msg) {
 
   Q_EMIT messageDeleted(msg);
 }
-void DataManager::readMessage(long long message_id, long long readed_by) {
+void DataManager::save(const MessageStatus &message_status) {
   std::scoped_lock lock(messages_mutex_);
-  DBC_REQUIRE(message_id > 0);
-  DBC_REQUIRE(readed_by > 0);
-  auto it = getIterMessageById(message_id);
+  DBC_REQUIRE(message_status.message_id > 0);
+  DBC_REQUIRE(message_status.receiver_id > 0);
+  DBC_REQUIRE(message_status.is_read);
+  auto it = getIterMessageById(message_status.message_id);
   if (it == messages_.end()) {
     LOG_WARN("To read message with id {} not found",
-             message_id);  // can be if u delete message for yourself
+             message_status.message_id);  // can be if u delete message for yourself
     return;
   }
 

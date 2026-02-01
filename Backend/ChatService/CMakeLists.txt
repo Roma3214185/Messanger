@@ -57,6 +57,8 @@ if(ENABLE_CLANG_FORMAT)
     enable_clang_format(ChatServiceCore)
 endif()
 
+#enable_project_warnings(ChatServiceCore)
+
 target_include_directories(ChatServiceCore PUBLIC
   ${httplib_SOURCE_DIR}
   ${CHAT_SERVICE_INCLUDE_DIR}/

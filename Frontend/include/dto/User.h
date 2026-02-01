@@ -8,7 +8,7 @@ struct User {
   QString email;
   QString tag;
   QString name;
-  long long id;
+  long long id{0};
   QString avatarPath = "/Users/roma/QtProjects/Chat/images/default_avatar.jpg";
 
   bool checkInvariants() const {

@@ -7,15 +7,16 @@ if (NOT TARGET Entities)
         src/utils.cpp
     )
 
-    target_include_directories(Entities PUBLIC
+    target_include_directories(Entities
+        PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
 
     target_link_libraries(Entities PUBLIC
         nlohmann_json::nlohmann_json
-        Crow::Crow
         ProjectOptions
         Metrics
+        Crow::Crow
     )
 
     enable_clang_tidy(Entities)

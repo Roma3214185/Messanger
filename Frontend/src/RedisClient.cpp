@@ -1,6 +1,6 @@
 #include "RedisClient.h"
 
-RedisClient::RedisClient(std::string url) : redis(url) {}
+RedisClient::RedisClient(std::string url) : redis(std::move(url)) {}
 
 OptionalToken RedisClient::get(const Key &key) {
   try {
@@ -11,6 +11,6 @@ OptionalToken RedisClient::get(const Key &key) {
   }
 }
 
-void RedisClient::saveToken(const Key &key, const Token &token) { redis.set(key, token); }
+void RedisClient::saveToken(const Key &key, const TokenStd &token) { redis.set(key, token); }
 
 void RedisClient::deleteToken(const Key &key) { redis.del(key); }

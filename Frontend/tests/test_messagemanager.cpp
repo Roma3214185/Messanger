@@ -9,6 +9,7 @@
 #include "JsonService.h"
 #include "managers/messagemanager.h"
 #include "mocks/MockAccessManager.h"
+#include "managers/TokenManager.h"
 
 class TestMessageManager : public MessageManager {
  public:
@@ -25,8 +26,8 @@ TEST_CASE("Test MessageManager getChatMessages") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestMessageManager message_manager(&network_manager, url, &entity_factory, timeout_ms);
+  JsonService entity_factory(&token_manager);
+  TestMessageManager message_manager(&entity_factory, &network_manager, url, timeout_ms);
 
   QJsonArray messages_array{
       QJsonObject{
@@ -126,8 +127,8 @@ TEST_CASE("Test MessageManager::onGetChatMessages directly") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestMessageManager message_manager(&network_manager, url, &entity_factory, timeout_ms);
+  JsonService entity_factory(&token_manager);
+  TestMessageManager message_manager(&entity_factory, &network_manager, url, timeout_ms);
 
   SECTION("Invalid JSON emits error and returns empty list") {
     auto reply = std::make_unique<MockReply>();

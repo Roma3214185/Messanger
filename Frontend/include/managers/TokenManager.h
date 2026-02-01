@@ -18,7 +18,7 @@ class TokenManager {
     current_id_ = current_id;
   }
 
-  QString getToken() {
+  QString getToken() noexcept(false) {
     DBC_REQUIRE(token_ != std::nullopt);
     if (!token_) {
       throw std::runtime_error("token is empty");
@@ -26,7 +26,7 @@ class TokenManager {
     return token_.value();
   }
 
-  long long getCurrentUserId() {
+  long long getCurrentUserId() noexcept(false) {
     DBC_REQUIRE(current_id_ != std::nullopt);
     if (!current_id_.has_value()) {
       throw std::runtime_error("current_id_ is empty");

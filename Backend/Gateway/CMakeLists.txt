@@ -50,6 +50,8 @@ if(ENABLE_CLANG_FORMAT)
     enable_clang_format(GatewayCore)
 endif()
 
+#enable_project_warnings(GatewayCore)
+
 target_link_libraries(GatewayCore PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}
     Crow::Crow

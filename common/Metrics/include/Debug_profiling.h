@@ -211,15 +211,13 @@ class ContractViolationError : public std::logic_error {
   }
 };
 
-[[noreturn]] inline void handleContractViolation(const ContractViolation& v) {
-  throw ContractViolationError(v);
-}
+[[noreturn]] inline void handleContractViolation(const ContractViolation &v) { throw ContractViolationError(v); }
 
-#define CONTRACT_CHECK(level, expr)                                    \
-  do {                                                                 \
-    if (!(expr)) {                                                     \
+#define CONTRACT_CHECK(level, expr)                                          \
+  do {                                                                       \
+    if (!(expr)) {                                                           \
       handleContractViolation({level, #expr, __FILE__, __LINE__, __func__}); \
-    }                                                                  \
+    }                                                                        \
   } while (0)
 
 #ifndef ENABLE_CONTRACTS
@@ -240,4 +238,4 @@ class ContractViolationError : public std::logic_error {
 #  define DBC_UNREACHABLE() ((void)0)
 #endif
 
-#endif // DEBUG_PROFILING
+#endif  // DEBUG_PROFILING

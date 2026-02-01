@@ -10,7 +10,7 @@ struct UserMessage {  // todo: rename UserMessage -> Message
   Message message;    // todo: rename Message -> MessageInfo
 
   struct {
-    int count;
+    int count{0};
     bool read_by_me;
   } read;
 

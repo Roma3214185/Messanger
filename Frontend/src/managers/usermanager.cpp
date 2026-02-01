@@ -21,6 +21,10 @@ auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> 
 
 }  // namespace
 
+UserManager::UserManager(IUserJsonService *entity_factory, INetworkAccessManager *network_manager, const QUrl &base_url,
+                         std::chrono::milliseconds timeout_ms, QObject *parent)
+    : entity_factory_(entity_factory), BaseManager(network_manager, base_url, timeout_ms, parent) {}
+
 QFuture<std::optional<User>> UserManager::getUser(long long user_id, const QString &current_token) {
   LOG_INFO("[getUser] Loading user id={}", user_id);
   PROFILE_SCOPE("UserManager::getUser");

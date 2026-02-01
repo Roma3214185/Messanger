@@ -1,0 +1,44 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+' ===========================
+' Define people / external actors
+' ===========================
+Person(user, "User", "End user of Roma Messenger")
+
+' ===========================
+' Backend system boundary
+' ===========================
+System_Boundary(backend, "Backend") {
+
+  ' --- Gateway ---
+  Container(gateway, "Gateway", "C++", "API Gateway routing requests to microservices")
+
+  ' --- Microservices ---
+  Container(auth, "AuthService", "C++", "Handles authentication and user sessions")
+  Container(chat, "ChatService", "C++", "Manages chat rooms and conversation state")
+  Container(message, "MessageService", "C++", "Stores and distributes messages")
+  Container(notification, "NotificationService", "C++", "Pushes notifications to users")
+
+  ' --- Common shared components ---
+  ContainerDb(redis, "RedisCache", "Redis", "Shared cache for session and message data")
+  ContainerQueue(rabbit, "RabbitMQ", "Message broker", "Event messaging between services")
+
+}
+
+' ===========================
+' Relationships
+' ===========================
+Rel(user, gateway, "Uses via HTTP/WebSocket")
+Rel(gateway, auth, "Authenticate requests")
+Rel(gateway, chat, "Forward chat requests")
+Rel(gateway, message, "Forward messages")
+Rel(chat, message, "Publishes events", "AMQP/RabbitMQ")
+Rel(message, notification, "Publishes events", "AMQP/RabbitMQ")
+Rel(message, redis, "Reads/Writes cached data")
+Rel(auth, redis, "Reads/Writes session cache")
+Rel(chat, rabbit, "Publishes chat events")
+Rel(notification, rabbit, "Consumes events for notifications")
+
+@enduml

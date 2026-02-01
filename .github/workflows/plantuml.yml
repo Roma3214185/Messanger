@@ -1,0 +1,30 @@
+name: Architecture Diagrams
+
+on:
+  pull_request:
+    paths:
+      - "docs/architecture/**"
+  push:
+    #branches: [ main ] // todo: uncomment
+
+jobs:
+  plantuml:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Generate PlantUML diagrams
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            plantuml/plantuml \
+            -tsvg \
+            /work/docs/architecture/**/*.puml
+
+      - name: Upload diagrams
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture
+          path: docs/architecture/**/*.svg

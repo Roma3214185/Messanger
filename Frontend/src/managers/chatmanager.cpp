@@ -26,6 +26,10 @@ auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> 
 
 }  // namespace
 
+ChatManager::ChatManager(IChatJsonService *entity_factory, INetworkAccessManager *network_manager, const QUrl &base_url,
+                         std::chrono::milliseconds timeout_ms, QObject *parent)
+    : entity_factory_(entity_factory), BaseManager(network_manager, base_url, timeout_ms, parent) {}
+
 QFuture<QList<ChatPtr>> ChatManager::loadChats(const QString &current_token) {
   PROFILE_SCOPE("Model::loadChats");
   QUrl endpoint = url_.resolved(QUrl("/chats"));

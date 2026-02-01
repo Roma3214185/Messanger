@@ -12,11 +12,15 @@ using ChatPtr = std::shared_ptr<ChatBase>;
 
 class INetworkAccessManager;
 class QNetworkReply;
+class IChatJsonService;
 
 class ChatManager : public BaseManager {
   Q_OBJECT
+  IChatJsonService *entity_factory_;
+
  public:
-  using BaseManager::BaseManager;
+  ChatManager(IChatJsonService *, INetworkAccessManager *network_manager, const QUrl &base_url,
+              std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
 
   QFuture<QList<ChatPtr>> loadChats(const QString &current_token);
   QFuture<ChatPtr> loadChat(const QString &current_token, long long chat_id);

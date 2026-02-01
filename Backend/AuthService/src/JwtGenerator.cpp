@@ -13,8 +13,7 @@ bool JwtGenerator::generateKeys() {
     saveInFile(kPrivateKeyFile, private_key);
     saveInFile(kPublicKeyFile, public_key);
 
-    LOG_INFO("Save private_key in {}: {}", kPrivateKeyFile, private_key);
-    LOG_INFO("Save public_key in {}: {}", kPublicKeyFile, public_key);
+    LOG_INFO("Keys saved successfully to {} and {}", kPrivateKeyFile, kPublicKeyFile);
     return true;
   } catch (...) {
     LOG_ERROR("Error saving keys");

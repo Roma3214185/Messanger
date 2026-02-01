@@ -8,7 +8,7 @@
 #include "Debug_profiling.h"
 
 struct User final {
-  long long id = 0;
+  long long id{0};
   std::string username;
   std::string email;
   std::string tag;

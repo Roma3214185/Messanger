@@ -1,0 +1,17 @@
+@startuml
+actor User
+participant Frontend
+participant Gateway
+participant ChatService
+participant MessageService
+participant RabbitMQ
+participant NotificationService
+
+User -> Frontend: Send message
+Frontend -> Gateway: POST /message
+Gateway -> ChatService: validateChat()
+ChatService -> MessageService: createMessage()
+MessageService -> RabbitMQ: publish MessageCreated
+RabbitMQ -> NotificationService: consume
+NotificationService -> User: push notification
+@enduml

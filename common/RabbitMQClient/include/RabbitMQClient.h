@@ -51,4 +51,4 @@ class RabbitMQClient : public IRabitMQClient {
   const RabbitMQConfig &rabit_mq_config_;
 };
 
-#endif // RABBITMQCLIENT
+#endif  // RABBITMQCLIENT

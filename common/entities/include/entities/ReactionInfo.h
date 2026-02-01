@@ -5,7 +5,7 @@
 #include <string>
 
 struct ReactionInfo {
-  long long id;
+  long long id{0};
   std::string image;
 
   bool checkInvariants() const { return id > 0 && !image.empty(); }

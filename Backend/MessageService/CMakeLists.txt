@@ -51,6 +51,8 @@ if(ENABLE_CLANG_FORMAT)
     enable_clang_format(MessageServiceCore)
 endif()
 
+#enable_project_warnings(MessageServiceCore)
+
 target_link_libraries(MessageServiceCore PUBLIC
   Crow::Crow
   Entities

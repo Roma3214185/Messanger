@@ -17,8 +17,11 @@ class QNetworkReply;
 
 class MessageManager : public BaseManager {
   Q_OBJECT
+  IMessageJsonService *entity_factory_;
+
  public:
-  using BaseManager::BaseManager;
+  MessageManager(IMessageJsonService *, INetworkAccessManager *network_manager, const QUrl &base_url,
+                 std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
 
   void updateMessage(const Message &message_to_update, const QString &token);
   void deleteMessage(const Message &message_to_delete, const QString &token);

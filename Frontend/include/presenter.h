@@ -4,10 +4,7 @@
 #include <QObject>
 #include <optional>
 
-#include "MessageListView.h"
-#include "delegators/chatitemdelegate.h"
-#include "delegators/messagedelegate.h"
-#include "delegators/userdelegate.h"  //todo(roma): make forward declarations
+#include "dto/User.h"
 #include "interfaces/ISocketResponceHandler.h"
 
 class ChatModel;
@@ -19,6 +16,12 @@ class UserModel;
 class User;
 class QJsonObject;
 class QTextDocument;
+class ISocketResponceHandler;
+class IMessageListView;
+class ReactionInfo;
+class LogInRequest;
+class User;
+class Reaction;
 
 template <typename T>
 using Optional = std::optional<T>;
@@ -47,14 +50,11 @@ class Presenter : public QObject {
   void deleteMessage(const Message &message);
   void reactionClicked(const Message &message, long long reaction_id);
 
-  MessageDelegate *getMessageDelegate(QObject *parent);
-  UserDelegate *getUserDelegate(QObject *parent);
-  ChatItemDelegate *getChatDelegate(QObject *parent);
-
   std::vector<Message> getListOfMessagesBySearch(const QString &prefix);
   std::vector<ReactionInfo> getDefaultReactionsInChat(long long chat_id);
   std::vector<ReactionInfo> getReactionsForMenu();
   std::optional<ReactionInfo> getReactionInfo(long long reaction_id);
+  void initialHandlers(SocketHandlersMap handlers);
 
  Q_SIGNALS:
   void userSetted();
@@ -72,7 +72,6 @@ class Presenter : public QObject {
   void setUser(const User &user, const QString &token);
   void openChat(long long chat_id);
   void onErrorOccurred(const QString &error);
-  void initialHandlers();
   void saveReaction(const Reaction &reaction);
   void deleteReaction(const Reaction &reaction);
 

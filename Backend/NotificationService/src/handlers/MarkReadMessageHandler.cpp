@@ -2,8 +2,8 @@
 
 void MarkReadMessageHandler::handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
                                     NotificationManager &manager) {
-  const auto read_by = static_cast<long long>(message["readed_by"].d());
-  const auto message_id = static_cast<long long>(message["message_id"].d());
+  const auto read_by = static_cast<long long>(message["readed_by"].i());
+  const auto message_id = static_cast<long long>(message["message_id"].i());
   MessageStatus message_status;
   // todo: check if this user is member of chat in message service
   message_status.is_read = true;

@@ -1,8 +1,12 @@
 #include "delegators/chatitemdelegate.h"
 
+#include "MessageToken.h"
+#include "dto/DrawData.h"
+#include "managers/datamanager.h"
+#include "models/chatmodel.h"
 #include "utilsui.h"
 
-ChatItemDelegate::ChatItemDelegate(DataManager *data_manager, QObject *parent, const ChatItemStyle &style)
+ChatItemDelegate::ChatItemDelegate(IReactionDataManager *data_manager, QObject *parent, const ChatItemStyle &style)
     : data_manager_(data_manager), QStyledItemDelegate(parent), style_(style) {}
 
 void ChatItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {

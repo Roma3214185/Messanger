@@ -14,7 +14,7 @@ void InitMessageHandler::handle(const crow::json::rvalue &message, const std::sh
     }
 
     if (message["user_id"].t() == crow::json::type::Number) {
-      return static_cast<long long>(message["user_id"].d());
+      return static_cast<long long>(message["user_id"].i());
     }
 
     LOG_ERROR("Unexpected type of field 'user_id'");

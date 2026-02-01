@@ -22,6 +22,7 @@
 #include "interfaces/ICache.h"
 #include "interfaces/INetworkAccessManager.h"
 #include "interfaces/ISocket.h"
+#include "managers/TokenManager.h"
 #include "managers/chatmanager.h"
 #include "managers/datamanager.h"
 #include "managers/messagemanager.h"
@@ -31,38 +32,27 @@
 #include "models/UserModel.h"
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
+#include "usecases/IUseCaseRepository.h"
 
-Model::Model(const QUrl &url, INetworkAccessManager *netManager, ICache *cash, ISocket *socket,
+Model::Model(IUseCaseRepository *use_case_repostirory, ICache *cash, TokenManager *token_manager, ISocket *socket,
              DataManager *data_manager)
-    : cache_(cash),
-      token_manager_(std::make_unique<TokenManager>()),
-      entity_factory_(std::make_unique<EntityFactory>(token_manager_.get())),
+    : use_case_repository_(use_case_repostirory),
+      cache_(cash),
+      token_manager_(token_manager),
+      // entity_factory_(std::make_unique<JsonService>(token_manager_.get())),
       chat_model_(std::make_unique<ChatModel>()),
       user_model_(std::make_unique<UserModel>()),
-      data_manager_(data_manager),
-      socket_use_case_(std::make_unique<SocketUseCase>(std::make_unique<SocketManager>(socket, url))),
-      chat_use_case_(
-          std::make_unique<ChatUseCase>(std::make_unique<ChatManager>(netManager, url, entity_factory_.get()),
-                                        data_manager_, chat_model_.get(), token_manager_.get())),
-      user_use_case_(std::make_unique<UserUseCase>(
-          data_manager_, std::make_unique<UserManager>(netManager, url, entity_factory_.get()), token_manager_.get())),
-      message_use_case_(std::make_unique<MessageUseCase>(
-          data_manager_, std::make_unique<MessageManager>(netManager, url, entity_factory_.get()),
-          token_manager_.get())),
-      session_use_case_(
-          std::make_unique<SessionUseCase>(std::make_unique<SessionManager>(netManager, url, entity_factory_.get()))) {
-  LOG_INFO("[Model::Model] Initialized Model with URL: '{}'", url.toString().toStdString());
-}
+      data_manager_(data_manager) {}
 
 void Model::setupConnections() {
   connect(data_manager_, &DataManager::chatAdded, this, [this](const ChatPtr &added_chat) {
     DBC_REQUIRE(added_chat != nullptr);
-    message_use_case_.get()->getChatMessagesAsync(added_chat->chat_id);
+    message()->getChatMessagesAsync(added_chat->chat_id);
     getChatModel()->addChat(added_chat);
   });
 
   connect(data_manager_, &DataManager::messageAdded, this, [this](const Message &message) {
-    user_use_case_->getUserAsync(message.sender_id);
+    user()->getUserAsync(message.sender_id);
     auto last_message = getMessageModel(message.chat_id)->getLastMessage();
     chat_model_->updateChatInfo(message.chat_id, last_message);
     //  todo: getChatAsync() and there check: if exists, skip
@@ -72,7 +62,7 @@ void Model::setupConnections() {
   connect(data_manager_, &DataManager::chatAdded, this, [this](const ChatPtr &chat) {
     DBC_REQUIRE(chat != nullptr);  // todo: in chat class make isValid
                                    // fucntion that check all self field
-    message_use_case_->getChatMessagesAsync(chat->chat_id);
+    message()->getChatMessagesAsync(chat->chat_id);
   });
 
   connect(data_manager_, &DataManager::messageDeleted, this, [this](const Message &deleted_message) {
@@ -111,13 +101,23 @@ void Model::logout() {
   PROFILE_SCOPE();
   LOG_INFO("[logout] Logging out user");
 
-  socket_use_case_->close();
+  socket()->close();
   data_manager_->clearAll();
   cache_->deleteToken("TOKEN");
   token_manager_->resetData();
-  chat_use_case_->clearAllChats();  // todo: delete each chat, and non signal
-                                    // delete delete clear models of th
   chat_model_->clear();
   token_manager_->resetData();
   LOG_INFO("[logout] Logout complete");
 }
+
+ISessionUseCase *Model::session() const { return use_case_repository_->session(); }
+IMessageUseCase *Model::message() const { return use_case_repository_->message(); }
+IUserUseCase *Model::user() const { return use_case_repository_->user(); }
+IChatUseCase *Model::chat() const { return use_case_repository_->chat(); }
+DataManager *Model::dataManager() const { return data_manager_; }
+TokenManager *Model::tokenManager() const { return token_manager_; }
+ISocketUseCase *Model::socket() const { return use_case_repository_->socket(); }
+// JsonService *Model::entities() const { return entity_factory_.get(); }
+
+ChatModel *Model::getChatModel() const noexcept { return chat_model_.get(); }
+UserModel *Model::getUserModel() const noexcept { return user_model_.get(); }

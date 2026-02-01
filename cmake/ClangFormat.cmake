@@ -9,18 +9,19 @@ function(enable_clang_format TARGET)
         message(FATAL_ERROR "clang-format requested but not found")
     endif()
 
-    get_target_property(TARGET_SOURCES ${TARGET} SOURCES)
-    if(NOT TARGET_SOURCES)
-        message(WARNING "Target ${TARGET} has no sources for clang-format")
-        return()
-    endif()
+    # get_target_property(TARGET_SOURCES ${TARGET} SOURCES)
+    # if(NOT TARGET_SOURCES)
+    #     message(WARNING "Target ${TARGET} has no sources for clang-format")
+    #     return()
+    # endif()
 
     set(FORMAT_FILES)
-    foreach(SRC IN LISTS TARGET_SOURCES)
-        if(SRC MATCHES "\\.(cpp|cxx|h|hpp)$")
-            list(APPEND FORMAT_FILES ${SRC})
-        endif()
-    endforeach()
+
+    file(GLOB_RECURSE TARGET_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    )
+    list(APPEND FORMAT_FILES ${TARGET_FILES})
 
     if(FORMAT_FILES)
         add_custom_target(

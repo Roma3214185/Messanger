@@ -11,20 +11,59 @@ function(enable_cppcheck TARGET)
         message(FATAL_ERROR "cppcheck not found")
     endif()
 
+    message(STATUS "BINARY_DIR=${CMAKE_BINARY_DIR}")
+
     set(CPPCHECK_OPTIONS
+        --max-ctu-depth=3
         --enable=warning,performance,portability
+        #--enable=all
         --inline-suppr
         --suppress=missingIncludeSystem
         -i${CMAKE_SOURCE_DIR}/external
-        -i${CMAKE_BINARY_DIR}/_deps
-        -i${CMAKE_SOURCE_DIR}/build/_deps
+        -i${CMAKE_BINARY_DIR}/
+        --suppress=*:*/_deps/*
+        --suppress=*:*/external/*
+        --suppress=unmatchedSuppression
+        -DQT_BEGIN_NAMESPACE=;
+        -DQT_END_NAMESPACE=;
+        -DQT_NO_KEYWORDS=1;
+        -DQ_SLOTS=;
+        -DQ_DECLARE_METATYPE=;
+        --language=c++
+        --error-exitcode=666
     )
+
+    #cppcheck --max-ctu-depth=3 --enable=all --inline-suppr --suppress=*:*thrust/complex* --suppress=missingInclude --suppress=syntaxError --suppress=unmatchedSuppression --suppress=preprocessorErrorDirective --language=c++ --std=c++14 --error-exitcode=666
+
 
     message(STATUS "cppcheck runs on target: ${TARGET}")
 
     set_target_properties(${TARGET} PROPERTIES
         CXX_CPPCHECK "${CPPCHECK_EXE};${CPPCHECK_OPTIONS}"
     )
+endfunction()
+
+# -----------------------------------------------------------------------------
+# Disable Cppcheck for a target
+# -----------------------------------------------------------------------------
+function(disable_cppcheck target)
+  set_target_properties(${target} PROPERTIES
+    C_CPPCHECK ""
+    CXX_CPPCHECK ""
+  )
+endfunction()
+
+# -----------------------------------------------------------------------------
+# Disable Cppcheck for a directory
+# -----------------------------------------------------------------------------
+function(disable_cppcheck_in_dir dir)
+  get_property(targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+  foreach(t ${targets})
+    set_target_properties(${t} PROPERTIES
+      C_CPPCHECK ""
+      CXX_CPPCHECK ""
+    )
+  endforeach()
 endfunction()
 
 # -----------------------------------------------------------------------------

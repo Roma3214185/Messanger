@@ -45,6 +45,8 @@ if(ENABLE_CLANG_FORMAT)
     enable_clang_format(NotificationServiceCore)
 endif()
 
+#enable_project_warnings(NotificationServiceCore)
+
 target_include_directories(NotificationServiceCore PUBLIC
     ${NOTIFICATION_SERVICE_INCLUDE_DIR}
     ${httplib_SOURCE_DIR}
@@ -69,15 +71,6 @@ target_link_libraries(NotificationServiceCore PUBLIC
 add_executable(NotificationService
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     Dockerfile
-    include/handlers/SaveMessageReaction.h
-    include/handlers/DeleteMessageReaction.h
-    src/handlers/DeleteMessageReactionHandler.cpp
-    src/handlers/InitMessageHandler.cpp
-    src/handlers/MarkReadMessageHandler.cpp
-    src/handlers/SaveMessageReactionHandler.cpp
-    src/handlers/SendMessageHandler.cpp
-    src/CrowSocket.cpp
-    src/JwtUtils.cpp
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore)

@@ -24,18 +24,18 @@ TEST_CASE("Test datamanager works with chats") {
 
   SECTION("Add two same chats expected add last one") {
     auto same_private_chat = ChatFactory::createPrivateChat(1, "Roma", "roma228", 5, "offline");
-    data_manager.addChat(private_chat1);
-    data_manager.addChat(same_private_chat);
+    data_manager.save(private_chat1);
+    data_manager.save(same_private_chat);
 
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
     REQUIRE(data_manager.getNumberOfMessageModels() == 1);
   }
 
   SECTION("Clear all chats works as expected") {
-    data_manager.addChat(private_chat1);
-    data_manager.addChat(private_chat2);
-    data_manager.addChat(private_chat3);
-    data_manager.addChat(private_chat4);
+    data_manager.save(private_chat1);
+    data_manager.save(private_chat2);
+    data_manager.save(private_chat3);
+    data_manager.save(private_chat4);
     REQUIRE(data_manager.getNumberOfExistingChats() == 4);
 
     data_manager.clearAllChats();
@@ -44,10 +44,10 @@ TEST_CASE("Test datamanager works with chats") {
   }
 
   SECTION("Get existing private chat with user") {
-    data_manager.addChat(private_chat1);
-    data_manager.addChat(private_chat2);
-    data_manager.addChat(private_chat3);
-    data_manager.addChat(private_chat4);
+    data_manager.save(private_chat1);
+    data_manager.save(private_chat2);
+    data_manager.save(private_chat3);
+    data_manager.save(private_chat4);
 
     auto returned_chat = data_manager.getPrivateChatWithUser(6);
 
@@ -56,7 +56,7 @@ TEST_CASE("Test datamanager works with chats") {
   }
 
   SECTION("Get existing chat expected return same chat") {
-    data_manager.addChat(private_chat1);
+    data_manager.save(private_chat1);
 
     auto chat = data_manager.getChat(private_chat1->chat_id);
 
@@ -78,12 +78,12 @@ TEST_CASE("Test datamanager works with chats") {
   SECTION("Add chat with invalid id require throw exception") {
     auto group_chat = ChatFactory::createGroupChat(0, "Test title", 2, {}, {}, {});
 
-    REQUIRE_THROWS(data_manager.addChat(group_chat));
+    REQUIRE_THROWS(data_manager.save(group_chat));
   }
 
   SECTION("Get existing chat expected works as expected") {
     auto group_chat = ChatFactory::createGroupChat(1, "Test title", 2, {}, {}, {});
-    data_manager.addChat(group_chat);
+    data_manager.save(group_chat);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
 
     auto returned_chat = data_manager.getChat(1);
@@ -92,7 +92,7 @@ TEST_CASE("Test datamanager works with chats") {
 
   SECTION("Get not existing chat expected return nullptr") {
     auto group_chat = ChatFactory::createGroupChat(1, "Test title", 2, {}, {}, {});
-    data_manager.addChat(group_chat);
+    data_manager.save(group_chat);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
 
     auto returned_chat = data_manager.getChat(5);
@@ -100,7 +100,7 @@ TEST_CASE("Test datamanager works with chats") {
   }
 
   SECTION("Get chatmodel for existing chat expected return not nullptr") {
-    data_manager.addChat(private_chat1);
+    data_manager.save(private_chat1);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
 
     auto returned_model = data_manager.getMessageModel(private_chat1->chat_id);
@@ -112,8 +112,8 @@ TEST_CASE("Test datamanager works with chats") {
   }
 
   SECTION("Clear all message models works as expected") {
-    data_manager.addChat(private_chat1);
-    data_manager.addChat(private_chat2);
+    data_manager.save(private_chat1);
+    data_manager.save(private_chat2);
     REQUIRE(data_manager.getNumberOfMessageModels() == 2);
 
     data_manager.clearAllMessageModels();
@@ -158,7 +158,7 @@ TEST_CASE("Test datamanager works with chats") {
 
   SECTION("Clear method clear all data") {
     valid_user.id = 2;
-    data_manager.addChat(private_chat1);
+    data_manager.save(private_chat1);
     data_manager.save(valid_user);
     REQUIRE(data_manager.getNumberOfExistingChats() == 1);
     REQUIRE(data_manager.getNumberOfMessageModels() == 1);

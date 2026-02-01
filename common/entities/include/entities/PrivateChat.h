@@ -8,9 +8,9 @@
 #include "Fields.h"
 
 struct PrivateChat final {
-  long long chat_id;
-  long long first_user;
-  long long second_user;
+  long long chat_id{0};
+  long long first_user{0};
+  long long second_user{0};
 
   PrivateChat() = default;
 

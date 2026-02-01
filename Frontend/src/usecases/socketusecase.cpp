@@ -5,6 +5,7 @@
 
 #include "Debug_profiling.h"
 #include "dto/Message.h"
+#include "entities/MessageStatus.h"
 #include "utils.h"
 
 SocketUseCase::SocketUseCase(std::unique_ptr<SocketManager> socket_manager)
@@ -77,9 +78,10 @@ void SocketUseCase::sendMessage(const Message& msg) {
   sendInSocket(json);
 }
 
-void SocketUseCase::sendReadMessageEvent(const Message& message, long long current_user_id) {
-  // todo: maybe pass only id, not full Message
-  auto json = QJsonObject{{"type", "read_message"}, {"message_id", message.id}, {"readed_by", current_user_id}};
+void SocketUseCase::sendReadMessageEvent(const MessageStatus& message_status) {
+  DBC_REQUIRE(message_status.is_read);
+  auto json = QJsonObject{
+      {"type", "read_message"}, {"message_id", message_status.message_id}, {"readed_by", message_status.receiver_id}};
   // todo: readed_by -> receiver_id
 
   sendInSocket(json);

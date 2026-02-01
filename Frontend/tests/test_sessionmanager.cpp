@@ -10,6 +10,7 @@
 #include "dto/User.h"
 #include "managers/sessionmanager.h"
 #include "mocks/MockAccessManager.h"
+#include "managers/TokenManager.h"
 
 const QUrl url_auth_service("http://localhost:8083/");
 const QUrl url_apigate_service("http://localhost:8084");
@@ -33,8 +34,8 @@ TEST_CASE("Test sign in") {
   long long test_current_id = 12345;
   QString token = "test_token";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestSessionManager session_manager(&network_manager, url_auth_service, &entity_factory);
+  JsonService entity_factory(&token_manager);
+  TestSessionManager session_manager(&entity_factory, &network_manager, url_auth_service);
   LogInRequest login_request{"user@test.com", "12345"};
 
   SECTION("LogInRequestIsSendingWithRightHeader") {
@@ -84,8 +85,8 @@ TEST_CASE("Test sign up") {
   long long test_current_id = 12345;
   QString token = "test_token";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestSessionManager session_manager(&network_manager, url_auth_service, &entity_factory);
+  JsonService entity_factory(&token_manager);
+  TestSessionManager session_manager(&entity_factory, &network_manager, url_auth_service);
   SignUpRequest signup_request{.email = "user@test.com", .password = "12345678", .tag = "roma228", .name = "roma"};
 
   SECTION("SignUpRequestIsSendingOnRightUrl") {
@@ -137,8 +138,8 @@ TEST_CASE("Test authenticateWithToken") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestSessionManager session_manager(&network_manager, url_auth_service, &entity_factory);
+  JsonService entity_factory(&token_manager);
+  TestSessionManager session_manager(&entity_factory, &network_manager, url_auth_service);
 
   SECTION("authenticateWithTokenExpecteedRightUrl") {
     QUrl resolved_url_auth_service("http://localhost:8083/auth/me");
@@ -185,8 +186,8 @@ TEST_CASE("Test onSignInFinished") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestSessionManager session_manager(&network_manager, url_auth_service, &entity_factory);
+  JsonService entity_factory(&token_manager);
+  TestSessionManager session_manager(&entity_factory, &network_manager, url_auth_service);
 
   SECTION("ExpectedEmittingUserCreated") {
     auto reply = std::make_unique<MockReply>();

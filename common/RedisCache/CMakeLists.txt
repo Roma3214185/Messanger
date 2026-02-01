@@ -40,6 +40,15 @@ target_include_directories(RedisCache
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+get_target_property(REDISPP_INCLUDES redis++_static INTERFACE_INCLUDE_DIRECTORIES)
+
+if(REDISPP_INCLUDES)
+    target_include_directories(RedisCache SYSTEM PUBLIC
+        ${REDISPP_INCLUDES}
+    )
+endif()
+
 target_link_libraries(RedisCache PUBLIC
     redis++_static
     Metrics

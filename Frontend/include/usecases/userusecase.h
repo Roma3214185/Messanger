@@ -4,22 +4,30 @@
 #include <QObject>
 
 class UserManager;
-class DataManager;
+class IUserDataManager;
 class TokenManager;
 struct User;
 
-class UserUseCase : public QObject {
-  Q_OBJECT
+class IUserUseCase {
  public:
   using Token = QString;
-  UserUseCase(DataManager *, std::unique_ptr<UserManager>, TokenManager *);
-  void getUserAsync(long long user_id);
-  std::optional<User> getUser(long long user_id);
-  QList<User> findUsers(const QString &text);
+  virtual ~IUserUseCase() = default;
+  virtual void getUserAsync(long long user_id) = 0;
+  virtual std::optional<User> getUser(long long user_id) = 0;
+  virtual QList<User> findUsers(const QString &text) = 0;
+};
+
+class UserUseCase : public QObject, public IUserUseCase {
+  Q_OBJECT
+ public:
+  UserUseCase(IUserDataManager *, std::unique_ptr<UserManager>, TokenManager *);
+  void getUserAsync(long long user_id) override;
+  std::optional<User> getUser(long long user_id) override;
+  QList<User> findUsers(const QString &text) override;
 
  private:
   std::unique_ptr<UserManager> user_manager_;
-  DataManager *data_manager_;
+  IUserDataManager *data_manager_;
   TokenManager *token_manager_;
 };
 

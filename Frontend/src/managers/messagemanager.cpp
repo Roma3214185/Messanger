@@ -20,6 +20,10 @@ auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> 
 
 }  // namespace
 
+MessageManager::MessageManager(IMessageJsonService *entity_factory, INetworkAccessManager *network_manager,
+                               const QUrl &base_url, std::chrono::milliseconds timeout_ms, QObject *parent)
+    : entity_factory_(entity_factory), BaseManager(network_manager, base_url, timeout_ms, parent) {}
+
 QFuture<QList<Message>> MessageManager::getChatMessages(const QString &current_token, long long chat_id,
                                                         long long before_id, long long limit) {
   PROFILE_SCOPE("MessageManager::getChatMessages");

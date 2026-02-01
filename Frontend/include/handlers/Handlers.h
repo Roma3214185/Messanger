@@ -1,10 +1,10 @@
 #ifndef HANDLERS_H
 #define HANDLERS_H
 
+#include "DeleteMessageHandler.h"
 #include "DeleteMessageReactionHandler.h"
-#include "DeleteMessageResponceHandler.h"
-#include "NewMessageResponceHandler.h"
-#include "OpenResponceHandler.h"
+#include "NewMessageHandler.h"
+#include "OpenSocketHandler.h"
 #include "ReadMessageHandler.h"
 #include "SaveMessageReactionHandler.h"
 
