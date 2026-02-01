@@ -45,6 +45,8 @@ if(ENABLE_CLANG_FORMAT)
     enable_clang_format(FrontendLib)
 endif()
 
+enable_project_warnings(FrontendLib)
+
 
 target_include_directories(FrontendLib
     PUBLIC

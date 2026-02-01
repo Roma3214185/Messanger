@@ -45,6 +45,8 @@ if(ENABLE_CLANG_FORMAT)
     enable_clang_format(NotificationServiceCore)
 endif()
 
+#enable_project_warnings(NotificationServiceCore)
+
 target_include_directories(NotificationServiceCore PUBLIC
     ${NOTIFICATION_SERVICE_INCLUDE_DIR}
     ${httplib_SOURCE_DIR}

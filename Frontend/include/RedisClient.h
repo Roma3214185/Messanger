@@ -12,7 +12,7 @@ class RedisClient : public ICache {
 
   OptionalToken get(const Key &key) override;
 
-  void saveToken(const Key &key, const Token &token) override;
+  void saveToken(const Key &key, const TokenStd &token) override;
 
   void deleteToken(const Key &key) override;
 

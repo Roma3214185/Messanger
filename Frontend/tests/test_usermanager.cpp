@@ -9,6 +9,7 @@
 
 #include "managers/usermanager.h"
 #include "mocks/MockAccessManager.h"
+#include "managers/TokenManager.h"
 
 class TestUserManager : public UserManager {
  public:
@@ -27,8 +28,8 @@ TEST_CASE("Test user manager") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  UserManager user_manager(&network_manager, url, &entity_factory, times_out);
+  JsonService entity_factory(&token_manager);
+  UserManager user_manager(&entity_factory, &network_manager, url, times_out);
   int user_id{4};
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
@@ -135,8 +136,8 @@ TEST_CASE("Test onGetUser") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestUserManager user_manager(&network_manager, url, &entity_factory);
+  JsonService entity_factory(&token_manager);
+  TestUserManager user_manager(&entity_factory, &network_manager, url);
 
   SECTION("ValidReplyExpectedNotEmittedErrorOccurred") {
     QSignalSpy spyErrorOccured(&user_manager, &UserManager::errorOccurred);
@@ -215,8 +216,8 @@ TEST_CASE("Test findUsersByTag") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  UserManager user_manager(&network_manager, url, &entity_factory, times_out);
+  JsonService entity_factory(&token_manager);
+  UserManager user_manager(&entity_factory, &network_manager, url, times_out);
   QString tag = "roma222";
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
@@ -324,8 +325,8 @@ TEST_CASE("Tests onUserFindedByTag") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestUserManager user_manager(&network_manager, url, &entity_factory, times_out);
+  JsonService entity_factory(&token_manager);
+  TestUserManager user_manager(&entity_factory, &network_manager, url, times_out);
   QString tag = "roma222";
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());
@@ -389,8 +390,8 @@ TEST_CASE("UserManager onFindUsersByTag invalid JSON handling") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestUserManager user_manager(&network_manager, url, &entity_factory, times_out);
+  JsonService entity_factory(&token_manager);
+  TestUserManager user_manager(&entity_factory, &network_manager, url, times_out);
   QString tag = "roma222";
   auto reply = std::make_unique<MockReply>();
   network_manager.setReply(reply.get());

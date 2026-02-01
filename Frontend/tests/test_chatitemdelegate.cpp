@@ -2,6 +2,10 @@
 #include <catch2/catch_all.hpp>
 
 #include "delegators/chatitemdelegate.h"
+#include "managers/datamanager.h"
+#include "models/chatmodel.h"
+#include "delegators/chatitemdelegate.h"
+#include "dto/DrawData.h"
 
 struct TestChatItemDelegate : public ChatItemDelegate {
   using ChatItemDelegate::ChatItemDelegate;

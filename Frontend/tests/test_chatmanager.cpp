@@ -9,6 +9,7 @@
 #include "JsonService.h"
 #include "managers/chatmanager.h"
 #include "mocks/MockAccessManager.h"
+#include "managers/TokenManager.h"
 
 class TestChatManager : public ChatManager {
  public:
@@ -28,8 +29,8 @@ TEST_CASE("Test ChatManager loadChats") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestChatManager chat_manager(&network_manager, url, &entity_factory, times_out);
+  JsonService entity_factory(&token_manager);
+  TestChatManager chat_manager(&entity_factory, &network_manager, url, times_out);
   QJsonObject chat_obj{{"type", "private"},
                        {"id", 43},
                        {"user", QJsonObject{{"id", 123}, {"name", "Chat43"}, {"avatar", "path/to/avatar"}}}};
@@ -115,8 +116,8 @@ TEST_CASE("Test ChatManager loadChat") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestChatManager chat_manager(&network_manager, url, &entity_factory, times_out);
+  JsonService entity_factory(&token_manager);
+  TestChatManager chat_manager(&entity_factory, &network_manager, url, times_out);
 
   QJsonObject chat_obj{{"type", "private"},
                        {"id", 42},
@@ -186,8 +187,8 @@ TEST_CASE("Test ChatManager createPrivateChat") {
   long long test_current_id = 12345;
   QString token = "secret-token123";
   token_manager.setData(token, test_current_id);
-  EntityFactory entity_factory(&token_manager);
-  TestChatManager chat_manager(&network_manager, url, &entity_factory, times_out);
+  JsonService entity_factory(&token_manager);
+  TestChatManager chat_manager(&entity_factory, &network_manager, url, times_out);
 
   QJsonObject user_obj{{"id", 55}, {"name", "PrivateChat101"}, {"avatar", "/path/to/avatar.png"}};
 

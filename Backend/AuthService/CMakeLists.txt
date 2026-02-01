@@ -59,6 +59,8 @@ if(ENABLE_CLANG_FORMAT)
     enable_clang_format(AuthServiceCore)
 endif()
 
+#enable_project_warnings(AuthServiceCore)
+
 target_compile_options(AuthServiceCore PRIVATE -Wno-deprecated-declarations)
 
 target_link_libraries(AuthServiceCore PUBLIC

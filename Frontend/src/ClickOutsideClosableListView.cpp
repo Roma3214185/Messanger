@@ -1,5 +1,7 @@
 #include "clickoutsideclosablelistview.h"
 
+#include <QTimer>
+
 #include "OutsideClickFilter.h"
 #include "mainwindow.h"
 

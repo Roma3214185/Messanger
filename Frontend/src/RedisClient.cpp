@@ -11,6 +11,6 @@ OptionalToken RedisClient::get(const Key &key) {
   }
 }
 
-void RedisClient::saveToken(const Key &key, const Token &token) { redis.set(key, token); }
+void RedisClient::saveToken(const Key &key, const TokenStd &token) { redis.set(key, token); }
 
 void RedisClient::deleteToken(const Key &key) { redis.del(key); }
