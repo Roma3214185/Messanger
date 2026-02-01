@@ -6,8 +6,7 @@
 #include "JsonService.h"
 #include "interfaces/ISocket.h"
 
-SocketManager::SocketManager(ISocket *socket, const QUrl &url) : socket_(socket),
-    url_(url) {
+SocketManager::SocketManager(ISocket *socket, const QUrl &url) : socket_(socket), url_(url) {
   url_.setScheme("ws");
   url_.setPath("/ws");
 

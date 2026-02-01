@@ -11,11 +11,15 @@ struct LogInRequest;
 class QNetworkReply;
 struct User;
 struct SignUpRequest;
+class IUserJsonService;
 
 class SessionManager : public BaseManager {
   Q_OBJECT
+  IUserJsonService *entity_factory_;
+
  public:
-  using BaseManager::BaseManager;
+  SessionManager(IUserJsonService *, INetworkAccessManager *network_manager, const QUrl &base_url,
+                 std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
 
   void signIn(const LogInRequest &login_request);
   void signUp(const SignUpRequest &signup_request);

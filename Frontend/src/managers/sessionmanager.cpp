@@ -23,6 +23,10 @@ auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> 
 
 }  // namespace
 
+SessionManager::SessionManager(IUserJsonService *entity_factory, INetworkAccessManager *network_manager,
+                               const QUrl &base_url, std::chrono::milliseconds timeout_ms, QObject *parent)
+    : entity_factory_(entity_factory), BaseManager(network_manager, base_url, timeout_ms, parent) {}
+
 void SessionManager::signIn(const LogInRequest &login_request) {
   PROFILE_SCOPE("SessionManager::signIn");
   LOG_INFO("[signIn] Attempting login for email '{}'", login_request.email.toStdString());
