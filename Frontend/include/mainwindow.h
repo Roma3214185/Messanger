@@ -23,12 +23,13 @@ class MessageListView;
 class MessageDelegate;
 class MessageModel;
 class ClickOutsideClosableListView;
+class DelegatorsFactory;
 
 class MainWindow final : public QMainWindow, public IMainWindow {
   Q_OBJECT
 
  public:
-  explicit MainWindow(Model *model, QWidget *parent = nullptr);
+  MainWindow(Model *model, DelegatorsFactory *delegators_factory, QWidget *parent = nullptr);
   ~MainWindow() final;
 
   void setChatWindow(std::shared_ptr<ChatBase> chat) override;
@@ -37,10 +38,9 @@ class MainWindow final : public QMainWindow, public IMainWindow {
   void clearFindUserEdit() override;
   void showError(const QString &error) override;
   void setCurrentChatIndex(QModelIndex chat_idx) override;
-
-  void setTheme(std::unique_ptr<ITheme> theme);
-
   bool eventFilter(QObject *, QEvent *event) override;
+  void setPresenter(Presenter *presenter);
+  void initialise();
 
  Q_SIGNALS:
   void clickedOnPos(QPoint point);
@@ -65,6 +65,7 @@ class MainWindow final : public QMainWindow, public IMainWindow {
   void onEmojiButtonStateChanged(bool open);
 
  private:
+  void setTheme(std::unique_ptr<ITheme> theme);
   void setMainWindow() const;
   void cancelSearchMessagesMode();
   void setSignInPage();
@@ -96,7 +97,8 @@ class MainWindow final : public QMainWindow, public IMainWindow {
 
   std::unique_ptr<ITheme> current_theme_;
   Ui::MainWindow *ui;
-  std::unique_ptr<Presenter> presenter_;
+  Presenter *presenter_;
+  DelegatorsFactory *delegators_factory_;
   std::unique_ptr<MessageListView> message_list_view_;
   MessageDelegate *message_delegate_;
   std::optional<Message> editable_message_;  // todo: make Page to set in currentPage, in which

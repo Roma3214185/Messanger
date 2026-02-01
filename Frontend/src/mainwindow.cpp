@@ -13,7 +13,9 @@
 #include "DataInputService.h"
 #include "Debug_profiling.h"
 #include "MessageActionPanel.h"
+#include "MessageListView.h"
 #include "clickoutsideclosablelistview.h"
+#include "delegators/DelegatorsFactory.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
 #include "delegators/userdelegate.h"
@@ -36,15 +38,20 @@ class PopedAutoClosedList : QListView {
   PopedAutoClosedList(QAbstractItemModel *model, QWidget *parent = nullptr) : model_(model), QListView(parent) {}
 };
 
-MainWindow::MainWindow(Model *model, QWidget *parent)
+MainWindow::MainWindow(Model *model, DelegatorsFactory *delegators_factory, QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
-      presenter_(std::make_unique<Presenter>(this, model)),
+      presenter_(nullptr),
+      delegators_factory_(delegators_factory),
       message_list_view_(std::make_unique<MessageListView>()),
       searchResultsModel_(std::make_unique<MessageModel>(this)) {
   ui->setupUi(this);
   qApp->installEventFilter(this);
+}
 
+void MainWindow::setPresenter(Presenter *presenter) { presenter_ = presenter; }
+
+void MainWindow::initialise() {
   presenter_->initialise();
 
   setDelegators();
@@ -55,7 +62,7 @@ MainWindow::MainWindow(Model *model, QWidget *parent)
 }
 
 void MainWindow::setDelegators() {
-  auto *chat_delegate = presenter_->getChatDelegate(ui->chatListView);
+  auto *chat_delegate = delegators_factory_->getChatDelegate(ui->chatListView);
   ui->chatListView->setItemDelegate(chat_delegate);
 }
 
@@ -83,7 +90,7 @@ void MainWindow::setChatWindow(std::shared_ptr<ChatBase> chat) {
 void MainWindow::setMessageListView() {
   presenter_->setMessageListView(message_list_view_.get());
   ui->messageListViewLayout->addWidget(message_list_view_.get());
-  message_delegate_ = presenter_->getMessageDelegate(message_list_view_.get());
+  message_delegate_ = delegators_factory_->getMessageDelegate(message_list_view_.get());
   message_list_view_->setItemDelegate(message_delegate_);
   connect(message_delegate_, &MessageDelegate::unreadMessage, this,
           [this](Message &message) { presenter_->onUnreadMessage(message); });
@@ -131,7 +138,7 @@ void MainWindow::setupUserListView() {
   if (userListView_) return;
 
   userListView_ = new ClickOutsideClosableListView(this);
-  auto *user_delegate = presenter_->getUserDelegate(userListView_);
+  auto *user_delegate = delegators_factory_->getUserDelegate(userListView_);
   userListView_->setItemDelegate(user_delegate);
   // ui->find_user_layout->addWidget(userListView_);
 
@@ -220,7 +227,7 @@ void MainWindow::seupConnections() {
   message_list_view_->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(message_list_view_.get(), &MessageListView::clickedWithEvent, this, &MainWindow::onPressEvent);
 
-  connect(presenter_.get(), &Presenter::userSetted, this, &MainWindow::setMainWindow);
+  connect(presenter_, &Presenter::userSetted, this, &MainWindow::setMainWindow);
   connect(ui->serch_in_chat_button, &QPushButton::clicked, this, &MainWindow::setSearchMessageMode);
   connect(ui->cancel_search_messages_button, &QPushButton::clicked, this, &MainWindow::cancelSearchMessagesMode);
   connect(ui->emojiButton, &QPushButton::toggled, this, &MainWindow::onEmojiButtonStateChanged);
@@ -309,7 +316,7 @@ void MainWindow::setAnswerMode(const Message &message) {
   auto list_view = new QListView(this);
   auto *model = new MessageModel(this);
   list_view->setModel(model);
-  auto *delegate = presenter_->getMessageDelegate(list_view);
+  auto *delegate = delegators_factory_->getMessageDelegate(list_view);
   delegate->setDrawAnswerOn(false);
   delegate->setSaveHitboxes(false);
   delegate->setDrawReactions(false);
@@ -402,7 +409,7 @@ void MainWindow::setupSearchMessageListView() {
   searchMessageListView_ = new ClickOutsideClosableListView(this);
   auto *anchor = ui->search_messages_line_edit;
   constexpr int max_visible_rows = 3;
-  auto *message_delegate = presenter_->getMessageDelegate(searchMessageListView_);
+  auto *message_delegate = delegators_factory_->getMessageDelegate(searchMessageListView_);
   searchMessageListView_->setItemDelegate(message_delegate);
 
   searchMessageListView_->setUpdateCallback([=]() {
