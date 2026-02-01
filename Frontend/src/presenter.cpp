@@ -11,12 +11,20 @@
 #include "MessageListView.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
+#include "entities/MessageStatus.h"
 #include "entities/Reaction.h"
 #include "handlers/Handlers.h"
 #include "interfaces/IMainWindow.h"
 #include "interfaces/IMessageListView.h"
+#include "managers/Managers.h"
+#include "managers/TokenManager.h"
 #include "model.h"
 #include "models/messagemodel.h"
+#include "usecases/chatusecase.h"
+#include "usecases/messageusecase.h"
+#include "usecases/sessionusecase.h"
+#include "usecases/socketusecase.h"
+#include "usecases/userusecase.h"
 #include "utils.h"
 
 Presenter::Presenter(IMainWindow *window, Model *manager)
@@ -27,7 +35,6 @@ void Presenter::initialise() {
   view_->setUserModel(manager_->getUserModel());
 
   initialConnections();
-  initialHandlers();
   manager_->setupConnections();
 
   if (auto token_opt = manager_->checkToken(); token_opt.has_value()) {
@@ -35,26 +42,7 @@ void Presenter::initialise() {
   }
 }
 
-void Presenter::initialHandlers() {
-  const std::string opened_type = "opened";
-  const std::string new_message_type = "new_message";
-  const std::string delete_message_type = "delete_message";
-  const std::string read_message_type = "read_message";
-  const std::string save_reaction_type = "save_reaction";
-  const std::string delete_reaction_type = "delete_reaction";
-
-  socket_responce_handlers_[opened_type] =
-      std::make_unique<OpenResponceHandler>(manager_->tokenManager(), manager_->socket());
-  socket_responce_handlers_[new_message_type] =
-      std::make_unique<NewMessageResponceHandler>(manager_->entities(), manager_->dataManager());
-  socket_responce_handlers_[delete_message_type] =
-      std::make_unique<DeleteMessageResponceHandler>(manager_->entities(), manager_->message());
-  socket_responce_handlers_[read_message_type] = std::make_unique<ReadMessageHandler>(manager_->dataManager());
-  socket_responce_handlers_[save_reaction_type] =
-      std::make_unique<SaveMessageReactionHandler>(manager_->entities(), manager_->dataManager());
-  socket_responce_handlers_[delete_reaction_type] =
-      std::make_unique<DeleteMessageReactionHandler>(manager_->entities(), manager_->dataManager());
-}
+void Presenter::initialHandlers(SocketHandlersMap handlers) { socket_responce_handlers_ = std::move(handlers); }
 
 void Presenter::setMessageListView(IMessageListView *message_list_view) {
   DBC_REQUIRE(message_list_view != nullptr);
@@ -67,8 +55,8 @@ void Presenter::signIn(const LogInRequest &login_request) { manager_->session()-
 void Presenter::signUp(const SignUpRequest &req) { manager_->session()->signUp(req); }
 
 void Presenter::initialConnections() {
-  connect(manager_->session(), &SessionUseCase::userCreated, this, &Presenter::setUser);
-  connect(manager_->socket(), &SocketUseCase::newResponce, this, &Presenter::onNewResponce);
+  connect(manager_->session(), &ISessionUseCase::userCreated, this, &Presenter::setUser);
+  connect(manager_->socket(), &ISocketUseCase::newResponce, this, &Presenter::onNewResponce);
 }
 
 void Presenter::onNewResponce(QJsonObject &json_object) {
@@ -84,16 +72,6 @@ void Presenter::onNewResponce(QJsonObject &json_object) {
   } else {
     LOG_ERROR("Invalid type {}", type);
   }
-}
-
-MessageDelegate *Presenter::getMessageDelegate(QObject *parent) {
-  return new MessageDelegate(manager_->dataManager(), manager_->tokenManager(), parent);
-}
-
-UserDelegate *Presenter::getUserDelegate(QObject *parent) { return new UserDelegate(parent); }
-
-ChatItemDelegate *Presenter::getChatDelegate(QObject *parent) {
-  return new ChatItemDelegate(manager_->dataManager(), parent);
 }
 
 void Presenter::deleteMessage(const Message &message) {
@@ -148,7 +126,11 @@ void Presenter::onScroll(int value) {  // todo: multithreaded event changed
   auto *message_model = manager_->getMessageModel(chat_id);
   DBC_REQUIRE(message_model);
 
-  message_list_view_->preserveFocusWhile(message_model, [&] { manager_->dataManager()->save(new_messages); });
+  message_list_view_->preserveFocusWhile(message_model, [&] {
+    for (const auto &message : new_messages) {
+      manager_->dataManager()->save(message);
+    }
+  });
   // TODO: think about future / then
 }
 
@@ -218,7 +200,13 @@ void Presenter::openChat(long long chat_id) {  // make unread message = 0; (?)
   setCurrentChatId(chat_id);
   message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
   message_list_view_->scrollToBottom();  // todo: not in every sitation it's good idea
-  view_->setChatWindow(manager_->chat()->getChat(chat_id));
+
+  auto chat = manager_->dataManager()->getChat(chat_id);
+  if (chat != nullptr) {
+    view_->setChatWindow(chat);
+  } else {
+    LOG_ERROR("Chat to open not found");  // todo: in this case request on server
+  }
 }
 
 void Presenter::onUserClicked(long long user_id, bool is_user) {
@@ -266,8 +254,9 @@ void Presenter::sendButtonClicked(QTextDocument *doc, std::optional<long long> a
     return;
   }
 
-  auto message_to_send = manager_->entities()->createMessage(*current_opened_chat_id_, current_user_->id, tokens,
-                                                             QUuid::createUuid().toString(), answer_on_message_id);
+  auto message_to_send =
+      MessageFactory::createMessage(manager_->tokenManager()->getCurrentUserId(), *current_opened_chat_id_,
+                                    current_user_->id, tokens, QUuid::createUuid().toString(), answer_on_message_id);
   LOG_INFO("Message to send {}", message_to_send.toString());
   manager_->dataManager()->save(message_to_send);
   message_list_view_->scrollToBottom();
@@ -318,10 +307,16 @@ void Presenter::onUnreadMessage(Message &message) {
     return;
   }
   if (message.isOfflineSaved()) return;
-
   long long current_user_id = manager_->tokenManager()->getCurrentUserId();
-  manager_->dataManager()->readMessage(message.id, current_user_id);
-  manager_->socket()->sendReadMessageEvent(message, current_user_id);
+
+  MessageStatus status;
+  status.message_id = message.id;
+  status.receiver_id = current_user_id;
+  status.is_read = true;
+  // status.read_at =
+
+  manager_->dataManager()->save(status);
+  manager_->socket()->sendReadMessageEvent(status);
 }
 
 std::vector<ReactionInfo> Presenter::getReactionsForMenu() { return manager_->dataManager()->getEmojiesForMenu(); }
