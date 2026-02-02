@@ -67,7 +67,7 @@ std::vector<MessageStatus> fetchReaded(const std::vector<MessageStatus> &message
 
 }  // namespace
 
-Controller::Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool)
+Controller::Controller(IRabitMQClient *mq_client, IMessageManager *manager, IThreadPool *pool)
     : manager_(manager), mq_client_(mq_client), pool_(pool) {}
 
 void Controller::handleSaveMessage(const std::string &payload) {

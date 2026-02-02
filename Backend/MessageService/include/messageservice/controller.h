@@ -6,7 +6,7 @@
 #include <vector>
 
 class Message;
-class MessageManager;
+class IMessageManager;
 class IRabitMQClient;
 class GetMessagePack;
 class MessageStatus;
@@ -20,7 +20,7 @@ using Response = std::pair<StatusCode, ResponceBody>;
 
 class Controller {
  public:
-  Controller(IRabitMQClient *mq_client, MessageManager *manager, IThreadPool *pool);
+  Controller(IRabitMQClient *mq_client, IMessageManager *manager, IThreadPool *pool);
 
   Response updateMessage(const RequestDTO &request_pack, const std::string &message_id_str);
   Response deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str);
@@ -46,7 +46,7 @@ class Controller {
   std::optional<long long> getUserIdFromToken(const std::string &token);
   std::optional<std::vector<ReactionInfo>> loadReactions();
 
-  MessageManager *manager_;
+  IMessageManager *manager_;
   IRabitMQClient *mq_client_;
   IThreadPool *pool_;
 };

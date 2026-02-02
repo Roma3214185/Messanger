@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   constexpr int service_id = 3;
   GeneratorId generator(service_id);
   GenericRepository genetic_rep(&executor, RedisCache::instance(), &pool);
-  MessageManager manager(&genetic_rep, &executor, &generator);
+  MessageManager manager(&genetic_rep, &generator);
   RabbitMQConfig config = getConfig();
   auto mq = createRabbitMQClient(config, &pool);
   if (!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
