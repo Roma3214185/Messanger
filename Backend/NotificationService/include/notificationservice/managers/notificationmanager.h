@@ -5,7 +5,7 @@
 #include "entities/MessageStatus.h"
 #include "entities/Reaction.h"
 
-class NetworkFacade;
+class INetworkFacade;
 class IRabitMQClient;
 class ISocket;
 class IConfigProvider;
@@ -14,12 +14,12 @@ class SocketsManager;
 class NotificationManager {
   IRabitMQClient *mq_client_;
   SocketsManager *socket_manager_;
-  NetworkFacade &network_facade_;
+  INetworkFacade *network_facade_;
 
  public:
   using SocketPtr = std::shared_ptr<ISocket>;
 
-  NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager, NetworkFacade &network_facade);
+  NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager, INetworkFacade *network_facade);
 
   void saveConnections(const SocketPtr &conn);
   void deleteConnections(const SocketPtr &conn);

@@ -2,12 +2,12 @@
 
 #include "Debug_profiling.h"
 #include "NetworkFacade.h"
-#include "chatservice/AutoritizerProvider.h"
 #include "chatservice/interfaces/IChatManager.h"
 #include "config/codes.h"
 #include "entities/ReactionInfo.h"
 #include "entities/RequestDTO.h"
 #include "entities/User.h"
+#include "interfaces/IAutoritizer.h"
 
 using std::optional;
 using std::string;
@@ -55,9 +55,8 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 
 }  // namespace
 
-ChatController::ChatController(IChatManager *manager, NetworkFacade *network_facade)
-    : manager_(manager), network_facade_(network_facade) {
-  AutoritizerProvider::set(std::make_shared<RealAutoritizer>());
+ChatController::ChatController(IChatManager *manager, INetworkFacade *network_facade, IAuthoritizer* authoritizer)
+    : manager_(manager), network_facade_(network_facade), authoritizer_(authoritizer)  {
 }
 
 Response ChatController::createPrivateChat(const RequestDTO &req) {
@@ -122,7 +121,7 @@ Response ChatController::createPrivateChat(const RequestDTO &req) {
 }
 
 std::optional<long long> ChatController::autoritize(const std::string &token) {
-  return AutoritizerProvider::get()->autoritize(token);
+  return authoritizer_->verifyTokenAndGetUserId(token);
 }
 
 Response ChatController::getAllChats(const RequestDTO &req) {
@@ -228,7 +227,7 @@ Response ChatController::getAllChatMembers(const RequestDTO & /*req*/, const std
   return sendResponse(Config::StatusCodes::success, ans.dump());
 }
 
-std::optional<User> ChatController::getUserById(long long id) { return network_facade_->user().getUserById(id); }
+std::optional<User> ChatController::getUserById(long long id) { return network_facade_->users().getUserById(id); }
 
 std::vector<ReactionInfo> ChatController::getReactionOfChat(long long chat_id) {
   DBC_REQUIRE(chat_id > 0);
@@ -237,7 +236,7 @@ std::vector<ReactionInfo> ChatController::getReactionOfChat(long long chat_id) {
 
   std::vector<ReactionInfo> reactions_of_chat;
   for (const auto &id_of_reactions : ids_of_reactions) {
-    if (auto reaction = network_facade_->msg().getReaction(id_of_reactions); reaction.has_value()) {
+    if (auto reaction = network_facade_->messages().getReaction(id_of_reactions); reaction.has_value()) {
       DBC_REQUIRE(reaction->checkInvariants());
       reactions_of_chat.push_back(reaction.value());
     } else {

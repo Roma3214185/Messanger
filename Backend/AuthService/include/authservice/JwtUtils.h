@@ -16,7 +16,6 @@ namespace JwtUtils {
 
 std::pair<std::string, std::string> generateRsaKeys(int bits = 2048);
 std::string generateToken(UserId);
-OptionalUserId verifyTokenAndGetUserId(const std::string &token);
 
 }  // namespace JwtUtils
 

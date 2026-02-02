@@ -26,8 +26,8 @@ int main() {
   RabbitMQClient mq(config, &pool);
   SocketsManager sockManager;
   NetworkManager network_manager;
-  NetworkFacade net_repository = NetworkFactory::create(&network_manager);
-  NotificationManager notifManager(&mq, &sockManager, net_repository);
+  //NetworkFacade net_repository = NetworkFactory::create(&network_manager);
+  NotificationManager notifManager(&mq, &sockManager, &network_manager);
   Server server(Config::Ports::notificationService, &notifManager);
   server.run();
 }

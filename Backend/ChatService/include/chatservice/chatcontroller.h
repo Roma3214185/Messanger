@@ -4,13 +4,14 @@
 #include <string>
 #include <vector>
 
-class NetworkFacade;
+class INetworkFacade;
 class IConfigProvider;
 class IChatManager;
 class User;
 class Chat;
 class RequestDTO;
 struct ReactionInfo;
+class IAuthoritizer;
 
 using StatusCode = int;
 using ResponceBody = std::string;
@@ -18,7 +19,7 @@ using Response = std::pair<StatusCode, ResponceBody>;
 
 class ChatController {
  public:
-  ChatController(IChatManager *manager, NetworkFacade *network_facade);
+  ChatController(IChatManager *manager, INetworkFacade *network_facade, IAuthoritizer* authritizer);
 
   Response createPrivateChat(const RequestDTO &req);
   Response getAllChats(const RequestDTO &req);
@@ -32,7 +33,8 @@ class ChatController {
   std::vector<ReactionInfo> getReactionOfChat(long long chat_id);
 
   IChatManager *manager_;
-  NetworkFacade *network_facade_;
+  INetworkFacade *network_facade_;
+  IAuthoritizer* authoritizer_;
 };
 
 #endif  // CHATCONTROLLER_H

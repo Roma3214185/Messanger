@@ -8,7 +8,7 @@
 #include "utils.h"
 
 NotificationManager::NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager,
-                                         NetworkFacade &network_facade)
+                                         INetworkFacade *network_facade)
     : mq_client_(mq_client), socket_manager_(sock_manager), network_facade_(network_facade) {
   subscribeMessageSaved();
   subscribeMessageDeleted();
@@ -215,7 +215,7 @@ void NotificationManager::saveMessageStatus(MessageStatus &status) {
 }
 
 std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {
-  return network_facade_.chat().getMembersOfChat(chat_id);
+  return network_facade_->chats().getMembersOfChat(chat_id);
 }
 
 bool NotificationManager::notifyMember(long long user_id, nlohmann::json json_message,
@@ -249,7 +249,7 @@ void NotificationManager::saveDeliveryStatus(const Message &msg,
 
 std::optional<long long> NotificationManager::getChatIdOfMessage(long long message_id) {
   DBC_REQUIRE(message_id > 0);
-  return network_facade_.msg().getChatIdOfMessage(message_id);
+  return network_facade_->messages().getChatIdOfMessage(message_id);
 }
 
 void NotificationManager::saveReaction(const Reaction &reaction) {
