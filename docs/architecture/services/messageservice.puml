@@ -13,7 +13,7 @@ class Controller {
   + setup() : Response
 }
 
-class MessageManager {
+interface IMessageManager {
   + saveMessage(message) : boo;
   + getMessage(long long message_id);
   + getMessageStatus(long long message_id, long long receiver_id);
@@ -57,8 +57,9 @@ Server --> Controller
 
 Controller --> IRabitMQClient
 Controller --> IThreadPool
-Controller --> MessageManager
+Controller --> IMessageManager
 
+MessageManager --|> IMessageManager
 MessageManager --> GenericRepository
 MessageManager --> IIdGenerator
 
