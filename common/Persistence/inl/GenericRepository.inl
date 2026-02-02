@@ -8,48 +8,6 @@
 #include "QueryFactory.h"
 #include "GenericRepository.h"
 
-namespace {
-
-void bindToQuery(std::unique_ptr<IQuery>& query, const QList<QVariant>& values) {
-  if(!query) return;
-  for (const auto & value : values) query->bind(value);
-}
-
-}  // namespace
-
-template <EntityJson T>
-inline QVariant GenericRepository::toVariant(const Field& f, const T& entity) const {
-  std::any val = f.get(&entity);
-
-  if (f.type == typeid(long long)) {
-    return QVariant::fromValue(std::any_cast<long long>(val));
-  } if (f.type == typeid(std::string)) {
-    return QString::fromStdString(std::any_cast<std::string>(val));
-    } if (f.type == typeid(bool)) {
-    return QVariant::fromValue(static_cast<int>(std::any_cast<bool>(val)));
-    } if (f.type == typeid(QDateTime)) {
-    auto dt = std::any_cast<QDateTime>(val);
-
-    if (!dt.isValid()) {
-      LOG_WARN("in to variant was invalid datetimp");
-      dt = QDateTime::currentDateTime();
-    }
-
-    return QVariant{dt.toSecsSinceEpoch()};
-  }
-
-  LOG_ERROR("Invalid type in toVariant for entity {}", nlohmann::json(entity).dump());
-  return {};
-}
-
-//void updateOutbox()
-// database_.transaction();
-
-// SqlStatement smt_outbox;
-// smt_outbox.query = "INSERT INTO outbox (table_trigered, payload, processed) "
-//                    "VALUES (?, ?, 0)";
-// smt_outbox.values =  QList<QVariant>{ QVariant(meta.table_name), QVariant(QString::fromStdString(entity_json)) };
-
 template <EntityJson T>
 bool GenericRepository::save(const T& entity) {
   std::string entity_json = nlohmann::json(entity).dump();
@@ -70,19 +28,19 @@ bool GenericRepository::save(const T& entity) {
 
   LOG_INFO("Save succeed for json: {}", entity_json);
 
-  cache_.set(makeKey<T>(entity), entity_json, std::chrono::seconds{30});
+  cache_.set(cache_kay_generator_.makeKey<T>(entity), entity_json, std::chrono::seconds{30});
   cache_.incr(std::string("table_generation:") + meta.table_name);
   return true;
 }
 
-template <EntityJson T>
-bool GenericRepository::save(std::vector<T>& entities) {
-  bool res = true;
-  for(auto &entity: entities) { //TODO: implement bathcer save
-    res |= save(entity);
-  }
-  return res;
-}
+// template <EntityJson T>
+// bool GenericRepository::save(std::vector<T>& entities) {
+//   bool res = true;
+//   for(auto &entity: entities) { //TODO: implement bathcer save
+//     res |= save(entity);
+//   }
+//   return res;
+// }
 
 template <EntityJson T>
 void GenericRepository::saveAsync(T& entity) {
@@ -95,17 +53,17 @@ void GenericRepository::saveAsync(T& entity) {
   }
 }
 
-template <EntityJson T>
-inline std::future<std::optional<T>> GenericRepository::findOneAsync(long long entity_id) {
-  if (!pool_) {
-    LOG_WARN("Pool isn't initialized");
-    return std::async(std::launch::deferred,
-                      [this, entity_id]() { return this->findOne<T>(entity_id); });
-  } else {
-    LOG_INFO("Start save async");
-    return pool_->enqueue([this, entity_id]() { return this->findOne<T>(entity_id); });
-  }
-}
+// template <EntityJson T>
+// inline std::future<std::optional<T>> GenericRepository::findOneAsync(long long entity_id) {
+//   if (!pool_) {
+//     LOG_WARN("Pool isn't initialized");
+//     return std::async(std::launch::deferred,
+//                       [this, entity_id]() { return this->findOne<T>(entity_id); });
+//   } else {
+//     LOG_INFO("Start save async");
+//     return pool_->enqueue([this, entity_id]() { return this->findOne<T>(entity_id); });
+//   }
+// }
 
 template <EntityJson T>
 std::optional<T> GenericRepository::findOne(long long entity_id) {
@@ -122,10 +80,10 @@ bool GenericRepository::deleteEntity(const T& entity) {
   return deleteById<T>(entity.id); //? TODO: not each entity has id field
 }
 
-template <EntityJson T>
-void GenericRepository::deleteBatch(std::vector<T>& batch) {
-  qDebug() << "Not implemented";
-}
+// template <EntityJson T>
+// void GenericRepository::deleteBatch(std::vector<T>& batch) {
+//   qDebug() << "Not implemented";
+// }
 
 template <EntityJson T>
 bool GenericRepository::deleteById(long long entity_id) {
@@ -141,7 +99,7 @@ bool GenericRepository::deleteById(long long entity_id) {
 
   // todo: std::string stmKey = meta.table_name + std::string(":deleteById");
   cache_.incr(std::string("table_generation:") + meta.table_name);
-  cache_.remove(makeKey<T>(entity_id));
+  cache_.remove(cache_kay_generator_.makeKey<T>(entity_id));
   return true;
 }
 
@@ -165,26 +123,6 @@ template <EntityJson T>
 T GenericRepository::buildEntity(QSqlQuery& query, BuilderType type) const {
   auto builder = makeBuilder<T>(type);
   return builder->build(query);
-}
-
-template <EntityJson T>
-std::string GenericRepository::makeKey(const T& entity) const {
-  EntityKey<T> key_builder;
-  return "entity_cache:" + std::string(Reflection<T>::meta().table_name) +
-         ":" + key_builder.get(entity);
-}
-
-template <EntityJson T>
-std::string GenericRepository::makeKey(long long id) const {
-  return "entity_cache:" + std::string(Reflection<T>::meta().table_name) +
-        ":" + std::to_string(id);
-}
-
-template <EntityJson T>
-long long GenericRepository::getId(const T& obj) const {
-  auto meta = Reflection<T>::meta();
-  if (auto f = meta.find("id")) return std::any_cast<long long>(f->get(&obj));
-  return 0;
 }
 
 #endif

@@ -12,6 +12,7 @@ add_library(Persistence STATIC
     src/GeneratorId.cpp
     src/OutboxWorker.cpp
     src/SQLiteQuery.cpp
+    include/CacheKeyGenerator.h
 )
 
 target_compile_features(Persistence PUBLIC cxx_std_20)
