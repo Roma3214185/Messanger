@@ -7,25 +7,25 @@ on:
   push:
     #branches: [ main ] // todo: uncomment
 
-jobs:
-  plantuml:
-    runs-on: ubuntu-latest
+  jobs:
+    plantuml:
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
 
-    - name: Generate PlantUML diagrams
-      run: |
-        shopt -s globstar
-        docker run --rm \
-          -v ${{ github.workspace }}:/work \
-          plantuml/plantuml:1.2025.10 \
-          -tsvg \
-          docs/architecture/**/*.puml
+      - name: Generate PlantUML diagrams
+        run: |
+          shopt -s globstar
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            plantuml/plantuml:1.2025.10 \
+            -tsvg \
+            docs/architecture/**/*.puml
 
-      - name: Upload diagrams
-        uses: actions/upload-artifact@v4
-        with:
-          name: architecture
-          path: docs/architecture/**/*.svg
+        - name: Upload diagrams
+          uses: actions/upload-artifact@v4
+          with:
+            name: architecture
+            path: docs/architecture/**/*.svg
