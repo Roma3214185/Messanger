@@ -1,0 +1,72 @@
+@startuml
+
+class GatewayServer {
+  run() : void
+  registerRoutes() : void
+}
+
+class ProxyClient {
+NetworkResponse forward(const RequestDTO &, const int port);
+}
+
+interface IClient {
+  + NetworkResponse Get(const ForwardRequestDTO &)
+  + NetworkResponse Delete(const ForwardRequestDTO &)
+  + NetworkResponse Put(const ForwardRequestDTO &)
+  + NetworkResponse Post(const ForwardRequestDTO &)
+}
+
+interface IVerifier
+interface IRateLimiter {
+  + allow(ip) : bool
+}
+interface IMetrics
+
+interface IThreadPool {
+  enqueu(lambda) : void
+}
+
+interface ISubscribeEvent {
+  + subcrive(req) : void
+}
+
+interface IPublishEvent {
+  + publish(req) : void
+}
+
+interface ICacheService
+
+RabbitMQClient --|> IEventBus
+
+IEventBus --|> ISubscribeEvent
+IEventBus --|> IPublishEvent
+ThreadPool --|> IThreadPool
+
+
+GatewayServer --> LoggingMiddleware
+GatewayServer --> RateLimitMiddleware
+GatewayServer --> MetricsMiddleware
+GatewayServer --> AuthMiddleware
+GatewayServer --> CacheMiddleware
+GatewayServer --> GatewayController
+
+GatewayController --> ICacheService
+GatewayController --> IThreadPool
+GatewayController --> IEventBus
+GatewayController --> ProxyClient
+GatewayController --> IClient
+ProxyClient --> IClient
+
+AuthMiddleware --> IVerifier
+JWTVerifier --|> IVerifier
+
+CacheMiddleware --> ICacheService
+MetricsMiddleware --> IMetrics
+RateLimitMiddleware --> IRateLimiter
+
+
+GatewayMetrics --|> IMetrics
+RateLimiter --|> IRateLimiter
+RealHttpClient --|> IClient
+
+@enduml
