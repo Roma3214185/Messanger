@@ -5,15 +5,15 @@ on:
     paths:
       - "docs/architecture/**"
   push:
-    #branches: [ main ] // todo: uncomment
+    # branches: [ main ] # todo: uncomment later
 
-  jobs:
-    plantuml:
-      runs-on: ubuntu-latest
+jobs:
+  plantuml:
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout repo
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Generate PlantUML diagrams
         run: |
@@ -24,8 +24,8 @@ on:
             -tsvg \
             docs/architecture/**/*.puml
 
-        - name: Upload diagrams
-          uses: actions/upload-artifact@v4
-          with:
-            name: architecture
-            path: docs/architecture/**/*.svg
+      - name: Upload diagrams
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture
+          path: docs/architecture/**/*.svg
