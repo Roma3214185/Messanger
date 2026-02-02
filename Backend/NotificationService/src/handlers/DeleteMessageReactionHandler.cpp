@@ -2,10 +2,12 @@
 
 #include "entities/Reaction.h"
 #include "utils.h"
+#include "notificationservice/IPublisher.h"
 
-void DeleteMessageReactionHandler::handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
-                                          NotificationManager &manager) {
+DeleteMessageReactionHandler::DeleteMessageReactionHandler(IPublisher* publisher) : publisher_(publisher) {}
+
+void DeleteMessageReactionHandler::handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket) {
   if (auto reaction = utils::entities::parseReaction(message); reaction.has_value()) {
-    manager.deleteReaction(*reaction);
+    publisher_->deleteReaction(*reaction);
   }
 }

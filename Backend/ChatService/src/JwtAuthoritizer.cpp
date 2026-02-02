@@ -1,4 +1,4 @@
-#include "chatservice/TokenService.h"
+#include "chatservice/JwtAuthoritizer.h"
 
 #include <jwt-cpp/jwt.h>
 
@@ -29,9 +29,7 @@ constexpr const char *const kIssuer = "auth_service";
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
 
-namespace JwtUtils {
-
-std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
+std::optional<long long> JwtAuthoritizer::verifyTokenAndGetUserId(const std::string &token) {
   try {
     auto decoded = jwt::decode(token);
     std::string public_key = readFile(kPublicKeyFile);
@@ -51,5 +49,3 @@ std::optional<long long> verifyTokenAndGetUserId(const std::string &token) {
     return std::nullopt;
   }
 }
-
-}  // namespace JwtUtils

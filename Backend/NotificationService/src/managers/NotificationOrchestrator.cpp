@@ -1,23 +1,32 @@
-#include "notificationservice/managers/notificationmanager.h"
+#include "notificationservice/managers/NotificationOrchestrator.h"
 
 #include "Debug_profiling.h"
 #include "NetworkFacade.h"
 #include "config/Routes.h"
 #include "interfaces/IRabitMQClient.h"
-#include "notificationservice/managers/socketmanager.h"
 #include "utils.h"
+#include "notificationservice/SocketRepository.h"
+#include "notificationservice/IPublisher.h"
+#include "notificationservice/ISubscriber.h"
+#include "notificationservice/SocketNotifier.h"
 
-NotificationManager::NotificationManager(IRabitMQClient *mq_client, SocketsManager *sock_manager,
-                                         NetworkFacade &network_facade)
-    : mq_client_(mq_client), socket_manager_(sock_manager), network_facade_(network_facade) {
-  subscribeMessageSaved();
-  subscribeMessageDeleted();
-  subscribeMessageStatusSaved();
-  subscribeMessageReactionDeleted();
-  subscribeMessageReactionSaved();
+NotificationOrchestrator::NotificationOrchestrator(INetworkFacade *network_facade,
+                                                   IPublisher* publisher, INotifier* notifier)
+    : network_facade_(network_facade), publisher_(publisher), notifier_(notifier) {
 }
 
-void NotificationManager::subscribeMessageReactionDeleted() {
+RabbitNotificationSubscriber::RabbitNotificationSubscriber(IEventSubscriber* mq_client, NotificationOrchestrator* notification_orchestrator)
+    : mq_client_(mq_client), notification_orchestrator_(notification_orchestrator) { }
+
+void RabbitNotificationSubscriber::subscribeAll() {
+    subscribeMessageSaved();
+    subscribeMessageDeleted();
+    subscribeMessageStatusSaved();
+    subscribeMessageReactionDeleted();
+    subscribeMessageReactionSaved();
+}
+
+void RabbitNotificationSubscriber::subscribeMessageReactionDeleted() {
   SubscribeRequest request;
   request.queue = Config::Routes::messageReactionDeleted;
   request.exchange = Config::Routes::exchange;
@@ -29,11 +38,11 @@ void NotificationManager::subscribeMessageReactionDeleted() {
         "Subscribe save message received message to "
         "save: event {} and payload {}",
         event, payload);
-    onMessageReactionDeleted(payload);
+    notification_orchestrator_->onMessageReactionDeleted(payload);
   });
 }
 
-void NotificationManager::subscribeMessageReactionSaved() {
+void RabbitNotificationSubscriber::subscribeMessageReactionSaved() {
   SubscribeRequest request;
   request.queue = Config::Routes::messageReactionSaved;
   request.exchange = Config::Routes::exchange;
@@ -45,11 +54,11 @@ void NotificationManager::subscribeMessageReactionSaved() {
         "Subscribe save message received message to "
         "save: event {} and payload {}",
         event, payload);
-    onMessageReactionSaved(payload);
+    notification_orchestrator_->onMessageReactionSaved(payload);
   });
 }
 
-void NotificationManager::onMessageReactionDeleted(const std::string &payload) {
+void NotificationOrchestrator::onMessageReactionDeleted(const std::string &payload) {
   auto parsed_reaction = utils::parsePayload<Reaction>(payload);
   if (!parsed_reaction) return;
   Reaction reaction_deleted = parsed_reaction.value();
@@ -65,11 +74,11 @@ void NotificationManager::onMessageReactionDeleted(const std::string &payload) {
 
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, chat_id_opt.value());
-    notifyMember(user_id, reaction_deleted, "delete_reaction");
+    notifier_->notifyMember(user_id, reaction_deleted, "delete_reaction");
   }
 }
 
-void NotificationManager::onMessageReactionSaved(const std::string &payload) {
+void NotificationOrchestrator::onMessageReactionSaved(const std::string &payload) {
   auto parsed_reaction = utils::parsePayload<Reaction>(payload);
   if (!parsed_reaction) return;
   Reaction reaction_saved = parsed_reaction.value();
@@ -85,11 +94,11 @@ void NotificationManager::onMessageReactionSaved(const std::string &payload) {
 
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, chat_id_opt.value());
-    notifyMember(user_id, reaction_saved, "save_reaction");
+    notifier_->notifyMember(user_id, reaction_saved, "save_reaction");
   }
 }
 
-void NotificationManager::subscribeMessageSaved() {
+void RabbitNotificationSubscriber::subscribeMessageSaved() {
   SubscribeRequest request;
   request.queue = Config::Routes::messageSavedQueue;
   request.exchange = Config::Routes::exchange;
@@ -101,11 +110,11 @@ void NotificationManager::subscribeMessageSaved() {
         "Subscribe save message received message to "
         "save: event {} and payload {}",
         event, payload);
-    onMessageSaved(payload);
+    notification_orchestrator_->onMessageSaved(payload);
   });
 }
 
-void NotificationManager::subscribeMessageDeleted() {
+void RabbitNotificationSubscriber::subscribeMessageDeleted() {
   SubscribeRequest request;
   request.queue = Config::Routes::messageDeleted;
   request.exchange = Config::Routes::exchange;
@@ -117,11 +126,11 @@ void NotificationManager::subscribeMessageDeleted() {
         "Subscribe on deleted message received "
         "message to delete: event {} and payload {}",
         event, payload);
-    handleOnMessageDeleted(payload);
+    notification_orchestrator_->onMessageDeleted(payload);
   });
 }
 
-void NotificationManager::subscribeMessageStatusSaved() {
+void RabbitNotificationSubscriber::subscribeMessageStatusSaved() {
   SubscribeRequest request;
   request.queue = Config::Routes::messageStatusSaved;
   request.exchange = Config::Routes::exchange;
@@ -130,11 +139,11 @@ void NotificationManager::subscribeMessageStatusSaved() {
 
   mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
     LOG_INFO("Subscribe on message status saved received: event {} and payload {}", event, payload);
-    onMessageStatusSaved(payload);
+    notification_orchestrator_->onMessageStatusSaved(payload);
   });
 }
 
-void NotificationManager::handleOnMessageDeleted(const std::string &payload) {
+void NotificationOrchestrator::onMessageDeleted(const std::string &payload) {
   auto parsed = utils::parsePayload<Message>(payload);
   if (!parsed) return;
 
@@ -145,18 +154,16 @@ void NotificationManager::handleOnMessageDeleted(const std::string &payload) {
 
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, deleteted_message.chat_id);
-    notifyMember(user_id, deleteted_message, "delete_message");
+    notifier_->notifyMember(user_id, deleteted_message, "delete_message");
   }
 }
 
-void NotificationManager::deleteConnections(const SocketPtr &socket) { socket_manager_->deleteConnections(socket); }
+// void NotificationOrchestrator::onUserConnected(long long user_id, SocketPtr socket) {
+//   socket_manager_->saveConnections(user_id, std::move(socket));
+//   // notify users who communicate with this user
+// }
 
-void NotificationManager::userConnected(long long user_id, SocketPtr socket) {
-  socket_manager_->saveConnections(user_id, std::move(socket));
-  // notify users who communicate with this user
-}
-
-void NotificationManager::onSendMessage(Message &message) {
+void RabbitNotificationPublisher::saveMessage(const Message &message) {
   LOG_INFO("Send message from '{}': {}", message.sender_id, nlohmann::json(message).dump());
 
   auto to_save = nlohmann::json(message);
@@ -169,7 +176,7 @@ void NotificationManager::onSendMessage(Message &message) {
                                      .exchange_type = Config::Routes::exchangeType});
 }
 
-void NotificationManager::onMessageStatusSaved(const std::string &payload) {
+void NotificationOrchestrator::onMessageStatusSaved(const std::string &payload) {
   auto parsed = utils::parsePayload<MessageStatus>(payload);
   if (!parsed) return;
 
@@ -186,11 +193,11 @@ void NotificationManager::onMessageStatusSaved(const std::string &payload) {
 
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, *chat_id);
-    notifyMember(user_id, message_status, "read_message");
+    notifier_->notifyMember(user_id, message_status, "read_message");
   }
 }
 
-void NotificationManager::onMessageSaved(const std::string &payload) {
+void NotificationOrchestrator::onMessageSaved(const std::string &payload) {
   auto parsed = utils::parsePayload<Message>(payload);
   if (!parsed) return;
   Message saved_message = *parsed;
@@ -201,24 +208,28 @@ void NotificationManager::onMessageSaved(const std::string &payload) {
 
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, saved_message.chat_id);
-    saveDeliveryStatus(saved_message,
+    publisher_->saveDeliveryStatus(saved_message,
                        user_id);  // todo: this must be in message service when i save message
-    notifyMember(user_id, saved_message, "new_message");
+    notifier_->notifyMember(user_id, saved_message, "new_message");
   }
 }
 
-void NotificationManager::saveMessageStatus(MessageStatus &status) {
+RabbitNotificationPublisher::RabbitNotificationPublisher(IEventPublisher* mq_client) : mq_client_(mq_client) { }
+
+void RabbitNotificationPublisher::saveMessageStatus(MessageStatus &status) {
   mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
                                      .routing_key = Config::Routes::saveMessageStatus,
                                      .message = nlohmann::json(status).dump(),
                                      .exchange_type = Config::Routes::exchangeType});
 }
 
-std::vector<UserId> NotificationManager::fetchChatMembers(long long chat_id) {
-  return network_facade_.chat().getMembersOfChat(chat_id);
+std::vector<UserId> NotificationOrchestrator::fetchChatMembers(long long chat_id) {
+  return network_facade_->chats().getMembersOfChat(chat_id);
 }
 
-bool NotificationManager::notifyMember(long long user_id, nlohmann::json json_message,
+SocketNotifier::SocketNotifier(IUserSocketRepository *sock_manager) : socket_manager_(sock_manager) {}
+
+bool SocketNotifier::notifyMember(long long user_id, nlohmann::json json_message,
                                        std::string type) {  // todo: implement enum
   auto socket = socket_manager_->getUserSocket(user_id);
 
@@ -235,7 +246,7 @@ bool NotificationManager::notifyMember(long long user_id, nlohmann::json json_me
   return true;
 }
 
-void NotificationManager::saveDeliveryStatus(const Message &msg,
+void RabbitNotificationPublisher::saveDeliveryStatus(const Message &msg,
                                              long long receiver_id) {  // todo: delete this
   LOG_INFO("saveDeliveryStatus message {} for receiver id {}", nlohmann::json(msg).dump(), receiver_id);
   MessageStatus status;
@@ -247,19 +258,19 @@ void NotificationManager::saveDeliveryStatus(const Message &msg,
   saveMessageStatus(status);
 }
 
-std::optional<long long> NotificationManager::getChatIdOfMessage(long long message_id) {
+std::optional<long long> NotificationOrchestrator::getChatIdOfMessage(long long message_id) {
   DBC_REQUIRE(message_id > 0);
-  return network_facade_.msg().getChatIdOfMessage(message_id);
+  return network_facade_->messages().getChatIdOfMessage(message_id);
 }
 
-void NotificationManager::saveReaction(const Reaction &reaction) {
+void RabbitNotificationPublisher::saveReaction(const Reaction &reaction) {
   mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
                                      .routing_key = Config::Routes::saveReaction,
                                      .message = nlohmann::json(reaction).dump(),
                                      .exchange_type = Config::Routes::exchangeType});
 }
 
-void NotificationManager::deleteReaction(const Reaction &reaction) {
+void RabbitNotificationPublisher::deleteReaction(const Reaction &reaction) {
   mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
                                      .routing_key = Config::Routes::deleteReaction,
                                      .message = nlohmann::json(reaction).dump(),

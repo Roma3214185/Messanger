@@ -8,6 +8,7 @@
 #include "SqlBuilder.h"
 #include "interfaces/IEntityBuilder.h"
 #include "metaentity/EntityConcept.h"
+#include "CacheKeyGenerator.h"
 
 template <EntityJson T>
 using ResultList = std::vector<T>;
@@ -17,6 +18,7 @@ using FutureResultList = std::future<std::vector<T>>;
 class ISqlExecutor;
 class ICacheService;
 class IThreadPool;
+//class CacheKeyGenerator;
 
 class GenericRepository {
   ISqlExecutor *executor_;
@@ -24,9 +26,11 @@ class GenericRepository {
   IThreadPool *pool_;
   SqlBuilder builder_;
   IOutboxWorker *outbox_worker_;
+  CacheKeyGenerator cache_kay_generator_;
 
  public:
-  GenericRepository(ISqlExecutor *executor, ICacheService &cache, IThreadPool *pool_ = nullptr,
+  GenericRepository(ISqlExecutor *executor, ICacheService &cache,
+                    IThreadPool *pool_ = nullptr,
                     IOutboxWorker *outbox_worker = nullptr);
 
   ICacheService &getCache() { return cache_; }
@@ -38,13 +42,7 @@ class GenericRepository {
   bool save(const T &entity);
 
   template <EntityJson T>
-  bool save(std::vector<T> &entity);
-
-  template <EntityJson T>
   void saveAsync(T &entity);
-
-  template <EntityJson T>
-  std::future<std::optional<T>> findOneAsync(long long entity_id);
 
   template <EntityJson T>
   std::optional<T> findOne(long long entity_id);
@@ -54,9 +52,6 @@ class GenericRepository {
 
   template <EntityJson T>
   bool deleteEntity(const T &entity);  // todo : update outbox
-
-  template <EntityJson T>
-  void deleteBatch(std::vector<T> &batch);  // todo: make std::vector<T> to delete
 
   template <EntityJson T>
   std::vector<T> findByField(const std::string &field, const std::string &value);
@@ -73,12 +68,6 @@ class GenericRepository {
 
   template <EntityJson T>
   [[nodiscard]] std::string makeKey(long long entity_id) const;
-
-  template <EntityJson T>
-  long long getId(const T &obj) const;
-
-  template <EntityJson T>
-  QVariant toVariant(const Field &field, const T &entity) const;
 };
 
 #include "GenericRepository.inl"

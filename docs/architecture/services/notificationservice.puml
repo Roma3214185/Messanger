@@ -1,0 +1,128 @@
+@startuml
+
+class Server {
+  + run() : void
+}
+
+interface IUserSocketRepository {
+  + void saveConnections(UserId, SocketPtr socket);
+  + void deleteConnections(SocketPtr conn);
+  + SocketPtr getUserSocket(UserId);
+  + bool userOnline(UserId);
+}
+
+interface ISocket {
+  + void send_text(const std::string &text) override;
+}
+
+
+interface IActiveSocketRepository {
+  + SocketPtr findSocket(crow::websocket::connection *conn);
+  + void addConnection(const SocketPtr &socket)
+  + void deleteConnection(const SocketPtr &socket)
+}
+
+interface IUserSocketRepository {
+  + SocketPtr findSocket(crow::websocket::connection *conn);
+  + void addConnection(const SocketPtr &socket)
+  + void deleteConnection(const SocketPtr &socket)
+}
+
+class SocketRepository
+
+interface IMessageHandler {
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket) override;
+}
+
+interface ISocketHandlersRepository {
+  + void handle()
+}
+
+interface ISubcriber {
+  + subscribeAll() : void
+}
+class RabbitNotificationSubscriber
+
+interface IPublisher {
+    + saveMessageStatus(message_status) : void
+    + saveDeliveryStatus(&msg, receiver_id) : void
+    + saveReaction(reaction) : void
+    + deleteReactio(reaction) : void
+    + saveMessage(message) : void
+}
+
+class RabbitNotificationPublisher
+
+interface INotifier {
+ + notifyMember(user_id, json_message, type) : bool
+}
+class SocketNotifier {
+
+}
+
+interface IEventSubscriber {
+  subscribe(SubscribeRequest, EventCallback) : void
+}
+
+interface IEventPublisher {
+  publish(PublishRequest) : void
+}
+
+interface INetworkFacade
+
+class NotificationOrchestrator {
+  + onMessageStatusSaved(payload : str) : void
+  + onMessageSaved(payload : str) : void
+  + onMessageReactionDeleted(payload : str) : void
+  + onMessageReactionSaved(payload : str) : void
+  + onMessageDeleted(payload : str) : void
+}
+
+SocketNotifier --|> INotifier
+SocketNotifier --> IUserSocketRepository
+
+RabbitNotificationPublisher --|> IPublisher
+RabbitNotificationSubscriber --|> ISubcriber
+
+RabbitNotificationSubscriber --> IEventSubscriber
+RabbitNotificationSubscriber --> NotificationOrchestrator
+RabbitNotificationPublisher --> IEventPublisher
+
+IMessageHandler --> ISocket
+
+Server --> ISocketHandlersRepository
+Server --> IActiveSocketRepository
+
+SocketHandlersRepository --|> ISocketHandlersRepository
+SocketHandlersRepository --> DeleteMessageReactionHandler
+SocketHandlersRepository --> InitMessageHandler
+SocketHandlersRepository --> MarkReadMessageHandler
+SocketHandlersRepository --> SaveMessageReactionHandler
+SocketHandlersRepository --> SendMessageHandler
+SocketHandlersRepository --> ISocket
+
+NotificationOrchestrator --> IPublisher
+NotificationOrchestrator --> INotifier
+NotificationOrchestrator --> INetworkFacade
+
+CrowSocket --|> ISocket
+RabitMQClient --|> IEventPublisher
+RabitMQClient --|> IEventSubscriber
+
+SocketRepository --|> IUserSocketRepository
+SocketRepository --|> IActiveSocketRepository
+SocketRepository --> ISocket
+SocketRepository --> crow::websocket::connection
+
+DeleteMessageReactionHandler --|> IMessageHandler
+InitMessageHandler --|> IMessageHandler
+MarkReadMessageHandler --|> IMessageHandler
+SaveMessageReactionHandler --|> IMessageHandler
+SendMessageHandler --|> IMessageHandler
+
+DeleteMessageReactionHandler --> IPublisher
+InitMessageHandler --> IUserSocketRepository
+
+
+
+@enduml

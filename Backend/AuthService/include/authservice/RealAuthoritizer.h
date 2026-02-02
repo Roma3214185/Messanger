@@ -4,11 +4,9 @@
 #include "JwtUtils.h"
 #include "interfaces/IAutoritizer.h"
 
-class RealAuthoritizer : public IAutoritizer {
+class RealAuthoritizer : public IAuthoritizer {
  public:
-  std::optional<long long> autoritize(const std::string &token) override {
-    return JwtUtils::verifyTokenAndGetUserId(token);
-  }
+    std::optional<long long> verifyTokenAndGetUserId(const std::string &token) override;
 };
 
 #endif  // REALAUTHORITIZER_H

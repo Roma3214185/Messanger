@@ -1,12 +1,12 @@
-#ifndef IAUTORITIZER_H
-#define IAUTORITIZER_H
+#ifndef IAUTHORITIZER_H
+#define IAUTHORITIZER_H
 
 #include <optional>
 
-class IAutoritizer {
+class IAuthoritizer {
  public:
-  virtual ~IAutoritizer() = default;
-  virtual std::optional<long long> autoritize(const std::string &token) = 0;
+  virtual ~IAuthoritizer() = default;
+  virtual std::optional<long long> verifyTokenAndGetUserId(const std::string &token) = 0;
 };
 
-#endif  // IAUTORITIZER_H
+#endif  // IAUTHORITIZER_H

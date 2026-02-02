@@ -2,13 +2,17 @@
 #define DELETEMESSAGEREACTION_H
 
 #include "interfaces/IMessageHandler.h"
-#include "notificationservice/managers/notificationmanager.h"
+
+class IPublisher;
 
 class DeleteMessageReactionHandler : public IMessageHandler {
  public:
+  DeleteMessageReactionHandler(IPublisher* publisher);
   void handle(const crow::json::rvalue &message,
-              const std::shared_ptr<ISocket> &socket,  // todo: in handle ONLY crow::json::rvalue
-              NotificationManager &manager) override;
+              const std::shared_ptr<ISocket> &socket) override;
+
+  private:
+  IPublisher* publisher_;
 };
 
 #endif  // DELETEMESSAGEREACTION_H

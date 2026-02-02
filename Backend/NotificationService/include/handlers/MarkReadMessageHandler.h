@@ -3,9 +3,15 @@
 
 #include "interfaces/IMessageHandler.h"
 
+class IPublisher;
+
 class MarkReadMessageHandler : public IMessageHandler {
  public:
-  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket, NotificationManager &manager);
+  MarkReadMessageHandler(IPublisher* publisher);
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket);
+
+  private:
+   IPublisher* publisher_;
 };
 
 #endif  // MARKREADMESSAGEHANDLER_H

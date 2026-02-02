@@ -5,7 +5,7 @@ on:
     paths:
       - "docs/architecture/**"
   push:
-    #branches: [ main ] // todo: uncomment
+    # branches: [ main ] # todo: uncomment later
 
 jobs:
   plantuml:
@@ -17,11 +17,12 @@ jobs:
 
       - name: Generate PlantUML diagrams
         run: |
+          shopt -s globstar
           docker run --rm \
             -v ${{ github.workspace }}:/work \
-            plantuml/plantuml \
+            plantuml/plantuml:1.2025.10 \
             -tsvg \
-            /work/docs/architecture/**/*.puml
+            docs/architecture/**/*.puml
 
       - name: Upload diagrams
         uses: actions/upload-artifact@v4

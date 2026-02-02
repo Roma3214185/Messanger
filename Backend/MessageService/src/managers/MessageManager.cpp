@@ -6,9 +6,8 @@
 #include "interfaces/ISqlExecutor.h"
 #include "messageservice/dto/GetMessagePack.h"
 
-MessageManager::MessageManager(GenericRepository *repository, ISqlExecutor *executor, IIdGenerator *generator,
-                               ICacheService &cache)
-    : repository_(repository), executor_(executor), generator_(generator), cache_(cache) {}
+MessageManager::MessageManager(GenericRepository *repository, IIdGenerator *generator)
+    : repository_(repository), generator_(generator) {}
 
 bool MessageManager::saveMessage(Message &msg) {
   msg.id = generator_->generateId();
@@ -20,10 +19,10 @@ std::optional<Message> MessageManager::getMessage(long long message_id) {
 }
 
 std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_id, long long receiver_id) {
-  auto custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
+  auto custom_query = QueryFactory::createSelect<MessageStatus>(repository_->getExecutor(), repository_->getCache());
   custom_query->where(MessageStatusTable::MessageId, message_id)
       .where(MessageStatusTable::ReceiverId, receiver_id)
-      .limit(1);
+      .limit(1); //todo: to extract repository_->getExecutor(), repository_->getCache() maybe just pass QueryFactory as class ?
   auto res = custom_query->execute();
   auto select_res = QueryFactory::getSelectResult(res);
   return select_res.result.empty() ? std::nullopt : std::make_optional(select_res.result.front());
@@ -32,7 +31,7 @@ std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_
 std::vector<Message> MessageManager::getChatMessages(const GetMessagePack &pack) {
   PROFILE_SCOPE();
   LOG_INFO("Start MessageManager::getChatMessages");
-  auto custom_query = QueryFactory::createSelect<Message>(executor_, cache_);
+  auto custom_query = QueryFactory::createSelect<Message>(repository_->getExecutor(), repository_->getCache());
   custom_query
       ->join(MessageStatusTable::Table, MessageTable::Id, MessageStatusTable::fullField(MessageStatusTable::MessageId))
       .where(MessageTable::ChatId, pack.chat_id)
@@ -55,7 +54,7 @@ std::vector<MessageStatus> MessageManager::getMessagesStatus(const std::vector<M
   std::vector<MessageStatus> ans;
 
   for (const auto &msg : messages) {
-    auto custom_query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
+    auto custom_query = QueryFactory::createSelect<MessageStatus>(repository_->getExecutor(), repository_->getCache());
     custom_query->where(MessageStatusTable::MessageId, msg.id).where(MessageStatusTable::ReceiverId, receiver_id);
     auto res = custom_query->execute();
     auto returned_list = QueryFactory::getSelectResult(res).result;
@@ -79,7 +78,7 @@ bool MessageManager::deleteMessage(const Message &message) {
     return false;
   }
 
-  auto query = QueryFactory::createDelete<MessageStatus>(executor_, cache_);
+  auto query = QueryFactory::createDelete<MessageStatus>(repository_->getExecutor(), repository_->getCache());
   query->where(MessageStatusTable::MessageId, message.id);
   auto res = query->execute();
   return QueryFactory::getDeleteResult(res).success;
@@ -87,7 +86,7 @@ bool MessageManager::deleteMessage(const Message &message) {
 
 std::vector<MessageStatus> MessageManager::getReadedMessageStatuses(long long message_id) {
   DBC_REQUIRE(message_id > 0);
-  auto query = QueryFactory::createSelect<MessageStatus>(executor_, cache_);
+  auto query = QueryFactory::createSelect<MessageStatus>(repository_->getExecutor(), repository_->getCache());
   query->where(MessageStatusTable::MessageId, message_id).where(MessageStatusTable::IsRead, 1);
   auto res = query->execute();
   return QueryFactory::getSelectResult(res).result;
@@ -100,7 +99,7 @@ bool MessageManager::saveMessageReaction(const Reaction &reaction) {
 
 bool MessageManager::deleteMessageReaction(const Reaction &reaction) {
   DBC_REQUIRE(reaction.checkInvariants());
-  auto query = QueryFactory::createDelete<Reaction>(executor_, cache_);
+  auto query = QueryFactory::createDelete<Reaction>(repository_->getExecutor(), repository_->getCache());
   query->where(MessageReactionTable::MessageId, reaction.message_id);
   query->where(MessageReactionTable::ReceiverId, reaction.receiver_id);
   // todo: in future premium users can have a couple of reactions, so query->where(MessageReactionTable::ReactionId,
@@ -111,7 +110,7 @@ bool MessageManager::deleteMessageReaction(const Reaction &reaction) {
 
 std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> MessageManager::getReactions(
     long long message_id, long long receiver_id) {
-  auto custom_query = QueryFactory::createSelect<Reaction>(executor_, cache_);
+  auto custom_query = QueryFactory::createSelect<Reaction>(repository_->getExecutor(), repository_->getCache());
   custom_query->where(MessageReactionTable::MessageId, message_id);
   auto res = custom_query->execute();
   std::vector<Reaction> vector_of_reactions = QueryFactory::getSelectResult(res).result;
@@ -139,7 +138,7 @@ std::pair<std::unordered_map<ReactionInfo, int>, std::optional<int>> MessageMana
 
 std::optional<ReactionInfo> MessageManager::getReactionInfo(long long message_reaction_id) {
   DBC_REQUIRE(message_reaction_id > 0);
-  auto custom_query = QueryFactory::createSelect<ReactionInfo>(executor_, cache_);
+  auto custom_query = QueryFactory::createSelect<ReactionInfo>(repository_->getExecutor(), repository_->getCache());
   custom_query->where(MessageReactionInfoTable::Id, message_reaction_id);
   auto res = custom_query->execute();
   std::vector<ReactionInfo> vector_of_reactions_infos = QueryFactory::getSelectResult(res).result;

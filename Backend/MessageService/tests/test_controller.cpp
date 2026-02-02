@@ -24,7 +24,7 @@ struct SharedFixture {
   MockThreadPool pool;
   MockIdGenerator generator;
 
-  SharedFixture() : rep(&executor, cache, &pool), manager(&rep, &executor, &generator) {}
+  SharedFixture() : rep(&executor, cache, &pool), manager(&rep, &generator) {}
 };
 
 TEST_CASE("Test cotroller works with rabitMQ") {

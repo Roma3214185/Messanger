@@ -53,7 +53,7 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 
 }  // namespace
 
-AuthController::AuthController(IAuthManager *manager, IAutoritizer *authoritizer, IGenerator *generator)
+AuthController::AuthController(IAuthManager *manager, IAuthoritizer *authoritizer, IGenerator *generator)
     : manager_(manager), authoritizer_(authoritizer), generator_(generator) {}  // todo(roma) make itokengenrator (ISRP)
 
 Response AuthController::loginUser(const RequestDTO &req) {
@@ -135,7 +135,7 @@ Response AuthController::findById(const RequestDTO & /*req*/, const std::string 
 }
 
 AuthController::OptionalId AuthController::verifyToken(const std::string &token) {
-  return authoritizer_->autoritize(token);
+  return authoritizer_->verifyTokenAndGetUserId(token);
 }
 
 Response AuthController::registerUser(const RequestDTO &req) {

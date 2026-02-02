@@ -1,14 +1,17 @@
 #ifndef SAVEMESSAGEREACTION_H
 #define SAVEMESSAGEREACTION_H
 
-#include "entities/Reaction.h"
 #include "interfaces/IMessageHandler.h"
-#include "notificationservice/managers/notificationmanager.h"
-#include "utils.h"
+
+class IPublisher;
 
 class SaveMessageReactionHandler : public IMessageHandler {
  public:
-  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket, NotificationManager &manager);
+  SaveMessageReactionHandler(IPublisher* publisher);
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket);
+
+private:
+  IPublisher* publisher_;
 };
 
 #endif  // SAVEMESSAGEREACTION_H

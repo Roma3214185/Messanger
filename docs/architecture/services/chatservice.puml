@@ -1,0 +1,83 @@
+@startuml
+
+class ChatServer {
+  + run() : void
+}
+
+class ChatController {
+  + createPrivateChat(req) : Responce
+  + getAllChats(req) : Responce
+  + getChat(req, chat_id_str) : Responce
+  + getAllChatMembers(req, chat_id_str) : Responce
+}
+
+interface IChatManager {
+  + createPrivateChat(first_member, second_member)
+  + addMembersToChat(chat_id, members_id)
+  + getMembersOfChat(chat_id)
+  + getChatsIdOfUser(user_id)
+  + getMembersCount(chat_id)
+  + getOtherMemberId(chat_id, user_id)
+  + getPrivateChat(first_user_id, second_user_id)
+  + getChatById(chat_id)
+}
+
+interface INetworkFacade {
+  + users() : IUserNetworkManager
+  + messages() : IMessageNetworkManager
+  + chats() : IChatNetworkManager
+}
+
+class IUserNetworkManager {
+  + getUserById(long long) : User
+}
+
+class IMessageNetworkManager {
+  + getReaction(reaction_id) : ReactionInfo
+  + getChatIdOfMessage(message_id) : chat_id
+}
+
+class IChatNetworkManager {
+   + getMembersOfChat(chat_id) : users
+}
+
+interface INetworkManagerBase {
+ + forward() : Response
+}
+
+interface IAuthrotizer {
+  + verifyTokenAndGetUserId(token) : id
+}
+
+class JwtAuthrotizer {
+}
+
+class NetworkManager {
+}
+
+interface IIdGenerator {
+  + generateId() : long long
+}
+
+
+ChatManager --> IIdGenerator
+ChatServer --> ChatController
+ChatController --> IChatManager
+ChatController --> INetworkFacade
+
+IChatManager <|-- ChatManager
+ChatController --> IAuthrotizer
+JwtAuthrotizer --|> IAuthrotizer
+
+NetworkManager --|> IUserNetworkManager
+NetworkManager --|> IMessageNetworkManager
+NetworkManager --|> IChatNetworkManager
+NetworkManager --|> INetworkFacade
+
+IUserNetworkManager --|> INetworkManagerBase
+IMessageNetworkManager --|> INetworkManagerBase
+IChatNetworkManager --|> INetworkManagerBase
+
+ChatManager --> GenericRepository
+
+@enduml

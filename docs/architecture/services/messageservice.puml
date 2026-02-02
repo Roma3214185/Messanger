@@ -1,0 +1,72 @@
+@startuml
+
+class Server {
+  + run() : void
+}
+
+class Controller {
+  + updateMessage(req, message_id_str) : Response
+  + deleteMessage(req, message_id_str) : Response
+  + getMessageById(message_id_str) : Response
+  + getMessagesFromChat(request_pack, chat_id_str) : Response
+  + getReaction(request_pack, reaction_id_str) : Response
+  + setup() : Response
+}
+
+interface IMessageManager {
+  + saveMessage(message) : boo;
+  + getMessage(long long message_id);
+  + getMessageStatus(long long message_id, long long receiver_id);
+  + getChatMessages(const GetMessagePack &);
+  + saveMessageStatus(MessageStatus &status);
+  + getUndeliveredMessages(long long user_id);
+  + getMessagesStatus(const std::vector<Message> &messages, long long receiver_id);
+  + updateMessage(const Message &message);
+  + deleteMessage(const Message &message);
+  + getReadedMessageStatuses(long long message_id);
+  + saveMessageReaction(const Reaction &reaction);
+  + deleteMessageReaction(const Reaction &reaction);
+  + saveMessageReactionInfo(const std::vector<ReactionInfo> &reaction_infos);
+  + getReactions(long long message_id,                                                                            long long receiver_id);
+  + getReactionInfo(long long message_reaction_id);
+}
+
+
+interface IRabitMQClient {
+  + publish(publich_req) : void
+  + subscribe(subscribe_req, EventCallback) : void
+}
+
+class RabbitMQClient {
+
+}
+
+interface IThreadPool {
+}
+
+class ThreadPool {
+}
+
+interface IIdGenerator {
+
+}
+
+RabbitMQClient --|> IRabitMQClient
+
+Server --> Controller
+
+Controller --> IRabitMQClient
+Controller --> IThreadPool
+Controller --> IMessageManager
+
+MessageManager --|> IMessageManager
+MessageManager --> GenericRepository
+MessageManager --> IIdGenerator
+
+GeneratorId --|> IIdGenerator
+
+ThreadPool --|> IThreadPool
+
+
+
+@enduml

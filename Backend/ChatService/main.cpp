@@ -14,6 +14,7 @@
 #include "chatservice/chatmanager.h"
 #include "chatservice/chatserver.h"
 #include "config/ports.h"
+#include "chatservice/JwtAuthoritizer.h"
 
 int main(int argc, char *argv[]) {
   initLogger("ChatService");
@@ -49,9 +50,9 @@ int main(int argc, char *argv[]) {
   GenericRepository genetic_rep(&executor, RedisCache::instance());
   ChatManager manager(&genetic_rep, &generator);  // TODO: pass executor to mock
   NetworkManager network_manager;
-  NetworkFacade facade = NetworkFactory::create(&network_manager);
   crow::SimpleApp app;
-  ChatController controller(&manager, &facade);
+  JwtAuthoritizer authoritizer;
+  ChatController controller(&manager, &network_manager, &authoritizer);
   ChatServer server(app, Config::Ports::chatService, &controller);
   LOG_INFO("Chat service on port '{}'", Config::Ports::chatService);
   server.run();

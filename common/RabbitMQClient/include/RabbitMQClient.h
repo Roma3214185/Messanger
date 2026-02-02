@@ -25,7 +25,9 @@ struct RabbitMQConfig {
 
 struct IThreadPool;
 
-class RabbitMQClient : public IRabitMQClient {
+class RabbitMQClient
+    : public IEventBus
+    , public IEventBusLifecycle {
  public:
   RabbitMQClient(const RabbitMQConfig &rabbitmq_config, IThreadPool *thread_pool);
   ~RabbitMQClient();
