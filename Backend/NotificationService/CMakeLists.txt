@@ -71,6 +71,10 @@ target_link_libraries(NotificationServiceCore PUBLIC
 add_executable(NotificationService
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     Dockerfile
+    include/SocketHandlersRepositoty.h
+    include/notificationservice/IPublisher.h
+    include/notificationservice/ISubscriber.h
+    include/notificationservice/SocketNotifier.h
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore)

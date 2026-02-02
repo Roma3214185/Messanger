@@ -3,17 +3,17 @@
 
 #include <crow.h>
 
-#include "interfaces/IMessageHandler.h"
-#include "notificationservice/SocketRepository.h"
-
-class NotificationManager;
 class ISocket;
+class ISocketHandlersRepository;
+class IActiveSocketRepository;
 
 using SocketPtr = std::shared_ptr<ISocket>;
 
 class Server {
  public:
-  Server(int port, NotificationManager *notification_manager);
+  Server(int port,
+            IActiveSocketRepository* active_socket_repository,
+            ISocketHandlersRepository* socket_handlers_repository);
   void run();
 
  protected:
@@ -21,14 +21,12 @@ class Server {
 
  private:
   void initRoutes();
-  void initHanlers();
   void handleSocketRoutes();
 
   crow::SimpleApp app_;
-  NotificationManager *notification_manager_;
+  ISocketHandlersRepository* socket_handlers_repository_;
   const int notification_port_;
-  std::unordered_map<std::string, std::unique_ptr<IMessageHandler>> handlers_;
-  SocketRepository active_sockets_;
+  IActiveSocketRepository* active_sockets_;
 };
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_
