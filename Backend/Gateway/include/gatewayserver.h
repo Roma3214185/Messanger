@@ -10,7 +10,7 @@
 #include "middlewares/Middlewares.h"
 #include "proxyclient.h"
 
-class IRabitMQClient;
+class IEventBus;
 class ICacheService;
 class IThreadPool;
 class IClient;
@@ -21,7 +21,7 @@ using GatewayApp =
 
 class GatewayServer {
  public:
-  GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool, IRabitMQClient *queue);
+  GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool, IEventBus *queue);
   void run();
   void registerRoutes();
 
@@ -33,7 +33,7 @@ class GatewayServer {
   ICacheService *cache_;
   ProxyClient proxy_;
   IThreadPool *pool_;
-  IRabitMQClient *queue_;
+  IEventBus *queue_;
 
   void handleProxyRequest(const crow::request &, crow::response &, const int service_port, const std::string &path);
   void handlePostRequest(const crow::request &req, crow::response &res, const int port, const std::string &path);

@@ -63,7 +63,7 @@ RequestDTO getRequestInfo(const crow::request &req, const std::string &path) {
 }  // namespace
 
 GatewayServer::GatewayServer(GatewayApp &app, IClient *client, ICacheService *cache, IThreadPool *pool,
-                             IRabitMQClient *queue)
+                             IEventBus *queue)
     : app_(app), cache_(cache), proxy_(client), pool_(pool), queue_(queue) {}
 
 void GatewayServer::run() {
