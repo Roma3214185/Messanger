@@ -4,8 +4,11 @@
 #include "Debug_profiling.h"
 #include "interfaces/IRabitMQClient.h"
 
-class MockRabitMQClient : public IRabitMQClient {
+class MockRabitMQClient
+    : public IEventBus {
  public:
+    using IEventSubscriber::EventCallback;
+
   void publish(const PublishRequest &request) override {
     last_publish_request = request;
     publish_mp[request.routing_key]++;
@@ -22,8 +25,6 @@ class MockRabitMQClient : public IRabitMQClient {
     call_backs[request.routing_key] = cb;
     ++subscribe_cnt;
   }
-
-  void stop() override {}
 
   void callLastCallback(const std::string &payload) { last_callback(last_subscribe_request.routing_key, payload); }
 

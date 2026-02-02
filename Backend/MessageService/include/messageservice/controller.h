@@ -7,7 +7,7 @@
 
 class Message;
 class IMessageManager;
-class IRabitMQClient;
+class IEventBus;
 class GetMessagePack;
 class MessageStatus;
 class IThreadPool;
@@ -20,7 +20,7 @@ using Response = std::pair<StatusCode, ResponceBody>;
 
 class Controller {
  public:
-  Controller(IRabitMQClient *mq_client, IMessageManager *manager, IThreadPool *pool);
+  Controller(IEventBus *mq_client, IMessageManager *manager, IThreadPool *pool);
 
   Response updateMessage(const RequestDTO &request_pack, const std::string &message_id_str);
   Response deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str);
@@ -47,7 +47,7 @@ class Controller {
   std::optional<std::vector<ReactionInfo>> loadReactions();
 
   IMessageManager *manager_;
-  IRabitMQClient *mq_client_;
+  IEventBus *mq_client_;
   IThreadPool *pool_;
 };
 
