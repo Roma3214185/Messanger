@@ -5,8 +5,10 @@
 #include "mocks/MockRabitMQClient.h"
 #include "mocks/MockTheadPool.h"
 #include "mocks/gateway/GatewayMocks.h"
+#include "GatewayController.h"
 
 struct TestGatewayServerFixrute {
+ GatewayController controller;
   GatewayApp app;
   MockApiCache cache;
   MockClient client;
@@ -22,7 +24,9 @@ struct TestGatewayServerFixrute {
   MockRabitMQClient rabiq_client;
   int user_id = 123;
 
-  TestGatewayServerFixrute() : server(app, &client, &cache, &pool, &rabiq_client) {
+  TestGatewayServerFixrute() :
+      controller(&client, &cache, &pool, &rabiq_client),
+      server(app, &controller) {
     app.get_middleware<AuthMiddleware>().verifier_ = &verifier;
     app.get_middleware<CacheMiddleware>().cache_ = &cache;
     app.get_middleware<LoggingMiddleware>();
