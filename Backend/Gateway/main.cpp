@@ -9,6 +9,7 @@
 #include "mocks/MockRabitMQClient.h"  //TODO: remove mocks from cmake and here
 #include "ratelimiter.h"
 #include "threadpool.h"
+#include "GatewayController.h"
 
 const std::string kKeysDir = "/Users/roma/QtProjects/Chat/Backend/shared_keys/";
 const std::string kPublicKeyFile = kKeysDir + "public_key.pem";
@@ -32,7 +33,8 @@ int main() {
   RealHttpClient client;
   ThreadPool pool(8);
   MockRabitMQClient rabbit_client;
-  GatewayServer server(app, &client, &cache, &pool, &rabbit_client);
+  GatewayController controller( &client, &cache, &pool, &rabbit_client);
+  GatewayServer server(app, &controller);
   server.registerRoutes();
   server.run();
   return 0;

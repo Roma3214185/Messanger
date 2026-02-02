@@ -98,7 +98,6 @@ void GatewayServer::registerHealthCheck() {
     CROW_ROUTE(app_, "/healthz")
     ([this](const crow::request&) {
         nlohmann::json info = {{"status", "ok"}, {"timestamp", utils::getCurrentTime()}};
-        //res.set_header("Content-Type", "application/json");
         return crow::response(Config::StatusCodes::success, info.dump());
     });
 }

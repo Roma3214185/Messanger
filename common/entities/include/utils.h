@@ -19,6 +19,9 @@ inline std::optional<T> parsePayload(const std::string &payload) {
 
 std::optional<long long> getIdFromStr(const std::string &str);
 
+long long getCurrentTime();
+
+
 }  // namespace utils
 
 #endif  // COMMON_ENTITIES_INCLUDE_UTILS_H
