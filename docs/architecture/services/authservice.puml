@@ -1,0 +1,82 @@
+@startuml
+
+class Server {
+  + initRoutes() : void
+  + run() : void
+  + generateKeys() : bool
+}
+
+
+class AuthController {
+  + findById(req, &user_id_str) : Response
+  + findByTag(req) : Response
+  + registerUser(req) : Response
+  + handleMe(req) : Response
+  + loginUser(req) : Response
+  + generateKeys() : bool
+}
+
+interface IAuthManager {
+  + {abstract} getUser(user_id) : OptionalUser
+  + {abstract} loginUser(login_request) : OptionalUser
+  + {abstract}registerUser(req) : OptionalUser
+  + {abstract} findUsersByTag(tag) : std::vector<User>
+}
+
+class AuthManager {
+
+}
+
+interface IGenerator {
+  generateKeys() : bool
+  generateToken(long long user_id) : str
+}
+
+class JwtGenerator {
+}
+
+interface IAutoritizer {
+  + {abstract} autoritize(token) : id
+}
+
+class RealAuthoritizer {
+
+}
+
+namespace JwtUtils {
+    class JwtUtils {
+        + generateRsaKeys(bits : int) : RsaKeys
+        + generateToken(userId : UserId) : string
+        + verifyTokenAndGetUserId(token : string) : OptionalUserId
+    }
+}
+
+class GenericRepository {
+ + save(entity) : bool
+ + delete(entity) : bool
+ + findOne(id) : optional<T>
+ + findByField(field, value) : vector<T>
+}
+
+
+class QueryFactory {
+  + createSelect(executor, cache) : SelectQuery
+  + createDelete(executor, cache) : DeleteQuery
+}
+
+Server --> AuthController
+AuthController --> IAuthManager
+AuthController --> IAutoritizer
+AuthController --> IGenerator
+
+AuthManager --|> IAuthManager
+RealAuthoritizer --|> IAutoritizer
+JwtGenerator --|> IGenerator
+
+RealAuthoritizer --> JwtUtils
+JwtGenerator --> JwtUtils
+
+AuthManager --> GenericRepository
+AuthManager --> QueryFactory
+
+@enduml
