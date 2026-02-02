@@ -3,10 +3,15 @@
 
 #include "interfaces/IMessageHandler.h"
 
+class IPublisher;
+
 class SendMessageHandler : public IMessageHandler {
  public:
-  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket,
-              NotificationManager &manager) override;
+    SendMessageHandler(IPublisher* publisher);
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket) override;
+
+private:
+  IPublisher*  publisher_;
 };
 
 #endif  // SENDMESSAGEHANDLER_H
