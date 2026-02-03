@@ -48,13 +48,13 @@ cmake --build build --parallel
 
 ## Project Architecture
 
-![Gateway Architecture](docs/architecture/gateway.svg)
-![AuthService Architecture](docs/architecture/authservice.svg)
-![ChatService Architecture](docs/architecture/chatservice.svg)
-![Frontend Architecture](docs/architecture/frontend.svg)
-![MessageService Architecture](docs/architecture/messageservice.svg)
-![NotificationService Architecture](docs/architecture/notificationservice.svg)
-![Persistence Architecture](docs/architecture/persistence.svg)
+![Gateway Architecture](docs/architecture/services/gateway.svg)
+![AuthService Architecture](docs/architecture/services/authservice.svg)
+![ChatService Architecture](docs/architecture/services/chatservice.svg)
+![Frontend Architecture](docs/architecture/services/frontend.svg)
+![MessageService Architecture](docs/architecture/services/messageservice.svg)
+![NotificationService Architecture](docs/architecture/services/notificationservice.svg)
+![Persistence Architecture](docs/architecture/services/persistence.svg)
 
 
 ## 🐳 Docker Support & Persistence Benchmarks
