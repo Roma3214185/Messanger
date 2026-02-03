@@ -185,46 +185,15 @@ Directory structure:
 
 
 ```
+## Project Architecture
+![Gateway Architecture](docs/architecture/gateway.svg)
+![AuthService Architecture](docs/architecture/authservice.svg)
+![ChatService Architecture](docs/architecture/chatservice.svg)
+![Frontend Architecture](docs/architecture/frontend.svg)
+![MessageService Architecture](docs/architecture/messageservice.svg)
+![NotificationService Architecture](docs/architecture/notificationservice.svg)
+![Persistence Architecture](docs/architecture/persistence.svg)
 
-# 📊 API Gateway Metrics & Monitoring
-
-## Prometheus Metrics Endpoint
-
-### Available Metrics
-
-**Counters** – accumulate over time:
-
-| Metric | Description | Labels |
-|--------|------------|--------|
-| `gateway_cache_hits_total` | Number of cache hits | `path` |
-| `gateway_cache_misses_total` | Number of cache misses | `path` |
-| `gateway_cache_store_total` | Number of times a response was stored in cache | `path` |
-| `gateway_ratelimit_hits_total` | Requests blocked by rate limiter | `path`, `key` |
-| `gateway_ratelimit_allowed_total` | Requests allowed by rate limiter | `path`, `key` |
-| `gateway_backend_errors_total` | Backend requests that failed | `path` |
-| `gateway_backend_timeout_total` | Backend request timeouts | `path` |
-| `gateway_backend_status_total` | Backend status codes | `path`, `status` |
-| `gateway_auth_ok_total` | Successful authentications | `path` |
-| `gateway_auth_fail_total` | Failed authentications | `path` |
-| `api_gateway_requests_total` | Total incoming requests | `path` |
-
-**Gauges** – instantaneous values:
-
-| Metric | Description |
-|--------|------------|
-| `gateway_active_clients` | Current number of connected clients |
-| `gateway_active_requests` | Current number of in-flight requests |
-
-**Histograms** – distribution of values:
-
-| Metric | Description |
-|--------|------------|
-| `gateway_call_latency_seconds` | Backend call latency |
-| `gateway_request_size_bytes` | Request sizes |
-| `gateway_response_size_bytes` | Response sizes |
-| `gateway_message_size_bytes` | Message sizes (incoming/outgoing) |
-
----
 
 ## 🐳 Docker Support & Persistence Benchmarks
 
