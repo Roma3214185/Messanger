@@ -8,7 +8,7 @@ class IUserSocketRepository;
 class InitMessageHandler : public IMessageHandler {
  public:
   InitMessageHandler(IUserSocketRepository* socket_repository);
-  void handle(const crow::json::rvalue& message, const std::shared_ptr<ISocket>& socket);
+  void handle(const crow::json::rvalue& message, const std::shared_ptr<ISocket>& socket) override;
 
  private:
   IUserSocketRepository* socket_repository_;

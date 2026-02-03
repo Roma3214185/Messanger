@@ -14,7 +14,7 @@ class INotifier {
 class SocketNotifier : public INotifier {
  public:
   SocketNotifier(IUserSocketRepository* sock_manager);
-  bool notifyMember(long long user_id, nlohmann::json json_message, std::string type);
+  bool notifyMember(long long user_id, nlohmann::json json_message, std::string type) override;
 
  private:
   IUserSocketRepository* socket_manager_;

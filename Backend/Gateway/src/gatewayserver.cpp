@@ -69,7 +69,7 @@ void GatewayServer::registerRoute(const std::string &base_path, int port) {
 void GatewayServer::registerRequestRoute() {
   CROW_ROUTE(app_, "/request/<string>/status")
       .methods("GET"_method)([this](const crow::request & /*req*/, crow::response &res, std::string task_id) {
-        controller_->handleRequestRoute(res, task_id);
+        controller_->handleRequestRoute(res, std::move(task_id));
       });
 }
 

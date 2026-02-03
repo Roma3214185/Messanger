@@ -17,7 +17,6 @@ class NotificationOrchestrator;
 
 class SocketHandlersRepository : public ISocketHandlersRepository {
  public:
-  SocketHandlersRepository() {}
 
   void initHandlers(IPublisher *publisher, IUserSocketRepository *socket_repository) {
     handlers_["init"] = std::make_unique<InitMessageHandler>(socket_repository);

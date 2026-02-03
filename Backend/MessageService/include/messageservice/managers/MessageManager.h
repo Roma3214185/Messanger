@@ -41,7 +41,7 @@ class MessageManager : public IMessageManager {
   [[nodiscard]] bool saveMessage(Message &message) override;
   std::optional<Message> getMessage(long long message_id) override;
   std::optional<MessageStatus> getMessageStatus(long long message_id, long long receiver_id) override;
-  virtual std::vector<Message> getChatMessages(const GetMessagePack &) override;
+  std::vector<Message> getChatMessages(const GetMessagePack &) override;
   [[nodiscard]] bool saveMessageStatus(MessageStatus &status) override;
   // std::vector<MessageStatus> getUndeliveredMessages(long long user_id) override;
   std::vector<MessageStatus> getMessagesStatus(const std::vector<Message> &messages, long long receiver_id) override;
