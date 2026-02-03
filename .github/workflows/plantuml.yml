@@ -5,10 +5,10 @@ on:
     paths:
       - "docs/architecture/**"
   push:
-    branches:
-      - main
-    paths:
-      - "docs/architecture/**"
+    # branches:
+    #   - main
+    # paths:
+    #   - "docs/architecture/**"
 
 jobs:
   plantuml:
