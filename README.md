@@ -5,7 +5,7 @@ This is a full-stack messenger application built with C++ backend microservices 
 ## Table of Contents
 - [Features](#features)
 - [Installation & Build](#installation--build)
-- [Project Architecture](#project-structure)
+- [Project Architecture](#project-architecture)
 - [Technologies](#technologies)
 - [Links](#links)
 
