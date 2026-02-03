@@ -11,7 +11,7 @@ class INetworkManagerBase {
  public:
   virtual std::pair<int, std::string> forward(  // todo(roma): alias
       int port, const std::string &body, const std::string &path, const std::string &method,
-      const Headers &extra_headers = {}); //todo: reqDto
+      const Headers &extra_headers = {});  // todo: reqDto
   virtual ~INetworkManagerBase() = default;
 };
 

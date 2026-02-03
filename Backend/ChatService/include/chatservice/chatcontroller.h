@@ -19,7 +19,7 @@ using Response = std::pair<StatusCode, ResponceBody>;
 
 class ChatController {
  public:
-  ChatController(IChatManager *manager, INetworkFacade *network_facade, IAuthoritizer* authritizer);
+  ChatController(IChatManager *manager, INetworkFacade *network_facade, IAuthoritizer *authritizer);
 
   Response createPrivateChat(const RequestDTO &req);
   Response getAllChats(const RequestDTO &req);
@@ -34,7 +34,7 @@ class ChatController {
 
   IChatManager *manager_;
   INetworkFacade *network_facade_;
-  IAuthoritizer* authoritizer_;
+  IAuthoritizer *authoritizer_;
 };
 
 #endif  // CHATCONTROLLER_H

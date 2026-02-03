@@ -1,8 +1,9 @@
 #include "handlers/InitMessageHandler.h"
-#include "notificationservice/SocketRepository.h"
 #include "Debug_profiling.h"
+#include "notificationservice/SocketRepository.h"
 
-InitMessageHandler::InitMessageHandler(IUserSocketRepository* socket_repository) : socket_repository_(socket_repository) {}
+InitMessageHandler::InitMessageHandler(IUserSocketRepository *socket_repository)
+    : socket_repository_(socket_repository) {}
 
 void InitMessageHandler::handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket) {
   LOG_INFO("Try get user_id");
@@ -28,6 +29,6 @@ void InitMessageHandler::handle(const crow::json::rvalue &message, const std::sh
     socket_repository_->saveConnections(*user_id, socket);
     LOG_INFO("[init] Socket registered for userId '{}'", *user_id);
   } else {
-      LOG_ERROR("Invalid user_id");
+    LOG_ERROR("Invalid user_id");
   }
 }

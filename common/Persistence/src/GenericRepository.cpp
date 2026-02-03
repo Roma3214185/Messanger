@@ -3,8 +3,7 @@
 #include "interfaces/ISqlExecutor.h"
 #include "interfaces/IThreadPool.h"
 
-GenericRepository::GenericRepository(ISqlExecutor *executor, ICacheService &cache,
-                                     IThreadPool *pool,
+GenericRepository::GenericRepository(ISqlExecutor *executor, ICacheService &cache, IThreadPool *pool,
                                      IOutboxWorker *outbox_worker)
     : executor_(executor), cache_(cache), pool_(pool), outbox_worker_(outbox_worker) {}
 

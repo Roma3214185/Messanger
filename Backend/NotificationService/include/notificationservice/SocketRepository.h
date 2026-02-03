@@ -12,24 +12,22 @@ using UserSocketsMap = std::unordered_map<UserId, SocketPtr>;
 using AvtiveSockets = std::unordered_set<SocketPtr>;
 
 class IActiveSocketRepository {
-public:
-    virtual ~IActiveSocketRepository() = default;
-    virtual SocketPtr findSocket(crow::websocket::connection *conn) = 0;
-    virtual void addConnection(const SocketPtr &socket) = 0;
-    virtual void deleteConnection(const SocketPtr &socket) = 0;
+ public:
+  virtual ~IActiveSocketRepository() = default;
+  virtual SocketPtr findSocket(crow::websocket::connection *conn) = 0;
+  virtual void addConnection(const SocketPtr &socket) = 0;
+  virtual void deleteConnection(const SocketPtr &socket) = 0;
 };
 
 class IUserSocketRepository {
-public:
-    virtual ~IUserSocketRepository() = default;
-    virtual void saveConnections(UserId, SocketPtr socket) = 0;
-    virtual SocketPtr getUserSocket(UserId) = 0;
-    virtual bool userOnline(UserId) = 0;
+ public:
+  virtual ~IUserSocketRepository() = default;
+  virtual void saveConnections(UserId, SocketPtr socket) = 0;
+  virtual SocketPtr getUserSocket(UserId) = 0;
+  virtual bool userOnline(UserId) = 0;
 };
 
-class SocketRepository
-    : public IActiveSocketRepository
-    , public IUserSocketRepository {
+class SocketRepository : public IActiveSocketRepository, public IUserSocketRepository {
  public:
   SocketPtr findSocket(crow::websocket::connection *conn) override;
   void addConnection(const SocketPtr &socket) override;

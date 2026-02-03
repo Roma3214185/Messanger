@@ -12,19 +12,19 @@ using GatewayApp =
     crow::App<LoggingMiddleware, RateLimitMiddleware, MetricsMiddleware, AuthMiddleware, CacheMiddleware>;
 
 class GatewayServer {
-public:
-    GatewayServer(GatewayApp &app, GatewayController* controller);
-    void run();
-    void registerRoutes();
+ public:
+  GatewayServer(GatewayApp &app, GatewayController *controller);
+  void run();
+  void registerRoutes();
 
-private:
-    GatewayApp &app_;
-    GatewayController* controller_;
+ private:
+  GatewayApp &app_;
+  GatewayController *controller_;
 
-    void registerRequestRoute();
-    void registerRoute(const std::string &basePath, int proxy);
-    void registerHealthCheck();
-    void registerWebSocketRoutes();
+  void registerRequestRoute();
+  void registerRoute(const std::string &basePath, int proxy);
+  void registerHealthCheck();
+  void registerWebSocketRoutes();
 };
 
 #endif  // BACKEND_APIGATEWAY_SRC_GATEWAYSERVER_GATEWAYSERVER_H_

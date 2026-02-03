@@ -22,7 +22,8 @@ std::optional<MessageStatus> MessageManager::getMessageStatus(long long message_
   auto custom_query = QueryFactory::createSelect<MessageStatus>(repository_->getExecutor(), repository_->getCache());
   custom_query->where(MessageStatusTable::MessageId, message_id)
       .where(MessageStatusTable::ReceiverId, receiver_id)
-      .limit(1); //todo: to extract repository_->getExecutor(), repository_->getCache() maybe just pass QueryFactory as class ?
+      .limit(1);  // todo: to extract repository_->getExecutor(), repository_->getCache() maybe just pass QueryFactory
+                  // as class ?
   auto res = custom_query->execute();
   auto select_res = QueryFactory::getSelectResult(res);
   return select_res.result.empty() ? std::nullopt : std::make_optional(select_res.result.front());

@@ -3,7 +3,7 @@
 #include "entities/Message.h"
 #include "notificationservice/IPublisher.h"
 
-SendMessageHandler::SendMessageHandler(IPublisher* publisher) : publisher_(publisher) {}
+SendMessageHandler::SendMessageHandler(IPublisher *publisher) : publisher_(publisher) {}
 
 void SendMessageHandler::handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket) {
   auto msg = utils::entities::from_crow_json(message);

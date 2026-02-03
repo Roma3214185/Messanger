@@ -4,26 +4,26 @@
 #include "NetworkFacade.h"
 #include "config/Routes.h"
 #include "interfaces/IRabitMQClient.h"
-#include "utils.h"
-#include "notificationservice/SocketRepository.h"
 #include "notificationservice/IPublisher.h"
 #include "notificationservice/ISubscriber.h"
 #include "notificationservice/SocketNotifier.h"
+#include "notificationservice/SocketRepository.h"
+#include "utils.h"
 
-NotificationOrchestrator::NotificationOrchestrator(INetworkFacade *network_facade,
-                                                   IPublisher* publisher, INotifier* notifier)
-    : network_facade_(network_facade), publisher_(publisher), notifier_(notifier) {
-}
+NotificationOrchestrator::NotificationOrchestrator(INetworkFacade *network_facade, IPublisher *publisher,
+                                                   INotifier *notifier)
+    : network_facade_(network_facade), publisher_(publisher), notifier_(notifier) {}
 
-RabbitNotificationSubscriber::RabbitNotificationSubscriber(IEventSubscriber* mq_client, NotificationOrchestrator* notification_orchestrator)
-    : mq_client_(mq_client), notification_orchestrator_(notification_orchestrator) { }
+RabbitNotificationSubscriber::RabbitNotificationSubscriber(IEventSubscriber *mq_client,
+                                                           NotificationOrchestrator *notification_orchestrator)
+    : mq_client_(mq_client), notification_orchestrator_(notification_orchestrator) {}
 
 void RabbitNotificationSubscriber::subscribeAll() {
-    subscribeMessageSaved();
-    subscribeMessageDeleted();
-    subscribeMessageStatusSaved();
-    subscribeMessageReactionDeleted();
-    subscribeMessageReactionSaved();
+  subscribeMessageSaved();
+  subscribeMessageDeleted();
+  subscribeMessageStatusSaved();
+  subscribeMessageReactionDeleted();
+  subscribeMessageReactionSaved();
 }
 
 void RabbitNotificationSubscriber::subscribeMessageReactionDeleted() {
@@ -209,12 +209,12 @@ void NotificationOrchestrator::onMessageSaved(const std::string &payload) {
   for (auto user_id : members_of_chat) {
     LOG_INFO("{} is member of chat {}", user_id, saved_message.chat_id);
     publisher_->saveDeliveryStatus(saved_message,
-                       user_id);  // todo: this must be in message service when i save message
+                                   user_id);  // todo: this must be in message service when i save message
     notifier_->notifyMember(user_id, saved_message, "new_message");
   }
 }
 
-RabbitNotificationPublisher::RabbitNotificationPublisher(IEventPublisher* mq_client) : mq_client_(mq_client) { }
+RabbitNotificationPublisher::RabbitNotificationPublisher(IEventPublisher *mq_client) : mq_client_(mq_client) {}
 
 void RabbitNotificationPublisher::saveMessageStatus(MessageStatus &status) {
   mq_client_->publish(PublishRequest{.exchange = Config::Routes::exchange,
@@ -230,7 +230,7 @@ std::vector<UserId> NotificationOrchestrator::fetchChatMembers(long long chat_id
 SocketNotifier::SocketNotifier(IUserSocketRepository *sock_manager) : socket_manager_(sock_manager) {}
 
 bool SocketNotifier::notifyMember(long long user_id, nlohmann::json json_message,
-                                       std::string type) {  // todo: implement enum
+                                  std::string type) {  // todo: implement enum
   auto socket = socket_manager_->getUserSocket(user_id);
 
   if (!socket) {
@@ -247,7 +247,7 @@ bool SocketNotifier::notifyMember(long long user_id, nlohmann::json json_message
 }
 
 void RabbitNotificationPublisher::saveDeliveryStatus(const Message &msg,
-                                             long long receiver_id) {  // todo: delete this
+                                                     long long receiver_id) {  // todo: delete this
   LOG_INFO("saveDeliveryStatus message {} for receiver id {}", nlohmann::json(msg).dump(), receiver_id);
   MessageStatus status;
   status.message_id = msg.id;
