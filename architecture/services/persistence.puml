@@ -1,0 +1,107 @@
+@startuml
+
+class GenericRepository {
+ + save(entity) : bool
+ + delete(entity) : bool
+ + findOne(id) : optional<T>
+ + findByField(field, value) : vector<T>
+}
+
+interface ISqlExecutor {
+ : execute(sql, values) : SqlExecutorResult
+}
+
+interface ICacheService {
+  + incr(key) : void
+  + set(key, value) : void
+  + get(key) : optional<value>
+}
+
+interface IThreadPool {
+  enqueue(lambda) : void
+}
+
+class ThreadPool {
+}
+
+interface IOutboxWorker {
+}
+
+class CacheKeyGenerator {
+}
+
+class QueryFactory {
+  + createSelect(executor, cache) : SelectQuery
+  + createDelete(executor, cache) : DeleteQuery
+}
+
+class SelectQuery {
+}
+
+class DeleteQuery {
+}
+
+interface IBaseQuery {
++  {abstract} execute() : QueryResult<T>
+-  {abstract} buildQuery() : QString
+}
+
+class SqlExecutor {
+}
+
+interface IDataBase {
+  + exec(sql : str) : bool
+  + prepare(sql : str) : IQuery
+}
+
+class SQLiteDatabase {
+}
+
+class RedisCache {
+}
+
+interface IQuery {
+ + exec() : bool
+  + next() : bool
+  + error() : QString
+}
+
+class SQLiteQuery {
+ + initializeSchema() : bool
+}
+
+class QSqlDatabase {
+}
+
+QueryFactory --> SelectQuery
+QueryFactory --> DeleteQuery
+QueryFactory --> ISqlExecutor
+QueryFactory --> ICacheService
+
+DeleteQuery --> ICacheService
+SelectQuery --> ICacheService
+IBaseQuery --> ISqlExecutor
+
+SelectQuery --|> IBaseQuery
+DeleteQuery --|> IBaseQuery
+
+SqlExecutor --|> ISqlExecutor
+
+ThreadPool --|> IThreadPool
+RedisCache --|> ICacheService
+
+GenericRepository --> ISqlExecutor
+GenericRepository --> ICacheService
+GenericRepository --> IThreadPool
+GenericRepository --> IOutboxWorker
+GenericRepository --> CacheKeyGenerator
+
+SQLiteQuery --|> IQuery
+SQLiteDatabase --> IQuery
+SQLiteDatabase --|> IDataBase
+SqlExecutor --> IDataBase
+SQLiteQuery --> QSqlDatabase
+
+
+
+@enduml

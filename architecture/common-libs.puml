@@ -1,0 +1,16 @@
+@startuml
+package "common" {
+  [Network]
+  [Persistence]
+  [RabbitMQClient]
+  [RedisCache]
+  [Metrics]
+}
+
+[Gateway] --> [Network]
+[AuthService] --> [Persistence]
+[ChatService] --> [RabbitMQClient]
+[MessageService] --> [RedisCache]
+[NotificationService] --> [Metrics]
+
+@enduml

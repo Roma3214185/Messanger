@@ -1,0 +1,18 @@
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultTextAlignment center
+skinparam ArrowColor #1E90FF
+skinparam ArrowFontColor #000000
+skinparam packageBorderColor #1E90FF
+skinparam packageBackgroundColor #F0F8FF
+skinparam rectangle {
+    BackgroundColor #FAFAFA
+    BorderColor #1E90FF
+    RoundCorner 5
+}
+
+' Container-specific colors
+!define CONTAINER_COLOR #E0FFFF
+!define SERVICE_COLOR #FFDAB9
+!define DATABASE_COLOR #FFE4E1
+!define QUEUE_COLOR #F5F5DC

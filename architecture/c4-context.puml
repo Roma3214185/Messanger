@@ -1,0 +1,11 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "User")
+System(frontend, "Frontend")
+System(system, "Roma Messenger")
+
+Rel(user, frontend, "Uses")
+Rel(frontend, system, "HTTP / WebSocket")
+
+@enduml

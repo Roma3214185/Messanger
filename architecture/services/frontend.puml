@@ -1,0 +1,454 @@
+@startuml
+
+interface IMainWindow {
+    + setChatWindow(chat: std::shared_ptr<ChatBase>) : void
+    + setChatModel(model: ChatModel*) : void
+    + setUserModel(user_model: UserModel*) : void
+    + clearFindUserEdit() : void
+    + showError(error: QString) : void
+    + setCurrentChatIndex(idx: QModelIndex) : void
+}
+
+interface ICache {
+    + get(key: Key) : OptionalToken
+    + saveToken(key: Key, token: Token) : void
+    + deleteToken(key: Key) : void
+}
+
+class RedisClient {
+  + get(const Key &key) : OptionalToken
+
+  + saveToken(const Key &key, const Token &token) : void
+
+  + deleteToken(const Key &key) : void
+}
+
+class QMainWindow {
+
+}
+
+class MainWindow {
+    + setChatWindow(chat: std::shared_ptr<ChatBase>) : void
+    + setChatModel(model: ChatModel*) : void
+    + setUserModel(user_model: UserModel*) : void
+}
+
+class Presenter {
+    + signIn(login_request: LogInRequest)
+    + signUp(req: SignUpRequest)
+    + onChatClicked(chat_id: long long)
+    + sendButtonClicked(doc: QTextDocument*, answer_on_message_id: std::optional<long long>)
+}
+
+class Model {
+    + Model(url: QUrl, net_manager: INetworkAccessManager*, cache: ICache*, socket: ISocket*, data_manager: DataManager*)
+    + getChatModel() : ChatModel*
+    + getUserModel() : UserModel*
+    + getMessageModel(chat_id: long long) : MessageModel*
+    + checkToken() : std::optional<QString>
+}
+
+
+interface IMessageDataManager {
+  + {abstract} getMessageModel(ChatId) : MessageModelPtr
+  + {abstract} clearAllMessageModels() : void
+
+  + {abstract} save(message: Message) : void
+
+  + {abstract} getMessageById(const long long id) : std::optional<Message>
+  + {abstract} getNumberOfMessageModels() : int
+  + {abstract} deleteMessage(const Message &msg) : void
+}
+
+interface IUserDataManager {
+  + {abstract} clearAllUsers() : void
+  + {abstract} save(user: User) : void
+  + {abstract} getUser(UserId) : OptionalUser
+}
+
+interface IChatDataManager {
+  + {abstract} getPrivateChatWithUser(UserId) : ChatPtr
+  + {abstract} getChat(ChatId) : ChatPtr
+  + {abstract} getNumberOfExistingChats() : int
+  + {abstract} clearAllChats() : void
+  + {abstract} addChat(chat : ChatPtr, message_model: MessageModelPtr) : void
+  + {abstract} save(entities: Container<T>) : void
+}
+
+interface IReactionDataManager {
+  + {abstract} save(reaction_info: ReactionInfo) : void
+  + {abstract} save(reaction : Reaction&) : void
+  + {abstract} getReactionInfo(reaction_id: long long) : std::optional<ReactionInfo>
+  + {abstract} deleteReaction(reaction : Reaction) : void
+  + {abstract} getEmojiesForMenu() : std::vector<ReactionInfo>
+
+}
+
+interface IMessageStatusDataManager {
+    + {abstract} save(const MessageStatus&) : void
+}
+
+
+class DataManager {
+ + save(entities: Container<T>) : void
+ + clearAll() : void
+}
+
+interface IUserJsonService {
+  + {abstract}  getUserFromResponse(json_object);
+}
+
+interface IMessageJsonService {
+  + {abstract} MessageServerJsonAnswer getMessageFromJson(json_object);
++ {abstract}  QJsonObject toJson(const Message &msg);
+}
+
+interface IReactionJsonService {
+  + {abstract} Reaction getReaction(json_object);
+}
+
+interface IReactionInfoJsonService {
+  + {abstract}getReactionInfo(json_value) : std::optional<ReactionInfo>
+}
+
+interface IChatJsonService {
+  + {abstract} ChatPtr getChatFromJson(json_object);
+}
+
+
+class MessageFactory {
++ Message createMessage(long long chat_id, long long sender_id, std::vector<MessageToken> tokens,
+                        const QString &local_id, std::optional<long long> answer_on = std::nullopt,
+                        QDateTime timestamp = QDateTime::currentDateTime())
+}
+
+class JsonService {
+
+}
+
+class ChatModel {
+
+}
+
+class UserModel {
+
+}
+
+interface ISocketUseCase {
+
+}
+
+interface IChatUseCase {
+
+}
+
+interface IUserUseCase {
+
+}
+
+interface IMessageUseCase {
+
+}
+
+interface ISessionUseCase {
+
+}
+
+interface ISocketUseCase {
+
+}
+
+class ChatUseCase {
+
+}
+
+class UserUseCase {
+
+}
+
+class MessageUseCase {
+
+}
+
+class SessionUseCase {
+
+}
+
+interface IUseCaseRepositoty {
+
+}
+
+class DefaultUseCaseRepositoty {
+
+}
+
+class TokenManager {
+  + setData(const QString &token, long long current_id) : void
+  + getToken() : QString
+  + getCurrentUserId() : long long
+  + resetData() : void
+
+}
+
+interface BaseManager {
+  handleReplyWithTimeout() : QFuture<T>
+  handleReplyWithTimeoutVoid() : QFuture<void>
+  getRequestStatus(task_id, attempts) : QByteArray
+  checkReply(reply) : bool
+}
+
+class ChatManager {
+  + loadChats(const QString &current_token) : QFuture<QList<ChatPtr>>
+  + loadChat(const QString &current_token, long long chat_id) : QFuture<ChatPtr>
+  + createPrivateChat(const QString &current_token, long long user_id) : QFuture<ChatPtr>
+}
+
+class MessageManager {
+  + updateMessage(const Message &message_to_update, const QString &token) : void
+  + deleteMessage(const Message &message_to_delete, const QString &token) : void
+
+  + getChatMessages(const QString &current_token, long long chat_id, long long before_id,
+                                          long long limit) : QFuture<QList<Message>>
+}
+
+
+interface INetworkAccessManager {
+  + {abstract} post(const QNetworkRequest & req, const QByteArray & array) : QNetworkReply*
+  + {abstract} get(const QNetworkRequest & req) : QNetworkReply*
+  + {abstract} put(const QNetworkRequest &, const QByteArray &byte_array) : QNetworkReply*
+  + {abstract} del(const QNetworkRequest &) : QNetworkReply*
+}
+
+class NetworkAccessManager {
+  + post(const QNetworkRequest & req, const QByteArray & array) : QNetworkReply*
+  + get(const QNetworkRequest & req) : QNetworkReply*
+  + put(const QNetworkRequest &, const QByteArray &byte_array) : QNetworkReply*
+  + del(const QNetworkRequest &) : QNetworkReply*
+}
+
+class SessionManager {
+  + signIn(const LogInRequest &login_request) : void
+  + signUp(const SignUpRequest &signup_request) : void
+  + authenticateWithToken(const QString &token : void
+}
+
+class SocketManager {
+  + close() : void
+ + sendText(const QString &message) : void
+ + initSocket(long long user_id) : void
+ + connectSocket() : void
+}
+
+
+class UserManager {
+  QFuture<QList<User>> findUsersByTag(const QString &tag, const QString &current_token);
+  QFuture<std::optional<User>> getUser(long long user_id, const QString &current_token);
+}
+
+
+interface ISocket {
+  + {abstract} open(const QUrl &url) : void
+  + {abstract} sendTextMessage(const QString &msg) : void
+  + {abstract} close() : void
+  + {abstract} disconnectSocket() : void
+}
+
+class RealSocket {
+  + open(const QUrl &url) : void
+  + sendTextMessage(const QString &msg) : void
+  + close() : void
+  + disconnectSocket() : void
+}
+
+class MessageDelegate {
+
+}
+
+class UserDelegate {
+}
+
+class ChatItemDelegate {
+
+}
+
+
+interface ISocketResponceHandler {
+  + {abstract} handle(json_object) : void
+}
+
+class DeleteMessageReactionHandler {
+}
+
+class DeleteMessageHandler {
+}
+
+class NewMessageHandler {
+}
+
+class OpenSocketHandler {
+}
+
+class ReadMessageHandler {
+}
+
+class SaveMessageReactionHandler {
+}
+
+class SocketHandlerRegistry {
+  + <<static>> create(Model* manager) : HandlerMap
+}
+
+class ClickOutsideClosableListView {
+}
+
+namespace DataInputService {
+
+}
+
+
+interface ITheme {
+  + {abstract} getTheme() : QString
+}
+
+class LightTheme {
+
+}
+
+class DarkTheme {
+
+}
+
+class DelegatorsFactory {
+
+}
+
+BaseManager --> INetworkAccessManager
+
+ChatItemDelegate --> IReactionDataManager
+DarkTheme -|> ITheme
+DelegatorsFactory --> ChatItemDelegate
+DelegatorsFactory --> DataManager
+DelegatorsFactory ---> MessageDelegate
+DelegatorsFactory ---> UserDelegate
+LightTheme -|> ITheme
+
+MainWindow ---> ClickOutsideClosableListView
+MainWindow ---> DarkTheme
+MainWindow ---> DelegatorsFactory
+MainWindow ---> LightTheme
+MainWindow --> Presenter
+MainWindow --|> IMainWindow
+MainWindow --|> QMainWindow
+
+MessageDelegate --> IMessageDataManager
+MessageDelegate --> IReactionDataManager
+MessageDelegate --> IUserDataManager
+
+DataManager ---|> IChatDataManager
+DataManager ---|> IMessageDataManager
+DataManager ---|> IMessageStatusDataManager
+DataManager ---|> IReactionDataManager
+DataManager ---|> IUserDataManager
+
+DefaultUseCaseRepositoty --|> IUseCaseRepositoty
+DefaultUseCaseRepositoty --> IChatUseCase
+DefaultUseCaseRepositoty --> IMessageUseCase
+DefaultUseCaseRepositoty --> ISessionUseCase
+DefaultUseCaseRepositoty --> ISocketUseCase
+DefaultUseCaseRepositoty ---> IUserUseCase
+
+Model --> ChatModel
+Model --> DataManager
+Model --> ICache
+Model --> IUseCaseRepositoty
+Model --> UserModel
+' Model --|> QObject
+
+NetworkAccessManager --|> INetworkAccessManager
+
+RedisClient --|> ICache
+
+Presenter ---> IMainWindow
+Presenter ---> ISocketResponceHandler
+
+DeleteMessageHandler -|> ISocketResponceHandler
+DeleteMessageHandler --> IMessageDataManager
+DeleteMessageHandler --> IMessageJsonService
+
+DeleteMessageReactionHandler -|> ISocketResponceHandler
+DeleteMessageReactionHandler --> IReactionDataManager
+DeleteMessageReactionHandler --> IReactionJsonService
+
+NewMessageHandler --> IMessageDataManager
+NewMessageHandler --> IMessageJsonService
+NewMessageHandler --> IReactionDataManager
+
+NewMessageResponceHandler -|> ISocketResponceHandler
+
+OpenSocketHandler -|> ISocketResponceHandler
+OpenSocketHandler --> SocketUseCase
+OpenSocketHandler --> TokenManager
+
+ReadMessageHandler -|> ISocketResponceHandler
+ReadMessageHandler --> IMessageDataManager
+ReadMessageHandler --> IMessageDataManager
+
+SaveMessageReactionHandler -|> ISocketResponceHandler
+SaveMessageReactionHandler --> IReactionDataManager
+SaveMessageReactionHandler --> IReactionJsonService
+
+SocketHandlerRegistry --> DeleteMessageHandler
+SocketHandlerRegistry --> DeleteMessageReactionHandler
+SocketHandlerRegistry --> JsonService
+SocketHandlerRegistry --> NewMessageHandler
+SocketHandlerRegistry --> OpenSocketHandler
+SocketHandlerRegistry --> ReadMessageHandler
+SocketHandlerRegistry --> SaveMessageReactionHandler
+
+SocketManager ----|> BaseManager
+SocketManager --> ISocket
+
+SocketUseCase --> SocketManager
+SocketUseCase --|> ISocketUseCase
+' SocketUseCase ----|> QObject
+ChatManager ----|> BaseManager
+ChatManager --> IChatJsonService
+
+ChatUseCase --> ChatManager
+ChatUseCase --> IChatDataManager
+ChatUseCase --> TokenManager
+ChatUseCase --|> IChatUseCase
+' ChatUseCase ----|> QObject
+
+MessageManager ----|> BaseManager
+MessageManager --> IMessageJsonService
+
+MessageUseCase --> IMessageDataManager
+MessageUseCase --> MessageManager
+MessageUseCase --> TokenManager
+MessageUseCase --|> IMessageUseCase
+' MessageUseCase ----|> QObject
+
+SessionManager ---|> BaseManager
+SessionManager --> IUserJsonService
+
+SessionUseCase --> SessionManager
+SessionUseCase --|> ISessionUseCase
+' SessionUseCase ----|> QObject
+
+UserManager ----|> BaseManager
+UserManager --> IUserJsonService
+
+UserUseCase --> IUserDataManager
+UserUseCase --> TokenManager
+UserUseCase --> UserManager
+UserUseCase --|> IUserUseCase
+' UserUseCase ----|> QObject
+
+JsonService --|> IChatJsonService
+JsonService --|> IMessageJsonService
+JsonService --|> IReactionInfoJsonService
+JsonService --|> IReactionJsonService
+JsonService --|> IUserJsonService
+
+@enduml
