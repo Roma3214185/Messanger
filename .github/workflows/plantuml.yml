@@ -5,36 +5,27 @@ on:
     paths:
       - "docs/architecture/**"
   push:
-    branches:
-      - main
-    paths:
-      - "docs/architecture/**"
+    # branches: [ main ] # todo: uncomment later
 
 jobs:
   plantuml:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Generate PlantUML diagrams
         run: |
-          set -e
           shopt -s globstar
           docker run --rm \
-            -v "${{ github.workspace }}:/work" \
+            -v ${{ github.workspace }}:/work \
             plantuml/plantuml:1.2025.10 \
             -tsvg \
-            /work/docs/architecture/**/*.puml
+            docs/architecture/**/*.puml
 
-      - name: Verify generated SVG files
-        run: |
-          echo "Generated SVG files:"
-          ls -lh docs/architecture/**/*.svg
-
-      - name: Upload diagrams as artifacts
+      - name: Upload diagrams
         uses: actions/upload-artifact@v4
         with:
-          name: architecture-diagrams
+          name: architecture
           path: docs/architecture/**/*.svg
