@@ -5,8 +5,7 @@ This is a full-stack messenger application built with C++ backend microservices 
 ## Table of Contents
 - [Features](#features)
 - [Installation & Build](#installation--build)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
+- [Project Architecture](#project-structure)
 - [Technologies](#technologies)
 - [Links](#links)
 
@@ -34,158 +33,21 @@ git clone --recurse-submodules https://github.com/Roma3214185/Messanger.git
 cd Messanger
 
 brew update
-brew install cmake ninja qt6 boost catch2 sqlite3 spdlog hiredis rabbitmq-c asio openssl@3 nlohmann-json ccache lcov clang-format
+ brew install cmake ninja autoconf autoconf-archive automake libtool ccache lcov clang-format rabbitmq-c
 ./external/vcpkg/bootstrap-vcpkg.sh
-./external/vcpkg/vcpkg install boost-asio spdlog nlohmann-json openssl catch2 hiredis sqlite3
 
 rm -rf build
 cmake -S . -B build -G Ninja \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DCMAKE_CXX_FLAGS="--coverage -O0" \
-    -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
-    -DCMAKE_SHARED_LINKER_FLAGS="--coverage" \
-    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-    -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
-    -DCMAKE_PREFIX_PATH="$HOME/local:$CMAKE_PREFIX_PATH" \
-    -DTRACY_ENABLE=ON
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
+  -DVCPKG_TARGET_TRIPLET=arm64-osx \
+  -Wno-dev
+  
 cmake --build build --parallel
 ```
 
-## Usage
-
-The project consists of multiple microservices and a standalone Qt frontend application.  
-Each component must be built and launched separately.
-
-### 1. Run Redis and RabbitMQ
-Make sure Redis and RabbitMQ servers are running locally (or in Docker):
-```bash
-brew services start redis
-brew services start rabbitmq
-```
-### 2. Launch Backend Microservices
-
-Each service can be built and started individually from its directory:
-
-#### AuthService
-Handles user registration, login, and JWT generation.
-```bash
-cd Backend/AuthService
-./build/AuthService
-```
-
-#### ChatService
-Manages chat creation, members, and persistence.
-```bash
-cd Backend/ChatService
-./build/ChatService
-```
-
-### MessageService
-Processes message sending, routing, and delivery.
-```bash
-cd Backend/MessageService
-./build/MessageService
-```
-
-### NotificationService
-Sends real-time notifications via WebSockets.
-```bash
-cd Backend/NotificationService
-./build/NotificationService
-```
-
-### ApiGateway
-Acts as the main entry point for frontend requests.
-It handles routing, authentication, and load balancing.
-```bash
-cd Backend/ApigateWay
-./build/ApiGateway
-```
-
-### 3. Launch Frontend
-The Qt-based frontend communicates with the API Gateway.
-```bash
-cd Frontend
-./build/Frontend
-```
-After launching:
-Register or log in.
-Send and receive messages in real time.
-
-- Logs: Each service uses spdlog for structured logging.
-- Metrics: Prometheus-compatible metrics are exposed via /metrics endpoints.
-
-### 4. Running tests and generate coverage
-All tests are integrated with CTest.
-You can run them after building the project:
-```bash
-ctest --test-dir build --output-on-failure
-
-lcov --directory build --capture --output-file coverage.info
-lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/include/*' --output-file coverage.info
-genhtml coverage.info --output-directory coverage-report
-
-codecov -f coverage.info
-```
-
-## Project Structure
-```bash
-Directory structure:
-└── roma3214185-messanger/
-    ├── README.md
-    ├── external
-    ├── Backend/
-    │   ├── Gateway/
-    │   │   ├── Dockerfile
-    │   │   ├── include/
-    │   │   ├── src/
-    │   │   └── tests/
-    │   ├── AuthService/
-    │   │   ├── Dockerfile
-    │   │   ├── include/
-    │   │   ├── src/
-    │   │   └── tests/
-    │   ├── ChatService/
-    │   │   ├── Dockerfile
-    │   │   ├── include/
-    │   │   ├── src/
-    │   │   └── tests/
-    │   ├── MessageService/
-    │   │   ├── Dockerfile
-    │   │   ├── include/
-    │   │   ├── src/
-    │   │   └── tests/
-    │   ├── NotificationService/
-    │   │   ├── Dockerfile
-    │   │   ├── include/
-    │   │   ├── src/
-    │   │   └── tests/
-    ├── common/
-    │   ├── constants/
-    │   ├── entities/
-    │   ├── Metrics/
-    │   ├── Network/
-    │   ├── Persistence/
-    │   │   ├── benchmarks/
-    │   │   ├── include/
-    │   │   ├── inl/
-    │   │   ├── src/
-    │   │   └── tests/
-    │   ├── RabbitMQClient/
-    │   └── RedisCache/
-    ├── Frontend/
-    │   ├── config/
-    │   ├── forms/
-    │   ├── include/
-    │   ├── src/
-    │   └── tests/
-    ├── .github/
-    │   └── workflows/
-    │       └── ci.yml
-
-
-```
 ## Project Architecture
+
 ![Gateway Architecture](docs/architecture/gateway.svg)
 ![AuthService Architecture](docs/architecture/authservice.svg)
 ![ChatService Architecture](docs/architecture/chatservice.svg)
@@ -200,53 +62,9 @@ Directory structure:
 ### Docker Support
 All backend microservices can be built and run as Docker containers. This simplifies deployment, ensures consistent environments, and isolates dependencies.  
 
-**Quick Start with Docker:**
-1. Make sure Docker Desktop is running.
-2. Build and start all services using `docker-compose`:
 ```bash
 docker-compose up --build
 ``` 
-This will launch:  
-- **Redis** on port `6379`  
-- **RabbitMQ** on ports `5672` (AMQP) and `15672` (management UI)  
-- **Backend microservices**:  
-  - AuthService → `8083`  
-  - MessageService → `8082`  
-  - ChatService → `8081`  
-  - ApiGateway → `8084`  
-  - NotificationService → `8086`  
-
-**Key Points:**  
-- Each microservice has its own Dockerfile.  
-- `docker-compose.yml` orchestrates the services and their dependencies (Redis and RabbitMQ).  
-- Services communicate internally via Docker network using **service names**. For example, the frontend should connect to `authservice:8083` instead of `localhost:8083`.  
-- To stop all services:  
-```bash
-docker-compose down
-```
-
-## Persistence & GenericRepository Benchmarks
-
-The `Persistence` module and `GenericRepository` have been benchmarked to measure performance improvements using **caching, Redis pipelines, and optimized entity building**. Key takeaways:
-
-- **Query & Entity Cache:**  
-  - Query caching gives up to **6× speedup**.  
-  - Entity caching reduces repeated database access by **~4×**.  
-- **Redis Pipeline:**  
-  - Bulk saving 1000 entities is **~2× faster** with pipeline vs individual `SET`.  
-- **Entity Builders:**  
-  - Hand-written / inlined builders are **~45× faster** than dynamic builders.  
-  - Generic tuple-based builders are **~3–4× faster** than dynamic.  
-- **Async / Thread Pool:**  
-  - Useful for expensive queries, but adds minor overhead for cached operations.  
-- **Query Preparation:**  
-  - Caching prepared queries gives **~12× faster execution** than repeated preparation.  
-
-Benchmark scripts and detailed results can be found in:  
-```bache
-common/Persistence/benchmarks/
-```
-These optimizations ensure **high-performance, thread-safe, and low-latency data access** in the messenger backend.
 
 # Technologies
 
@@ -255,7 +73,7 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 
 ## Build & Tooling
 - **CMake + Ninja** 
-- **clang-format / clang-tidy / cpplint** (formatting & static analysis)
+- **clang-format / clang-tidy / cppcheck / includewhatyouuse / sanitizers / cpplint** (formatting & static analysis)
 - **vcpkg** 
 
 ## Networking & Web
@@ -297,6 +115,10 @@ These optimizations ensure **high-performance, thread-safe, and low-latency data
 
 ## Frontend / GUI
 - **Qt6** (native desktop GUI)
+
+## Documentation
+- **PlantUML**
+- **OpenAPI**
 
 ## Links
 
