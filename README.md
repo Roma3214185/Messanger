@@ -51,30 +51,30 @@ cmake --build build --parallel
 The following diagrams illustrate the architecture of the **Messenger** project, showing the main services, their interactions, and internal structure.
 
 ### High-Level Overview
-![Messenger System Overview](https://roma3214185.github.io/Messanger/docs/architecture/system_overview.svg)  
+![Messenger System Overview](https://roma3214185.github.io/Messanger/architecture/system.svg)  
 *A top-level view of all services and their interactions.*
 
 ### Service-Specific Architectures
 - **Gateway Service**  
-  ![Gateway Service](https://roma3214185.github.io/Messanger/docs/architecture/services/gateway.svg)
+  ![Gateway Service](https://roma3214185.github.io/Messanger/architecture/services/gateway.svg)
 
 - **Authentication Service (AuthService)**  
-  ![Auth Service](https://roma3214185.github.io/Messanger/docs/architecture/services/authservice.svg)
+  ![Auth Service](https://roma3214185.github.io/Messanger/architecture/services/authservice.svg)
 
 - **Chat Service**  
-  ![Chat Service](https://roma3214185.github.io/Messanger/docs/architecture/services/chatservice.svg)
+  ![Chat Service](https://roma3214185.github.io/Messanger/architecture/services/chatservice.svg)
 
 - **Frontend**  
-  ![Frontend](https://roma3214185.github.io/Messanger/docs/architecture/services/frontend.svg)
+  ![Frontend](https://roma3214185.github.io/Messanger/architecture/services/frontend.svg)
 
 - **Message Service**  
-  ![Message Service](https://roma3214185.github.io/Messanger/docs/architecture/services/messageservice.svg)
+  ![Message Service](https://roma3214185.github.io/Messanger/architecture/services/messageservice.svg)
 
 - **Notification Service**  
-  ![Notification Service](https://roma3214185.github.io/Messanger/docs/architecture/services/notificationservice.svg)
+  ![Notification Service](https://roma3214185.github.io/Messanger/architecture/services/notificationservice.svg)
 
 - **Persistence Layer**  
-  ![Persistence Layer](https://roma3214185.github.io/Messanger/docs/architecture/services/persistence.svg)
+  ![Persistence Layer](https://roma3214185.github.io/Messanger/architecture/services/persistence.svg)
 
 
 ## 🐳 Docker Support & Persistence Benchmarks
