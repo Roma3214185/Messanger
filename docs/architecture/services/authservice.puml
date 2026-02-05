@@ -64,19 +64,19 @@ class QueryFactory {
   + createDelete(executor, cache) : DeleteQuery
 }
 
-Server --> AuthController
-AuthController --> IAuthManager
-AuthController --> IAutoritizer
-AuthController --> IGenerator
+Server o--> AuthController
+AuthController o--> IAuthManager
+AuthController o--> IAutoritizer
+AuthController o--> IGenerator
 
-AuthManager --|> IAuthManager
-RealAuthoritizer --|> IAutoritizer
-JwtGenerator --|> IGenerator
+AuthManager ..|> IAuthManager
+RealAuthoritizer ..|> IAutoritizer
+JwtGenerator ..|> IGenerator
 
 RealAuthoritizer --> JwtUtils
 JwtGenerator --> JwtUtils
 
-AuthManager --> GenericRepository
+AuthManager o--> GenericRepository
 AuthManager --> QueryFactory
 
 @enduml
