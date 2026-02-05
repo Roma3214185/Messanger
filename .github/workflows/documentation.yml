@@ -66,6 +66,10 @@ jobs:
           echo "Listing all files in docs folder:"
           ls -Rlh docs
 
+      - name: Fix file permissions
+        run: |
+          find docs/architecture -type f -name "*.svg" -exec chmod 644 {} \;
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
