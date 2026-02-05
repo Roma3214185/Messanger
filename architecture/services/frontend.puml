@@ -322,133 +322,140 @@ class DelegatorsFactory {
 
 }
 
-BaseManager --> INetworkAccessManager
+BaseManager o--> INetworkAccessManager
 
-ChatItemDelegate --> IReactionDataManager
-DarkTheme -|> ITheme
+ChatItemDelegate o--> IReactionDataManager
+DarkTheme ..|> ITheme
+
+DelegatorsFactory o--> DataManager
+
 DelegatorsFactory --> ChatItemDelegate
-DelegatorsFactory --> DataManager
 DelegatorsFactory ---> MessageDelegate
 DelegatorsFactory ---> UserDelegate
-LightTheme -|> ITheme
+LightTheme .|> ITheme
 
 MainWindow ---> ClickOutsideClosableListView
-MainWindow ---> DarkTheme
+MainWindow *--> ITheme
 MainWindow ---> DelegatorsFactory
-MainWindow ---> LightTheme
-MainWindow --> Presenter
-MainWindow --|> IMainWindow
+MainWindow *--> Presenter
+MainWindow ..|> IMainWindow
 MainWindow --|> QMainWindow
 
-MessageDelegate --> IMessageDataManager
-MessageDelegate --> IReactionDataManager
-MessageDelegate --> IUserDataManager
+MessageDelegate o--> IMessageDataManager
+MessageDelegate o--> IReactionDataManager
+MessageDelegate o--> IUserDataManager
 
-DataManager ---|> IChatDataManager
-DataManager ---|> IMessageDataManager
-DataManager ---|> IMessageStatusDataManager
-DataManager ---|> IReactionDataManager
-DataManager ---|> IUserDataManager
+DataManager ...|> IChatDataManager
+DataManager ...|> IMessageDataManager
+DataManager ...|> IMessageStatusDataManager
+DataManager ...|> IReactionDataManager
+DataManager ...|> IUserDataManager
 
-DefaultUseCaseRepositoty --|> IUseCaseRepositoty
-DefaultUseCaseRepositoty --> IChatUseCase
-DefaultUseCaseRepositoty --> IMessageUseCase
-DefaultUseCaseRepositoty --> ISessionUseCase
-DefaultUseCaseRepositoty --> ISocketUseCase
-DefaultUseCaseRepositoty ---> IUserUseCase
+DefaultUseCaseRepositoty ..|> IUseCaseRepositoty
+DefaultUseCaseRepositoty o--> IChatUseCase
+DefaultUseCaseRepositoty o--> IMessageUseCase
+DefaultUseCaseRepositoty o--> ISessionUseCase
+DefaultUseCaseRepositoty o--> ISocketUseCase
+DefaultUseCaseRepositoty o---> IUserUseCase
 
-Model --> ChatModel
-Model --> DataManager
-Model --> ICache
-Model --> IUseCaseRepositoty
-Model --> UserModel
+Model *--> ChatModel
+Model o--> DataManager
+Model o--> ICache
+Model o--> IUseCaseRepositoty
+Model *--> UserModel
 ' Model --|> QObject
 
-NetworkAccessManager --|> INetworkAccessManager
+NetworkAccessManager ..|> INetworkAccessManager
 
-RedisClient --|> ICache
+RedisClient ..|> ICache
 
-Presenter ---> IMainWindow
-Presenter ---> ISocketResponceHandler
+Presenter o---> IMainWindow
+Presentero ---> ISocketResponceHandler
 
-DeleteMessageHandler -|> ISocketResponceHandler
-DeleteMessageHandler --> IMessageDataManager
-DeleteMessageHandler --> IMessageJsonService
+DeleteMessageHandler .|> ISocketResponceHandler
+DeleteMessageHandler o--> IMessageDataManager
+DeleteMessageHandler o--> IMessageJsonService
 
-DeleteMessageReactionHandler -|> ISocketResponceHandler
-DeleteMessageReactionHandler --> IReactionDataManager
-DeleteMessageReactionHandler --> IReactionJsonService
+DeleteMessageReactionHandler .|> ISocketResponceHandler
+DeleteMessageReactionHandler o--> IReactionDataManager
+DeleteMessageReactionHandler o--> IReactionJsonService
 
-NewMessageHandler --> IMessageDataManager
-NewMessageHandler --> IMessageJsonService
-NewMessageHandler --> IReactionDataManager
+NewMessageHandler o--> IMessageDataManager
+NewMessageHandler o--> IMessageJsonService
+NewMessageHandler o--> IReactionDataManager
 
-NewMessageResponceHandler -|> ISocketResponceHandler
+NewMessageResponceHandler .|> ISocketResponceHandler
 
-OpenSocketHandler -|> ISocketResponceHandler
-OpenSocketHandler --> SocketUseCase
-OpenSocketHandler --> TokenManager
+OpenSocketHandler .|> ISocketResponceHandler
+OpenSocketHandler o--> SocketUseCase
+OpenSocketHandler o--> TokenManager
 
-ReadMessageHandler -|> ISocketResponceHandler
-ReadMessageHandler --> IMessageDataManager
-ReadMessageHandler --> IMessageDataManager
+ReadMessageHandler .|> ISocketResponceHandler
+ReadMessageHandler o--> IMessageDataManager
 
-SaveMessageReactionHandler -|> ISocketResponceHandler
-SaveMessageReactionHandler --> IReactionDataManager
-SaveMessageReactionHandler --> IReactionJsonService
+SaveMessageReactionHandler .|> ISocketResponceHandler
+SaveMessageReactionHandler o--> IReactionDataManager
+SaveMessageReactionHandler o--> IReactionJsonService
 
-SocketHandlerRegistry --> DeleteMessageHandler
-SocketHandlerRegistry --> DeleteMessageReactionHandler
-SocketHandlerRegistry --> JsonService
-SocketHandlerRegistry --> NewMessageHandler
-SocketHandlerRegistry --> OpenSocketHandler
-SocketHandlerRegistry --> ReadMessageHandler
-SocketHandlerRegistry --> SaveMessageReactionHandler
+SocketHandlerRegistry *--> DeleteMessageHandler
+SocketHandlerRegistry *--> DeleteMessageReactionHandler
+SocketHandlerRegistry o--> JsonService
+SocketHandlerRegistry *--> NewMessageHandler
+SocketHandlerRegistry *--> OpenSocketHandler
+SocketHandlerRegistry *--> ReadMessageHandler
+SocketHandlerRegistry *--> SaveMessageReactionHandler
+SocketHandlerRegistry o--> Model
 
-SocketManager ----|> BaseManager
-SocketManager --> ISocket
+SocketManager ....|> BaseManager
+SocketManager o--> ISocket
 
-SocketUseCase --> SocketManager
-SocketUseCase --|> ISocketUseCase
+SocketUseCase *--> SocketManager
+SocketUseCase ..|> ISocketUseCase
 ' SocketUseCase ----|> QObject
 ChatManager ----|> BaseManager
-ChatManager --> IChatJsonService
+ChatManager o--> IChatJsonService
 
-ChatUseCase --> ChatManager
-ChatUseCase --> IChatDataManager
-ChatUseCase --> TokenManager
-ChatUseCase --|> IChatUseCase
+ChatUseCase *--> ChatManager
+ChatUseCase o--> IChatDataManager
+ChatUseCase o--> TokenManager
+ChatUseCase ..|> IChatUseCase
 ' ChatUseCase ----|> QObject
 
 MessageManager ----|> BaseManager
-MessageManager --> IMessageJsonService
+MessageManager o--> IMessageJsonService
 
-MessageUseCase --> IMessageDataManager
-MessageUseCase --> MessageManager
-MessageUseCase --> TokenManager
-MessageUseCase --|> IMessageUseCase
+MessageUseCase o--> IMessageDataManager
+MessageUseCase o--> MessageManager
+MessageUseCase o--> TokenManager
+MessageUseCase ..|> IMessageUseCase
 ' MessageUseCase ----|> QObject
 
 SessionManager ---|> BaseManager
-SessionManager --> IUserJsonService
+SessionManager o--> IUserJsonService
 
-SessionUseCase --> SessionManager
-SessionUseCase --|> ISessionUseCase
+SessionUseCase *--> SessionManager
+SessionUseCase ..|> ISessionUseCase
 ' SessionUseCase ----|> QObject
 
 UserManager ----|> BaseManager
-UserManager --> IUserJsonService
+UserManager o--> IUserJsonService
 
-UserUseCase --> IUserDataManager
-UserUseCase --> TokenManager
-UserUseCase --> UserManager
-UserUseCase --|> IUserUseCase
+UserUseCase o--> IUserDataManager
+UserUseCase o--> TokenManager
+UserUseCase *--> UserManager
+UserUseCase ..|> IUserUseCase
 ' UserUseCase ----|> QObject
 
-JsonService --|> IChatJsonService
-JsonService --|> IMessageJsonService
-JsonService --|> IReactionInfoJsonService
-JsonService --|> IReactionJsonService
-JsonService --|> IUserJsonService
+JsonService ..|> IChatJsonService
+JsonService ..|> IMessageJsonService
+JsonService ..|> IReactionInfoJsonService
+JsonService ..|> IReactionJsonService
+JsonService ..|> IUserJsonService
+
+RealSocket ..|> ISocket
+Presenter --> MessageFactory
+Presenter --> DataInputService
+
+
 
 @enduml

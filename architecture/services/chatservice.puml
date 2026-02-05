@@ -60,24 +60,24 @@ interface IIdGenerator {
 }
 
 
-ChatManager --> IIdGenerator
-ChatServer --> ChatController
-ChatController --> IChatManager
-ChatController --> INetworkFacade
+ChatManager o--> IIdGenerator
+ChatServer o--> ChatController
+ChatController o--> IChatManager
+ChatController o--> INetworkFacade
 
-IChatManager <|-- ChatManager
-ChatController --> IAuthrotizer
-JwtAuthrotizer --|> IAuthrotizer
+IChatManager <|.. ChatManager
+ChatController o--> IAuthrotizer
+JwtAuthrotizer ..|> IAuthrotizer
 
-NetworkManager --|> IUserNetworkManager
-NetworkManager --|> IMessageNetworkManager
-NetworkManager --|> IChatNetworkManager
-NetworkManager --|> INetworkFacade
+NetworkManager ..|> IUserNetworkManager
+NetworkManager ..|> IMessageNetworkManager
+NetworkManager ..|> IChatNetworkManager
+NetworkManager ..|> INetworkFacade
 
 IUserNetworkManager --|> INetworkManagerBase
 IMessageNetworkManager --|> INetworkManagerBase
 IChatNetworkManager --|> INetworkManagerBase
 
-ChatManager --> GenericRepository
+ChatManager o--> GenericRepository
 
 @enduml
