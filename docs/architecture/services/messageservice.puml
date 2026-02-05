@@ -51,21 +51,21 @@ interface IIdGenerator {
 
 }
 
-RabbitMQClient --|> IRabitMQClient
+RabbitMQClient ..|> IRabitMQClient
 
-Server --> Controller
+Server o--> Controller
 
-Controller --> IRabitMQClient
-Controller --> IThreadPool
-Controller --> IMessageManager
+Controller o--> IRabitMQClient
+Controller o--> IThreadPool
+Controller o--> IMessageManager
 
-MessageManager --|> IMessageManager
-MessageManager --> GenericRepository
-MessageManager --> IIdGenerator
+MessageManager ..|> IMessageManager
+MessageManager o--> GenericRepository
+MessageManager o--> IIdGenerator
 
-GeneratorId --|> IIdGenerator
+GeneratorId ..|> IIdGenerator
 
-ThreadPool --|> IThreadPool
+ThreadPool ..|> IThreadPool
 
 
 
