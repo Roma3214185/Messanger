@@ -53,11 +53,13 @@ jobs:
       - name: Generate PlantUML diagrams as SVG
         run: |
           find docs/architecture -type f -name "*.puml" | while read file; do
-            # Compute output folder
             relpath="${file#docs/architecture/}"
             outdir="docs/architecture/$(dirname "$relpath")"
             mkdir -p "$outdir"
-            docker run --rm -v "${{ github.workspace }}:/work" plantuml/plantuml:1.2025.10 \
+            docker run --rm \
+              -v "${{ github.workspace }}:/work" \
+              -u $(id -u):$(id -g) \
+              plantuml/plantuml:1.2025.10 \
               -tsvg "/work/$file" -o "/work/$outdir"
           done
 
