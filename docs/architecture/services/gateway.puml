@@ -35,38 +35,40 @@ interface IPublishEvent {
 }
 
 interface ICacheService
+interface IEventBus
 
-RabbitMQClient --|> IEventBus
+RabbitMQClient ..|> IEventBus
 
-IEventBus --|> ISubscribeEvent
-IEventBus --|> IPublishEvent
-ThreadPool --|> IThreadPool
-
-
-GatewayServer --> LoggingMiddleware
-GatewayServer --> RateLimitMiddleware
-GatewayServer --> MetricsMiddleware
-GatewayServer --> AuthMiddleware
-GatewayServer --> CacheMiddleware
-GatewayServer --> GatewayController
-
-GatewayController --> ICacheService
-GatewayController --> IThreadPool
-GatewayController --> IEventBus
-GatewayController --> ProxyClient
-GatewayController --> IClient
-ProxyClient --> IClient
-
-AuthMiddleware --> IVerifier
-JWTVerifier --|> IVerifier
-
-CacheMiddleware --> ICacheService
-MetricsMiddleware --> IMetrics
-RateLimitMiddleware --> IRateLimiter
+IEventBus ..|> ISubscribeEvent
+IEventBus ..|> IPublishEvent
+ThreadPool ..|> IThreadPool
 
 
-GatewayMetrics --|> IMetrics
-RateLimiter --|> IRateLimiter
-RealHttpClient --|> IClient
+GatewayApp *-- LoggingMiddleware
+GatewayApp *-- RateLimitMiddleware
+GatewayApp *-- MetricsMiddleware
+GatewayApp *-- AuthMiddleware
+GatewayApp *-- CacheMiddleware
+GatewayServer *--> GatewayApp
+GatewayServer o--> GatewayController
+
+GatewayController o--> ICacheService
+GatewayController o--> IThreadPool
+GatewayController o--> IEventBus
+GatewayController *--> ProxyClient
+GatewayController o--> IClient
+ProxyClient o--> IClient
+
+AuthMiddleware o--> IVerifier
+JWTVerifier ..|> IVerifier
+
+CacheMiddleware o--> ICacheService
+MetricsMiddleware o--> IMetrics
+RateLimitMiddleware o--> IRateLimiter
+
+
+GatewayMetrics ..|> IMetrics
+RateLimiter ..|> IRateLimiter
+RealHttpClient ..|> IClient
 
 @enduml

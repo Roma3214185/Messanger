@@ -1,0 +1,97 @@
+name: OpenAPI Docs CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - run: npm install -g @redocly/cli
+
+      - name: Lint OpenAPI
+        run: |
+          redocly lint Backend/AuthService/openapi.yaml
+          redocly lint Backend/ChatService/openapi.yaml
+          redocly lint Backend/MessageService/openapi.yaml
+
+      - name: Build HTML docs
+        run: |
+          mkdir -p docs
+          redocly build-docs Backend/AuthService/openapi.yaml -o docs/auth.html
+          redocly build-docs Backend/ChatService/openapi.yaml -o docs/chat.html
+          redocly build-docs Backend/MessageService/openapi.yaml -o docs/message.html
+
+      - name: Generate index.html
+        run: |
+          cat > docs/index.html <<EOL
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>API Documentation</title>
+          </head>
+          <body>
+              <h1>API Documentation</h1>
+              <ul>
+                  <li><a href="auth.html">AuthService</a></li>
+                  <li><a href="chat.html">ChatService</a></li>
+                  <li><a href="message.html">MessageService</a></li>
+              </ul>
+              <h1>Architecture Diagrams</h2>
+              <ul>
+                <li><a href="architecture/backend-services.svg">Backend Services</a></li>
+                <li><a href="architecture/c4-context.svg">C4 Context</a></li>
+                <li><a href="architecture/common-libs.svg">Common Libs</a></li>
+                <li><a href="architecture/sequences/send-message.svg">Send Message Sequence</a></li>
+                <li><a href="architecture/services/frontend.svg">Frontend Service</a></li>
+                <li><a href="architecture/services/authservice.svg">AuthService</a></li>
+                <li><a href="architecture/services/chatservice.svg">Chat Service</a></li>
+                <li><a href="architecture/services/gateway.svg">Gateway Service</a></li>
+                <li><a href="architecture/services/persistence.svg">Pesistence Service</a></li>
+                <li><a href="architecture/services/messageservice.svg">Gateway Service</a></li>
+                <li><a href="architecture/services/notificationservice.svg">notification Service</a></li>
+              </ul>
+
+          </body>
+          </html>
+          EOL
+
+      - name: Generate PlantUML diagrams as SVG
+        run: |
+          find docs/architecture -type f -name "*.puml" | while read file; do
+            relpath="${file#docs/architecture/}"
+            outdir="docs/architecture/$(dirname "$relpath")"
+            mkdir -p "$outdir"
+            docker run --rm \
+              -v "${{ github.workspace }}:/work" \
+              -u $(id -u):$(id -g) \
+              plantuml/plantuml:1.2025.10 \
+              -tsvg "/work/$file" -o "/work/$outdir"
+          done
+
+      - name: Show contents of docs folder
+        run: |
+          echo "Listing all files in docs folder:"
+          ls -Rlh docs
+
+      - name: Fix file permissions
+        run: |
+          find docs/architecture -type f -name "*.svg" -exec chmod 644 {} \;
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          user_name: github-actions
+          user_email: github-actions@github.com
