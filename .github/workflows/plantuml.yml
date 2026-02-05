@@ -2,9 +2,9 @@ name: Generate Architecture Diagrams
 
 on:
   push:
-    #branches:
-      #- main
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   plantuml:
@@ -16,20 +16,20 @@ jobs:
         uses: actions/checkout@v4
 
       # Step 2: Debug - List all PlantUML diagrams
-      - name: List all PlantUML diagrams
+      - name: List all PlantUML files
         run: |
           echo "Checking PlantUML files in docs/architecture..."
           find docs/architecture -type f -name "*.puml" -print || echo "No .puml files found!"
 
-      # Step 3: Generate PlantUML diagrams as SVG
+      # Step 3: Generate PlantUML diagrams as SVG inside docs/architecture
       - name: Generate PlantUML diagrams
         run: |
-          mkdir -p generated_diagrams
-          # Process each .puml file, preserving folder structure
+          mkdir -p docs/architecture
+          # Process each .puml file
           find docs/architecture -type f -name "*.puml" | while read file; do
-            # Compute relative path
+            # Compute relative path inside docs/architecture
             relpath="${file#docs/architecture/}"
-            outdir="generated_diagrams/$(dirname "$relpath")"
+            outdir="docs/architecture/$(dirname "$relpath")"
             mkdir -p "$outdir"
             docker run --rm -v "${{ github.workspace }}:/work" plantuml/plantuml:1.2025.10 \
               -tsvg "/work/$file" -o "/work/$outdir"
@@ -39,29 +39,4 @@ jobs:
       - name: Verify generated SVG files
         run: |
           echo "Generated SVG files:"
-          find generated_diagrams -type f -name "*.svg"
-
-      # Step 5: Deploy diagrams to gh-pages
-      - name: Deploy to gh-pages
-        env:
-          GH_PAT: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Set up gh-pages branch in a separate folder
-          git fetch origin gh-pages || true
-          git worktree add gh-pages gh-pages || true
-
-          # Remove old diagrams but keep other files
-          rm -rf gh-pages/generated_diagrams
-
-          # Copy new diagrams
-          cp -r generated_diagrams gh-pages/generated_diagrams
-
-          # Commit only the diagrams folder
-          cd gh-pages
-          git add -A generated_diagrams
-          git commit -m "Update architecture diagrams [skip ci]" || echo "No changes"
-          git push origin gh-pages
-
+          find docs/architecture -type f -name "*.svg"
