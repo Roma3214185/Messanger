@@ -9,25 +9,22 @@ class IThreadPool;
 class IClient;
 
 class GatewayController {
-public:
+ public:
+  GatewayController(IClient *client, ICacheService *cache, IThreadPool *pool, IEventBus *queue);
 
-    GatewayController(IClient *client, ICacheService *cache, IThreadPool *pool, IEventBus *queue);
+  void handleProxyRequest(const crow::request &req, crow::response &res, const int port, const std::string &path);
 
-    void handleProxyRequest(const crow::request &req, crow::response &res, const int port,
-                            const std::string &path);
+  void handlePostRequest(const crow::request &req, crow::response &res, const int port, const std::string &path);
 
-    void handlePostRequest(const crow::request &req, crow::response &res, const int port,
-                           const std::string &path);
+  void handleRequestRoute(crow::response &res, std::string task_id);
 
-    void handleRequestRoute(crow::response& res, std::string task_id);
+  void subscribeOnNewRequest();
 
-    void subscribeOnNewRequest();
-
-private:
-    ProxyClient proxy_;
-    ICacheService *cache_;
-    IThreadPool *pool_;
-    IEventBus *queue_;
+ private:
+  ProxyClient proxy_;
+  ICacheService *cache_;
+  IThreadPool *pool_;
+  IEventBus *queue_;
 };
 
-#endif // GATEWAYCONTROLLER_H
+#endif  // GATEWAYCONTROLLER_H

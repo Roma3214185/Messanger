@@ -2,18 +2,17 @@
 
 #include <crow.h>
 
+#include "SocketHandlersRepositoty.h"
 #include "handlers/MessageHanldlers.h"
 #include "notificationservice/CrowSocket.h"
-#include "notificationservice/managers/NotificationOrchestrator.h"
 #include "notificationservice/SocketRepository.h"
-#include "SocketHandlersRepositoty.h"
+#include "notificationservice/managers/NotificationOrchestrator.h"
 
-Server::Server(int port,
-               IActiveSocketRepository* socket_repository,
-               ISocketHandlersRepository* socket_handlers_repository)
+Server::Server(int port, IActiveSocketRepository *socket_repository,
+               ISocketHandlersRepository *socket_handlers_repository)
     : notification_port_(port),
-    socket_handlers_repository_(socket_handlers_repository),
-    active_sockets_(socket_repository) {
+      socket_handlers_repository_(socket_handlers_repository),
+      active_sockets_(socket_repository) {
   initRoutes();
 }
 

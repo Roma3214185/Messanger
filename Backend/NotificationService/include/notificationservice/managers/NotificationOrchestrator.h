@@ -12,17 +12,17 @@ class INotifier;
 
 class NotificationOrchestrator {
   INetworkFacade *network_facade_;
-  IPublisher* publisher_;
-  INotifier* notifier_;
+  IPublisher *publisher_;
+  INotifier *notifier_;
+
  public:
+  NotificationOrchestrator(INetworkFacade *network_facade, IPublisher *publisher, INotifier *notifier);
 
-    NotificationOrchestrator(INetworkFacade *network_facade, IPublisher* publisher, INotifier* notifier);
-
-    void onMessageStatusSaved(const std::string &payload);
-    void onMessageSaved(const std::string &payload);
-    void onMessageReactionDeleted(const std::string &payload);
-    void onMessageReactionSaved(const std::string &payload);
-    void onMessageDeleted(const std::string &payload);
+  void onMessageStatusSaved(const std::string &payload);
+  void onMessageSaved(const std::string &payload);
+  void onMessageReactionDeleted(const std::string &payload);
+  void onMessageReactionSaved(const std::string &payload);
+  void onMessageDeleted(const std::string &payload);
 
  protected:
   std::vector<long long> fetchChatMembers(long long chat_id);

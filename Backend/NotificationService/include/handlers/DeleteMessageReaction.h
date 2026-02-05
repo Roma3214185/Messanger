@@ -8,10 +8,9 @@ class IPublisher;
 class DeleteMessageReactionHandler : public IMessageHandler {
  public:
   DeleteMessageReactionHandler(IPublisher* publisher);
-  void handle(const crow::json::rvalue &message,
-              const std::shared_ptr<ISocket> &socket) override;
+  void handle(const crow::json::rvalue& message, const std::shared_ptr<ISocket>& socket) override;
 
-  private:
+ private:
   IPublisher* publisher_;
 };
 

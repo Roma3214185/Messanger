@@ -21,22 +21,21 @@
 // };
 
 class INetworkFacade {
-public:
-    virtual IUserNetworkManager& users() = 0;
-    virtual IMessageNetworkManager& messages() = 0;
-    virtual IChatNetworkManager& chats() = 0;
-    virtual ~INetworkFacade() = default;
+ public:
+  virtual IUserNetworkManager& users() = 0;
+  virtual IMessageNetworkManager& messages() = 0;
+  virtual IChatNetworkManager& chats() = 0;
+  virtual ~INetworkFacade() = default;
 };
 
-class NetworkManager
-    : public INetworkFacade
-    , public IUserNetworkManager
-    , public IMessageNetworkManager
-    , public IChatNetworkManager {
-public:
-    IUserNetworkManager& users() override { return *this; }
-    IMessageNetworkManager& messages() override { return *this; }
-    IChatNetworkManager& chats() override { return *this; }
+class NetworkManager : public INetworkFacade,
+                       public IUserNetworkManager,
+                       public IMessageNetworkManager,
+                       public IChatNetworkManager {
+ public:
+  IUserNetworkManager& users() override { return *this; }
+  IMessageNetworkManager& messages() override { return *this; }
+  IChatNetworkManager& chats() override { return *this; }
 };
 
 // class NetworkFactory {

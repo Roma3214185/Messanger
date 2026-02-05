@@ -16,7 +16,6 @@ function(enable_cppcheck TARGET)
     set(CPPCHECK_OPTIONS
         --max-ctu-depth=3
         --enable=warning,performance,portability
-        #--enable=all
         --inline-suppr
         --suppress=missingIncludeSystem
         -i${CMAKE_SOURCE_DIR}/external
@@ -24,12 +23,9 @@ function(enable_cppcheck TARGET)
         --suppress=*:*/_deps/*
         --suppress=*:*/external/*
         --suppress=unmatchedSuppression
-        -DQT_BEGIN_NAMESPACE=;
-        -DQT_END_NAMESPACE=;
-        -DQT_NO_KEYWORDS=1;
-        -DQ_SLOTS=;
-        -DQ_DECLARE_METATYPE=;
+        --suppress=returnByReference
         --language=c++
+        --library=qt
         --error-exitcode=666
     )
 

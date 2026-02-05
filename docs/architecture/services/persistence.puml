@@ -75,31 +75,31 @@ class QSqlDatabase {
 
 QueryFactory --> SelectQuery
 QueryFactory --> DeleteQuery
-QueryFactory --> ISqlExecutor
-QueryFactory --> ICacheService
+QueryFactory o--> ISqlExecutor
+QueryFactory o--> ICacheService
 
-DeleteQuery --> ICacheService
-SelectQuery --> ICacheService
-IBaseQuery --> ISqlExecutor
+DeleteQuery o--> ICacheService
+SelectQuery o--> ICacheService
+IBaseQuery o--> ISqlExecutor
 
 SelectQuery --|> IBaseQuery
 DeleteQuery --|> IBaseQuery
 
 SqlExecutor --|> ISqlExecutor
 
-ThreadPool --|> IThreadPool
-RedisCache --|> ICacheService
+ThreadPool ..|> IThreadPool
+RedisCache ..|> ICacheService
 
-GenericRepository --> ISqlExecutor
-GenericRepository --> ICacheService
-GenericRepository --> IThreadPool
-GenericRepository --> IOutboxWorker
+GenericRepository o--> ISqlExecutor
+GenericRepository o--> ICacheService
+GenericRepository o--> IThreadPool
+GenericRepository o--> IOutboxWorker
 GenericRepository --> CacheKeyGenerator
 
-SQLiteQuery --|> IQuery
-SQLiteDatabase --> IQuery
-SQLiteDatabase --|> IDataBase
-SqlExecutor --> IDataBase
+SQLiteQuery ..|> IQuery
+SQLiteDatabase o--> IQuery
+SQLiteDatabase ..|> IDataBase
+SqlExecutor o--> IDataBase
 SQLiteQuery --> QSqlDatabase
 
 

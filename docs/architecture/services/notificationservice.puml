@@ -78,50 +78,49 @@ class NotificationOrchestrator {
   + onMessageDeleted(payload : str) : void
 }
 
-SocketNotifier --|> INotifier
-SocketNotifier --> IUserSocketRepository
+SocketNotifier ..|> INotifier
+SocketNotifier o--> IUserSocketRepository
 
-RabbitNotificationPublisher --|> IPublisher
-RabbitNotificationSubscriber --|> ISubcriber
+RabbitNotificationPublisher ..|> IPublisher
+RabbitNotificationSubscriber ..|> ISubcriber
 
-RabbitNotificationSubscriber --> IEventSubscriber
-RabbitNotificationSubscriber --> NotificationOrchestrator
-RabbitNotificationPublisher --> IEventPublisher
+RabbitNotificationSubscriber o--> IEventSubscriber
+RabbitNotificationSubscriber o--> NotificationOrchestrator
+RabbitNotificationPublisher o--> IEventPublisher
 
-IMessageHandler --> ISocket
+IMessageHandler o--> ISocket
 
-Server --> ISocketHandlersRepository
-Server --> IActiveSocketRepository
+Server o--> ISocketHandlersRepository
+Server o--> IActiveSocketRepository
 
-SocketHandlersRepository --|> ISocketHandlersRepository
-SocketHandlersRepository --> DeleteMessageReactionHandler
-SocketHandlersRepository --> InitMessageHandler
-SocketHandlersRepository --> MarkReadMessageHandler
-SocketHandlersRepository --> SaveMessageReactionHandler
-SocketHandlersRepository --> SendMessageHandler
-SocketHandlersRepository --> ISocket
+SocketHandlersRepository ..|> ISocketHandlersRepository
+SocketHandlersRepository *--> DeleteMessageReactionHandler
+SocketHandlersRepository *--> InitMessageHandler
+SocketHandlersRepository *--> MarkReadMessageHandler
+SocketHandlersRepository *--> SaveMessageReactionHandler
+SocketHandlersRepository *--> SendMessageHandler
+SocketHandlersRepository *--> ISocket
 
-NotificationOrchestrator --> IPublisher
-NotificationOrchestrator --> INotifier
-NotificationOrchestrator --> INetworkFacade
+NotificationOrchestrator o--> IPublisher
+NotificationOrchestrator o--> INotifier
+NotificationOrchestrator o--> INetworkFacade
 
-CrowSocket --|> ISocket
-RabitMQClient --|> IEventPublisher
-RabitMQClient --|> IEventSubscriber
+CrowSocket ..|> ISocket
+RabitMQClient ..|> IEventPublisher
+RabitMQClient ..|> IEventSubscriber
 
-SocketRepository --|> IUserSocketRepository
-SocketRepository --|> IActiveSocketRepository
-SocketRepository --> ISocket
-SocketRepository --> crow::websocket::connection
+SocketRepository ..|> IUserSocketRepository
+SocketRepository ..|> IActiveSocketRepository
+SocketRepository o--> ISocket
 
-DeleteMessageReactionHandler --|> IMessageHandler
-InitMessageHandler --|> IMessageHandler
-MarkReadMessageHandler --|> IMessageHandler
-SaveMessageReactionHandler --|> IMessageHandler
-SendMessageHandler --|> IMessageHandler
+DeleteMessageReactionHandler ..|> IMessageHandler
+InitMessageHandler ..|> IMessageHandler
+MarkReadMessageHandler ..|> IMessageHandler
+SaveMessageReactionHandler ..|> IMessageHandler
+SendMessageHandler ..|> IMessageHandler
 
-DeleteMessageReactionHandler --> IPublisher
-InitMessageHandler --> IUserSocketRepository
+DeleteMessageReactionHandler o--> IPublisher
+InitMessageHandler o--> IUserSocketRepository
 
 
 

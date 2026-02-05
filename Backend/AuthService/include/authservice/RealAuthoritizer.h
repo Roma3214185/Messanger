@@ -6,7 +6,7 @@
 
 class RealAuthoritizer : public IAuthoritizer {
  public:
-    std::optional<long long> verifyTokenAndGetUserId(const std::string &token) override;
+  std::optional<long long> verifyTokenAndGetUserId(const std::string &token) override;
 };
 
 #endif  // REALAUTHORITIZER_H

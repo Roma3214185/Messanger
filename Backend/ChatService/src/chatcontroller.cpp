@@ -55,9 +55,8 @@ std::optional<long long> getIdFromStr(const std::string &str) {
 
 }  // namespace
 
-ChatController::ChatController(IChatManager *manager, INetworkFacade *network_facade, IAuthoritizer* authoritizer)
-    : manager_(manager), network_facade_(network_facade), authoritizer_(authoritizer)  {
-}
+ChatController::ChatController(IChatManager *manager, INetworkFacade *network_facade, IAuthoritizer *authoritizer)
+    : manager_(manager), network_facade_(network_facade), authoritizer_(authoritizer) {}
 
 Response ChatController::createPrivateChat(const RequestDTO &req) {
   auto my_id = autoritize(req.token);

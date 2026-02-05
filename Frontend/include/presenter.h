@@ -78,10 +78,7 @@ class Presenter : public QObject {
   SocketHandlersMap socket_responce_handlers_;
   IMainWindow *view_;
   Model *manager_;
-  IMessageListView *message_list_view_;
-
-  // std::unique_ptr<UserDelegate> user_delegate_;
-  // std::unique_ptr<ChatItemDelegate> chat_delegate_;
+  IMessageListView *message_list_view_{nullptr};
 };
 
 #endif  // PRESENTER_H

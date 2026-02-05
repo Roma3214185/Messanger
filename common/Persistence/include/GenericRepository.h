@@ -3,12 +3,12 @@
 
 #include <vector>
 
+#include "CacheKeyGenerator.h"
 #include "Meta.h"
 #include "OutboxWorker.h"
 #include "SqlBuilder.h"
 #include "interfaces/IEntityBuilder.h"
 #include "metaentity/EntityConcept.h"
-#include "CacheKeyGenerator.h"
 
 template <EntityJson T>
 using ResultList = std::vector<T>;
@@ -18,7 +18,7 @@ using FutureResultList = std::future<std::vector<T>>;
 class ISqlExecutor;
 class ICacheService;
 class IThreadPool;
-//class CacheKeyGenerator;
+// class CacheKeyGenerator;
 
 class GenericRepository {
   ISqlExecutor *executor_;
@@ -29,8 +29,7 @@ class GenericRepository {
   CacheKeyGenerator cache_kay_generator_;
 
  public:
-  GenericRepository(ISqlExecutor *executor, ICacheService &cache,
-                    IThreadPool *pool_ = nullptr,
+  GenericRepository(ISqlExecutor *executor, ICacheService &cache, IThreadPool *pool_ = nullptr,
                     IOutboxWorker *outbox_worker = nullptr);
 
   ICacheService &getCache() { return cache_; }

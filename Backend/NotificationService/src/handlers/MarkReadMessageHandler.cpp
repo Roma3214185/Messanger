@@ -2,7 +2,7 @@
 #include "entities/MessageStatus.h"
 #include "notificationservice/IPublisher.h"
 
-MarkReadMessageHandler::MarkReadMessageHandler(IPublisher* publisher) : publisher_(publisher) {}
+MarkReadMessageHandler::MarkReadMessageHandler(IPublisher *publisher) : publisher_(publisher) {}
 
 void MarkReadMessageHandler::handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket) {
   const auto read_by = static_cast<long long>(message["readed_by"].i());

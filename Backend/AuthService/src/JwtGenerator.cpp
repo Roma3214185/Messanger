@@ -21,9 +21,7 @@ bool JwtGenerator::generateKeys() {
   }
 }
 
-std::string JwtGenerator::generateToken(long long user_id) {
-    return JwtUtils::generateToken(user_id);
-}
+std::string JwtGenerator::generateToken(long long user_id) { return JwtUtils::generateToken(user_id); }
 
 void JwtGenerator::saveInFile(const std::string &file_name, const std::string &key) {
   std::ofstream file(file_name);

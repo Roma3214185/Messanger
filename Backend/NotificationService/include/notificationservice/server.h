@@ -11,13 +11,12 @@ using SocketPtr = std::shared_ptr<ISocket>;
 
 class Server {
  public:
-  Server(int port,
-            IActiveSocketRepository* active_socket_repository,
-            ISocketHandlersRepository* socket_handlers_repository);
+  Server(int port, IActiveSocketRepository* active_socket_repository,
+         ISocketHandlersRepository* socket_handlers_repository);
   void run();
 
  protected:
-  void handleSocketOnMessage(const SocketPtr &socket, const std::string &data);
+  void handleSocketOnMessage(const SocketPtr& socket, const std::string& data);
 
  private:
   void initRoutes();

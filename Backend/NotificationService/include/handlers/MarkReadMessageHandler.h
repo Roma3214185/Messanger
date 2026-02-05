@@ -8,10 +8,10 @@ class IPublisher;
 class MarkReadMessageHandler : public IMessageHandler {
  public:
   MarkReadMessageHandler(IPublisher* publisher);
-  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket);
+  void handle(const crow::json::rvalue& message, const std::shared_ptr<ISocket>& socket) override;
 
-  private:
-   IPublisher* publisher_;
+ private:
+  IPublisher* publisher_;
 };
 
 #endif  // MARKREADMESSAGEHANDLER_H
