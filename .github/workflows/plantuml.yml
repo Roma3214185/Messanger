@@ -49,17 +49,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Fetch gh-pages branch or create it
+          # Set up gh-pages branch in a separate folder
           git fetch origin gh-pages || true
-          git checkout gh-pages || git checkout --orphan gh-pages
+          git worktree add gh-pages gh-pages || true
 
-          # Remove old diagrams folder (keep other files intact)
-          rm -rf generated_diagrams
+          # Remove old diagrams but keep other files
+          rm -rf gh-pages/generated_diagrams
 
-          # Copy newly generated diagrams into branch
-          cp -r generated_diagrams generated_diagrams_temp || true
-          mv generated_diagrams_temp generated_diagrams || true
+          # Copy new diagrams
+          cp -r generated_diagrams gh-pages/generated_diagrams
 
+          # Commit only the diagrams folder
+          cd gh-pages
           git add -A generated_diagrams
           git commit -m "Update architecture diagrams [skip ci]" || echo "No changes"
           git push origin gh-pages
+
