@@ -50,6 +50,11 @@ jobs:
           </html>
           EOL
 
+      - name: Show contents of docs folder
+        run: |
+          echo "Listing all files in docs folder:"
+          ls -Rlh docs
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
