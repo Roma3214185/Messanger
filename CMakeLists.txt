@@ -66,9 +66,9 @@ add_library(ProjectOptions INTERFACE)
 
 option(ENABLE_WARNINGS "Enable compiler warnings" OFF)
 option(ENABLE_CLANG_FORMAT "Enable clang format" OFF)
-option(ENABLE_CLANG_TIDY "Enable clang tidy" ON)
+option(ENABLE_CLANG_TIDY "Enable clang tidy" OFF)
 option(ENABLE_CPPCHECK "Enable cpp check" OFF)
-option(ENABLE_INCLUDE_WHAT_YOU_USE "Enable include what you use" OFF)
+option(ENABLE_IWYU "Enable include what you use" ON)
 set(ENABLE_SANITIZER_ADDRESS ON CACHE BOOL "" FORCE)
 set(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR ON CACHE BOOL "" FORCE)
 

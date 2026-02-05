@@ -108,9 +108,11 @@ function(enable_iwyu TARGET)
         -Xiwyu --exclude=${CMAKE_SOURCE_DIR}/external
         #-Xiwyu --exclude=${CMAKE_SOURCE_DIR}/_deps
         -Xiwyu --exclude=${CMAKE_BINARY_DIR}/_deps
+        -Xiwyu --verbose=3
     )
 
     message(STATUS "IWYU runs on target: ${TARGET}")
+    message(STATUS "IWYU sources for ${TARGET}: ${SRCS}")
 
     set_target_properties(${TARGET} PROPERTIES
         CXX_INCLUDE_WHAT_YOU_USE "${IWYU_EXE};${IWYU_OPTIONS}"
