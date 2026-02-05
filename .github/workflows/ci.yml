@@ -69,9 +69,9 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=arm64-osx \
             -DTRACY_ENABLE=ON \
             -DENABLE_WARNINGS = OFF \
-            -ENABLE_CLANG_TIDY = OFF \
-            -ENABLE_CLANG_FORMAT = OFF \
-            -ENABLE_IWYU = OFF \
+            -DENABLE_CLANG_TIDY = OFF \
+            -DENABLE_CLANG_FORMAT = OFF \
+            -DENABLE_IWYU = OFF \
             -Wno-dev
       # 9️⃣ Build project
       - name: Build
