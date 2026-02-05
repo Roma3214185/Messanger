@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       # Step 2: Debug - List all PlantUML diagrams
-      - name: Debug: List all PlantUML diagrams
+      - name: List all PlantUML diagrams
         run: |
           echo "Checking PlantUML files in docs/architecture..."
           find docs/architecture -type f -name "*.puml" -print || echo "No .puml files found!"
