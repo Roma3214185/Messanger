@@ -2,8 +2,8 @@ name: Generate Architecture Diagrams
 
 on:
   push:
-    branches:
-      - main
+    #branches:
+      #- main
   pull_request:
 
 jobs:
@@ -11,18 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Debug - List all PlantUML diagrams
       - name: Debug: List all PlantUML diagrams
         run: |
           echo "Checking PlantUML files in docs/architecture..."
           find docs/architecture -type f -name "*.puml" -print || echo "No .puml files found!"
 
+      # Step 3: Generate PlantUML diagrams as SVG
       - name: Generate PlantUML diagrams
         run: |
           mkdir -p generated_diagrams
+          # Process each .puml file, preserving folder structure
           find docs/architecture -type f -name "*.puml" | while read file; do
+            # Compute relative path
             relpath="${file#docs/architecture/}"
             outdir="generated_diagrams/$(dirname "$relpath")"
             mkdir -p "$outdir"
@@ -30,11 +35,13 @@ jobs:
               -tsvg "/work/$file" -o "/work/$outdir"
           done
 
+      # Step 4: Verify generated SVG files
       - name: Verify generated SVG files
         run: |
           echo "Generated SVG files:"
           find generated_diagrams -type f -name "*.svg"
 
+      # Step 5: Deploy diagrams to gh-pages
       - name: Deploy to gh-pages
         env:
           GH_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -42,11 +49,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Fetch gh-pages branch or create it
           git fetch origin gh-pages || true
           git checkout gh-pages || git checkout --orphan gh-pages
 
+          # Remove old diagrams folder (keep other files intact)
           rm -rf generated_diagrams
 
+          # Copy newly generated diagrams into branch
           cp -r generated_diagrams generated_diagrams_temp || true
           mv generated_diagrams_temp generated_diagrams || true
 
