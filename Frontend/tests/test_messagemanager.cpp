@@ -28,12 +28,11 @@ TEST_CASE("Test MessageManager getChatMessages") {
   token_manager.setData(token, test_current_id);
   JsonService entity_factory(&token_manager);
   TestMessageManager message_manager(&entity_factory, &network_manager, url, timeout_ms);
-
   QJsonArray messages_array{
       QJsonObject{
-          {"id", 1}, {"sender_id", 10}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}, {"local_id", "1"}},
+          {"id", 1}, {"sender_id", 10}, {"chat_id", 12}, {"receiver_id", 14}, {"text", "Hello"}, {"timestamp", "2025-11-03T12:00:00Z"}, {"local_id", "1"}},
       QJsonObject{
-          {"id", 2}, {"sender_id", 11}, {"text", "Hi"}, {"timestamp", "2025-11-03T12:01:00Z"}, {"local_id", "2"}}};
+          {"id", 2}, {"sender_id", 11}, {"chat_id", 13}, {"receiver_id", 14}, {"text", "Hi"}, {"timestamp", "2025-11-03T12:01:00Z"}, {"local_id", "2"}}};
   QByteArray valid_json = QJsonDocument(messages_array).toJson();
 
   SECTION("Expected correct endpoint URL with query params") {
