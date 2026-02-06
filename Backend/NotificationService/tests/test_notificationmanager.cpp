@@ -112,15 +112,17 @@ TEST_CASE("Test NotificationManager communitacion with RabitMQ") {
   message.text = "hi";
   publisher.saveMessage(message);
 
-  SECTION("Subscribing to rabitMQ expected rabit handles input data") {
+  SECTION("Save message expected create right publish request") {
+      nlohmann::json expected = nlohmann::json(message);
+      expected["event"] = "save_message";
 
-    CHECK(fix.mock_rabit_client.last_subscribe_request.exchange ==
+    CHECK(fix.mock_rabit_client.last_publish_request.exchange ==
     Config::Routes::exchange);
-    CHECK(fix.mock_rabit_client.last_subscribe_request.exchange_type ==
+    CHECK(fix.mock_rabit_client.last_publish_request.exchange_type ==
     Config::Routes::exchangeType);
-    CHECK(fix.mock_rabit_client.last_subscribe_request.queue ==
-    Config::Routes::messageSavedQueue);
-    CHECK(fix.mock_rabit_client.last_subscribe_request.routing_key ==
-    Config::Routes::messageSaved);
+    CHECK(fix.mock_rabit_client.last_publish_request.message ==
+    expected.dump());
+    CHECK(fix.mock_rabit_client.last_publish_request.routing_key ==
+    Config::Routes::saveMessage);
   }
 }
