@@ -1,6 +1,8 @@
 #ifndef GATEWAYCONTROLLER_H
 #define GATEWAYCONTROLLER_H
 
+#include <crow/crow.h>
+
 #include "proxyclient.h"
 
 class IEventBus;
