@@ -1,11 +1,13 @@
 #include <catch2/catch_all.hpp>
+
 #include "notificationservice/ISubscriber.h"
-#include "mocks/MockRabitMQClient.h"
 #include "notificationservice/managers/NotificationOrchestrator.h"
-#include "notificationservice/IPublisher.h"
-#include "notificationservice/SocketNotifier.h"
 #include "NetworkFacade.h"
 #include "config/Routes.h"
+#include "mocks/MockNetworkManager.h"
+#include "mocks/MockPublisher.h"
+#include "mocks/notificationservice/MockNotifier.h"
+#include "mocks/MockRabitMQClient.h"
 
 class RabitMQSubscriberTester : public RabbitNotificationSubscriber {
 public:
@@ -16,117 +18,6 @@ public:
     using RabbitNotificationSubscriber::subscribeMessageReactionSaved;
     using RabbitNotificationSubscriber::subscribeMessageSaved;
     using RabbitNotificationSubscriber::subscribeMessageStatusSaved;
-};
-
-class MockUserNetworkManager : public IUserNetworkManager {
-public:
-    std::optional<User> responce_getUserById;
-    long long last_other_user_id = -1;
-    std::optional<User> getUserById(long long other_user_id) override {
-        last_other_user_id = other_user_id;
-        return responce_getUserById;
-    }
-};
-
-class MockMessageNetworkManager : public IMessageNetworkManager {
-  public:
-    long long last_message_id = -1;
-    long long last_reaction_id = -1;
-    std::optional<long long> responce_getChatIdOfMessage;
-    std::optional<ReactionInfo> responce_getReaction;
-
-
-    std::optional<long long> getChatIdOfMessage(long long message_id) override {
-        last_message_id = message_id;
-        return responce_getChatIdOfMessage;
-    }
-
-    std::optional<ReactionInfo> getReaction(long long reaction_id) override {
-        last_reaction_id = reaction_id;
-        return responce_getReaction;
-    }
-};
-
-class MockChatNetworkManager : public IChatNetworkManager {
-    public:
-    std::vector<UserId> responce_getMembersOfChat;
-    long long last_chat_id = -1;
-
-    std::vector<UserId> getMembersOfChat(long long chat_id) override {
-        last_chat_id = chat_id;
-        return responce_getMembersOfChat;
-    }
-};
-
-class MockFacade : public INetworkFacade {
-public:
-    IUserNetworkManager& users() override {
-        return users_manager;
-    }
-    IMessageNetworkManager& messages() override {
-        return messages_manager;
-    }
-    IChatNetworkManager& chats() override {
-        return chats_manager;
-    }
-
-    MockUserNetworkManager users_manager;
-    MockMessageNetworkManager messages_manager;
-    MockChatNetworkManager chats_manager;
-};
-
-class MockPublisher : public IPublisher {
-public:
-    int calls_saveMessageStatus = 0;
-    std::vector<MessageStatus> messages_status_to_save;
-    void saveMessageStatus(MessageStatus &status) override {
-        ++calls_saveMessageStatus;
-        messages_status_to_save.push_back(status);
-    }
-
-    int calls_saveReaction = 0;
-    std::vector<Reaction> reactions_to_save;
-    void saveReaction(const Reaction &reaction) override {
-        ++calls_saveMessage;
-        reactions_to_save.push_back(reaction);
-    }
-
-    int calls_deleteReaction = 0;
-    std::vector<Reaction> reactions_to_delete;
-    void deleteReaction(const Reaction &reaction) override {
-        ++calls_deleteReaction;
-        reactions_to_delete.push_back(reaction);
-    }
-
-    int calls_saveMessage = 0;
-    std::vector<Message> messages_to_save;
-    void saveMessage(const Message &message) override {
-        ++calls_saveMessage;
-        messages_to_save.push_back(message);
-    }
-
-    int calls_deleteMessageStatus = 0;
-    std::vector<MessageStatus> messages_status_to_delete;
-    void deleteMessageStatus(const MessageStatus &message) override {
-        ++calls_deleteMessageStatus;
-        messages_status_to_delete.push_back(message);
-    }
-};
-
-class MockNotifier : public INotifier {
-public:
-    std::vector<long long> last_user_ids;
-    std::vector<nlohmann::json> last_json_message;
-    std::vector<std::string> last_types;
-    int calls_notifyMember = 0;
-
-    bool notifyMember(long long user_id, nlohmann::json json_message, std::string type) override {
-        last_user_ids.push_back(user_id);
-        last_json_message.push_back(json_message);
-        last_types.push_back(type);
-        ++calls_notifyMember;
-        return true;
-    }
 };
 
 struct NotificationOrchestratorTestFixture {

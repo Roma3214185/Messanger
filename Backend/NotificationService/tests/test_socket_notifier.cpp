@@ -2,23 +2,7 @@
 #include "notificationservice/SocketNotifier.h"
 #include "notificationservice/SocketRepository.h"
 #include "mocks/notificationservice/MockSocket.h"
-
-class MockUserSocketRepository : public IUserSocketRepository {
-public:
-    UserSocketsMap user_sockets_;
-
-    void saveConnections(UserId user_id, SocketPtr socket) override {
-        user_sockets_[user_id] = socket;
-    }
-
-    SocketPtr getUserSocket(UserId user_id) override {
-        return user_sockets_.contains(user_id) ? user_sockets_[user_id] : nullptr;
-    }
-
-    bool userOnline(UserId user_id) override {
-        return true;
-    }
-};
+#include "mocks/notificationservice/MockUserSocketRepository.h"
 
 struct SocketNotifierTestFixture {
     MockUserSocketRepository socket_repository;

@@ -17,6 +17,10 @@ add_executable(NotificationServiceTests
     test_socket_notifier.cpp
     test_rabbitsubscriber.cpp
 
+    mocks/notificationservice/src/MockUserSocketRepository.cpp
+    mocks/notificationservice/src/MockNotifier.cpp
+    mocks/notificationservice/src/MockSocket.cpp
+
 )
 
 set_target_properties(NotificationServiceTests PROPERTIES
@@ -33,6 +37,8 @@ target_link_libraries(NotificationServiceTests
         ProjectOptions
         BackendMocks
 )
+
+target_include_directories(NotificationServiceTests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_target_properties(NotificationServiceTests PROPERTIES AUTOMOC ON)
 
