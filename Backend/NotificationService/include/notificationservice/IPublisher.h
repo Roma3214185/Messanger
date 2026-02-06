@@ -23,7 +23,7 @@ class RabbitNotificationPublisher : public IPublisher {
  public:
   RabbitNotificationPublisher(IEventPublisher *mq_client);
 
- private:
+ //private:
   void saveMessageStatus(MessageStatus &status) override;
   void saveDeliveryStatus(const Message &msg, long long receiver_id) override;
   void saveReaction(const Reaction &reaction) override;

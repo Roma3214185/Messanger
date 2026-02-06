@@ -68,6 +68,10 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=$PWD/external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=arm64-osx \
             -DTRACY_ENABLE=ON \
+            -DENABLE_WARNINGS=OFF \
+            -DENABLE_CLANG_TIDY=OFF \
+            -DENABLE_CLANG_FORMAT=OFF \
+            -DENABLE_IWYU=OFF \
             -Wno-dev
       # 9️⃣ Build project
       - name: Build

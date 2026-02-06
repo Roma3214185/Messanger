@@ -24,7 +24,7 @@ class ISocketUseCase : public QObject {
   virtual void sendInSocket(const QJsonObject &text) = 0;
 
  private:
-  virtual void onMessageReceived(const QString &msg);
+  virtual void onMessageReceived(const QString &msg) = 0;
 
  Q_SIGNALS:
   // void chatAdded(long long id);

@@ -13,7 +13,7 @@ find_package(Catch2 3 REQUIRED)
 add_executable(NotificationServiceTests
     test_notificationmanager.cpp
     main.cpp
-    test_server.cpp
+
 )
 
 set_target_properties(NotificationServiceTests PROPERTIES

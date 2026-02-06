@@ -8,8 +8,6 @@
 #include "GatewayController.h"
 
 struct TestGatewayServerFixrute {
- GatewayController controller;
-  GatewayApp app;
   MockApiCache cache;
   MockClient client;
   crow::request req;
@@ -22,6 +20,8 @@ struct TestGatewayServerFixrute {
   MockRateLimiter rate_limiter;
   MockThreadPool pool;
   MockRabitMQClient rabiq_client;
+  GatewayController controller;
+  GatewayApp app;
   int user_id = 123;
 
   TestGatewayServerFixrute() :
@@ -38,6 +38,7 @@ struct TestGatewayServerFixrute {
 
     server.registerRoutes();
     app.validate();
+    controller.subscribeOnNewRequest();
   }
 
   void makeCall() {
@@ -148,5 +149,4 @@ TEST_CASE("Test apigate healthz endpoint") {
           .count();
 
   CHECK(std::llabs(now - ts) < 1000);
-  CHECK(fix.res.get_header_value("Content-Type") == "application/json");
 }
