@@ -4,6 +4,8 @@
 #include "interfaces/IChatNetworkManager.h"
 #include "interfaces/IMessageNetworkManager.h"
 #include "interfaces/IUserNetworkManager.h"
+#include "NetworkFacade.h"
+
 
 class MockNetworkManager : public IChatNetworkManager, public IUserNetworkManager, public IMessageNetworkManager {
   std::unordered_map<long long, std::vector<long long>> mp;
@@ -28,6 +30,20 @@ class MockNetworkManager : public IChatNetworkManager, public IUserNetworkManage
     last_chat_id = chat_id;
     return mp[chat_id];
   }
+};
+
+class MockFacade : public INetworkFacade {
+    MockNetworkManager manager_;
+public:
+    MockFacade(MockNetworkManager& manager) : manager_(manager) {
+
+    }
+
+    IUserNetworkManager& users() override { return manager_; }
+    IMessageNetworkManager& messages() override { return manager_; }
+    IChatNetworkManager& chats() override { return manager_; }
+
+
 };
 
 #endif  // MOCKNETWORKMANAGER_H
