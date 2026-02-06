@@ -13,6 +13,8 @@
 #include "notificationservice/IPublisher.h"
 #include "notificationservice/ISubscriber.h"
 #include "notificationservice/SocketNotifier.h"
+#include "proxyclient.h"
+#include "RealHttpClient.h"
 
 RabbitMQConfig getConfig() {
   RabbitMQConfig config;
@@ -23,12 +25,23 @@ RabbitMQConfig getConfig() {
   return config;
 }
 
+void initHandlers(SocketHandlers& handlers_, IPublisher *publisher, IUserSocketRepository *socket_repository) {
+    handlers_["init"] = std::make_unique<InitMessageHandler>(socket_repository);
+    handlers_["send_message"] = std::make_unique<SendMessageHandler>(publisher);
+    handlers_["read_message"] = std::make_unique<MarkReadMessageHandler>(publisher);
+    handlers_["save_reaction"] = std::make_unique<SaveMessageReactionHandler>(publisher);
+    handlers_["delete_reaction"] = std::make_unique<DeleteMessageReactionHandler>(publisher);
+}
+
 int main() {
   initLogger("NotifiactionService");
   RabbitMQConfig config = getConfig();
   ThreadPool pool;
   RabbitMQClient mq(config, &pool);
-  NetworkManager network_manager;
+  RealHttpClient client;
+  ProxyClient proxy(&client);
+
+  NetworkFacade network_manager(&proxy);
   SocketRepository socket_repository;
 
   RabbitNotificationPublisher publisher(&mq);
@@ -36,11 +49,12 @@ int main() {
 
   NotificationOrchestrator notifManager(&network_manager, &publisher, &notifier);
   RabbitNotificationSubscriber subscriber(&mq, &notifManager);
-  subscriber.subscribeAll();
 
   SocketHandlersRepository socket_handlers;
-  socket_handlers.initHandlers(&publisher, &socket_repository);
+  SocketHandlers handlers;
+  initHandlers(handlers, &publisher, &socket_repository);
+  socket_handlers.setHandlers(std::move(handlers));
 
-  Server server(Config::Ports::notificationService, &socket_repository, &socket_handlers);
+  Server server(Config::Ports::notificationService, &socket_repository, &socket_handlers, &subscriber);
   server.run();
 }

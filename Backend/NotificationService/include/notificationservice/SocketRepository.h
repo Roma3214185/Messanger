@@ -36,6 +36,11 @@ class SocketRepository : public IActiveSocketRepository, public IUserSocketRepos
   SocketPtr getUserSocket(UserId) override;
   bool userOnline(UserId) override;
 
+  private:
+    void deleteFromActiveConnections(const SocketPtr &conn_to_delete);
+    void deleteFromUserSocketsMap(const SocketPtr &conn_to_delete);
+
+
  private:
   AvtiveSockets active_sockets_;
   UserSocketsMap user_sockets_;

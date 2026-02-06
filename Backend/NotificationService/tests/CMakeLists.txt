@@ -11,8 +11,11 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
 find_package(Catch2 3 REQUIRED)
 
 add_executable(NotificationServiceTests
-    test_notificationmanager.cpp
+    test_rabitmqpublisher.cpp
     main.cpp
+    test_socket_repository.cpp
+    test_socket_notifier.cpp
+    test_rabbitsubscriber.cpp
 
 )
 

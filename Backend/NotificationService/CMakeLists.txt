@@ -75,6 +75,8 @@ add_executable(NotificationService
     include/notificationservice/IPublisher.h
     include/notificationservice/ISubscriber.h
     include/notificationservice/SocketNotifier.h
+    src/handlers/SocketHandlersRepository.cpp
+    src/RabbitNotificationSubscriber.cpp
 )
 
 target_link_libraries(NotificationService PRIVATE NotificationServiceCore)

@@ -10,15 +10,15 @@ class ISubscriber {
   virtual void subscribeAll() = 0;
 };
 
-class RabbitNotificationSubscriber {
+class RabbitNotificationSubscriber : public ISubscriber {
   NotificationOrchestrator* notification_orchestrator_;
   IEventSubscriber* mq_client_;
 
  public:
   RabbitNotificationSubscriber(IEventSubscriber* mq_client, NotificationOrchestrator* notification_orchestrator);
-  void subscribeAll();
+  void subscribeAll() override;
 
- private:
+ protected:
   void subscribeMessageDeleted();
   void subscribeMessageReactionDeleted();
   void subscribeMessageReactionSaved();
