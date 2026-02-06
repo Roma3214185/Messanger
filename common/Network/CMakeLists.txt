@@ -16,9 +16,9 @@ if(NOT TARGET Network)
 
     add_library(Network STATIC
         src/IChatNetworkManager.cpp
-        src/INetworkManagerBase.cpp
         src/IUserNetworkManager.cpp
         src/IMessageNetworkManager.cpp
+        src/proxyclient.cpp
     )
 
     target_compile_features(Network PUBLIC cxx_std_20)

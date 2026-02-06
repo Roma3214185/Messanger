@@ -4,10 +4,18 @@
 #include "config/codes.h"
 #include "config/ports.h"
 #include "entities/User.h"
+#include "proxyclient.h"
+#include "ForwardRequestDTO.h"
+#include "entities/RequestDTO.h"
 
-std::optional<User> IUserNetworkManager::getUserById(long long other_user_id) {
+UserNetworkManager::UserNetworkManager(ProxyClient* proxy) : proxy_(proxy) {}
+
+std::optional<User> UserNetworkManager::getUserById(long long other_user_id) {
   const std::string path = "/users/" + std::to_string(other_user_id);
-  auto [code, body] = forward(Config::Ports::userService, "", path, "GET");
+  RequestDTO request;
+  request.method = "GET";
+  request.path = path;
+  auto [code, body] = proxy_->forward(request, Config::Ports::userService);
 
   if (code != Config::StatusCodes::success) {
     LOG_ERROR("getUserById failed: {}", code);
