@@ -16,4 +16,8 @@ long long getCurrentTime() {
       .count();
 }
 
+void addFiledToJson(nlohmann::json& josn, const std::string &field, const std::string &value) {
+    josn[field] = value;
+}
+
 }  // namespace utils

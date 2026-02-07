@@ -5,10 +5,19 @@
 #include "config/ports.h"
 #include "entities/ReactionInfo.h"
 #include "utils.h"
+#include "entities/RequestDTO.h"
+#include "proxyclient.h"
 
-std::optional<long long> IMessageNetworkManager::getChatIdOfMessage(long long message_id) {
+MessageNetworkManager::MessageNetworkManager(ProxyClient* proxy) : proxy_(proxy) {}
+
+std::optional<long long> MessageNetworkManager::getChatIdOfMessage(long long message_id) {
   const std::string path = "/message/" + std::to_string(message_id);
-  auto [code, body] = forward(Config::Ports::messageService, "", path, "GET");
+    RequestDTO request;
+  request.path = path;
+    request.method = "GET";
+  auto [code, body] = proxy_->forward(request, Config::Ports::messageService);
+
+
   LOG_INFO("getChatIdOfMessage received {} and body {}", code, body);
   if (code != Config::StatusCodes::success) {
     LOG_ERROR("getChatIdOfMessage failed: {}", code);
@@ -37,9 +46,12 @@ std::optional<long long> IMessageNetworkManager::getChatIdOfMessage(long long me
   }
 }
 
-std::optional<ReactionInfo> IMessageNetworkManager::getReaction(long long reaction_id) {
+std::optional<ReactionInfo> MessageNetworkManager::getReaction(long long reaction_id) {
   const std::string path = "/reaction/" + std::to_string(reaction_id);  // todo: new service
-  auto [code, body] = forward(Config::Ports::reactionService, "", path, "GET");
+    RequestDTO request;
+    request.path = path;
+    request.method = "GET";
+  auto [code, body] = proxy_->forward(request, Config::Ports::reactionService);
   LOG_INFO("getChatIdOfMessage received {} and body {}", code, body);
   if (code != Config::StatusCodes::success) {
     LOG_ERROR("getChatIdOfMessage failed: {}", code);

@@ -20,6 +20,7 @@ static constexpr const char *saveReaction = "save_message_reaction";
 static constexpr const char *deleteReaction = "delete_message_reaction";
 static constexpr const char *messageReactionDeleted = "message_reaction_deleted";
 static constexpr const char *messageReactionSaved = "message_reaction_saved";
+static constexpr const char *deleteMessageStatus = "delete_message_status";
 }  // namespace Config::Routes
 
 #endif  // ROUTES_H

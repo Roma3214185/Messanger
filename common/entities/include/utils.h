@@ -21,6 +21,8 @@ std::optional<long long> getIdFromStr(const std::string &str);
 
 long long getCurrentTime();
 
+void addFiledToJson(nlohmann::json& josn, const std::string &field, const std::string &value);
+
 }  // namespace utils
 
 #endif  // COMMON_ENTITIES_INCLUDE_UTILS_H

@@ -4,15 +4,16 @@
 #include <crow.h>
 
 class ISocket;
-class ISocketHandlersRepository;
+class SocketHandlersRepository;
 class IActiveSocketRepository;
+class ISubscriber;
 
 using SocketPtr = std::shared_ptr<ISocket>;
 
 class Server {
  public:
   Server(int port, IActiveSocketRepository* active_socket_repository,
-         ISocketHandlersRepository* socket_handlers_repository);
+         SocketHandlersRepository* socket_handlers_repository, ISubscriber* subscriber);
   void run();
 
  protected:
@@ -23,9 +24,10 @@ class Server {
   void handleSocketRoutes();
 
   crow::SimpleApp app_;
-  ISocketHandlersRepository* socket_handlers_repository_;
-  const int notification_port_;
+  ISubscriber* subscriber_;
   IActiveSocketRepository* active_sockets_;
+  SocketHandlersRepository* socket_handlers_repository_;
+  const int notification_port_;
 };
 
 #endif  // BACKEND_NOTIFICATIONSERVICE_SERVER_SERVER_H_

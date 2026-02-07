@@ -15,6 +15,8 @@
 #include "chatservice/chatserver.h"
 #include "config/ports.h"
 #include "chatservice/JwtAuthoritizer.h"
+#include "proxyclient.h"
+#include "RealHttpClient.h"
 
 int main(int argc, char *argv[]) {
   initLogger("ChatService");
@@ -49,7 +51,9 @@ int main(int argc, char *argv[]) {
   GeneratorId generator(service_id);
   GenericRepository genetic_rep(&executor, RedisCache::instance());
   ChatManager manager(&genetic_rep, &generator);  // TODO: pass executor to mock
-  NetworkManager network_manager;
+  RealHttpClient client;
+  ProxyClient proxy(&client);
+  NetworkFacade network_manager(&proxy);
   crow::SimpleApp app;
   JwtAuthoritizer authoritizer;
   ChatController controller(&manager, &network_manager, &authoritizer);

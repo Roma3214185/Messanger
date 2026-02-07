@@ -6,44 +6,61 @@
 #include "interfaces/IUserNetworkManager.h"
 #include "NetworkFacade.h"
 
+class MockMessageNetworkManager : public IMessageNetworkManager {
+public:
+    long long last_message_id = -1;
+    long long last_reaction_id = -1;
+    std::optional<long long> responce_getChatIdOfMessage;
+    std::optional<ReactionInfo> responce_getReaction;
 
-class MockNetworkManager : public IChatNetworkManager, public IUserNetworkManager, public IMessageNetworkManager {
-  std::unordered_map<long long, std::vector<long long>> mp;
 
- public:
-  int call_getMembersOfChat = 0;
-  int call_getUserById = 0;
-  long long last_chat_id;
-  long long last_user_id;
-  std::optional<User> mock_user;
+    std::optional<long long> getChatIdOfMessage(long long message_id) override {
+        last_message_id = message_id;
+        return responce_getChatIdOfMessage;
+    }
 
-  void setChatMembers(int chat_id, std::vector<long long> ids) { mp[chat_id] = ids; }
+    std::optional<ReactionInfo> getReaction(long long reaction_id) override {
+        last_reaction_id = reaction_id;
+        return responce_getReaction;
+    }
+};
 
-  std::optional<User> getUserById(long long otherUserId) override {
-    ++call_getUserById;
-    last_user_id = otherUserId;
-    return mock_user;
-  }
+class MockChatNetworkManager : public IChatNetworkManager {
+public:
+    std::vector<UserId> responce_getMembersOfChat;
+    long long last_chat_id = -1;
 
-  std::vector<UserId> getMembersOfChat(long long chat_id) override {
-    ++call_getMembersOfChat;
-    last_chat_id = chat_id;
-    return mp[chat_id];
-  }
+    std::vector<UserId> getMembersOfChat(long long chat_id) override {
+        last_chat_id = chat_id;
+        return responce_getMembersOfChat;
+    }
+};
+
+class MockUserNetworkManager : public IUserNetworkManager {
+public:
+    std::optional<User> responce_getUserById;
+    long long last_other_user_id = -1;
+    std::optional<User> getUserById(long long other_user_id) override {
+        last_other_user_id = other_user_id;
+        return responce_getUserById;
+    }
 };
 
 class MockFacade : public INetworkFacade {
-    MockNetworkManager manager_;
 public:
-    MockFacade(MockNetworkManager& manager) : manager_(manager) {
-
+    IUserNetworkManager& users() override {
+        return users_manager;
+    }
+    IMessageNetworkManager& messages() override {
+        return messages_manager;
+    }
+    IChatNetworkManager& chats() override {
+        return chats_manager;
     }
 
-    IUserNetworkManager& users() override { return manager_; }
-    IMessageNetworkManager& messages() override { return manager_; }
-    IChatNetworkManager& chats() override { return manager_; }
-
-
+    MockUserNetworkManager users_manager;
+    MockMessageNetworkManager messages_manager;
+    MockChatNetworkManager chats_manager;
 };
 
 #endif  // MOCKNETWORKMANAGER_H

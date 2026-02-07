@@ -11,8 +11,17 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network WebSockets Gui Test)
 find_package(Catch2 3 REQUIRED)
 
 add_executable(NotificationServiceTests
-    test_notificationmanager.cpp
+    test_rabitmqpublisher.cpp
     main.cpp
+    test_socket_repository.cpp
+    test_socket_notifier.cpp
+    test_rabbitsubscriber.cpp
+
+    mocks/notificationservice/src/MockUserSocketRepository.cpp
+    mocks/notificationservice/src/MockNotifier.cpp
+    mocks/notificationservice/src/MockSocket.cpp
+    test_socketHandlersRepository.cpp
+    test_messageHandlers.cpp
 
 )
 
@@ -30,6 +39,8 @@ target_link_libraries(NotificationServiceTests
         ProjectOptions
         BackendMocks
 )
+
+target_include_directories(NotificationServiceTests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_target_properties(NotificationServiceTests PROPERTIES AUTOMOC ON)
 
