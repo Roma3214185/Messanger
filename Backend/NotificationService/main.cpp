@@ -26,11 +26,11 @@ RabbitMQConfig getConfig() {
 }
 
 void initHandlers(SocketHandlers& handlers_, IPublisher *publisher, IUserSocketRepository *socket_repository) {
-    handlers_["init"] = std::make_unique<InitMessageHandler>(socket_repository);
-    handlers_["send_message"] = std::make_unique<SendMessageHandler>(publisher);
-    handlers_["read_message"] = std::make_unique<MarkReadMessageHandler>(publisher);
-    handlers_["save_reaction"] = std::make_unique<SaveMessageReactionHandler>(publisher);
-    handlers_["delete_reaction"] = std::make_unique<DeleteMessageReactionHandler>(publisher);
+    handlers_["init"] = std::make_shared<InitMessageHandler>(socket_repository);
+    handlers_["send_message"] = std::make_shared<SendMessageHandler>(publisher);
+    handlers_["read_message"] = std::make_shared<MarkReadMessageHandler>(publisher);
+    handlers_["save_reaction"] = std::make_shared<SaveMessageReactionHandler>(publisher);
+    handlers_["delete_reaction"] = std::make_shared<DeleteMessageReactionHandler>(publisher);
 }
 
 int main() {

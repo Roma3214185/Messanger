@@ -5,7 +5,7 @@
 #include "interfaces/IMessageHandler.h"
 #include "notificationservice/managers/NotificationOrchestrator.h"
 
-using SocketHandlers = std::unordered_map<std::string, std::unique_ptr<IMessageHandler>>;
+using SocketHandlers = std::unordered_map<std::string, std::shared_ptr<IMessageHandler>>;
 
 class NotificationOrchestrator;
 
