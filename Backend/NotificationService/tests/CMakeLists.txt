@@ -21,6 +21,7 @@ add_executable(NotificationServiceTests
     mocks/notificationservice/src/MockNotifier.cpp
     mocks/notificationservice/src/MockSocket.cpp
     test_socketHandlersRepository.cpp
+    test_messageHandlers.cpp
 
 )
 

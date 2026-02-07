@@ -3,6 +3,8 @@
 
 #include "notificationservice/IPublisher.h"
 #include "entities/MessageStatus.h"
+#include "entities/Reaction.h"
+#include "entities/Message.h"
 
 class MockPublisher : public IPublisher {
 public:

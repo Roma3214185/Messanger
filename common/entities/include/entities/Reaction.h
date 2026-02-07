@@ -27,9 +27,9 @@ namespace utils::entities {
 inline std::optional<Reaction> parseReaction(
     const crow::json::rvalue &json) {  // todo: make just common crow::json::rwalue -> nlohmann::json
   Reaction reaction;
-  reaction.message_id = json["message_id"].i();
-  reaction.receiver_id = json["receiver_id"].i();
-  reaction.reaction_id = json["reaction_id"].i();
+  if(json.has("message_id")) reaction.message_id = json["message_id"].i();
+  if(json.has("receiver_id")) reaction.receiver_id = json["receiver_id"].i();
+  if(json.has("reaction_id"))reaction.reaction_id = json["reaction_id"].i();
   return reaction.checkInvariants() ? std::make_optional(reaction) : std::nullopt;
 }
 
