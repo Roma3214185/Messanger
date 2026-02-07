@@ -34,7 +34,7 @@ interface IMessageHandler {
   void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket) override;
 }
 
-interface ISocketHandlersRepository {
+interface SocketHandlersRepository {
   + void handle()
 }
 
@@ -60,6 +60,12 @@ class SocketNotifier {
 
 }
 
+interface INetworkFacade {
+  + users() : IUserNetworkManager
+  + messages() : IMessageNetworkManager
+  + chats() : IChatsNetworkManager
+}
+
 interface IEventSubscriber {
   subscribe(SubscribeRequest, EventCallback) : void
 }
@@ -78,6 +84,28 @@ class NotificationOrchestrator {
   + onMessageDeleted(payload : str) : void
 }
 
+interface IUserNetworkManager {
+  + getUserById(user_id) : optional_user
+}
+
+interface IMessageNetworkManager {
+  + getChatIdOfMessage(message_id) : optional_chat_id
+}
+
+interface IChatsNetworkManager {
+  + getMembersOfChat(chat_id) : std::vector<user_id>
+}
+
+interface IClient {
+  + forward(req, port) : NetworkResponce
+}
+
+
+NetworkFacade ..|> INetworkFacade
+NetworkFacade ..|> IUserNetworkManager
+NetworkFacade ..|> IMessageNetworkManager
+NetworkFacade ..|> IChatsNetworkManager
+
 SocketNotifier ..|> INotifier
 SocketNotifier o--> IUserSocketRepository
 
@@ -90,16 +118,12 @@ RabbitNotificationPublisher o--> IEventPublisher
 
 IMessageHandler o--> ISocket
 
-Server o--> ISocketHandlersRepository
+Server o--> SocketHandlersRepository
 Server o--> IActiveSocketRepository
+Server o--> ISubcriber
 
-SocketHandlersRepository ..|> ISocketHandlersRepository
-SocketHandlersRepository *--> DeleteMessageReactionHandler
-SocketHandlersRepository *--> InitMessageHandler
-SocketHandlersRepository *--> MarkReadMessageHandler
-SocketHandlersRepository *--> SaveMessageReactionHandler
-SocketHandlersRepository *--> SendMessageHandler
-SocketHandlersRepository *--> ISocket
+SocketHandlersRepository *--> IMessageHandler
+SocketHandlersRepository o--> ISocket
 
 NotificationOrchestrator o--> IPublisher
 NotificationOrchestrator o--> INotifier
@@ -121,6 +145,23 @@ SendMessageHandler ..|> IMessageHandler
 
 DeleteMessageReactionHandler o--> IPublisher
 InitMessageHandler o--> IUserSocketRepository
+
+UserNetworkManager ..|> IUserNetworkManager
+MessageNetworkManager ..|> IMessageNetworkManager
+ChatsNetworkManager ..|> IChatsNetworkManager
+
+NetworkFacade --> UserNetworkManager
+NetworkFacade --> MessageNetworkManager
+NetworkFacade --> ChatsNetworkManager
+NetworkFacade o--> ProxyClient
+
+UserNetworkManager o--> ProxyClient
+MessageNetworkManager o--> ProxyClient
+ChatsNetworkManager o--> ProxyClient
+
+ProxyClient o--> IClient
+RealHttpClient ..|> IClient
+
 
 
 
