@@ -18,7 +18,7 @@ public:
     int calls_saveReaction = 0;
     std::vector<Reaction> reactions_to_save;
     void saveReaction(const Reaction &reaction) override {
-        ++calls_saveMessage;
+        ++calls_saveReaction;
         reactions_to_save.push_back(reaction);
     }
 

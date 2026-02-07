@@ -86,15 +86,109 @@ TEST_CASE("Test InitMessageHandler") {
     }
 }
 
-/*
+TEST_CASE("Test SaveMessageReactionHandler") {
+    MockPublisher publisher;
+    SaveMessageReactionHandler handler(&publisher);
 
-inline std::optional<Reaction> parseReaction(
-    const crow::json::rvalue &json) {  // todo: make just common crow::json::rwalue -> nlohmann::json
-  Reaction reaction;
-  reaction.message_id = json["message_id"].i();
-  reaction.receiver_id = json["receiver_id"].i();
-  reaction.reaction_id = json["reaction_id"].i();
-  return reaction.checkInvariants() ? std::make_optional(reaction) : std::nullopt;
+    SECTION("Handle message with valid saved Reaction expected Publisher call saveReaction") {
+        crow::json::wvalue w;
+        int mock_message_id = 12, mock_receiver_id = 1442, reaction_id = 10;
+        w["message_id"] = mock_message_id;
+        w["receiver_id"] = mock_receiver_id;
+        w["reaction_id"] = reaction_id;
+        crow::json::rvalue msg = crow::json::load(w.dump());
+
+        handler.handle(msg, nullptr);
+
+        REQUIRE(publisher.calls_saveReaction == 1);
+        auto reaction_to_save = publisher.reactions_to_delete[0];
+        reaction_to_save.message_id = mock_message_id;
+        reaction_to_save.receiver_id = mock_receiver_id;
+        reaction_to_save.reaction_id = reaction_id;
+    }
+
+    SECTION("Handle message with invalid saved Reaction expected Publisher no call deleteReaction") {
+        crow::json::rvalue msg = crow::json::load(R"({
+            "type": "ping"
+        })");
+
+        handler.handle(msg, nullptr);
+
+        REQUIRE(publisher.calls_saveReaction == 0);
+    }
 }
 
-*/
+TEST_CASE("Test MarkReadMessageHandler") {
+    MockPublisher publisher;
+    MarkReadMessageHandler handler(&publisher);
+
+    SECTION("Handle message with valid saved MessageStatus expected Publisher call saveMessageStatus") {
+        crow::json::wvalue w;
+        int mock_message_id = 12, mock_receiver_id = 1442;
+        w["message_id"] = mock_message_id;
+        w["readed_by"] = mock_receiver_id;
+        crow::json::rvalue msg = crow::json::load(w.dump());
+
+        handler.handle(msg, nullptr);
+
+        REQUIRE(publisher.calls_saveMessageStatus == 1);
+        auto status_to_save = publisher.messages_status_to_save[0];
+        status_to_save.message_id = mock_message_id;
+        status_to_save.receiver_id = mock_receiver_id;
+    }
+
+    SECTION("Handle message without message_id field expected Publisher no call saveMessageStatus") {
+        crow::json::wvalue w;
+        int mock_message_id = 12, mock_receiver_id = 1442;
+        w["readed_by"] = mock_receiver_id;
+        crow::json::rvalue msg = crow::json::load(w.dump());
+
+        handler.handle(msg, nullptr);
+
+        REQUIRE(publisher.calls_saveMessageStatus == 0);
+    }
+
+    SECTION("Handle message without readed_by field expected Publisher no call saveMessageStatus") {
+        crow::json::wvalue w;
+        int mock_message_id = 12, mock_receiver_id = 1442;
+        w["message_id"] = mock_message_id;
+        crow::json::rvalue msg = crow::json::load(w.dump());
+
+        handler.handle(msg, nullptr);
+
+        REQUIRE(publisher.calls_saveMessageStatus == 0);
+    }
+}
+
+TEST_CASE("Test SendMessageHandler") {
+    MockPublisher publisher;
+    SendMessageHandler handler(&publisher);
+    Message expected;
+    expected.chat_id = 12;
+    expected.local_id = "1101";
+    expected.text = "13131";
+    expected.sender_id = 1213;
+
+
+    SECTION("Handle message expected Publisher call saveMessage") {
+        crow::json::wvalue w;
+        w["chat_id"] = expected.chat_id;
+        w["text"] = expected.text;
+        w["sender_id"] = expected.sender_id;
+        w["timestamp"] = expected.timestamp;
+        w["local_id"] = expected.local_id;
+        crow::json::rvalue msg = crow::json::load(w.dump());
+
+        handler.handle(msg, nullptr);
+
+        REQUIRE(publisher.calls_saveMessage == 1);
+        REQUIRE(publisher.messages_to_save.size() == 1);
+        auto message_to_save = publisher.messages_to_save[0];
+        message_to_save.chat_id = message_to_save.chat_id;
+        message_to_save.local_id = expected.local_id;
+        message_to_save.sender_id = expected.sender_id;
+        message_to_save.text = expected.text;
+        message_to_save.timestamp = expected.timestamp;
+    }
+}
+

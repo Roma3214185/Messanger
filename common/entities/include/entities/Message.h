@@ -79,26 +79,32 @@ struct adl_serializer<Message> {
 
 namespace utils::entities {
 
-inline Message from_crow_json(const crow::json::rvalue &json_message) {
+inline std::optional<Message> from_crow_json(const crow::json::rvalue &json_message) {
   Message message;
 
   message.id = json_message.count(MessageTable::Id) ? json_message[MessageTable::Id].i() : 0;
+  if (!json_message.count(MessageTable::ChatId)) return std::nullopt;
   message.chat_id = json_message[MessageTable::ChatId].i();
+
+  if (!json_message.count(MessageTable::SenderId)) return std::nullopt;
   message.sender_id = json_message[MessageTable::SenderId].i();
+  if (!json_message.count(MessageTable::Text)) return std::nullopt;
   message.text = json_message[MessageTable::Text].s();
+  if (!json_message.count(MessageTable::LocalId)) return std::nullopt;
   message.local_id = json_message[MessageTable::LocalId].s();
 
   LOG_INFO("[Message] For text: {}, Local_id = ", message.text, message.local_id);
 
-  if (json_message.count(MessageTable::Timestamp)) {
-    const auto &ts_val = json_message[MessageTable::Timestamp];
-    if (ts_val.t() == crow::json::type::String) {
-      message.timestamp = TimestampService::parseTimestampISO8601(ts_val.s());
-    } else if (ts_val.t() == crow::json::type::Number) {
-      message.timestamp = static_cast<long long>(ts_val.i());
-    } else {
-      LOG_ERROR("Unexpected timestamp type");
-    }
+  if (!json_message.count(MessageTable::Timestamp)) return std::nullopt;
+
+  const auto &ts_val = json_message[MessageTable::Timestamp];
+  if (ts_val.t() == crow::json::type::String) {
+    message.timestamp = TimestampService::parseTimestampISO8601(ts_val.s());
+  } else if (ts_val.t() == crow::json::type::Number) {
+    message.timestamp = static_cast<long long>(ts_val.i());
+  } else {
+    LOG_ERROR("Unexpected timestamp type");
+            return std::nullopt;
   }
 
   if (json_message.has(MessageTable::AnswerOn)) {
