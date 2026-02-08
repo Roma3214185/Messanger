@@ -1,4 +1,4 @@
-#include "MessageListView.h"
+#include "ui/MessageListView.h"
 
 #include <QListView>
 #include <QObject>

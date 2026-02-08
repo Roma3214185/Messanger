@@ -1,4 +1,4 @@
-#include "MessageActionPanel.h"
+#include "ui/MessageActionPanel.h"
 #include "Debug_profiling.h"
 
 MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<ReactionInfo> &reactions, QWidget *parent)

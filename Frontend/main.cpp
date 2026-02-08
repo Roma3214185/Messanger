@@ -4,7 +4,7 @@
 #include "Debug_profiling.h"
 #include "RealSocket.h"
 #include "RedisClient.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "managers/datamanager.h"
 #include "managers/networkaccessmanager.h"
 #include "managers/Managers.h"

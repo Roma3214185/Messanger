@@ -8,7 +8,7 @@
 
 #include "Debug_profiling.h"
 #include "JsonService.h"
-#include "MessageListView.h"
+#include "ui/MessageListView.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/MessageStatus.h"

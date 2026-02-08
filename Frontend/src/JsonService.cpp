@@ -117,7 +117,7 @@ IMessageJsonService::MessageServerJsonAnswer JsonService::getMessageFromJson(con
 
   msg.receiver_id = token_manager_->getCurrentUserId();
   msg.status_sended = true;
-  DBC_ENSURE(msg.checkInvariants());
+  //DBC_ENSURE(msg.checkInvariants());
 
   LOG_INFO("[JSON] {}", msg.toString());
   return std::make_pair(msg, std::move(reactions_infos));

@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 #include <QFrame>
 #include <QMenu>
@@ -12,9 +12,10 @@
 #include "../forms/ui_mainwindow.h"
 #include "DataInputService.h"
 #include "Debug_profiling.h"
-#include "MessageActionPanel.h"
-#include "MessageListView.h"
-#include "clickoutsideclosablelistview.h"
+#include "ui/MessageActionPanel.h"
+#include "ui/MessageListView.h"
+#include "ui/utilsui.h"
+#include "ui/clickoutsideclosablelistview.h"
 #include "delegators/DelegatorsFactory.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
@@ -25,7 +26,6 @@
 #include "models/messagemodel.h"
 #include "presenter.h"
 #include "utils.h"
-#include "utilsui.h"
 
 namespace MessageRoles {
 enum { MessageIdRole = Qt::UserRole + 1, MessageTextRole };

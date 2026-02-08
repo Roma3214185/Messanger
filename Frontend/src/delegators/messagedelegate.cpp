@@ -10,7 +10,7 @@
 
 #include "managers/datamanager.h"
 #include "models/messagemodel.h"
-#include "utilsui.h"
+#include "ui/utilsui.h"
 
 namespace {
 
