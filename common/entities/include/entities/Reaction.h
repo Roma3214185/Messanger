@@ -24,22 +24,20 @@ struct Reaction final {
 
 namespace utils::entities {
 
-inline std::optional<Reaction> parseReaction(
-    const crow::json::rvalue &json) {
+inline std::optional<Reaction> parseReaction(const crow::json::rvalue &json) {
   Reaction reaction;
-  if(json.has("message_id")) reaction.message_id = json["message_id"].i();
-  if(json.has("receiver_id")) reaction.receiver_id = json["receiver_id"].i();
-  if(json.has("reaction_id"))reaction.reaction_id = json["reaction_id"].i();
+  if (json.has("message_id")) reaction.message_id = json["message_id"].i();
+  if (json.has("receiver_id")) reaction.receiver_id = json["receiver_id"].i();
+  if (json.has("reaction_id")) reaction.reaction_id = json["reaction_id"].i();
   return reaction.checkInvariants() ? std::make_optional(reaction) : std::nullopt;
 }
 
-inline std::optional<Reaction> parseLongLong(
-    const crow::json::rvalue &json, const std::string& field) {
-    Reaction reaction;
-    if(json.has("message_id")) reaction.message_id = json["message_id"].i();
-    if(json.has("receiver_id")) reaction.receiver_id = json["receiver_id"].i();
-    if(json.has("reaction_id"))reaction.reaction_id = json["reaction_id"].i();
-    return reaction.checkInvariants() ? std::make_optional(reaction) : std::nullopt;
+inline std::optional<Reaction> parseLongLong(const crow::json::rvalue &json, const std::string &field) {
+  Reaction reaction;
+  if (json.has("message_id")) reaction.message_id = json["message_id"].i();
+  if (json.has("receiver_id")) reaction.receiver_id = json["receiver_id"].i();
+  if (json.has("reaction_id")) reaction.reaction_id = json["reaction_id"].i();
+  return reaction.checkInvariants() ? std::make_optional(reaction) : std::nullopt;
 }
 
 }  // namespace utils::entities

@@ -11,10 +11,9 @@ class NotificationOrchestrator;
 
 class SocketHandlersRepository {
  public:
+  void setHandlers(SocketHandlers &&handlers);
 
-    void setHandlers(SocketHandlers&& handlers);
-
-    void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket);
+  void handle(const crow::json::rvalue &message, const std::shared_ptr<ISocket> &socket);
 
  private:
   SocketHandlers handlers_;

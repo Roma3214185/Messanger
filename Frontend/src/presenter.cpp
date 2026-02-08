@@ -27,8 +27,7 @@
 #include "usecases/userusecase.h"
 #include "utils.h"
 
-Presenter::Presenter(IMainWindow *window, Model *manager)
-    : view_(window), manager_(manager)  {}
+Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
 void Presenter::initialise() {
   view_->setChatModel(manager_->getChatModel());

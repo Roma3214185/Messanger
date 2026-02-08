@@ -8,13 +8,13 @@
 #include "entities/RequestDTO.h"
 #include "proxyclient.h"
 
-ChatNetworkManager::ChatNetworkManager(ProxyClient* proxy) : proxy_(proxy) {}
+ChatNetworkManager::ChatNetworkManager(ProxyClient *proxy) : proxy_(proxy) {}
 
 std::vector<UserId> ChatNetworkManager::getMembersOfChat(long long chat_id) {
   const std::string path = "/chats/" + std::to_string(chat_id) + "/members";
-    RequestDTO request;
+  RequestDTO request;
   request.method = "GET";
-    request.path = path;
+  request.path = path;
   auto [code, body] = proxy_->forward(request, Config::Ports::chatService);
 
   if (code != Config::StatusCodes::success) {

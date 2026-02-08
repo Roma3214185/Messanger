@@ -104,7 +104,7 @@ inline std::optional<Message> from_crow_json(const crow::json::rvalue &json_mess
     message.timestamp = static_cast<long long>(ts_val.i());
   } else {
     LOG_ERROR("Unexpected timestamp type");
-            return std::nullopt;
+    return std::nullopt;
   }
 
   if (json_message.has(MessageTable::AnswerOn)) {

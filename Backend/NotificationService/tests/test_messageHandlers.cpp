@@ -106,11 +106,7 @@ TEST_CASE("Test SaveMessageReactionHandler") {
         reaction_to_save.receiver_id = mock_receiver_id;
         reaction_to_save.reaction_id = reaction_id;
     }
-}
 
-TEST_CASE("Test SaveMessageReactionHandler") {
-    MockPublisher publisher;
-    SaveMessageReactionHandler handler(&publisher);
     SECTION("Handle message with invalid saved Reaction expected Publisher no call deleteReaction") {
         crow::json::rvalue msg = crow::json::load(R"({
             "type": "ping"

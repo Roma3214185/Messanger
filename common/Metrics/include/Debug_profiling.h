@@ -213,8 +213,10 @@ class ContractViolationError : public std::logic_error {
 
 [[noreturn]] inline void handleContractViolation(const ContractViolation &v) { throw ContractViolationError(v); }
 
-template<bool> struct CompileTimeError;
-template<> struct CompileTimeError<true> {};
+template <bool>
+struct CompileTimeError;
+template <>
+struct CompileTimeError<true> {};
 
 /*
 template<bool> struct CompileTimeChecker
@@ -229,9 +231,7 @@ class ERROR_##msg {}; \
 }
 */
 
-
-#define STATIC_CHECK(expr) \
-(CompileTimeError<(expr) != 0>())
+#define STATIC_CHECK(expr) (CompileTimeError<(expr) != 0>())
 
 #define CONTRACT_CHECK(level, expr)                                          \
   do {                                                                       \
