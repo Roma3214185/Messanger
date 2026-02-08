@@ -36,7 +36,7 @@ class MainWindow final : public QMainWindow, public IMainWindow {
   void setChatWindow(std::shared_ptr<ChatBase> chat) override;
   void setChatModel(ChatModel *model) override;
   void setUserModel(UserModel *user_model) override;
-  void clearFindUserEdit() override;
+  void clearFindUserEdit();
   void showError(const QString &error) override;
   void setCurrentChatIndex(QModelIndex chat_idx) override;
   bool eventFilter(QObject *, QEvent *event) override;

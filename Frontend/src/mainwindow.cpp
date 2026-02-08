@@ -124,6 +124,7 @@ void MainWindow::setupUserListView() {
   user_list_view_->setItemDelegate(delegators_factory_->getUserDelegate(user_list_view_));
 
   connect(user_list_view_, &QListView::clicked, this, [this](const QModelIndex &index) -> void {
+    clearFindUserEdit();
     long long user_id = index.data(UserModel::UserIdRole).toLongLong();
     presenter_->onUserClicked(user_id);
   });
@@ -520,7 +521,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
   return false;
 }
 
-void MainWindow::closeEmojiMenu(bool close_manually /* = true */) {
+void MainWindow::closeEmojiMenu(bool close_manually) {
   if (!emoji_menu_) return;
   emoji_menu_->close();
 

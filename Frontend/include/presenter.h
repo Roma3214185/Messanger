@@ -23,29 +23,25 @@ class LogInRequest;
 class User;
 class Reaction;
 
-template <typename T>
-using Optional = std::optional<T>;
 using OptionalId = std::optional<long long>;
 
 class Presenter : public QObject {
   Q_OBJECT
  public:
   using SocketHandlersMap = std::unordered_map<std::string, std::unique_ptr<ISocketResponceHandler>>;
-
   Presenter(IMainWindow *window, Model *manager);
 
   void signIn(const LogInRequest &login_request);
   void initialise();
   void setMessageListView(IMessageListView *message_list_view);
-  void signUp(const SignUpRequest &req);
+  void signUp(const SignUpRequest &signup_request);
   void onChatClicked(const long long chat_id);
   void findUserRequest(const QString &text);
   void onUserClicked(const long long user_id, const bool is_user = true);
-  void sendButtonClicked(QTextDocument *doc, std::optional<long long> answer_on_message_id);
+  void sendButtonClicked(QTextDocument *document_with_text_to_send, OptionalId answer_on_message_id);
   void onLogOutButtonClicked();
-  void onScroll(int value);
   void onUnreadMessage(Message &message);
-  void editMessage(Message &message_to_edit, QTextDocument *doc);
+  void editMessage(Message &message_to_edit, QTextDocument *edited_text);
 
   void deleteMessage(const Message &message);
   void reactionClicked(const Message &message, long long reaction_id);
@@ -61,8 +57,8 @@ class Presenter : public QObject {
 
  protected:
   void setCurrentChatId(long long chat_id);
-  void newMessage(Message &message);
-  void onNewResponce(QJsonObject &json_object);
+  void onMessageReceivedFromSocket(const Message &message);
+  void onNewSocketMessage(const QJsonObject &socket_message);
 
   OptionalId current_opened_chat_id_;
   std::optional<User> current_user_;
@@ -74,6 +70,8 @@ class Presenter : public QObject {
   void onErrorOccurred(const QString &error);
   void saveReaction(const Reaction &reaction);
   void deleteReaction(const Reaction &reaction);
+  void showError(const QString &error);
+  void onChatWidgetScroll(int distance_from_top);
 
   SocketHandlersMap socket_responce_handlers_;
   IMainWindow *view_;
