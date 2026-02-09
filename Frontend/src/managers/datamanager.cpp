@@ -6,9 +6,10 @@
 
 namespace {
 
-void decrease(std::unordered_map<long long, int> &reactions, long long reaction_id) {
-  reactions[reaction_id]--;
-  if (reactions[reaction_id] <= 0) reactions.erase(reaction_id);
+void decrease(std::unordered_map<long long, int> &reactions, std::optional<long long> reaction_id) {
+  if(!reaction_id.has_value()) return;
+  reactions[*reaction_id]--;
+  if (reactions[*reaction_id] <= 0) reactions.erase(*reaction_id);
 }
 
 bool isMyReaction(const Message &message, const Reaction &reaction) {
@@ -53,11 +54,7 @@ MessageModelPtr DataManager::getMessageModel(long long chat_id) {
 
 ChatPtr DataManager::getChat(long long chat_id) {
   auto chat_iter = chats_by_id_.find(chat_id);
-  if (chat_iter == chats_by_id_.end()) {
-    return nullptr;  // todo: maybe return empty chat but then load all
-                     // messages??
-  }
-  return chat_iter->second;
+  return chat_iter != chats_by_id_.end() ? chat_iter->second : nullptr;
 }
 
 int DataManager::getNumberOfExistingChats() const noexcept { return static_cast<int>(chats_by_id_.size()); }
@@ -76,28 +73,15 @@ void DataManager::clearAll() {
   clearAllChats();
 }
 
-// void DataManager::deleteChat(long long id) {
-//   if(id <= 0) return LOG_WARN("Invalid id to delete chat");
-//   auto it = chats_by_id_.find(id);
-//   if(it != chats_by_id_.end()) {
-//      Q_EMIT chatDeleted(it->second);
-//      chats_by_id_.erase(chat->chat_id);
-//      message_models_by_chat_id_.erase(chat->chat_id);
-//    } else {
-//      LOG_WARN();
-//    }
-// }
-
 void DataManager::save(const ChatPtr &chat, MessageModelPtr message_model) {
   DBC_REQUIRE(chat->chat_id > 0);
+  save(chat->default_reactions);
   if (!message_model) message_model = std::make_shared<MessageModel>();
 
   const std::scoped_lock lock(chat_mutex_);
   bool chat_was = chats_by_id_.contains(chat->chat_id);
   chats_by_id_[chat->chat_id] = chat;
   message_models_by_chat_id_[chat->chat_id] = message_model;
-  save(chat->default_reactions);
-  // for (const auto &reaction : chat->default_reactions) save(reaction);
   if (!chat_was) Q_EMIT chatAdded(chat);
 }
 
@@ -116,23 +100,21 @@ std::optional<User> DataManager::getUser(UserId user_id) {
 
 std::optional<Message> DataManager::getMessageById(const long long message_id) {
   DBC_REQUIRE(message_id > 0);
-  auto it = std::ranges::find_if(messages_, [&](const auto &message) { return message.id == message_id; });
+  auto it = getIterMessageById(message_id);
   return it == messages_.end() ? std::nullopt : std::make_optional(*it);
 }
 
 void DataManager::save(const Message &message) {
   const std::scoped_lock lock(messages_mutex_);
-  auto it = std::ranges::find_if(messages_, [&](const auto &existing_message) {
-    return existing_message.local_id == message.local_id;  // id from server here can be null
-  });
-  LOG_INFO("To Save message text {}, id{}, local_id{}, and sended_status is {}", message.getFullText().toStdString(),
-           message.id, message.local_id.toStdString(), message.status_sended);
+  auto it = getIterMessageByLocalId(message.local_id);
+  LOG_INFO("To Save message {}", message().toString());
+
   if (it != messages_.end()) {
-    LOG_INFO("Message {} already exist", message.getFullText().toStdString());
+    LOG_INFO("Message already exist");
     DBC_REQUIRE(it->id == 0 || it->id == message.id);
     it->updateFrom(message);
   } else {
-    LOG_INFO("Message {} added", message.getFullText().toStdString());
+    LOG_INFO("Message will be added");
     messages_.push_back(message);
   }
 
@@ -142,47 +124,35 @@ void DataManager::save(const Message &message) {
 
 void DataManager::deleteMessage(const Message &msg) {
   const std::scoped_lock lock(messages_mutex_);
-  auto it = std::ranges::find_if(messages_, [&](const Message &existing_message) {
-    return existing_message.local_id == msg.local_id;  // id from server here can be null
-  });
-
-  if (it != messages_.end()) {
-    LOG_INFO("Delete message {}", msg.toString());
-    messages_.erase(it);
-  } else {
+  auto it = getIterMessageByLocalId(msg.local_id);
+  if (it == messages_.end()) {
     LOG_WARN("Message {} to delete not found", msg.toString());
     return;
   }
 
+  LOG_INFO("Delete message {}", msg.toString());
+  messages_.erase(it);
   Q_EMIT messageDeleted(msg);
 }
 void DataManager::save(const MessageStatus &message_status) {
   std::scoped_lock lock(messages_mutex_);
-  DBC_REQUIRE(message_status.message_id > 0);
-  DBC_REQUIRE(message_status.receiver_id > 0);
+  DBC_REQUIRE(message_status.checkInvariants());
   DBC_REQUIRE(message_status.is_read);
-  auto it = getIterMessageById(message_status.message_id);
-  if (it == messages_.end()) {
-    LOG_WARN("To read message with id {} not found",
-             message_status.message_id);  // can be if u delete message for yourself
-    return;
-  }
 
-  if (!it->receiver_read_status) {
+  auto it = getIterMessageById(message_status.message_id);
+  if (it == messages_.end()) { // can be if u delete message for yourself
+    LOG_WARN("To read message with id {} not found", message_status.message_id);
+  } else if (it->receiver_read_status) { // sometimes will be because i firstly save offline
+    LOG_INFO("{} is already marked readed", it->toString());
+  } else {
     it->read_counter++;
     it->receiver_read_status = true;
-    LOG_INFO("{} is marked readed", it->toString());
-    Q_EMIT messageAdded(*it);  // todo: rename messageChanged
-
-    // auto* model = getMessageModel(it->chat_id);
-    // model->updateMessage(*it);
-  } else {
-    LOG_INFO("{} is already marked readed", it->toString());
+    Q_EMIT messageAdded(*it); //todo: messageChanged
   }
 }
 
 void DataManager::save(const ReactionInfo &reaction_info) {
-  reactions_[reaction_info.id] = reaction_info;  // todo: map of locks ??
+  reactions_[reaction_info.id] = reaction_info;  // todo: map of locks
 }
 
 std::optional<ReactionInfo> DataManager::getReactionInfo(long long reaction_id) {
@@ -196,7 +166,7 @@ void DataManager::deleteReaction(const Reaction &reaction_to_delete) {
   DBC_REQUIRE(reaction_to_delete.checkInvariants());
   auto iter_on_message = getIterMessageById(reaction_to_delete.message_id);
   if (iter_on_message == messages_.end()) {
-    DBC_UNREACHABLE();
+    LOG_INFO("To delete reaction message not found");
     return;
   }
 
@@ -237,11 +207,8 @@ void DataManager::save(const Reaction &reaction_to_save) {
   // todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
   message_to_save_reaction.reactions[reaction_to_save.reaction_id]++;
 
-  if (my_reaction) {
-    // it's my reaction, so i need to delete my old reaction if it setted, and set new one
-    if (message_to_save_reaction.receiver_reaction.has_value()) {
-      decrease(message_to_save_reaction.reactions, message_to_save_reaction.receiver_reaction.value());
-    }
+  if (my_reaction) { // it's my reaction, so i need to delete my old reaction if it setted, and set new one
+    decrease(message_to_save_reaction.reactions, message_to_save_reaction.receiver_reaction);
     message_to_save_reaction.receiver_reaction = reaction_to_save.reaction_id;
   }
 
@@ -249,7 +216,7 @@ void DataManager::save(const Reaction &reaction_to_save) {
 }
 
 std::vector<ReactionInfo> DataManager::getEmojiesForMenu() {
-  // temporarely: return all available emojies, implement request on server for getting them first
+  // temporarely: return all available emojies, todo: implement request on server for getting them first
   std::vector<ReactionInfo> emojies;
   for (auto &[id, emoji] : reactions_) emojies.push_back(emoji);
   return emojies;
