@@ -38,4 +38,6 @@ external/vcpkg_installed/
 external/vcpkg/buildtrees/
 external/vcpkg/packages/
 
+shared_keys/
+
 logs/
