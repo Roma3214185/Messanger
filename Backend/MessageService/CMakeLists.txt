@@ -73,6 +73,10 @@ add_executable(MessageService
   ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
   Dockerfile
   openapi.yaml
+  include/messageservice/QueueSubscriber.h
+  src/QueueSubscriber.cpp
+  include/messageservice/QueuePublisher.h
+  src/QueuePublisher.cpp
 )
 
 target_link_libraries(MessageService PRIVATE MessageServiceCore Qt6::Core)

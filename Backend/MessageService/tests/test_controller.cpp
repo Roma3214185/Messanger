@@ -20,20 +20,21 @@ struct SharedFixture {
   FakeSqlExecutor executor;
   MockCache cache;
   GenericRepository rep;
-  MessageManager manager;
+  MessageCommandManager command_manager;
+  MessageQueryManager query_manager;
   MockThreadPool pool;
   MockIdGenerator generator;
 
-  SharedFixture() : rep(&executor, cache, &pool), manager(&rep, &generator) {}
+  SharedFixture() : rep(&executor, cache, &pool), command_manager(&rep, &generator), query_manager(&executor, cache) {}
 };
 
 TEST_CASE("Test cotroller works with rabitMQ") {
   SharedFixture fix;
-  TestController controller(&fix.rabit_client, &fix.manager, &fix.pool);
+  TestController controller(&fix.rabit_client, &fix.command_manager, &fix.query_manager, &fix.pool);
 
   SECTION("Subscrive on message to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessage();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
@@ -46,7 +47,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
   SECTION("Subscrive on message to save expected call valid callback function") {
     Message test_message;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessage();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
     int before_callback_call = controller.call_save_message;
@@ -58,7 +59,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
   SECTION("Subscrive on message_status to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessageStatus();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
@@ -73,7 +74,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
       "function") {
     MessageStatus test_message_status;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessageStatus();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
     int before_callback_call = controller.call_save_message_status;
@@ -86,7 +87,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
 TEST_CASE("Test controller handles saved enitites") {
   SharedFixture fix;
-  SecondTestController controller(&fix.rabit_client, &fix.manager, &fix.pool);
+  SecondTestController controller(&fix.rabit_client, &fix.command_manager, &fix.query_manager, &fix.pool);
 
   // SECTION("handleSaveMessage expected call to pool and publish to rabitMQ") {
   //   Message message{.id = 2, .local_id = "121", .sender_id = 12};

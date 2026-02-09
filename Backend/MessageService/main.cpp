@@ -45,12 +45,13 @@ int main(int argc, char *argv[]) {
   constexpr int service_id = 3;
   GeneratorId generator(service_id);
   GenericRepository genetic_rep(&executor, RedisCache::instance(), &pool);
-  MessageManager manager(&genetic_rep, &generator);
+  MessageCommandManager command_manager(&genetic_rep, &generator);
+  MessageQueryManager query_manager(&executor, RedisCache::instance());
   RabbitMQConfig config = getConfig();
   auto mq = createRabbitMQClient(config, &pool);
   if (!mq) throw std::runtime_error("Cannot connect to RabbitMQ");
 
-  Controller controller(mq.get(), &manager, &pool);
+  Controller controller(mq.get(), &command_manager, &query_manager, &pool);
   crow::SimpleApp app;
   Server server(app, Config::Ports::messageService, &controller);
   server.run();
