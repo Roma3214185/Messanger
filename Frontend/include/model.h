@@ -24,7 +24,7 @@ class ChatUseCase;
 class MessageUseCase;
 class UserUseCase;
 class JsonService;
-class IUseCaseRepository;
+class UseCaseRepository;
 class TokenManager;
 class ISessionUseCase;
 class IMessageUseCase;
@@ -41,7 +41,7 @@ class ModelAttorney;
 class Model : public QObject {
   Q_OBJECT
  public:
-  Model(IUseCaseRepository *use_case_repository, ICache *cache, TokenManager *token_manager, ISocket *socket,
+  Model(UseCaseRepository *use_case_repository, ICache *cache, TokenManager *token_manager, ISocket *socket,
         DataManager *data_manager);
 
   ChatModel *getChatModel() const noexcept;
@@ -65,7 +65,7 @@ class Model : public QObject {
   TokenManager *token_manager_;
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
-  IUseCaseRepository *use_case_repository_;
+  UseCaseRepository *use_case_repository_;
   ICache *cache_;
   DataManager *data_manager_;
 };

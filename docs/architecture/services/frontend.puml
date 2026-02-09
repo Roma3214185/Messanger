@@ -174,11 +174,7 @@ class SessionUseCase {
 
 }
 
-interface IUseCaseRepositoty {
-
-}
-
-class DefaultUseCaseRepositoty {
+class UseCaseRepositoty {
 
 }
 
@@ -351,17 +347,16 @@ DataManager ...|> IMessageStatusDataManager
 DataManager ...|> IReactionDataManager
 DataManager ...|> IUserDataManager
 
-DefaultUseCaseRepositoty ..|> IUseCaseRepositoty
-DefaultUseCaseRepositoty o--> IChatUseCase
-DefaultUseCaseRepositoty o--> IMessageUseCase
-DefaultUseCaseRepositoty o--> ISessionUseCase
-DefaultUseCaseRepositoty o--> ISocketUseCase
-DefaultUseCaseRepositoty o---> IUserUseCase
+UseCaseRepositoty o--> IChatUseCase
+UseCaseRepositoty o--> IMessageUseCase
+UseCaseRepositoty o--> ISessionUseCase
+UseCaseRepositoty o--> ISocketUseCase
+UseCaseRepositoty o---> IUserUseCase
 
 Model *--> ChatModel
 Model o--> DataManager
 Model o--> ICache
-Model o--> IUseCaseRepositoty
+Model o--> UseCaseRepositoty
 Model *--> UserModel
 ' Model --|> QObject
 

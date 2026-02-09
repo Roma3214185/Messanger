@@ -14,9 +14,9 @@
 #include "models/UserModel.h"
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
-#include "usecases/IUseCaseRepository.h"
+#include "usecases/UseCaseRepository.h"
 
-Model::Model(IUseCaseRepository *use_case_repostirory, ICache *cash, TokenManager *token_manager, ISocket *socket,
+Model::Model(UseCaseRepository *use_case_repostirory, ICache *cash, TokenManager *token_manager, ISocket *socket,
              DataManager *data_manager)
     : use_case_repository_(use_case_repostirory),
       cache_(cash),
