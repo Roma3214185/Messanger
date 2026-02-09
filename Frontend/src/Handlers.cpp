@@ -37,7 +37,7 @@ void NewMessageHandler::handle(const QJsonObject &json_object) {
   }
 }
 
-OpenSocketHandler::OpenSocketHandler(TokenManager *token_manager, ISocketUseCase *socket_use_case)
+OpenSocketHandler::OpenSocketHandler(TokenManager *token_manager, SocketUseCase *socket_use_case)
     : token_manager_(token_manager), socket_use_case_(socket_use_case) {}
 
 void OpenSocketHandler::handle([[maybe_unused]] const QJsonObject &json_object) {

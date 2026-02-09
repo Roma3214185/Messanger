@@ -11,7 +11,7 @@
 
 namespace utils::ui {
 
-void updateViewVisibility(QListView* view, QWidget* anchor, Direction direction, int maxVisibleRows, int itemsPerRow) {
+void updateViewVisibility(QListView* view, QWidget* anchor, Direction direction, int max_visible_rows, int itemsPerRow) {
   if (!view) return;
 
   if (!view->model()) {
@@ -19,21 +19,21 @@ void updateViewVisibility(QListView* view, QWidget* anchor, Direction direction,
     return;
   }
 
-  int rows = view->model()->rowCount();
+  const int rows = view->model()->rowCount();
   if (rows == 0) {
     view->hide();
     return;
   }
 
-  int rowHeight = view->sizeHintForRow(0);
-  if (rowHeight <= 0) {
+  const int row_height = view->sizeHintForRow(0);
+  if (row_height <= 0) {
     view->hide();
     return;
   }
 
-  int visibleRows = qMin(rows, maxVisibleRows);
-  int frame = view->frameWidth() * 2 + view->contentsMargins().top() + view->contentsMargins().bottom();
-  int height = visibleRows * rowHeight + frame;
+  const int visible_rows = qMin(rows, max_visible_rows);
+  const int frame = view->frameWidth() * 2 + view->contentsMargins().top() + view->contentsMargins().bottom();
+  const int height = visible_rows * row_height + frame;
 
   view->setFixedHeight(height);
   view->setFixedWidth(anchor->width() * itemsPerRow);
@@ -43,7 +43,7 @@ void updateViewVisibility(QListView* view, QWidget* anchor, Direction direction,
 
   QRect screenRect = anchor->screen()->availableGeometry();
 
-  int y = [&]() {
+  const int y = [&]() {
     if (direction == Direction::Below) {
       const int belowY = anchor->mapToGlobal(QPoint(0, anchor->height())).y();
       return belowY + view->height() <= screenRect.bottom()
@@ -73,30 +73,24 @@ void clearLayout(QLayout* layout) {
   }
 }
 
-void insert_emoji(QTextCursor& cursor, std::optional<ReactionInfo> img_info_opt, int size_of_image,
-                  const QString& default_value) {
-  if (img_info_opt.has_value()) {
-    const ReactionInfo& info = img_info_opt.value();
-    QTextImageFormat fmt;
-    fmt.setName(QString::fromStdString(info.image));
-    fmt.setWidth(size_of_image);
-    fmt.setHeight(size_of_image);
-    fmt.setProperty(QTextFormat::UserProperty, info.id);
-    cursor.insertImage(fmt);
-  } else {
-    cursor.insertText(default_value);
+void insert_emoji(QTextCursor& cursor, std::optional<ReactionInfo> img_info_opt, int size_of_image) {
+  if (!img_info_opt.has_value()) {
+    cursor.insertText(" ");
+    return;
   }
+
+  const ReactionInfo& info = img_info_opt.value();
+  QTextImageFormat fmt;
+  fmt.setName(QString::fromStdString(info.image));
+  fmt.setWidth(size_of_image);
+  fmt.setHeight(size_of_image);
+  fmt.setProperty(QTextFormat::UserProperty, info.id);
+  cursor.insertImage(fmt);
 }
 
 QPixmap getPixmapFromPath(const QString& path) {
   QPixmap avatar{path};
-
-  if (!avatar.isNull()) {
-    return avatar;
-  }
-
-  const QString kDefaultAvatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
-  return QPixmap{kDefaultAvatar};
+  return !avatar.isNull() ? avatar : QPixmap{"/Users/roma/QtProjects/Chat/default_avatar.jpeg"};
 }
 
 }  // namespace utils::ui

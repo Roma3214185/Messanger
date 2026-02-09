@@ -17,7 +17,7 @@ class User;
 class QJsonObject;
 class QTextDocument;
 class ISocketResponceHandler;
-class IMessageListView;
+class MessageListView;
 class ReactionInfo;
 class LogInRequest;
 class User;
@@ -33,7 +33,7 @@ class Presenter : public QObject {
 
   void signIn(const LogInRequest &login_request);
   void initialise();
-  void setMessageListView(IMessageListView *message_list_view);
+  void setMessageListView(MessageListView *message_list_view);
   void signUp(const SignUpRequest &signup_request);
   void onChatClicked(const long long chat_id);
   void findUserRequest(const QString &text);
@@ -76,7 +76,7 @@ class Presenter : public QObject {
   SocketHandlersMap socket_responce_handlers_;
   IMainWindow *view_;
   Model *manager_;
-  IMessageListView *message_list_view_{nullptr};
+  MessageListView *message_list_view_{nullptr};
 };
 
 #endif  // PRESENTER_H

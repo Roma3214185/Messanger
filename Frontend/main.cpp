@@ -13,7 +13,7 @@
 #include "handlers/SocketHandlerRegistry.h"
 #include "presenter.h"
 #include "JsonService.h"
-#include "usecases/DefaultUseCaseRepository.h"
+#include "usecases/UseCaseRepository.h"
 #include "usecases/messageusecase.h"
 #include "usecases/socketusecase.h"
 #include "delegators/DelegatorsFactory.h"
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   auto soket_use_case = std::make_unique<SocketUseCase>(
       std::make_unique<SocketManager>(&real_socket, url));
 
-  DefaultUseCaseRepository use_case_repository{
+  UseCaseRepository use_case_repository{
       std::move(chat_use_case),
       std::move(message_use_case),
       std::move(user_use_case),

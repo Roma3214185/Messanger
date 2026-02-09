@@ -15,7 +15,7 @@
 #include "entities/Reaction.h"
 #include "handlers/Handlers.h"
 #include "interfaces/IMainWindow.h"
-#include "interfaces/IMessageListView.h"
+#include "ui/MessageListView.h"
 #include "managers/Managers.h"
 #include "managers/TokenManager.h"
 #include "model.h"
@@ -31,8 +31,8 @@
 Presenter::Presenter(IMainWindow *window, Model *manager) : view_(window), manager_(manager) {}
 
 void Presenter::initialise() {
-  view_->setChatModel(manager_->getChatModel());
-  view_->setUserModel(manager_->getUserModel());
+  view_->setChatModel(manager_->chatModel());
+  view_->setUserModel(manager_->userModel());
 
   initialConnections();
   manager_->setupConnections();
@@ -44,10 +44,10 @@ void Presenter::initialise() {
 
 void Presenter::initialHandlers(SocketHandlersMap handlers) { socket_responce_handlers_ = std::move(handlers); }
 
-void Presenter::setMessageListView(IMessageListView *message_list_view) {
+void Presenter::setMessageListView(MessageListView *message_list_view) {
   DBC_REQUIRE(message_list_view != nullptr);
   message_list_view_ = message_list_view;
-  connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter::onChatWidgetScroll);
+  connect(message_list_view_, &MessageListView::scrollChanged, this, &Presenter::onChatWidgetScroll);
 }
 
 void Presenter::signIn(const LogInRequest &login_request) {
@@ -71,8 +71,8 @@ void Presenter::signUp(const SignUpRequest &signup_request) {
 void Presenter::showError(const QString &error) { view_->showError(error); }
 
 void Presenter::initialConnections() {
-  connect(manager_->session(), &ISessionUseCase::userCreated, this, &Presenter::setUser);
-  connect(manager_->socket(), &ISocketUseCase::newResponce, this, &Presenter::onNewSocketMessage);
+  connect(manager_->session(), &SessionUseCase::userCreated, this, &Presenter::setUser);
+  connect(manager_->socket(), &SocketUseCase::newResponce, this, &Presenter::onNewSocketMessage);
 }
 
 void Presenter::onNewSocketMessage(const QJsonObject &socket_message) {
@@ -131,7 +131,7 @@ void Presenter::onChatWidgetScroll(int distance_from_top) {
   auto new_messages = manager_->message()->getChatMessages(*current_opened_chat_id_, kLimitOfLoadingMessages);
   if (new_messages.empty()) return;
 
-  auto *message_model = manager_->getMessageModel(*current_opened_chat_id_);
+  auto *message_model = manager_->messageModel(*current_opened_chat_id_);
   DBC_REQUIRE(message_model);
 
   message_list_view_->preserveFocusWhile(message_model, [&] { manager_->dataManager()->save(new_messages); });
@@ -180,10 +180,10 @@ void Presenter::findUserRequest(const QString &text) {
   if (text.isEmpty()) return;
   DBC_REQUIRE(current_user_ != std::nullopt);
   auto users = manager_->user()->findUsers(text);
-  auto *user_model = manager_->getUserModel();
+  auto *user_model = manager_->userModel();
   user_model->clear();
   for (const auto &user : users) {
-    if (current_user_->id != user.id) manager_->getUserModel()->addUser(user);
+    if (current_user_->id != user.id) manager_->userModel()->addUser(user);
   }
 }
 
@@ -191,7 +191,7 @@ void Presenter::openChat(long long chat_id) {
   PROFILE_SCOPE();
   DBC_REQUIRE(chat_id > 0);
   setCurrentChatId(chat_id);
-  message_list_view_->setMessageModel(manager_->getMessageModel(chat_id));
+  message_list_view_->setMessageModel(manager_->messageModel(chat_id));
   message_list_view_->scrollToBottom();  // todo: not in every sitation it's good idea
 
   if (auto chat = manager_->dataManager()->getChat(chat_id); chat != nullptr) {
@@ -204,7 +204,7 @@ void Presenter::openChat(long long chat_id) {
 void Presenter::onUserClicked(long long user_id, bool is_user) {
   DBC_REQUIRE(user_id > 0);
   DBC_REQUIRE(current_user_ != std::nullopt);
-  auto *user_model = manager_->getUserModel();
+  auto *user_model = manager_->userModel();
   user_model->clear();
 
   if (is_user && current_user_->id == user_id) {

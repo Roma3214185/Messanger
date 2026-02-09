@@ -61,3 +61,8 @@ void MessageListView::scrollToMessage(const QModelIndex &index_to_scroll) {
   scrollTo(index_to_scroll, QAbstractItemView::PositionAtCenter);
   setCurrentIndex(index_to_scroll);
 }
+
+void MessageListView::mousePressEvent(QMouseEvent *event) {
+    Q_EMIT clickedWithEvent(event);
+    QListView::mousePressEvent(event);
+}

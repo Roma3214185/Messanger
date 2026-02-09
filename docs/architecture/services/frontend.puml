@@ -134,30 +134,6 @@ class UserModel {
 
 }
 
-interface ISocketUseCase {
-
-}
-
-interface IChatUseCase {
-
-}
-
-interface IUserUseCase {
-
-}
-
-interface IMessageUseCase {
-
-}
-
-interface ISessionUseCase {
-
-}
-
-interface ISocketUseCase {
-
-}
-
 class ChatUseCase {
 
 }
@@ -174,11 +150,7 @@ class SessionUseCase {
 
 }
 
-interface IUseCaseRepositoty {
-
-}
-
-class DefaultUseCaseRepositoty {
+class UseCaseRepositoty {
 
 }
 
@@ -351,17 +323,16 @@ DataManager ...|> IMessageStatusDataManager
 DataManager ...|> IReactionDataManager
 DataManager ...|> IUserDataManager
 
-DefaultUseCaseRepositoty ..|> IUseCaseRepositoty
-DefaultUseCaseRepositoty o--> IChatUseCase
-DefaultUseCaseRepositoty o--> IMessageUseCase
-DefaultUseCaseRepositoty o--> ISessionUseCase
-DefaultUseCaseRepositoty o--> ISocketUseCase
-DefaultUseCaseRepositoty o---> IUserUseCase
+UseCaseRepositoty o--> ChatUseCase
+UseCaseRepositoty o--> MessageUseCase
+UseCaseRepositoty o--> SessionUseCase
+UseCaseRepositoty o--> SocketUseCase
+UseCaseRepositoty o---> UserUseCase
 
 Model *--> ChatModel
 Model o--> DataManager
 Model o--> ICache
-Model o--> IUseCaseRepositoty
+Model o--> UseCaseRepositoty
 Model *--> UserModel
 ' Model --|> QObject
 
@@ -410,7 +381,6 @@ SocketManager ....|> BaseManager
 SocketManager o--> ISocket
 
 SocketUseCase *--> SocketManager
-SocketUseCase ..|> ISocketUseCase
 ' SocketUseCase ----|> QObject
 ChatManager ----|> BaseManager
 ChatManager o--> IChatJsonService
@@ -418,7 +388,6 @@ ChatManager o--> IChatJsonService
 ChatUseCase *--> ChatManager
 ChatUseCase o--> IChatDataManager
 ChatUseCase o--> TokenManager
-ChatUseCase ..|> IChatUseCase
 ' ChatUseCase ----|> QObject
 
 MessageManager ----|> BaseManager
@@ -427,14 +396,12 @@ MessageManager o--> IMessageJsonService
 MessageUseCase o--> IMessageDataManager
 MessageUseCase o--> MessageManager
 MessageUseCase o--> TokenManager
-MessageUseCase ..|> IMessageUseCase
 ' MessageUseCase ----|> QObject
 
 SessionManager ---|> BaseManager
 SessionManager o--> IUserJsonService
 
 SessionUseCase *--> SessionManager
-SessionUseCase ..|> ISessionUseCase
 ' SessionUseCase ----|> QObject
 
 UserManager ----|> BaseManager
@@ -443,7 +410,6 @@ UserManager o--> IUserJsonService
 UserUseCase o--> IUserDataManager
 UserUseCase o--> TokenManager
 UserUseCase *--> UserManager
-UserUseCase ..|> IUserUseCase
 ' UserUseCase ----|> QObject
 
 JsonService ..|> IChatJsonService

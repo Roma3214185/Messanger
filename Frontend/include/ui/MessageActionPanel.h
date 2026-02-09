@@ -39,6 +39,8 @@ class MessageActionPanel : public QWidget {
   void loadEmojiReactions();
   void onActionClicked(const QModelIndex &index);
   void onEmojiClicked(const QModelIndex &index);
+  void setupActionList();
+  void setupEmojiiGrid();
 
   std::vector<ReactionInfo> reactions_;
   Message msg_;
