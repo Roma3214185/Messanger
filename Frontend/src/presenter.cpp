@@ -258,7 +258,7 @@ void Presenter::sendButtonClicked(QTextDocument *document_with_text_to_send, std
 }
 
 void Presenter::onLogOutButtonClicked() {
-  manager_->logout();
+  manager_->clearAll();
   current_user_.reset();
   current_opened_chat_id_.reset();
 }

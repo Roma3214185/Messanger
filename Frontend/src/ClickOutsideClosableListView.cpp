@@ -4,6 +4,7 @@
 
 #include "ui/OutsideClickFilter.h"
 #include "ui/mainwindow.h"
+#include "dto/Message.h"
 
 ClickOutsideClosableListView::ClickOutsideClosableListView(QWidget* parent) : QListView(parent) {
   setWindowFlags(Qt::WindowStaysOnTopHint | Qt::ToolTip);
@@ -20,8 +21,8 @@ ClickOutsideClosableListView::ClickOutsideClosableListView(QWidget* parent) : QL
   this->installEventFilter(filter_);
 
   if (auto mainWindow = qobject_cast<MainWindow*>(this->parent()); mainWindow != nullptr) {
-    connect(mainWindow, &MainWindow::clickedOnPos, filter_, &OutsideClickFilter::checkClickOutside);
-    connect(mainWindow, &MainWindow::geometryChanged, this, &ClickOutsideClosableListView::update);
+    connect(mainWindow, &MainWindow::clickedOnScreenPosition, filter_, &OutsideClickFilter::checkClickOutside);
+    connect(mainWindow, &MainWindow::screenGeometryChanged, this, &ClickOutsideClosableListView::update);
   }
 }
 

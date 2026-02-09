@@ -27,7 +27,7 @@ add_library(FrontendLib STATIC
 
 enable_clang_tidy(FrontendLib)
 enable_cppcheck(FrontendLib)
-enable_iwyu(FrontendLib)
+# enable_iwyu(FrontendLib)
 enable_sanitizers(FrontendLib)
 enable_clang_format(FrontendLib)
 enable_project_warnings(FrontendLib)
@@ -61,12 +61,14 @@ add_executable(Frontend
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
 )
 
+enable_iwyu(Frontend)
+
 add_custom_command(TARGET Frontend POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/Frontend/config
         $<TARGET_FILE_DIR:Frontend>/config
 )
 
-target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
+target_link_libraries(Frontend PRIVATE FrontendLib Metrics ProjectOptions)
 
 target_include_directories(Frontend PRIVATE ${FRONTEND_FORMS_DIR})

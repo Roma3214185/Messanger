@@ -8,8 +8,6 @@
 #include "entities/Reaction.h"
 #include "models/messagemodel.h"
 
-class MessageModel;
-
 using ChatId = long long;
 using ChatPtr = std::shared_ptr<ChatBase>;
 using MessageId = long long;
@@ -92,8 +90,7 @@ class DataManager : public QObject,
   [[nodiscard]] MessageModelPtr getMessageModel(ChatId) override;
   [[nodiscard]] ChatPtr getChat(ChatId) override;
   [[nodiscard]] int getNumberOfExistingChats() const noexcept override;
-  void clearAllChats() override;  // todo: think about clear chats authoatically clear
-                                  // message-models
+  void clearAllChats() override;
   void clearAllUsers() override;
   void clearAllMessageModels() override;
   void save(const ChatPtr &chat, MessageModelPtr message_model = nullptr) override;

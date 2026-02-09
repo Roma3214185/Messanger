@@ -1,19 +1,6 @@
 #include "model.h"
 
-#include <QEventLoop>
-#include <QFuture>
-#include <QFutureWatcher>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonParseError>
-#include <QObject>
 #include <QString>
-#include <QUrlQuery>
-#include <QtNetwork/QNetworkReply>
-#include <QtNetwork/QNetworkRequest>
-#include <QtWebSockets/QWebSocket>
-#include <memory>
-#include <optional>
 
 #include "Debug_profiling.h"
 #include "JsonService.h"
@@ -23,12 +10,7 @@
 #include "interfaces/INetworkAccessManager.h"
 #include "interfaces/ISocket.h"
 #include "managers/TokenManager.h"
-#include "managers/chatmanager.h"
 #include "managers/datamanager.h"
-#include "managers/messagemanager.h"
-#include "managers/sessionmanager.h"
-#include "managers/socketmanager.h"
-#include "managers/usermanager.h"
 #include "models/UserModel.h"
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
@@ -39,7 +21,6 @@ Model::Model(IUseCaseRepository *use_case_repostirory, ICache *cash, TokenManage
     : use_case_repository_(use_case_repostirory),
       cache_(cash),
       token_manager_(token_manager),
-      // entity_factory_(std::make_unique<JsonService>(token_manager_.get())),
       chat_model_(std::make_unique<ChatModel>()),
       user_model_(std::make_unique<UserModel>()),
       data_manager_(data_manager) {}
@@ -55,19 +36,18 @@ void Model::setupConnections() {
     user()->getUserAsync(message.sender_id);
     auto last_message = getMessageModel(message.chat_id)->getLastMessage();
     chat_model_->updateChatInfo(message.chat_id, last_message);
-    //  todo: getChatAsync() and there check: if exists, skip
-    // manager_->message()->getChatMessagesAsync(message.chatId);
+    //  todo: if chat message.chat_id doesn't exist -> load it
   });
 
   connect(data_manager_, &DataManager::chatAdded, this, [this](const ChatPtr &chat) {
-    DBC_REQUIRE(chat != nullptr);  // todo: in chat class make isValid
-                                   // fucntion that check all self field
+    DBC_REQUIRE(chat != nullptr);
+    DBC_REQUIRE(chat->checkInvariants());
     message()->getChatMessagesAsync(chat->chat_id);
   });
 
   connect(data_manager_, &DataManager::messageDeleted, this, [this](const Message &deleted_message) {
     DBC_REQUIRE(deleted_message.checkInvariants());
-    auto message_model = getMessageModel(deleted_message.chat_id);
+    auto *message_model = getMessageModel(deleted_message.chat_id);
     message_model->deleteMessage(deleted_message);
   });
 }
@@ -97,17 +77,14 @@ MessageModel *Model::getMessageModel(long long chat_id) {
   return message_model.get();
 }
 
-void Model::logout() {
+void Model::clearAll() {
   PROFILE_SCOPE();
-  LOG_INFO("[logout] Logging out user");
-
   socket()->close();
   data_manager_->clearAll();
   cache_->deleteToken("TOKEN");
   token_manager_->resetData();
   chat_model_->clear();
   token_manager_->resetData();
-  LOG_INFO("[logout] Logout complete");
 }
 
 ISessionUseCase *Model::session() const { return use_case_repository_->session(); }

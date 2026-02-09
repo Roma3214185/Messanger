@@ -1,12 +1,14 @@
 #ifndef IMAINWINDOW_H
 #define IMAINWINDOW_H
 
-#include <QListView>
+#include <QString>
+#include <QModelIndex>
 
-#include "dto/User.h"
-#include "models/UserModel.h"
+#include "dto/ChatBase.h"
 #include "models/chatmodel.h"
-#include "models/messagemodel.h"
+
+class UserModel;
+class ChatBase;
 
 class IMainWindow {
  public:

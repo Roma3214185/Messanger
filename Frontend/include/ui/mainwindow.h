@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "interfaces/IMainWindow.h"
+#include "dto/Message.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -22,6 +23,10 @@ class MessageModel;
 class ClickOutsideClosableListView;
 class QStandardItemModel;
 class DelegatorsFactory;
+class QTextCursor;
+class Model;
+struct ReactionInfo;
+struct MessageToken;
 
 using MessageId = long long;
 using ThemePtr = std::unique_ptr<ITheme>;
