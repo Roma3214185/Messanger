@@ -1,5 +1,17 @@
 #include "managers/BaseManager.h"
 
+#include <QFuture>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QNetworkReply>
+#include <QObject>
+#include <QPromise>
+#include <QTimer>
+#include <QUrl>
+
+#include "Debug_profiling.h"
+#include "interfaces/INetworkAccessManager.h"
+
 BaseManager::BaseManager(INetworkAccessManager *network_manager, const QUrl &base_url,
                          std::chrono::milliseconds timeout_ms, QObject *parent)
     : QObject(parent), network_manager_(network_manager), url_(base_url), timeout_ms_(timeout_ms) {}
