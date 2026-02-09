@@ -15,7 +15,7 @@
 #include "entities/Reaction.h"
 #include "handlers/Handlers.h"
 #include "interfaces/IMainWindow.h"
-#include "interfaces/IMessageListView.h"
+#include "ui/MessageListView.h"
 #include "managers/Managers.h"
 #include "managers/TokenManager.h"
 #include "model.h"
@@ -44,10 +44,10 @@ void Presenter::initialise() {
 
 void Presenter::initialHandlers(SocketHandlersMap handlers) { socket_responce_handlers_ = std::move(handlers); }
 
-void Presenter::setMessageListView(IMessageListView *message_list_view) {
+void Presenter::setMessageListView(MessageListView *message_list_view) {
   DBC_REQUIRE(message_list_view != nullptr);
   message_list_view_ = message_list_view;
-  connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter::onChatWidgetScroll);
+  connect(message_list_view_, &MessageListView::scrollChanged, this, &Presenter::onChatWidgetScroll);
 }
 
 void Presenter::signIn(const LogInRequest &login_request) {
