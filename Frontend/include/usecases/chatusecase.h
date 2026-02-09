@@ -4,8 +4,8 @@
 #include <QObject>
 
 #include "dto/ChatBase.h"
+#include "managers/chatmanager.h"
 
-class ChatManager;
 class ChatModel;
 class TokenManager;
 class IChatDataManager;
@@ -15,21 +15,7 @@ using ChatId = long long;
 using UserId = long long;
 using ChatPtr = std::shared_ptr<ChatBase>;
 
-class IChatUseCase {
- public:
-  virtual ~IChatUseCase() = default;
-  virtual ChatPtr loadChat(ChatId) = 0;
-  virtual QList<ChatPtr> loadChats() = 0;
-  virtual void loadChatsAsync() = 0;
-  virtual ChatPtr getPrivateChatWithUser(UserId) = 0;
-  virtual void createChat(ChatId) = 0;
-  // virtual QModelIndex indexByChatId(ChatId)= 0;
-
- private:
-  virtual ChatPtr createPrivateChat(UserId) = 0;
-};
-
-class ChatUseCase : public QObject, public IChatUseCase {
+class ChatUseCase : public QObject {
   Q_OBJECT
  public:
   using Token = QString;
@@ -38,13 +24,13 @@ class ChatUseCase : public QObject, public IChatUseCase {
   using ChatPtr = std::shared_ptr<ChatBase>;
 
   ChatUseCase(std::unique_ptr<ChatManager>, IChatDataManager *, TokenManager *);
-  [[nodiscard]] ChatPtr loadChat(ChatId) override;
-  QList<ChatPtr> loadChats() override;
-  void loadChatsAsync() override;
-  ChatPtr createPrivateChat(UserId) override;
-  ChatPtr getPrivateChatWithUser(UserId) override;
+  [[nodiscard]] ChatPtr loadChat(ChatId);
+  QList<ChatPtr> loadChats();
+  void loadChatsAsync();
+  ChatPtr createPrivateChat(UserId);
+  ChatPtr getPrivateChatWithUser(UserId);
 
-  void createChat(ChatId) override;
+  void createChat(ChatId);
   int getNumberOfExistingChats() const;
 
   [[nodiscard]] ChatPtr getChat(ChatId);

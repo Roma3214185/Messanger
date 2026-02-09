@@ -9,22 +9,22 @@
 
 class UseCaseRepository {
  public:
-  UseCaseRepository(std::unique_ptr<IChatUseCase> chat, std::unique_ptr<IMessageUseCase> message,
-                    std::unique_ptr<IUserUseCase> user, std::unique_ptr<ISessionUseCase> session,
-                    std::unique_ptr<ISocketUseCase> socket);
+  UseCaseRepository(std::unique_ptr<ChatUseCase> chat, std::unique_ptr<MessageUseCase> message,
+                    std::unique_ptr<UserUseCase> user, std::unique_ptr<SessionUseCase> session,
+                    std::unique_ptr<SocketUseCase> socket);
 
-  IChatUseCase* chat();
-  IMessageUseCase* message();
-  IUserUseCase* user();
-  ISessionUseCase* session();
-  ISocketUseCase* socket();
+  ChatUseCase* chat();
+  MessageUseCase* message();
+  UserUseCase* user();
+  SessionUseCase* session();
+  SocketUseCase* socket();
 
  private:
-  std::unique_ptr<IChatUseCase> chat_;
-  std::unique_ptr<IMessageUseCase> message_;
-  std::unique_ptr<IUserUseCase> user_;
-  std::unique_ptr<ISessionUseCase> session_;
-  std::unique_ptr<ISocketUseCase> socket_;
+  std::unique_ptr<ChatUseCase> chat_;
+  std::unique_ptr<MessageUseCase> message_;
+  std::unique_ptr<UserUseCase> user_;
+  std::unique_ptr<SessionUseCase> session_;
+  std::unique_ptr<SocketUseCase> socket_;
 };
 
 #endif  // USECASEREPOSITORY_H

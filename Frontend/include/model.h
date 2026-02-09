@@ -26,11 +26,11 @@ class UserUseCase;
 class JsonService;
 class UseCaseRepository;
 class TokenManager;
-class ISessionUseCase;
-class IMessageUseCase;
-class IUserUseCase;
-class IChatUseCase;
-class ISocketUseCase;
+class SessionUseCase;
+class MessageUseCase;
+class UserUseCase;
+class ChatUseCase;
+class SocketUseCase;
 
 using ChatId = long long;
 using ChatPtr = std::shared_ptr<ChatBase>;
@@ -44,20 +44,20 @@ class Model : public QObject {
   Model(UseCaseRepository *use_case_repository, ICache *cache, TokenManager *token_manager, ISocket *socket,
         DataManager *data_manager);
 
-  ChatModel *getChatModel() const noexcept;
-  UserModel *getUserModel() const noexcept;
-  MessageModel *getMessageModel(long long chat_id);
+  ChatModel *chatModel() const noexcept;
+  UserModel *userModel() const noexcept;
+  MessageModel *messageModel(long long chat_id);
 
   [[nodiscard]] std::optional<QString> checkToken();
   void saveData(const QString &token, long long current_id);
   void clearAll();
   void setupConnections();
 
-  ISessionUseCase *session() const;
-  IMessageUseCase *message() const;
-  IUserUseCase *user() const;
-  IChatUseCase *chat() const;
-  ISocketUseCase *socket() const;
+  SessionUseCase *session() const;
+  MessageUseCase *message() const;
+  UserUseCase *user() const;
+  ChatUseCase *chat() const;
+  SocketUseCase *socket() const;
   DataManager *dataManager() const;
   TokenManager *tokenManager() const;
 

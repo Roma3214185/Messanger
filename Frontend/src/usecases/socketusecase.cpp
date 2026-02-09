@@ -79,6 +79,8 @@ void SocketUseCase::sendMessage(const Message& msg) {
   sendInSocket(json);
 }
 
+void SocketUseCase::close() { socket_manager_->close(); }
+
 void SocketUseCase::sendReadMessageEvent(const MessageStatus& message_status) {
   DBC_REQUIRE(message_status.is_read);
   auto json = QJsonObject{
