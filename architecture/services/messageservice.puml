@@ -30,7 +30,7 @@ interface IMessageQueryService {
   + getMessagesStatus(const std::vector<Message> &messages, long long receiver_id);
   + getReadedMessageStatuses(long long message_id);
   + deleteMessageReaction(const Reaction &reaction);
-  + getReactions(long long message_id,                                                                            long long receiver_id);
+  + getReactions(long long message_id, long long receiver_id);
   + getReactionInfo(long long message_reaction_id);
 }
 
