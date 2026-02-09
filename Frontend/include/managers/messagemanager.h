@@ -34,7 +34,7 @@ class MessageManager : public BaseManager {
   QList<Message> onGetChatMessages(const QByteArray &responce_data);
 
  private:
-    IMessageJsonService *entity_factory_;
+  IMessageJsonService *entity_factory_;
 };
 
 #endif  // MESSAGEMANAGER_H

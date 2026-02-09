@@ -14,7 +14,6 @@ class TokenManager {
  private:
   std::optional<QString> token_;
   std::optional<long long> current_user_id_;
-
 };
 
 #endif  // TOKENMANAGER_H

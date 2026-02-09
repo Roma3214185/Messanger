@@ -137,31 +137,31 @@ ChatPtr JsonService::getChatFromJson(const QJsonObject &obj) {
   }
 
   const QString type = obj["type"].toString();
-  auto chat = [=](const QString& type) -> ChatPtr {
+  auto chat = [=](const QString &type) -> ChatPtr {
     if (type == "private") {
-        const auto userObj = obj["user"].toObject();
-        auto chat = std::make_shared<PrivateChat>();
-        chat->chat_id = obj["id"].toInteger(0);
-        chat->title = userObj["name"].toString();
-        chat->avatar_path = userObj["avatar"].toString();
-        LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
-        return chat;
+      const auto userObj = obj["user"].toObject();
+      auto chat = std::make_shared<PrivateChat>();
+      chat->chat_id = obj["id"].toInteger(0);
+      chat->title = userObj["name"].toString();
+      chat->avatar_path = userObj["avatar"].toString();
+      LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
+      return chat;
     }
 
     if (type == "group") {
-        auto chat = std::make_shared<GroupChat>();
-        chat->chat_id = obj["id"].toInteger(0);
-        chat->title = obj["name"].toString();
-        chat->avatar_path = obj["avatar"].toString();
-        // chat->member_count = obj["member_count"].toInt();
-        LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
-        return chat;
+      auto chat = std::make_shared<GroupChat>();
+      chat->chat_id = obj["id"].toInteger(0);
+      chat->title = obj["name"].toString();
+      chat->avatar_path = obj["avatar"].toString();
+      // chat->member_count = obj["member_count"].toInt();
+      LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
+      return chat;
     }
 
     LOG_ERROR("Invalid type of chat: ( {} )", type.toStdString());
     return nullptr;
   }(type);
-  if(!chat) return nullptr;
+  if (!chat) return nullptr;
 
   if (obj.contains("default_reactions")) {
     const auto reactArr = obj["default_reactions"].toArray();

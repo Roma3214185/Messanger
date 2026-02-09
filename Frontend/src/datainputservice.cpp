@@ -38,11 +38,7 @@ ValidationResult nameValidDetailed(const QString &name, const Config &cfg) {
   if (std::cmp_less(name.length(), cfg.kMinLenOfName)) return {.valid = false, .message = "Name too short"};
   if (std::cmp_greater(name.length(), cfg.kMaxLenOfName)) return {.valid = false, .message = "Name too long"};
   CharConfig config_for_name{
-    .lettersAllowed = true,
-    .numbersAllowed = true,
-    .spaceAllowed = true,
-    .specialCharactersAllowed = "-'"
-  };
+      .lettersAllowed = true, .numbersAllowed = true, .spaceAllowed = true, .specialCharactersAllowed = "-'"};
 
   for (QChar c : name) {
     if (!DataInputService::details::isValidChar(c, config_for_name)) {
@@ -72,15 +68,13 @@ ValidationResult passwordValidDetailed(const QString &password, const Config &cf
   if (password.isEmpty()) return {.valid = false, .message = "Password is empty"};
   if (password.size() < cfg.kMinPasswordLength) return {.valid = false, .message = "Password is too short"};
   if (password.size() > cfg.kMaxPasswordLength) return {.valid = false, .message = "Password is too long"};
-  CharConfig config{
-    .lettersAllowed = true,
-    .numbersAllowed = true,
-    .spaceAllowed = false,
-    .specialCharactersAllowed = QStringLiteral("!$_+@#%&*-")
-  };
+  CharConfig config{.lettersAllowed = true,
+                    .numbersAllowed = true,
+                    .spaceAllowed = false,
+                    .specialCharactersAllowed = QStringLiteral("!$_+@#%&*-")};
 
   for (const QChar &c : password) {
-    if(!DataInputService::details::isValidChar(c, config)) {
+    if (!DataInputService::details::isValidChar(c, config)) {
       return {.valid = false, .message = "Password contains invalid character"};
     }
   }
@@ -97,17 +91,13 @@ ValidationResult tagValidDetailed(const QString &tag, const Config &cfg) {
   }
 
   CharConfig config{
-    .lettersAllowed = true,
-    .numbersAllowed = true,
-    .spaceAllowed = false,
-    .specialCharactersAllowed = "_.-"
-  };
+      .lettersAllowed = true, .numbersAllowed = true, .spaceAllowed = false, .specialCharactersAllowed = "_.-"};
 
   QChar prev_char = '\n';
   for (QChar c : tag) {
-    if(c == '_' && prev_char == '_') {
-        return {.valid = false, .message = "Tag can't contains two '_' in a row"};
-    } else if(!DataInputService::details::isValidChar(c, config)) {
+    if (c == '_' && prev_char == '_') {
+      return {.valid = false, .message = "Tag can't contains two '_' in a row"};
+    } else if (!DataInputService::details::isValidChar(c, config)) {
       return {.valid = false, .message = "Tag contains invalid character"};
     }
     prev_char = c;
@@ -152,10 +142,10 @@ ValidationResult checkLocalPart(const QString &local, const Config &cfg) {
 
   QChar prev_char = '\n';
   for (QChar el : local) {
-    if((el == '.' || el == '_') && prev_char == el) {
+    if ((el == '.' || el == '_') && prev_char == el) {
       return {.valid = false, .message = "Local part contains consecutive invalid characters"};
     }
-    if(!isValidChar(el, config)) {
+    if (!isValidChar(el, config)) {
       return {.valid = false, .message = "Local part contains invalid character"};
     }
 
@@ -171,11 +161,11 @@ ValidationResult checkDomainPart(const QString &domain, const Config &cfg) {
   return {.valid = true, .message = "Domain part is good"};
 }
 
-bool isValidChar(QChar el, const CharConfig& config) {
-    if(el.isLetter()) return config.lettersAllowed;
-    if(el.isNumber()) return config.numbersAllowed;
-    if(el.isSpace()) return config.spaceAllowed;
-    return config.specialCharactersAllowed.contains(el);
+bool isValidChar(QChar el, const CharConfig &config) {
+  if (el.isLetter()) return config.lettersAllowed;
+  if (el.isNumber()) return config.numbersAllowed;
+  if (el.isSpace()) return config.spaceAllowed;
+  return config.specialCharactersAllowed.contains(el);
 }
 
 }  // namespace DataInputService::details

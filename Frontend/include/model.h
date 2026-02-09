@@ -41,8 +41,8 @@ class ModelAttorney;
 class Model : public QObject {
   Q_OBJECT
  public:
-  Model(IUseCaseRepository *use_case_repository, ICache *cache,
-           TokenManager *token_manager, ISocket *socket, DataManager *data_manager);
+  Model(IUseCaseRepository *use_case_repository, ICache *cache, TokenManager *token_manager, ISocket *socket,
+        DataManager *data_manager);
 
   ChatModel *getChatModel() const noexcept;
   UserModel *getUserModel() const noexcept;

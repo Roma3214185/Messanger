@@ -48,16 +48,16 @@ void MessageListView::preserveFocusWhile(MessageModel *chat_message_model, std::
 }
 
 QModelIndex MessageListView::findIndexByMessageId(long long id) {
-    auto model = this->model();
-    for (int row = 0; row < model->rowCount(); ++row) {
-        QModelIndex idx = model->index(row, 0);
-        if (idx.data(MessageModel::MessageIdRole).toLongLong() == id) return idx;
-    }
-    return {};
+  auto model = this->model();
+  for (int row = 0; row < model->rowCount(); ++row) {
+    QModelIndex idx = model->index(row, 0);
+    if (idx.data(MessageModel::MessageIdRole).toLongLong() == id) return idx;
+  }
+  return {};
 }
 
-void MessageListView::scrollToMessage(const QModelIndex& index_to_scroll) {
-    if(!index_to_scroll.isValid()) return;
-    scrollTo(index_to_scroll, QAbstractItemView::PositionAtCenter);
-    setCurrentIndex(index_to_scroll);
+void MessageListView::scrollToMessage(const QModelIndex &index_to_scroll) {
+  if (!index_to_scroll.isValid()) return;
+  scrollTo(index_to_scroll, QAbstractItemView::PositionAtCenter);
+  setCurrentIndex(index_to_scroll);
 }

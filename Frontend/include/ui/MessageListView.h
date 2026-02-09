@@ -17,7 +17,7 @@ class MessageListView : public IMessageListView {
   void setMessageScrollBarValue(int value) override;
   void preserveFocusWhile(MessageModel *message_model, std::function<void()> update_model) override;
   QModelIndex findIndexByMessageId(long long id);
-  void scrollToMessage(const QModelIndex& index_to_scroll);
+  void scrollToMessage(const QModelIndex &index_to_scroll);
 };
 
 #endif  // MESSAGELISTVIEW_H

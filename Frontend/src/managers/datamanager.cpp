@@ -7,7 +7,7 @@
 namespace {
 
 void decrease(std::unordered_map<long long, int> &reactions, std::optional<long long> reaction_id) {
-  if(!reaction_id.has_value()) return;
+  if (!reaction_id.has_value()) return;
   reactions[*reaction_id]--;
   if (reactions[*reaction_id] <= 0) reactions.erase(*reaction_id);
 }
@@ -140,14 +140,14 @@ void DataManager::save(const MessageStatus &message_status) {
   DBC_REQUIRE(message_status.is_read);
 
   auto it = getIterMessageById(message_status.message_id);
-  if (it == messages_.end()) { // can be if u delete message for yourself
+  if (it == messages_.end()) {  // can be if u delete message for yourself
     LOG_WARN("To read message with id {} not found", message_status.message_id);
-  } else if (it->receiver_read_status) { // sometimes will be because i firstly save offline
+  } else if (it->receiver_read_status) {  // sometimes will be because i firstly save offline
     LOG_INFO("{} is already marked readed", it->toString());
   } else {
     it->read_counter++;
     it->receiver_read_status = true;
-    Q_EMIT messageAdded(*it); //todo: messageChanged
+    Q_EMIT messageAdded(*it);  // todo: messageChanged
   }
 }
 
@@ -207,7 +207,7 @@ void DataManager::save(const Reaction &reaction_to_save) {
   // todo: lock mutex for this message: message_mutexes_by_id_[message.id].lock();
   message_to_save_reaction.reactions[reaction_to_save.reaction_id]++;
 
-  if (my_reaction) { // it's my reaction, so i need to delete my old reaction if it setted, and set new one
+  if (my_reaction) {  // it's my reaction, so i need to delete my old reaction if it setted, and set new one
     decrease(message_to_save_reaction.reactions, message_to_save_reaction.receiver_reaction);
     message_to_save_reaction.receiver_reaction = reaction_to_save.reaction_id;
   }

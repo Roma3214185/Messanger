@@ -1,8 +1,8 @@
 #ifndef IMAINWINDOW_H
 #define IMAINWINDOW_H
 
-#include <QString>
 #include <QModelIndex>
+#include <QString>
 
 #include "dto/ChatBase.h"
 #include "models/chatmodel.h"

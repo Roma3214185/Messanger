@@ -2,9 +2,9 @@
 
 #include <QTimer>
 
+#include "dto/Message.h"
 #include "ui/OutsideClickFilter.h"
 #include "ui/mainwindow.h"
-#include "dto/Message.h"
 
 ClickOutsideClosableListView::ClickOutsideClosableListView(QWidget* parent) : QListView(parent) {
   setWindowFlags(Qt::WindowStaysOnTopHint | Qt::ToolTip);

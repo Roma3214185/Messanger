@@ -1,4 +1,4 @@
-#include "models/MessageModel.h"
+#include "models/messagemodel.h"
 
 #include <QDateTime>
 #include <QPixmap>

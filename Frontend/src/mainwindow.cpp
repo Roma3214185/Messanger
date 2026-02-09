@@ -12,10 +12,6 @@
 
 #include "../forms/ui_mainwindow.h"
 #include "Debug_profiling.h"
-#include "ui/MessageActionPanel.h"
-#include "ui/MessageListView.h"
-#include "ui/utilsui.h"
-#include "ui/clickoutsideclosablelistview.h"
 #include "delegators/DelegatorsFactory.h"
 #include "delegators/chatitemdelegate.h"
 #include "delegators/messagedelegate.h"
@@ -25,6 +21,10 @@
 #include "models/chatmodel.h"
 #include "models/messagemodel.h"
 #include "presenter.h"
+#include "ui/MessageActionPanel.h"
+#include "ui/MessageListView.h"
+#include "ui/clickoutsideclosablelistview.h"
+#include "ui/utilsui.h"
 #include "utils.h"
 
 namespace MessageRoles {
@@ -44,7 +44,7 @@ MainWindow::MainWindow(Model *model, DelegatorsFactory *delegators_factory, QWid
 void MainWindow::setPresenter(Presenter *presenter) { presenter_ = presenter; }
 
 void MainWindow::initialise() {
-  if(presenter_) {
+  if (presenter_) {
     throw std::runtime_error("Presenter not initialised");
   }
   presenter_->initialise();
@@ -104,13 +104,9 @@ void MainWindow::on_inSubmitButton_clicked() {
   presenter_->signIn(login_request);
 }
 
-void MainWindow::setMainWindow() const {
-  ui->mainStackedWidget->setCurrentIndex(1);
-}
+void MainWindow::setMainWindow() const { ui->mainStackedWidget->setCurrentIndex(1); }
 
-void MainWindow::closeChatWidget() {
-  ui->messageWidget->setVisible(false);
-}
+void MainWindow::closeChatWidget() { ui->messageWidget->setVisible(false); }
 
 void MainWindow::showError(const QString &error) {
   DBC_REQUIRE(!error.isEmpty());
@@ -183,8 +179,8 @@ void MainWindow::setSignInPage() {
 }
 
 void MainWindow::clearSignInPage() {
-    ui->inEmail->clear();
-    ui->inPassword->clear();
+  ui->inEmail->clear();
+  ui->inPassword->clear();
 }
 
 void MainWindow::setSignUpPage() {
@@ -279,7 +275,7 @@ void MainWindow::on_themeButton_clicked(bool checked) {
 
 void MainWindow::on_MessageContextMenu(const QPoint &pos) {
   QModelIndex index = message_list_view_->indexAt(pos);
-  if(!index.isValid()) return;
+  if (!index.isValid()) return;
 
   const auto message_clicked = index.data(MessageModel::Roles::FullMessage).value<Message>();
   auto reactions = presenter_->getDefaultReactionsInChat(message_clicked.chat_id);
@@ -333,7 +329,7 @@ void MainWindow::resetMessageAnswerOnMode() {
 void MainWindow::copyMessage(const Message &message) { qDebug() << "Copy " << message.toString(); }
 
 void MainWindow::editMessage(const Message &message) {
-  if(!message.isMine() || message.isOfflineSaved()) {
+  if (!message.isMine() || message.isOfflineSaved()) {
     DBC_UNREACHABLE();
     return;
   }
@@ -348,28 +344,28 @@ void MainWindow::editMessage(const Message &message) {
   editable_message_ = message;
 }
 
-void MainWindow::insertTokens(QTextCursor& cursor, const std::vector<MessageToken>& message_tokens) {
-    if (message_tokens.empty()) return;
+void MainWindow::insertTokens(QTextCursor &cursor, const std::vector<MessageToken> &message_tokens) {
+  if (message_tokens.empty()) return;
 
-    for (const auto &token : message_tokens) {
-        if (token.type == MessageTokenType::Text) {
-            cursor.insertText(token.value);
-        } else if (token.type == MessageTokenType::Emoji) {
-            DBC_REQUIRE(token.emoji_id.has_value());
-            long long emoji_id = token.emoji_id.value();
-            auto img_info_opt = presenter_->getReactionInfo(emoji_id);
-            utils::ui::insert_emoji(cursor, img_info_opt);
-        } else {
-            DBC_UNREACHABLE();
-            return;
-        }
+  for (const auto &token : message_tokens) {
+    if (token.type == MessageTokenType::Text) {
+      cursor.insertText(token.value);
+    } else if (token.type == MessageTokenType::Emoji) {
+      DBC_REQUIRE(token.emoji_id.has_value());
+      long long emoji_id = token.emoji_id.value();
+      auto img_info_opt = presenter_->getReactionInfo(emoji_id);
+      utils::ui::insert_emoji(cursor, img_info_opt);
+    } else {
+      DBC_UNREACHABLE();
+      return;
     }
+  }
 }
 
 void MainWindow::deleteMessage(const Message &message) {
   DBC_REQUIRE(message.isMine() && !message.isOfflineSaved());
-  //todo: if !message.isMine() check permission to delete,
-  //todo: if message.isOfflineSaved() add cancel sending
+  // todo: if !message.isMine() check permission to delete,
+  // todo: if message.isOfflineSaved() add cancel sending
   presenter_->deleteMessage(message);
 }
 
@@ -397,7 +393,7 @@ void MainWindow::setWriteMode() { ui->inputEditStackedWidget->setCurrentIndex(0)
 
 void MainWindow::setupSearchMessageListView() {
   if (search_message_list_view_) {
-    if(search_results_model_) search_message_list_view_->setModel(search_results_model_.get());
+    if (search_results_model_) search_message_list_view_->setModel(search_results_model_.get());
     return;
   }
 
@@ -415,7 +411,7 @@ void MainWindow::setupSearchMessageListView() {
   search_message_list_view_->setOnCloseCallback([=]() { this->cancelSearchMessagesMode(); });
   search_message_list_view_->addAcceptableClickableWidget(anchor);
   connect(search_message_list_view_, &QListView::clicked, this, &MainWindow::on_serch_messages_list_view_clicked);
-  if(search_results_model_) search_message_list_view_->setModel(search_results_model_.get());
+  if (search_results_model_) search_message_list_view_->setModel(search_results_model_.get());
 }
 
 void MainWindow::setSearchMessageMode() {

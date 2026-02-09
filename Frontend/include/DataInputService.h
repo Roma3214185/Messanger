@@ -31,12 +31,11 @@ struct Config {
 };
 
 struct CharConfig {
-    bool lettersAllowed{false};
-    bool numbersAllowed{false};
-    bool spaceAllowed{false};
-    QString specialCharactersAllowed;
+  bool lettersAllowed{false};
+  bool numbersAllowed{false};
+  bool spaceAllowed{false};
+  QString specialCharactersAllowed;
 };
-
 
 namespace DataInputService {
 
@@ -53,7 +52,7 @@ ValidationResult validateLoginUserInput(const LogInRequest &input, const Config 
 namespace DataInputService::details {
 
 ValidationResult checkLocalPart(const QString &local, const Config &cfg = Config());
-bool isValidChar(QChar el, const CharConfig& config);
+bool isValidChar(QChar el, const CharConfig &config);
 ValidationResult checkDomainPart(const QString &domain, const Config &cfg = Config());
 
 }  // namespace DataInputService::details

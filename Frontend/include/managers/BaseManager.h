@@ -1,8 +1,8 @@
 #ifndef BASEMANAGER_H
 #define BASEMANAGER_H
 
-#include <QObject>
 #include <QFuture>
+#include <QObject>
 #include <QUrl>
 
 class INetworkAccessManager;
@@ -15,18 +15,15 @@ class BaseManager : public QObject {
   using Timeout = std::chrono::milliseconds;
   using OnFinishedCallback = const std::function<void(const QByteArray &)> &;
 
-  BaseManager(INetworkAccessManager *network_manager, const QUrl &base_url, Timeout timeout_ms,
-              QObject *parent);
+  BaseManager(INetworkAccessManager *network_manager, const QUrl &base_url, Timeout timeout_ms, QObject *parent);
   ~BaseManager() override;
 
  protected:
   template <typename T, typename Callback>
   QFuture<T> handleReplyWithTimeout(QNetworkReply *reply, Callback on_success, Timeout timeout_ms,
-                                       const T &default_value = T());
+                                    const T &default_value = T());
 
-  QFuture<void> handleReplyWithTimeoutVoid(QNetworkReply *reply,
-                                           OnFinishedCallback on_finished,
-                                           Timeout timeout_ms);
+  QFuture<void> handleReplyWithTimeoutVoid(QNetworkReply *reply, OnFinishedCallback on_finished, Timeout timeout_ms);
 
   QByteArray getRequestStatus(const std::string &task_id, int attempts = 5);
   bool checkReply(QNetworkReply *);

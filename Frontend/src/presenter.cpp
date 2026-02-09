@@ -6,10 +6,9 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "Debug_profiling.h"
 #include "DataInputService.h"
+#include "Debug_profiling.h"
 #include "JsonService.h"
-#include "ui/MessageListView.h"
 #include "dto/SignUpRequest.h"
 #include "dto/User.h"
 #include "entities/MessageStatus.h"
@@ -21,6 +20,7 @@
 #include "managers/TokenManager.h"
 #include "model.h"
 #include "models/messagemodel.h"
+#include "ui/MessageListView.h"
 #include "usecases/chatusecase.h"
 #include "usecases/messageusecase.h"
 #include "usecases/sessionusecase.h"
@@ -47,7 +47,7 @@ void Presenter::initialHandlers(SocketHandlersMap handlers) { socket_responce_ha
 void Presenter::setMessageListView(IMessageListView *message_list_view) {
   DBC_REQUIRE(message_list_view != nullptr);
   message_list_view_ = message_list_view;
-  connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter:: onChatWidgetScroll);
+  connect(message_list_view_, &IMessageListView::scrollChanged, this, &Presenter::onChatWidgetScroll);
 }
 
 void Presenter::signIn(const LogInRequest &login_request) {
@@ -60,17 +60,15 @@ void Presenter::signIn(const LogInRequest &login_request) {
 }
 
 void Presenter::signUp(const SignUpRequest &signup_request) {
-    auto res = DataInputService::validateRegistrationUserInput(signup_request);
-    if(!res.valid) {
-        showError(res.message);
-    } else {
-        manager_->session()->signUp(signup_request);
-    }
+  auto res = DataInputService::validateRegistrationUserInput(signup_request);
+  if (!res.valid) {
+    showError(res.message);
+  } else {
+    manager_->session()->signUp(signup_request);
+  }
 }
 
-void Presenter::showError(const QString &error) {
-    view_->showError(error);
-}
+void Presenter::showError(const QString &error) { view_->showError(error); }
 
 void Presenter::initialConnections() {
   connect(manager_->session(), &ISessionUseCase::userCreated, this, &Presenter::setUser);
@@ -92,9 +90,7 @@ void Presenter::onNewSocketMessage(const QJsonObject &socket_message) {
   }
 }
 
-void Presenter::deleteMessage(const Message &message) {
-  manager_->message()->deleteMessage(message);
-}
+void Presenter::deleteMessage(const Message &message) { manager_->message()->deleteMessage(message); }
 
 void Presenter::reactionClicked(const Message &message, long long reaction_id) {
   LOG_INFO("Make reaction {} id for message {}", reaction_id, message.toString());
@@ -138,9 +134,7 @@ void Presenter::onChatWidgetScroll(int distance_from_top) {
   auto *message_model = manager_->getMessageModel(*current_opened_chat_id_);
   DBC_REQUIRE(message_model);
 
-  message_list_view_->preserveFocusWhile(message_model, [&] {
-    manager_->dataManager()->save(new_messages);
-  });
+  message_list_view_->preserveFocusWhile(message_model, [&] { manager_->dataManager()->save(new_messages); });
   // TODO: think about future / then
 }
 
@@ -183,7 +177,7 @@ void Presenter::onMessageReceivedFromSocket(const Message &msg) {
 }
 
 void Presenter::findUserRequest(const QString &text) {
-  if(text.isEmpty()) return;
+  if (text.isEmpty()) return;
   DBC_REQUIRE(current_user_ != std::nullopt);
   auto users = manager_->user()->findUsers(text);
   auto *user_model = manager_->getUserModel();
@@ -228,7 +222,8 @@ void Presenter::onUserClicked(long long user_id, bool is_user) {
   }
 }
 
-void Presenter::sendButtonClicked(QTextDocument *document_with_text_to_send, std::optional<long long> answer_on_message_id) {
+void Presenter::sendButtonClicked(QTextDocument *document_with_text_to_send,
+                                  std::optional<long long> answer_on_message_id) {
   DBC_REQUIRE(current_opened_chat_id_ != std::nullopt);
   DBC_REQUIRE(current_user_ != std::nullopt);
   DBC_REQUIRE(document_with_text_to_send != nullptr);

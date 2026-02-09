@@ -34,7 +34,7 @@ void SessionManager::signIn(const LogInRequest &login_request) {
 void SessionManager::onReplyFinished(const QByteArray &responce) {
   PROFILE_SCOPE("SessionManager::onReplyFinished");
   auto jsonResponse = QJsonDocument::fromJson(responce);
-  if(!jsonResponse.isObject()) return;
+  if (!jsonResponse.isObject()) return;
 
   auto responseObj = jsonResponse.object();
   if (!responseObj.contains("user")) {

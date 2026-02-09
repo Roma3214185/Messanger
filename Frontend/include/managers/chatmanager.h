@@ -29,8 +29,8 @@ class ChatManager : public BaseManager {
   ChatPtr onChatLoaded(const QByteArray &responce_data);
   ChatPtr onCreatePrivateChat(const QByteArray &responce_data);
 
-  private:
-    IChatJsonService *entity_factory_;
+ private:
+  IChatJsonService *entity_factory_;
 };
 
 #endif  // CHATMANAGER_H

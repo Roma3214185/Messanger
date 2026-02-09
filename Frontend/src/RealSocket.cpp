@@ -5,18 +5,17 @@
 #include "Debug_profiling.h"
 
 struct RealSocket::Impl {
-    QWebSocket socket;
+  QWebSocket socket;
 };
 
-RealSocket::RealSocket()
-    : impl_(std::make_unique<Impl>()) {}
+RealSocket::RealSocket() : impl_(std::make_unique<Impl>()) {}
 
 RealSocket::~RealSocket() = default;
 
 void RealSocket::open(const QUrl &url) {
-    connect(&impl_->socket, &QWebSocket::connected, this, &ISocket::connected);
-    connect(&impl_->socket, &QWebSocket::textMessageReceived, this, &ISocket::textMessageReceived);
-    impl_->socket.open(url);
+  connect(&impl_->socket, &QWebSocket::connected, this, &ISocket::connected);
+  connect(&impl_->socket, &QWebSocket::textMessageReceived, this, &ISocket::textMessageReceived);
+  impl_->socket.open(url);
 }
 
 void RealSocket::sendTextMessage(const QString &msg) {

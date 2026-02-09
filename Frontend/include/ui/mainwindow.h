@@ -4,8 +4,8 @@
 #include <QMainWindow>
 #include <memory>
 
-#include "interfaces/IMainWindow.h"
 #include "dto/Message.h"
+#include "interfaces/IMainWindow.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -100,7 +100,7 @@ class MainWindow final : public QMainWindow, public IMainWindow {
   void resetMessageAnswerOnMode();
   void setMessageAnswerOnMode(const Message &message_to_answer);
   void clearSignInPage();
-  void insertTokens(QTextCursor& cursor, const std::vector<MessageToken>& message_tokens);
+  void insertTokens(QTextCursor &cursor, const std::vector<MessageToken> &message_tokens);
 
   ThemePtr current_theme_;
   Ui::MainWindow *ui;
