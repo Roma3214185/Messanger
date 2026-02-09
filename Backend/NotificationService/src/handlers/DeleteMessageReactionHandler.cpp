@@ -2,7 +2,6 @@
 
 #include "entities/Reaction.h"
 #include "notificationservice/IPublisher.h"
-#include "utils.h"
 
 DeleteMessageReactionHandler::DeleteMessageReactionHandler(IPublisher *publisher) : publisher_(publisher) {}
 

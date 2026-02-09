@@ -1,10 +1,6 @@
 #include "proxyclient.h"
 
-#include <crow.h>
 #include <httplib.h>
-
-#include <memory>
-#include <nlohmann/json.hpp>
 
 #include "ForwardRequestDTO.h"
 #include "entities/RequestDTO.h"
