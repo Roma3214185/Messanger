@@ -107,7 +107,7 @@ std::optional<Message> DataManager::getMessageById(const long long message_id) {
 void DataManager::save(const Message &message) {
   const std::scoped_lock lock(messages_mutex_);
   auto it = getIterMessageByLocalId(message.local_id);
-  LOG_INFO("To Save message {}", message().toString());
+  LOG_INFO("To Save message {}", message.toString());
 
   if (it != messages_.end()) {
     LOG_INFO("Message already exist");

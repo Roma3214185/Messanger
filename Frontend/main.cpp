@@ -22,8 +22,7 @@ int main(int argc, char *argv[]) {
   qRegisterMetaType<Message>("Message");
   initLogger("Frontend");
   RedisClient redis("tcp://127.0.0.1:6379");
-  QWebSocket socket;
-  RealSocket real_socket(&socket);
+  RealSocket real_socket;
   QApplication a(argc, argv);
   QUrl url("http://localhost:8084");
   NetworkAccessManager network_manager;
