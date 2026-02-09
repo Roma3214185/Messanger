@@ -28,8 +28,8 @@ Model::Model(IUseCaseRepository *use_case_repostirory, ICache *cash, TokenManage
 void Model::setupConnections() {
   connect(data_manager_, &DataManager::chatAdded, this, [this](const ChatPtr &added_chat) {
     DBC_REQUIRE(added_chat != nullptr);
-    message()->getChatMessagesAsync(added_chat->chat_id);
     getChatModel()->addChat(added_chat);
+    message()->getChatMessagesAsync(added_chat->chat_id);
   });
 
   connect(data_manager_, &DataManager::messageAdded, this, [this](const Message &message) {
@@ -37,12 +37,6 @@ void Model::setupConnections() {
     auto last_message = getMessageModel(message.chat_id)->getLastMessage();
     chat_model_->updateChatInfo(message.chat_id, last_message);
     //  todo: if chat message.chat_id doesn't exist -> load it
-  });
-
-  connect(data_manager_, &DataManager::chatAdded, this, [this](const ChatPtr &chat) {
-    DBC_REQUIRE(chat != nullptr);
-    DBC_REQUIRE(chat->checkInvariants());
-    message()->getChatMessagesAsync(chat->chat_id);
   });
 
   connect(data_manager_, &DataManager::messageDeleted, this, [this](const Message &deleted_message) {
@@ -53,13 +47,12 @@ void Model::setupConnections() {
 }
 
 std::optional<QString> Model::checkToken() {
-  auto tokenOpt = cache_->get("TOKEN");
-  if (tokenOpt) {
-    LOG_INFO("[checkToken] Token found: '{}'", *tokenOpt);
+  if (auto tokenOpt = cache_->get("TOKEN"); tokenOpt.has_value()) {
+    LOG_INFO("Token found: '{}'", *tokenOpt);
     return QString::fromStdString(*tokenOpt);
   }
 
-  LOG_WARN("[checkToken] No token found");
+  LOG_INFO("No token found");
   return std::nullopt;
 }
 
@@ -67,7 +60,6 @@ void Model::saveData(const QString &token, long long current_id) {
   DBC_REQUIRE(!token.isEmpty() && current_id > 0);
   token_manager_->setData(token, current_id);
   cache_->saveToken("TOKEN", token.toStdString());
-  LOG_INFO("[saveToken] Token saved");
 }
 
 MessageModel *Model::getMessageModel(long long chat_id) {
@@ -94,7 +86,5 @@ IChatUseCase *Model::chat() const { return use_case_repository_->chat(); }
 DataManager *Model::dataManager() const { return data_manager_; }
 TokenManager *Model::tokenManager() const { return token_manager_; }
 ISocketUseCase *Model::socket() const { return use_case_repository_->socket(); }
-// JsonService *Model::entities() const { return entity_factory_.get(); }
-
 ChatModel *Model::getChatModel() const noexcept { return chat_model_.get(); }
 UserModel *Model::getUserModel() const noexcept { return user_model_.get(); }
