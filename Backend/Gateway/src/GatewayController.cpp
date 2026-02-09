@@ -53,7 +53,7 @@ void sendResponse(crow::response &res, int res_code, const std::string &message)
 }  // namespace
 
 GatewayController::GatewayController(IClient *client, ICacheService *cache, IThreadPool *pool, IEventBus *queue)
-    : proxy_(client), cache_(cache), pool_(pool), queue_(queue) { }
+    : proxy_(client), cache_(cache), pool_(pool), queue_(queue) {}
 
 void GatewayController::handleProxyRequest(const crow::request &req, crow::response &res, const int port,
                                            const std::string &path) {

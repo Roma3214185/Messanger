@@ -20,6 +20,8 @@ void clearLayout(QLayout *layout);
 void insert_emoji(QTextCursor &cursor, std::optional<ReactionInfo> img_info_opt, int size_of_image = 16,
                   const QString &default_value = " ");
 
+QPixmap getPixmapFromPath(const QString &path);
+
 }  // namespace utils::ui
 
 #endif  // UTILS_UI_H

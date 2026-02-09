@@ -2,8 +2,6 @@
 #define MODEL_H
 
 #include <QObject>
-#include <QUrl>
-#include <QWebSocket>
 #include <memory>
 #include <optional>
 #include <unordered_map>
@@ -42,19 +40,17 @@ class ModelAttorney;
 
 class Model : public QObject {
   Q_OBJECT
-
  public:
   Model(IUseCaseRepository *use_case_repository, ICache *cache, TokenManager *token_manager, ISocket *socket,
         DataManager *data_manager);
 
   ChatModel *getChatModel() const noexcept;
   UserModel *getUserModel() const noexcept;
-
   MessageModel *getMessageModel(long long chat_id);
+
   [[nodiscard]] std::optional<QString> checkToken();
-  void deleteToken() const;
   void saveData(const QString &token, long long current_id);
-  void logout();
+  void clearAll();
   void setupConnections();
 
   ISessionUseCase *session() const;
@@ -62,17 +58,13 @@ class Model : public QObject {
   IUserUseCase *user() const;
   IChatUseCase *chat() const;
   ISocketUseCase *socket() const;
-
   DataManager *dataManager() const;
   TokenManager *tokenManager() const;
-  // JsonService *entities() const;
 
  private:
   TokenManager *token_manager_;
-
   std::unique_ptr<ChatModel> chat_model_;
   std::unique_ptr<UserModel> user_model_;
-
   IUseCaseRepository *use_case_repository_;
   ICache *cache_;
   DataManager *data_manager_;

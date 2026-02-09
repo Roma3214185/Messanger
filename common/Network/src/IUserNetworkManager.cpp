@@ -1,12 +1,12 @@
 #include "interfaces/IUserNetworkManager.h"
 
 #include "Debug_profiling.h"
+#include "ForwardRequestDTO.h"
 #include "config/codes.h"
 #include "config/ports.h"
+#include "entities/RequestDTO.h"
 #include "entities/User.h"
 #include "proxyclient.h"
-#include "ForwardRequestDTO.h"
-#include "entities/RequestDTO.h"
 
 UserNetworkManager::UserNetworkManager(ProxyClient* proxy) : proxy_(proxy) {}
 
@@ -54,7 +54,7 @@ std::optional<User> UserNetworkManager::getUserById(long long other_user_id) {
 
     LOG_INFO("getUserById success: {}", nlohmann::json(found_user).dump());
     return found_user;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG_ERROR("JSON parse error in getUserById: {}", e.what());
     return std::nullopt;
   }

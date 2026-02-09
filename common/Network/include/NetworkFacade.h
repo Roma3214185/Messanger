@@ -15,17 +15,16 @@ class INetworkFacade {
 
 class NetworkFacade : public INetworkFacade {
  public:
-    NetworkFacade(ProxyClient* proxy)
-         : users_(proxy), messages_(proxy), chats_(proxy) { }
+  NetworkFacade(ProxyClient* proxy) : users_(proxy), messages_(proxy), chats_(proxy) {}
 
   IUserNetworkManager& users() override { return users_; }
   IMessageNetworkManager& messages() override { return messages_; }
   IChatNetworkManager& chats() override { return chats_; }
 
-  private:
-    UserNetworkManager users_;
-    MessageNetworkManager messages_;
-    ChatNetworkManager chats_;
+ private:
+  UserNetworkManager users_;
+  MessageNetworkManager messages_;
+  ChatNetworkManager chats_;
 };
 
 #endif  // NETWORKFACADE_H

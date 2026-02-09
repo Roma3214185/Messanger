@@ -1,28 +1,28 @@
-#include "clickoutsideclosablelistview.h"
+#include "ui/clickoutsideclosablelistview.h"
 
 #include <QTimer>
 
-#include "OutsideClickFilter.h"
-#include "mainwindow.h"
+#include "dto/Message.h"
+#include "ui/OutsideClickFilter.h"
+#include "ui/mainwindow.h"
 
 ClickOutsideClosableListView::ClickOutsideClosableListView(QWidget* parent) : QListView(parent) {
-  // this->setAttribute(Qt::WA_DeleteOnClose);
-  this->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::ToolTip);
-  this->setAttribute(Qt::WA_ShowWithoutActivating);
-  this->setResizeMode(QListView::Adjust);
-  this->setMovement(QListView::Static);
-  this->setSpacing(6);
-  this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-  this->setAttribute(Qt::WA_Hover, false);
-  this->setSelectionMode(QAbstractItemView::NoSelection);
+  setWindowFlags(Qt::WindowStaysOnTopHint | Qt::ToolTip);
+  setAttribute(Qt::WA_ShowWithoutActivating);
+  setResizeMode(QListView::Adjust);
+  setMovement(QListView::Static);
+  setSpacing(6);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  setAttribute(Qt::WA_Hover, false);
+  setSelectionMode(QAbstractItemView::NoSelection);
 
   filter_ = new OutsideClickFilter(this);
   this->installEventFilter(filter_);
 
   if (auto mainWindow = qobject_cast<MainWindow*>(this->parent()); mainWindow != nullptr) {
-    connect(mainWindow, &MainWindow::clickedOnPos, filter_, &OutsideClickFilter::checkClickOutside);
-    connect(mainWindow, &MainWindow::geometryChanged, this, &ClickOutsideClosableListView::update);
+    connect(mainWindow, &MainWindow::clickedOnScreenPosition, filter_, &OutsideClickFilter::checkClickOutside);
+    connect(mainWindow, &MainWindow::screenGeometryChanged, this, &ClickOutsideClosableListView::update);
   }
 }
 

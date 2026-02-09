@@ -25,26 +25,11 @@ add_library(FrontendLib STATIC
     ${MY_INCLUDES}
 )
 
-if(ENABLE_CLANG_TIDY)
-    enable_clang_tidy(FrontendLib)
-endif()
-
-if(ENABLE_CPPCHECK)
-    enable_cppcheck(FrontendLib)
-endif()
-
-if(ENABLE_INCLUDE_WHAT_YOU_USE)
-    enable_iwyu(FrontendLib)
-endif()
-
-if(ENABLE_SANITIZER_ADDRESS OR ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
-    enable_sanitizers(FrontendLib)
-endif()
-
-if(ENABLE_CLANG_FORMAT)
-    enable_clang_format(FrontendLib)
-endif()
-
+enable_clang_tidy(FrontendLib)
+enable_cppcheck(FrontendLib)
+# enable_iwyu(FrontendLib)
+enable_sanitizers(FrontendLib)
+enable_clang_format(FrontendLib)
 enable_project_warnings(FrontendLib)
 
 
@@ -71,10 +56,14 @@ add_library(Frontend::Lib ALIAS FrontendLib)
 
 add_executable(Frontend
     main.cpp
-    ${FRONTEND_INC_DIR}/mainwindow.h
+    ${FRONTEND_INC_DIR}/ui/mainwindow.h
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
+    src/managers/TokenManager.cpp
+    include/managers/BaseManager.inl
 )
+
+enable_iwyu(Frontend)
 
 add_custom_command(TARGET Frontend POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -82,6 +71,6 @@ add_custom_command(TARGET Frontend POST_BUILD
         $<TARGET_FILE_DIR:Frontend>/config
 )
 
-target_link_libraries(Frontend PRIVATE FrontendLib Metrics)
+target_link_libraries(Frontend PRIVATE FrontendLib Metrics ProjectOptions)
 
 target_include_directories(Frontend PRIVATE ${FRONTEND_FORMS_DIR})

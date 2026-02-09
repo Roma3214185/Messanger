@@ -5,17 +5,16 @@
 #include "SocketHandlersRepositoty.h"
 #include "handlers/MessageHanldlers.h"
 #include "notificationservice/CrowSocket.h"
+#include "notificationservice/ISubscriber.h"
 #include "notificationservice/SocketRepository.h"
 #include "notificationservice/managers/NotificationOrchestrator.h"
-#include "notificationservice/ISubscriber.h"
 
 Server::Server(int port, IActiveSocketRepository *socket_repository,
-               SocketHandlersRepository *socket_handlers_repository, ISubscriber* subscriber)
+               SocketHandlersRepository *socket_handlers_repository, ISubscriber *subscriber)
     : notification_port_(port),
       socket_handlers_repository_(socket_handlers_repository),
       active_sockets_(socket_repository),
-      subscriber_(subscriber) {
-}
+      subscriber_(subscriber) {}
 
 void Server::run() {
   initRoutes();

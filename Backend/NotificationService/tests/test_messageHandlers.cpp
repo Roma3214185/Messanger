@@ -101,7 +101,7 @@ TEST_CASE("Test SaveMessageReactionHandler") {
         handler.handle(msg, nullptr);
 
         REQUIRE(publisher.calls_saveReaction == 1);
-        auto reaction_to_save = publisher.reactions_to_delete[0];
+        auto reaction_to_save = publisher.reactions_to_save[0];
         reaction_to_save.message_id = mock_message_id;
         reaction_to_save.receiver_id = mock_receiver_id;
         reaction_to_save.reaction_id = reaction_id;

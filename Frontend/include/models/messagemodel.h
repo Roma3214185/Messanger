@@ -38,7 +38,7 @@ class MessageModel : public QAbstractListModel {
   void clear();
   std::optional<Message> getLastMessage() const;
   std::optional<Message> getOldestMessage() const;
-  [[nodiscard]] ListOfMessages messages() const noexcept { return messages_; }
+  [[nodiscard]] ListOfMessages messages() const noexcept;
 
  private:
   void sortMessagesByTimestamp();

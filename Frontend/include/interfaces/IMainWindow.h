@@ -1,19 +1,20 @@
 #ifndef IMAINWINDOW_H
 #define IMAINWINDOW_H
 
-#include <QListView>
+#include <QModelIndex>
+#include <QString>
 
-#include "dto/User.h"
-#include "models/UserModel.h"
+#include "dto/ChatBase.h"
 #include "models/chatmodel.h"
-#include "models/messagemodel.h"
+
+class UserModel;
+class ChatBase;
 
 class IMainWindow {
  public:
   virtual void setChatWindow(std::shared_ptr<ChatBase> chat) = 0;
   virtual void setChatModel(ChatModel *model) = 0;
   virtual void setUserModel(UserModel *user_model) = 0;
-  virtual void clearFindUserEdit() = 0;
   virtual void showError(const QString &error) = 0;
   virtual void setCurrentChatIndex(QModelIndex idx) = 0;
 };

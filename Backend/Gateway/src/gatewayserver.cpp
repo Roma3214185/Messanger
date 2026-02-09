@@ -23,7 +23,7 @@
 GatewayServer::GatewayServer(GatewayApp &app, GatewayController *controller) : app_(app), controller_(controller) {}
 
 void GatewayServer::run() {
-    controller_->subscribeOnNewRequest();
+  controller_->subscribeOnNewRequest();
   LOG_INFO("Starting API Gateway on port {}", Config::Ports::apigateService);
   app_.port(Config::Ports::apigateService).multithreaded().run();
 }

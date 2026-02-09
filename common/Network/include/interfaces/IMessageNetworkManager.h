@@ -19,11 +19,12 @@ class IMessageNetworkManager {
 class ProxyClient;
 
 class MessageNetworkManager : public IMessageNetworkManager {
-public:
-    MessageNetworkManager(ProxyClient* proxy);
-    std::optional<long long> getChatIdOfMessage(long long message_id) override;
-    std::optional<ReactionInfo> getReaction(long long reaction_id) override;
-private:
-    ProxyClient* proxy_;
+ public:
+  MessageNetworkManager(ProxyClient* proxy);
+  std::optional<long long> getChatIdOfMessage(long long message_id) override;
+  std::optional<ReactionInfo> getReaction(long long reaction_id) override;
+
+ private:
+  ProxyClient* proxy_;
 };
 #endif  // IMESSAGENETWORKMANAGER_H

@@ -1,4 +1,4 @@
-#include "utilsui.h"
+#include "ui/utilsui.h"
 
 #include <QLayout>
 #include <QListView>
@@ -86,6 +86,17 @@ void insert_emoji(QTextCursor& cursor, std::optional<ReactionInfo> img_info_opt,
   } else {
     cursor.insertText(default_value);
   }
+}
+
+QPixmap getPixmapFromPath(const QString& path) {
+  QPixmap avatar{path};
+
+  if (!avatar.isNull()) {
+    return avatar;
+  }
+
+  const QString kDefaultAvatar = "/Users/roma/QtProjects/Chat/default_avatar.jpeg";
+  return QPixmap{kDefaultAvatar};
 }
 
 }  // namespace utils::ui

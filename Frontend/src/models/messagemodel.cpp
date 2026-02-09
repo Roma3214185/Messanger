@@ -43,10 +43,7 @@ QModelIndex MessageModel::indexFromId(long long messageId) const {
   return QModelIndex();  // Not found
 }
 
-// void MessageModel::setCurrentUserId(long long user_id) { currentUserId =
-// user_id; }
-
-// void MessageModel::resetCurrentUseId() { currentUserId = std::nullopt; }
+ListOfMessages MessageModel::messages() const noexcept { return messages_; }
 
 std::optional<Message> MessageModel::getLastMessage() const {
   if (messages_.empty()) return std::nullopt;

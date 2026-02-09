@@ -93,12 +93,11 @@ void RabbitNotificationPublisher::saveMessage(const Message &message) {
 }
 
 void RabbitNotificationPublisher::deleteMessageStatus(const MessageStatus &message_status) {
-    mq_client_->publish(PublishRequest{// TODO: Factory(?)
-                                       .exchange = Config::Routes::exchange,
-                                       .routing_key = Config::Routes::deleteMessageStatus,
-                                       .message = nlohmann::json(message_status).dump(),
-                                       .exchange_type = Config::Routes::exchangeType});
-
+  mq_client_->publish(PublishRequest{// TODO: Factory(?)
+                                     .exchange = Config::Routes::exchange,
+                                     .routing_key = Config::Routes::deleteMessageStatus,
+                                     .message = nlohmann::json(message_status).dump(),
+                                     .exchange_type = Config::Routes::exchangeType});
 }
 
 void NotificationOrchestrator::onMessageStatusSaved(const std::string &payload) {
@@ -161,9 +160,9 @@ SocketNotifier::SocketNotifier(IUserSocketRepository *sock_manager) : socket_man
 
 bool SocketNotifier::notifyMember(long long user_id, nlohmann::json json_message,
                                   std::string type) {  // todo: implement enum
-    if (json_message.is_null()) {
-        return false;
-    }
+  if (json_message.is_null()) {
+    return false;
+  }
 
   auto socket = socket_manager_->getUserSocket(user_id);
 
@@ -172,7 +171,7 @@ bool SocketNotifier::notifyMember(long long user_id, nlohmann::json json_message
     return false;
   }
 
-  if(type.empty()) {
+  if (type.empty()) {
     LOG_WARN("Type is empty");
   }
 

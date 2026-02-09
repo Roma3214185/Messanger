@@ -20,7 +20,7 @@ Message MessageFactory::createMessage(long long current_user_id, long long chat_
   DBC_REQUIRE(!local_id.isEmpty());
   DBC_REQUIRE(sender_id > 0);
   DBC_REQUIRE(chat_id > 0);
-  // todo: what about message_id??
+
   Message message{.sender_id = sender_id,
                   .chat_id = chat_id,
                   .tokens = std::move(tokens),
@@ -30,10 +30,6 @@ Message MessageFactory::createMessage(long long current_user_id, long long chat_
                   .local_id = local_id,
                   .answer_on = answer_on};
 
-  // if(message.isMine()) {
-  //   message.receiver_read_status = true;
-  //   message.read_counter++;
-  // }
   DBC_ENSURE(message.checkInvariants());
   return message;
 }
@@ -41,35 +37,25 @@ Message MessageFactory::createMessage(long long current_user_id, long long chat_
 JsonService::JsonService(TokenManager *token_manager) : token_manager_(token_manager) {}
 
 User JsonService::getUserFromResponse(const QJsonObject &res) {
-  if (!res.contains("email")) LOG_ERROR("No email field");
-  if (!res.contains("tag")) LOG_ERROR("No tag field");
-  if (!res.contains("name")) LOG_ERROR("No name field");
-  if (!res.contains("id")) LOG_ERROR("No id field");
-  if (!res.contains("avatar_path")) LOG_ERROR("No avatar_path field");
-
   User user;
   user.email = res["email"].toString();
   user.tag = res["tag"].toString();
   user.name = res["name"].toString();
-  user.id = res["id"].toInteger();
+  user.id = res["id"].toInteger(0);
   user.avatarPath = res["avatar_path"].toString("/Users/roma/QtProjects/Chat/images/default_avatar.jpg");
 
-  spdlog::info("[USER] id={} | name='{}' | tag='{}' | email='{}'", user.id, user.name.toStdString(),
-               user.tag.toStdString(), user.email.toStdString());
-  DBC_ENSURE(user.checkInvariants());
+  LOG_INFO("User from responce {}", user.toString());
   return user;
 }
 
 IMessageJsonService::MessageServerJsonAnswer JsonService::getMessageFromJson(const QJsonObject &obj) {
   Message msg;
   std::vector<ReactionInfo> reactions_infos;
-  if (obj.contains("id")) msg.id = obj["id"].toInteger();
-  if (obj.contains("sender_id")) msg.sender_id = obj["sender_id"].toInteger();
-  if (obj.contains("chat_id")) msg.chat_id = obj["chat_id"].toInteger();
-  if (obj.contains("text")) {
-    QString text = obj["text"].toString();
-    msg.tokens = utils::text::get_tokens_from_text(text);
-  }
+  msg.id = obj["id"].toInteger(0);
+  msg.sender_id = obj["sender_id"].toInteger(0);
+  msg.chat_id = obj["chat_id"].toInteger(0);
+  QString text = obj["text"].toString();
+  msg.tokens = utils::text::get_tokens_from_text(text);
 
   if (obj.contains("answer_on")) {
     msg.answer_on = obj["answer_on"].toInteger();
@@ -77,12 +63,12 @@ IMessageJsonService::MessageServerJsonAnswer JsonService::getMessageFromJson(con
     msg.answer_on.reset();
   }
 
-  if (obj.contains("timestamp")) msg.timestamp = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger());
-  if (obj.contains("local_id")) msg.local_id = obj["local_id"].toString();
+  msg.timestamp = QDateTime::fromSecsSinceEpoch(obj["timestamp"].toInteger(0));
+  msg.local_id = obj["local_id"].toString();
   if (obj.contains("read")) {
     const QJsonObject &read = obj["read"].toObject();
-    if (read.contains("receiver_read_status")) msg.receiver_read_status = read["receiver_read_status"].toBool();
-    if (read.contains("count")) msg.read_counter = read["count"].toInt();
+    msg.receiver_read_status = read["receiver_read_status"].toBool(false);
+    msg.read_counter = read["count"].toInt(0);
   }
 
   if (obj.contains("reactions")) {
@@ -94,19 +80,17 @@ IMessageJsonService::MessageServerJsonAnswer JsonService::getMessageFromJson(con
     }
 
     if (react.contains("counts") && react["counts"].isArray()) {
-      const QJsonArray countsArr = react["counts"].toArray();
-
-      msg.reactions.clear();
+      const auto countsArr = react["counts"].toArray();
 
       for (const auto &v : countsArr) {
-        if (!v.isArray()) continue;  // skip invalid entries
+        if (!v.isArray()) continue;
 
         QJsonArray pair = v.toArray();
         if (pair.size() != 2) continue;
         int count = pair[1].toInt();
 
         if (auto reaction_info = getReactionInfo(pair[0]); reaction_info.has_value()) {
-          msg.reactions[reaction_info->id]++;
+          msg.reactions[reaction_info->id] += count;
           reactions_infos.push_back(reaction_info.value());
         } else {
           LOG_ERROR("Unable to get reactionInfo from JsonValue");
@@ -117,8 +101,6 @@ IMessageJsonService::MessageServerJsonAnswer JsonService::getMessageFromJson(con
 
   msg.receiver_id = token_manager_->getCurrentUserId();
   msg.status_sended = true;
-  DBC_ENSURE(msg.checkInvariants());
-
   LOG_INFO("[JSON] {}", msg.toString());
   return std::make_pair(msg, std::move(reactions_infos));
 }
@@ -137,11 +119,14 @@ QJsonObject JsonService::toJson(const Message &msg) {
   readObj["count"] = msg.read_counter;
   obj["read"] = readObj;
 
-  // QJsonObject reactionsObj;
-  // reactionsObj["counts"] = ...;
-  // reactionsObj["my_reaction"] = ...;  // int or null
-  // obj["reactions"] = reactionsObj;
-  // obj["status_sended"] = msg.status_sended;
+  /* todo: implement
+  QJsonObject reactionsObj;
+  reactionsObj["counts"] = ...;
+  if(msg.receiver_reaction reactionsObj["receiver_reaction"] = ...;
+  obj["reactions"] = reactionsObj;
+
+   obj["status_sended"] = msg.status_sended;
+  */
   return obj;
 }
 
@@ -151,36 +136,32 @@ ChatPtr JsonService::getChatFromJson(const QJsonObject &obj) {
     return nullptr;
   }
 
-  if (!obj.contains("type")) {
-    LOG_ERROR("There is no type field");
-    return nullptr;
-  }
-
   const QString type = obj["type"].toString();
-  ChatPtr chat = nullptr;
+  auto chat = [=](const QString &type) -> ChatPtr {
+    if (type == "private") {
+      const auto userObj = obj["user"].toObject();
+      auto chat = std::make_shared<PrivateChat>();
+      chat->chat_id = obj["id"].toInteger(0);
+      chat->title = userObj["name"].toString();
+      chat->avatar_path = userObj["avatar"].toString();
+      LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
+      return chat;
+    }
 
-  if (type == "private") {
-    const auto userObj = obj["user"].toObject();
-    chat = std::make_shared<PrivateChat>();
-    // chat = dynamic_cast<PrivateChat>(chat);
-    chat->chat_id = static_cast<long long>(obj["id"].toDouble());
-    chat->title = userObj["name"].toString();
-    chat->avatar_path = userObj["avatar"].toString();
-    // chat->user_id = static_cast<long long>(userObj["id"].toDouble());
-    LOG_INFO("Load private chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
-    // todo: check invariants
-  } else if (type == "group") {
-    chat = std::make_shared<GroupChat>();
-    chat->chat_id = static_cast<long long>(obj["id"].toDouble());
-    chat->title = obj["name"].toString();
-    chat->avatar_path = obj["avatar"].toString();
-    // chat->member_count = obj["member_count"].toInt();
-    LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
-  } else {
+    if (type == "group") {
+      auto chat = std::make_shared<GroupChat>();
+      chat->chat_id = obj["id"].toInteger(0);
+      chat->title = obj["name"].toString();
+      chat->avatar_path = obj["avatar"].toString();
+      // chat->member_count = obj["member_count"].toInt();
+      LOG_INFO("Load group chat: {} and id {}", chat->title.toStdString(), chat->chat_id);
+      return chat;
+    }
+
+    LOG_ERROR("Invalid type of chat: ( {} )", type.toStdString());
     return nullptr;
-  }
-
-  chat->default_reactions.clear();
+  }(type);
+  if (!chat) return nullptr;
 
   if (obj.contains("default_reactions")) {
     const auto reactArr = obj["default_reactions"].toArray();
@@ -198,15 +179,10 @@ ChatPtr JsonService::getChatFromJson(const QJsonObject &obj) {
 }
 
 Reaction JsonService::getReaction(const QJsonObject &obj) {
-  if (!obj.contains("reaction_id")) LOG_ERROR("Obj for reaction doesn't contains 'reaction_id' field");
-  if (!obj.contains("message_id")) LOG_ERROR("Obj for reaction doesn't contains 'message_id' field");
-  if (!obj.contains("receiver_id")) LOG_ERROR("Obj for reaction doesn't contains 'receiver_id' field");
-
   Reaction reaction;
-  reaction.reaction_id = obj["reaction_id"].toInteger();
-  reaction.message_id = obj["message_id"].toInteger();
-  reaction.receiver_id = obj["receiver_id"].toInteger();
-  DBC_ENSURE(reaction.checkInvariants());
+  reaction.reaction_id = obj["reaction_id"].toInteger(0);
+  reaction.message_id = obj["message_id"].toInteger(0);
+  reaction.receiver_id = obj["receiver_id"].toInteger(0);
   return reaction;
 }
 
@@ -221,22 +197,11 @@ std::optional<ReactionInfo> JsonService::getReactionInfo(const QJsonValue &value
 
 std::optional<MessageStatus> JsonService::getMessageStatus(const QJsonObject &json_object) {
   MessageStatus status;
-  if (!json_object.contains("message_id")) {
-    LOG_ERROR("getMessageStatus doen't have field message_id");
-    return std::nullopt;
-  }
 
-  if (!json_object.contains("receiver_id")) {
-    LOG_ERROR("getMessageStatus doen't have field receiver_id");
-    return std::nullopt;
-  }
-
-  status.message_id = json_object["message_id"].toInteger();
-  status.receiver_id = json_object["receiver_id"].toInteger();
-  status.is_read = true;  // todo: implememnt correct json from server
-  // status.is_read = json_object["is_read"].toBool();
+  status.message_id = json_object["message_id"].toInteger(0);
+  status.receiver_id = json_object["receiver_id"].toInteger(0);
+  status.is_read = json_object["is_read"].toBool(false);
   // status.read_at = json_object["is_read"].toInteger();
 
-  // todo: maybe already checkInvariants call and return std::nullopt if incorrect ??
-  return status;
+  return status.checkInvariants() ? std::make_optional(status) : std::nullopt;
 }

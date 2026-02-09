@@ -14,11 +14,12 @@ class IChatNetworkManager {
 class ProxyClient;
 
 class ChatNetworkManager : public IChatNetworkManager {
-public:
-    ChatNetworkManager(ProxyClient* proxy);
-    std::vector<UserId> getMembersOfChat(long long chat_id) override;
-private:
-    ProxyClient* proxy_;
+ public:
+  ChatNetworkManager(ProxyClient* proxy);
+  std::vector<UserId> getMembersOfChat(long long chat_id) override;
+
+ private:
+  ProxyClient* proxy_;
 };
 
 #endif  // ICHATNETWORKMANAGER_H

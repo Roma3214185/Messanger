@@ -11,9 +11,9 @@
 SocketUseCase::SocketUseCase(std::unique_ptr<SocketManager> socket_manager)
     : socket_manager_(std::move(socket_manager)) {
   connect(socket_manager_.get(), &SocketManager::newTextFromSocket, this,
-            [this](const QString& msg) { this->onMessageReceived(msg); });
-    // todo: onResponce from server in
-    // use cases or in managers (???)
+          [this](const QString& msg) { this->onMessageReceived(msg); });
+  // todo: onResponce from server in
+  // use cases or in managers (???)
 }
 
 void SocketUseCase::initSocket(long long user_id) { socket_manager_->initSocket(user_id); }

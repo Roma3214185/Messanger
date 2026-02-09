@@ -3,9 +3,9 @@
 
 #include <string>
 
+class ForwardRequestDTO;
 class RequestDTO;
 class IClient;
-class ForwardRequestDTO;
 
 using NetworkResponse = std::pair<int, std::string>;
 

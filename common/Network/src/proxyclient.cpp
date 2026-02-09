@@ -1,15 +1,10 @@
 #include "proxyclient.h"
 
-#include <crow.h>
 #include <httplib.h>
-
-#include <memory>
-#include <nlohmann/json.hpp>
 
 #include "ForwardRequestDTO.h"
 #include "entities/RequestDTO.h"
 #include "interfaces/IClient.h"
-
 
 constexpr int kBadGatewayCode = 502;
 const std::string kBadGatewayMessage = "Bad Gateway: downstream no response";
