@@ -3,51 +3,56 @@
 
 MessageActionPanel::MessageActionPanel(const Message &msg, const std::vector<ReactionInfo> &reactions, QWidget *parent)
     : QWidget(parent), msg_(msg), reactions_(reactions) {
+  setAttribute(Qt::WA_DeleteOnClose);
+  setWindowFlags(Qt::Popup);
+  setupActionList();
+  setupEmojiiGrid();
+
   auto *layout = new QVBoxLayout(this);
   layout->setContentsMargins(4, 4, 4, 4);
   layout->setSpacing(4);
-
-  actionList_ = new QListView(this);
-  actionList_->setViewMode(QListView::ListMode);
-  actionList_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  actionList_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  actionList_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  setAttribute(Qt::WA_DeleteOnClose);
-  setWindowFlags(Qt::Popup);
-
-  QFont font;
-  constexpr int font_size = 18;
-  font.setPointSize(font_size);
-  actionList_->setFont(font);
-
-  constexpr int itemHeight = 24;
-  actionList_->setItemDelegate(new FixedHeightDelegate(itemHeight, actionList_));
-  actionModel_ = new QStringListModel({"Copy", "Edit", "Delete", "Answer"}, this);
-  actionList_->setModel(actionModel_);
-
-  const int itemCount = actionModel_->rowCount();
-  const int spacing = actionList_->spacing();
-  const int totalHeight = itemCount * itemHeight + (itemCount - 1) * spacing + 2 * actionList_->frameWidth();
-  actionList_->setFixedHeight(totalHeight);
-
   layout->addWidget(actionList_);
-
-  emojiGrid_ = new QListView(this);
-  emojiGrid_->setViewMode(QListView::IconMode);
-  emojiGrid_->setSpacing(6);
-  emojiGrid_->setIconSize(QSize(18, 18));
-  emojiGrid_->setResizeMode(QListView::Adjust);
-  emojiGrid_->setMovement(QListView::Static);
-  emojiGrid_->setFixedHeight(36);
-
-  emojiModel_ = new QStandardItemModel(this);
-  loadEmojiReactions();
-  emojiGrid_->setModel(emojiModel_);
-
   layout->addWidget(emojiGrid_);
+}
 
-  connect(actionList_, &QListView::clicked, this, &MessageActionPanel::onActionClicked);
-  connect(emojiGrid_, &QListView::clicked, this, &MessageActionPanel::onEmojiClicked);
+void MessageActionPanel::setupActionList() {
+    if(actionList_ != nullptr) return;
+    actionList_ = new QListView(this);
+    actionList_->setViewMode(QListView::ListMode);
+    actionList_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    actionList_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    actionList_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    QFont font;
+    constexpr int kFontSize = 18;
+    font.setPointSize(kFontSize);
+    actionList_->setFont(font);
+
+    constexpr int kItemHeight = 24;
+    actionList_->setItemDelegate(new FixedHeightDelegate(kItemHeight, actionList_));
+    actionModel_ = new QStringListModel({"Copy", "Edit", "Delete", "Answer"}, this);
+    actionList_->setModel(actionModel_);
+
+    const int item_count = actionModel_->rowCount();
+    const int spacing = actionList_->spacing();
+    const int total_height = item_count * kItemHeight + (item_count - 1) * spacing + 2 * actionList_->frameWidth();
+    actionList_->setFixedHeight(total_height);
+    connect(actionList_, &QListView::clicked, this, &MessageActionPanel::onActionClicked);
+}
+
+void MessageActionPanel::setupEmojiiGrid() {
+    if(emojiGrid_ != nullptr) return;
+    emojiGrid_ = new QListView(this);
+    emojiGrid_->setViewMode(QListView::IconMode);
+    emojiGrid_->setSpacing(6);
+    emojiGrid_->setIconSize(QSize(18, 18));
+    emojiGrid_->setResizeMode(QListView::Adjust);
+    emojiGrid_->setMovement(QListView::Static);
+    emojiGrid_->setFixedHeight(36);
+    emojiModel_ = new QStandardItemModel(this);
+    loadEmojiReactions();
+    emojiGrid_->setModel(emojiModel_);
+    connect(emojiGrid_, &QListView::clicked, this, &MessageActionPanel::onEmojiClicked);
 }
 
 void MessageActionPanel::loadEmojiReactions() {
@@ -78,7 +83,7 @@ void MessageActionPanel::onActionClicked(const QModelIndex &index) {
 }
 
 void MessageActionPanel::onEmojiClicked(const QModelIndex &index) {
-  long long emojiId = index.data(Qt::UserRole + 1).toLongLong();
-  Q_EMIT reactionClicked(msg_, emojiId);
+  long long emoji_id = index.data(Qt::UserRole + 1).toLongLong();
+  Q_EMIT reactionClicked(msg_, emoji_id);
   this->close();
 }
