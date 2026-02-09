@@ -34,7 +34,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
   SECTION("Subscrive on message to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessage();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
@@ -47,7 +47,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
   SECTION("Subscrive on message to save expected call valid callback function") {
     Message test_message;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessage();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
     int before_callback_call = controller.call_save_message;
@@ -59,7 +59,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
 
   SECTION("Subscrive on message_status to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessageStatus();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
@@ -74,7 +74,7 @@ TEST_CASE("Test cotroller works with rabitMQ") {
       "function") {
     MessageStatus test_message_status;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.subscribeToSaveMessageStatus();
+    controller.setup();
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
     int before_callback_call = controller.call_save_message_status;

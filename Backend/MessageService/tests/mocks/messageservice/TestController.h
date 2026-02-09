@@ -19,8 +19,6 @@ class TestController : public Controller {
   std::string last_getIdFromToken_token = "";
 
   using Controller::Controller;
-  using Controller::subscribeToSaveMessage;
-  using Controller::subscribeToSaveMessageStatus;
 
   void handleSaveMessage(const std::string &payload) override {
     ++call_save_message;

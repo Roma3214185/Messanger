@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "QueueSubscriber.h"
+#include "QueuePublisher.h"
+
 class Message;
 class IMessageCommandService;
 class IMessageQueryService;
@@ -33,12 +36,10 @@ class Controller {
  protected:
   virtual void handleSaveMessage(const std::string &payload);
   virtual void handleSaveMessageStatus(const std::string &payload);
-  void subscribeToSaveMessage();
-  void subscribeToSaveMessageStatus();
-  void subscribeToSaveMessageReaction();
-  void subscribeToDeleteMessageReaction();
-  void onDeleteMessageReaction(const std::string &payload);
-  void onSaveMessageReaction(const std::string &payload);
+  void handleDeleteMessageReaction(const std::string &payload);
+  void handleSaveMessageReaction(const std::string &payload);
+
+  void subscribeAll();
 
  private:
   std::vector<Message> getMessages(const GetMessagePack &);
@@ -49,8 +50,9 @@ class Controller {
 
   IMessageCommandService *command_manager_;
   IMessageQueryService *query_manager_;
-  IEventBus *mq_client_;
   IThreadPool *pool_;
+  QueueSubscriber subscriber_;
+  QueuePublisher publisher_;
 };
 
 #endif  // BACKEND_MESSAGESERVICE_CONTROLLER_CONTROLLER_H_

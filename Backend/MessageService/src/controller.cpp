@@ -68,7 +68,7 @@ std::vector<MessageStatus> fetchReaded(const std::vector<MessageStatus> &message
 }  // namespace
 
 Controller::Controller(IEventBus *mq_client, IMessageCommandService* command_manager, IMessageQueryService *query_manager, IThreadPool *pool)
-    : command_manager_(command_manager), query_manager_(query_manager), mq_client_(mq_client), pool_(pool) {}
+    : command_manager_(command_manager), query_manager_(query_manager), pool_(pool), subscriber_(mq_client), publisher_(mq_client) {}
 
 void Controller::handleSaveMessage(const std::string &payload) {
   std::optional<Message> msg = utils::parsePayload<Message>(payload);  // TODO: alias
@@ -78,64 +78,43 @@ void Controller::handleSaveMessage(const std::string &payload) {
   LOG_INFO("Get message to save with id {} and text {}", message.id, message.text);
 
   pool_->enqueue([this, message]() mutable {
-    if (!command_manager_->saveMessage(message)) {
+    if (command_manager_->saveMessage(message)) {
+      publisher_.messageSaved(message);
+    } else {
       LOG_ERROR("Error saving message id {}", message.id);
-      return;
     }
-
-    PublishRequest request;
-    request.exchange = Config::Routes::exchange;
-    request.routing_key = Config::Routes::messageSaved;
-    request.message = nlohmann::json(message).dump();  // can be error excahnge type
-    request.exchange_type = Config::Routes::exchangeType;
-
-    mq_client_->publish(request);
-    // TODO: kMessageSaved
   });
 }
 
-void Controller::subscribeToSaveMessage() {
-  SubscribeRequest request;
-  request.queue = Config::Routes::saveMessageQueue;
-  request.exchange = Config::Routes::exchange;
-  request.routing_key = Config::Routes::saveMessage;
-  request.exchange_type = Config::Routes::exchangeType;
-  mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
-    LOG_INFO("Getted event in subscribeToSaveMessage: {} and payload {}", event, payload);
-    if (event == Config::Routes::saveMessage) handleSaveMessage(payload);
+void Controller::subscribeAll() {
+  subscriber_.subscribeToSaveMessage([this](const std::string& payload){
+    handleSaveMessage(payload);
   });
-}
 
-void Controller::subscribeToSaveMessageStatus() {
-  SubscribeRequest request;
-  request.queue = Config::Routes::saveMessageStatusQueue;
-  request.exchange = Config::Routes::exchange;
-  request.routing_key = Config::Routes::saveMessageStatus;
-  request.exchange_type = Config::Routes::exchangeType;
-  mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
-    LOG_INFO("Getted event in subscribeToSaveMessageStatus: {} and payload {}", event, payload);
-    if (event == Config::Routes::saveMessageStatus) handleSaveMessageStatus(payload);
+    subscriber_.subscribeToSaveMessageStatus([this](const std::string& payload){
+      handleSaveMessageStatus(payload);;
+    });
+
+  subscriber_.subscribeToSaveMessageReaction([this](const std::string& payload){
+      handleSaveMessageReaction(payload);
   });
+
+    subscriber_.subscribeToDeleteMessageReaction([this](const std::string& payload){
+      handleDeleteMessageReaction(payload);
+    });
 }
 
 void Controller::handleSaveMessageStatus(const std::string &payload) {
   std::optional<MessageStatus> message_status = utils::parsePayload<MessageStatus>(payload);
   if (message_status == std::nullopt) return;
-
   auto status = *message_status;
 
   pool_->enqueue([this, status]() mutable {
-    if (!command_manager_->saveMessageStatus(status)) {
+    if (command_manager_->saveMessageStatus(status)) {
+      publisher_.messageStatusSaved(status);
+    } else {
       LOG_ERROR("Error saving message_status id {}", status.message_id);
-      return;
     }
-
-    PublishRequest request{.exchange = Config::Routes::exchange,
-                           .routing_key = Config::Routes::messageStatusSaved,
-                           .message = nlohmann::json(status).dump(),
-                           .exchange_type = Config::Routes::exchangeType};
-
-    mq_client_->publish(request);
   });
 }
 
@@ -188,13 +167,7 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
     return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Error while saving"));
   }
 
-  PublishRequest request;
-  request.exchange = Config::Routes::exchange;
-  request.routing_key = Config::Routes::messageSaved;
-  request.message = nlohmann::json(*updated_message).dump();
-  request.exchange_type = Config::Routes::exchangeType;
-
-  mq_client_->publish(request);
+  publisher_.messageSaved(*updated_message);
   return std::make_pair(200, nlohmann::json(*updated_message).dump());
 }
 
@@ -230,14 +203,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
     return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Error while saving"));
   }
 
-  PublishRequest request;
-  request.exchange = Config::Routes::exchange;
-  request.routing_key = Config::Routes::messageDeleted;
-  request.message = nlohmann::json(*message_to_delete).dump();
-  request.exchange_type = Config::Routes::exchangeType;
-
-  mq_client_->publish(request);
-
+  publisher_.messageDeleted(*message_to_delete);
   return std::make_pair(200, nlohmann::json(*message_to_delete).dump());
 }
 
@@ -313,31 +279,7 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
   return std::make_pair(Config::StatusCodes::success, json_messages.dump());
 }
 
-void Controller::subscribeToSaveMessageReaction() {
-  SubscribeRequest request;
-  request.queue = Config::Routes::saveReaction;
-  request.exchange = Config::Routes::exchange;
-  request.routing_key = Config::Routes::saveReaction;
-  request.exchange_type = Config::Routes::exchangeType;
-  mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
-    LOG_INFO("Getted event in onSaveMessageReaction: {} and payload {}", event, payload);
-    if (event == Config::Routes::saveReaction) onSaveMessageReaction(payload);
-  });
-}
-
-void Controller::subscribeToDeleteMessageReaction() {
-  SubscribeRequest request;
-  request.queue = Config::Routes::deleteReaction;
-  request.exchange = Config::Routes::exchange;
-  request.routing_key = Config::Routes::deleteReaction;
-  request.exchange_type = Config::Routes::exchangeType;
-  mq_client_->subscribe(request, [this](const std::string &event, const std::string &payload) {
-    LOG_INFO("Getted event in onDeleteMessageReaction: {} and payload {}", event, payload);
-    if (event == Config::Routes::deleteReaction) onDeleteMessageReaction(payload);
-  });
-}
-
-void Controller::onDeleteMessageReaction(const std::string &payload) {
+void Controller::handleDeleteMessageReaction(const std::string &payload) {
   std::optional<Reaction> reaction_to_delete = utils::parsePayload<Reaction>(payload);
   if (reaction_to_delete == std::nullopt) return;
 
@@ -346,15 +288,10 @@ void Controller::onDeleteMessageReaction(const std::string &payload) {
     return;
   }
 
-  PublishRequest request{.exchange = Config::Routes::exchange,
-                         .routing_key = Config::Routes::messageReactionDeleted,
-                         .message = nlohmann::json(*reaction_to_delete).dump(),
-                         .exchange_type = Config::Routes::exchangeType};
-
-  mq_client_->publish(request);
+  publisher_.reactionDeleted(*reaction_to_delete);
 }
 
-void Controller::onSaveMessageReaction(const std::string &payload) {
+void Controller::handleSaveMessageReaction(const std::string &payload) {
   std::optional<Reaction> reaction_to_save = utils::parsePayload<Reaction>(payload);
   if (reaction_to_save == std::nullopt) return;
 
@@ -363,19 +300,11 @@ void Controller::onSaveMessageReaction(const std::string &payload) {
     return;
   }
 
-  PublishRequest request{.exchange = Config::Routes::exchange,
-                         .routing_key = Config::Routes::messageReactionSaved,
-                         .message = nlohmann::json(*reaction_to_save).dump(),
-                         .exchange_type = Config::Routes::exchangeType};
-
-  mq_client_->publish(request);
+  publisher_.reactionSaved(*reaction_to_save);
 }
 
-Response Controller::setup() {  // todo: here subscribers
-  subscribeToSaveMessage();
-  subscribeToSaveMessageStatus();
-  subscribeToSaveMessageReaction();
-  subscribeToDeleteMessageReaction();
+Response Controller::setup() {
+    subscribeAll();
 
   // todo: if subscrive failre return StatusCode(500, "Failed to subscrive");
   std::optional<std::vector<ReactionInfo>> reactions = loadReactions();

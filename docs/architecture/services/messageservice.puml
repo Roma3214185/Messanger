@@ -54,11 +54,38 @@ interface IIdGenerator {
 
 }
 
-RabbitMQClient ..|> IRabitMQClient
+interface IEventPublisher
+interface IEventSubcriber
+
+class QueuePublisher {
+  + messageSaved(const Message& saved_message);
+  + messageDeleted(const Message& deleted_message);
+  + reactionDeleted(const Reaction& deleted_reaction);
+  + reactionSaved(const Reaction& saved_reaction);
+  + messageStatusSaved(const MessageStatus& saved_message_status);
+}
+
+class QueueSubscriber {
+  + subscribeToSaveMessage(Callback);
+  + subscribeToSaveMessageStatus(Callback);
+  + subscribeToSaveMessageReaction(Callback);
+  + subscribeToDeleteMessageReaction(Callback);
+}
+
+interface IEventBus
+
+RabbitMQClient ..|> IEventBus
 
 Server o--> Controller
 
-Controller o--> IRabitMQClient
+IEventBus ..|> IEventPublisher
+IEventBus ..|> IEventSubcriber
+
+QueuePublisher o--> IEventPublisher
+QueueSubscriber o--> IEventSubcriber
+
+Controller ---> QueuePublisher
+Controller ---> QueueSubscriber
 Controller o--> IThreadPool
 Controller o--> IMessageCommandService
 Controller o--> IMessageQueryService
@@ -73,8 +100,8 @@ MessageQueryService o--> ISqlExecutor
 MessageQueryService o--> ICache
 MessageQueryService --> QueryFactory
 
-GenericRepositoryo o--> ISqlExecutor
-GenericRepositoryo o--> ICache
+GenericRepository o--> ISqlExecutor
+GenericRepository o--> ICache
 
 GeneratorId ..|> IIdGenerator
 
