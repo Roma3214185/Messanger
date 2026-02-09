@@ -59,6 +59,7 @@ add_executable(Frontend
     ${FRONTEND_INC_DIR}/ui/mainwindow.h
     ${FRONTEND_SRC_DIR}/mainwindow.cpp
     ${FRONTEND_FORMS_DIR}/mainwindow.ui
+    src/managers/TokenManager.cpp
 )
 
 enable_iwyu(Frontend)

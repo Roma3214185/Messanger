@@ -30,6 +30,14 @@ struct Config {
   mutable QList<QString> kDomains;
 };
 
+struct CharConfig {
+    bool lettersAllowed{false};
+    bool numbersAllowed{false};
+    bool spaceAllowed{false};
+    QString specialCharactersAllowed;
+};
+
+
 namespace DataInputService {
 
 ValidationResult nameValidDetailed(const QString &name, const Config &cfg = Config());
@@ -45,7 +53,7 @@ ValidationResult validateLoginUserInput(const LogInRequest &input, const Config 
 namespace DataInputService::details {
 
 ValidationResult checkLocalPart(const QString &local, const Config &cfg = Config());
-
+bool isValidChar(QChar el, const CharConfig& config);
 ValidationResult checkDomainPart(const QString &domain, const Config &cfg = Config());
 
 }  // namespace DataInputService::details
