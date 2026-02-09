@@ -7,12 +7,15 @@ class IMessageDataManager;
 class IMessageJsonService;
 
 class DeleteMessageHandler : public ISocketResponceHandler {
+ public:
+  DeleteMessageHandler(IMessageJsonService *entity_factory,
+                          IMessageDataManager *message_data_manager);
+  void handle(const QJsonObject &json_object) override;
+
+ private:
   IMessageJsonService *entity_factory_;
   IMessageDataManager *message_data_manager_;
 
- public:
-  DeleteMessageHandler(IMessageJsonService *entity_factory, IMessageDataManager *message_data_manager);
-  void handle(const QJsonObject &json_object) override;
 };
 
 #endif  // DELETEMESSAGEHANDLER_H

@@ -10,7 +10,6 @@ class Model;
 class SocketHandlerRegistry {
  public:
   using SocketHandlersMap = std::unordered_map<std::string, std::unique_ptr<ISocketResponceHandler>>;
-
   static SocketHandlersMap create(Model* manager, JsonService* json_service);
 };
 
