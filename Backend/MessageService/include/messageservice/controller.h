@@ -6,7 +6,8 @@
 #include <vector>
 
 class Message;
-class IMessageManager;
+class IMessageCommandService;
+class IMessageQueryService;
 class IEventBus;
 class GetMessagePack;
 class MessageStatus;
@@ -20,7 +21,7 @@ using Response = std::pair<StatusCode, ResponceBody>;
 
 class Controller {
  public:
-  Controller(IEventBus *mq_client, IMessageManager *manager, IThreadPool *pool);
+  Controller(IEventBus *mq_client, IMessageCommandService* command_manager, IMessageQueryService *query_manager, IThreadPool *pool);
 
   Response updateMessage(const RequestDTO &request_pack, const std::string &message_id_str);
   Response deleteMessage(const RequestDTO &request_pack, const std::string &message_id_str);
@@ -46,7 +47,8 @@ class Controller {
   std::optional<long long> getUserIdFromToken(const std::string &token);
   std::optional<std::vector<ReactionInfo>> loadReactions();
 
-  IMessageManager *manager_;
+  IMessageCommandService *command_manager_;
+  IMessageQueryService *query_manager_;
   IEventBus *mq_client_;
   IThreadPool *pool_;
 };

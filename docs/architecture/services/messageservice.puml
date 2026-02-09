@@ -13,20 +13,23 @@ class Controller {
   + setup() : Response
 }
 
-interface IMessageManager {
+interface IMessageCommandService {
   + saveMessage(message) : boo;
-  + getMessage(long long message_id);
-  + getMessageStatus(long long message_id, long long receiver_id);
-  + getChatMessages(const GetMessagePack &);
-  + saveMessageStatus(MessageStatus &status);
-  + getUndeliveredMessages(long long user_id);
-  + getMessagesStatus(const std::vector<Message> &messages, long long receiver_id);
   + updateMessage(const Message &message);
   + deleteMessage(const Message &message);
-  + getReadedMessageStatuses(long long message_id);
   + saveMessageReaction(const Reaction &reaction);
   + deleteMessageReaction(const Reaction &reaction);
   + saveMessageReactionInfo(const std::vector<ReactionInfo> &reaction_infos);
+}
+
+interface IMessageQueryService {
+  + getMessage(long long message_id);
+  + getMessageStatus(long long message_id, long long receiver_id);
+  + getChatMessages(const GetMessagePack &);
+  + getUndeliveredMessages(long long user_id);
+  + getMessagesStatus(const std::vector<Message> &messages, long long receiver_id);
+  + getReadedMessageStatuses(long long message_id);
+  + deleteMessageReaction(const Reaction &reaction);
   + getReactions(long long message_id,                                                                            long long receiver_id);
   + getReactionInfo(long long message_reaction_id);
 }
@@ -57,11 +60,21 @@ Server o--> Controller
 
 Controller o--> IRabitMQClient
 Controller o--> IThreadPool
-Controller o--> IMessageManager
+Controller o--> IMessageCommandService
+Controller o--> IMessageQueryService
 
-MessageManager ..|> IMessageManager
-MessageManager o--> GenericRepository
-MessageManager o--> IIdGenerator
+
+MessageCommandService ..|> IMessageCommandService
+MessageCommandService o--> GenericRepository
+MessageCommandService o--> IIdGenerator
+
+MessageQueryService ..|> IMessageQueryService
+MessageQueryService o--> ISqlExecutor
+MessageQueryService o--> ICache
+MessageQueryService --> QueryFactory
+
+GenericRepositoryo o--> ISqlExecutor
+GenericRepositoryo o--> ICache
 
 GeneratorId ..|> IIdGenerator
 

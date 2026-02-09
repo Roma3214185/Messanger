@@ -13,9 +13,9 @@ TEST_CASE("Test") {
   MockThreadPool pool;
   MockCache cache;
   FakeSqlExecutor executor;
-  MockIdGenerator generator;
-  GenericRepository repository(&executor, cache, &pool);
-  MessageManager manager(&repository, &generator);
+  //MockIdGenerator generator;
+  //GenericRepository repository(&executor, cache, &pool);
+  MessageQueryManager manager(&executor, cache);
 
   SECTION("getChatMessages expected create valid sql request") {
     cache.clearCache();

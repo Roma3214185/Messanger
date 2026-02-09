@@ -67,8 +67,8 @@ std::vector<MessageStatus> fetchReaded(const std::vector<MessageStatus> &message
 
 }  // namespace
 
-Controller::Controller(IEventBus *mq_client, IMessageManager *manager, IThreadPool *pool)
-    : manager_(manager), mq_client_(mq_client), pool_(pool) {}
+Controller::Controller(IEventBus *mq_client, IMessageCommandService* command_manager, IMessageQueryService *query_manager, IThreadPool *pool)
+    : command_manager_(command_manager), query_manager_(query_manager), mq_client_(mq_client), pool_(pool) {}
 
 void Controller::handleSaveMessage(const std::string &payload) {
   std::optional<Message> msg = utils::parsePayload<Message>(payload);  // TODO: alias
@@ -78,7 +78,7 @@ void Controller::handleSaveMessage(const std::string &payload) {
   LOG_INFO("Get message to save with id {} and text {}", message.id, message.text);
 
   pool_->enqueue([this, message]() mutable {
-    if (!manager_->saveMessage(message)) {
+    if (!command_manager_->saveMessage(message)) {
       LOG_ERROR("Error saving message id {}", message.id);
       return;
     }
@@ -125,7 +125,7 @@ void Controller::handleSaveMessageStatus(const std::string &payload) {
   auto status = *message_status;
 
   pool_->enqueue([this, status]() mutable {
-    if (!manager_->saveMessageStatus(status)) {
+    if (!command_manager_->saveMessageStatus(status)) {
       LOG_ERROR("Error saving message_status id {}", status.message_id);
       return;
     }
@@ -139,10 +139,10 @@ void Controller::handleSaveMessageStatus(const std::string &payload) {
   });
 }
 
-std::vector<Message> Controller::getMessages(const GetMessagePack &pack) { return manager_->getChatMessages(pack); }
+std::vector<Message> Controller::getMessages(const GetMessagePack &pack) { return query_manager_->getChatMessages(pack); }
 
 std::vector<MessageStatus> Controller::getMessagesStatus(const std::vector<Message> &messages, long long receiver_id) {
-  return manager_->getMessagesStatus(messages, receiver_id);
+  return query_manager_->getMessagesStatus(messages, receiver_id);
 }
 
 std::optional<long long> Controller::getUserIdFromToken(const std::string &token) {
@@ -168,7 +168,7 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
   LOG_INFO("Current id = {}", current_user_id);
 
   // check if u have access to update this message (update only curr user)
-  std::optional<Message> message_to_update = manager_->getMessage(message_id);
+  std::optional<Message> message_to_update = query_manager_->getMessage(message_id);
   if (!message_to_update) {
     return std::make_pair(Config::StatusCodes::notFound, utils::details::formError("Message to update not found"));
   }
@@ -184,7 +184,7 @@ Response Controller::updateMessage(const RequestDTO &request_pack, const std::st
   }
 
   // todo: check invariants of updated_message;
-  if (!manager_->saveMessage(*updated_message)) {
+  if (!command_manager_->saveMessage(*updated_message)) {
     return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Error while saving"));
   }
 
@@ -215,7 +215,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
   long long current_user_id = *optional_user_id;
   LOG_INFO("Current id = {}", current_user_id);
 
-  std::optional<Message> message_to_delete = manager_->getMessage(message_id);
+  std::optional<Message> message_to_delete = query_manager_->getMessage(message_id);
   if (!message_to_delete) {
     return std::make_pair(Config::StatusCodes::notFound, utils::details::formError("Message to delete not found"));
   }
@@ -226,7 +226,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
                           utils::details::formError("U have no permission to update this message"));
   }
 
-  if (!manager_->deleteMessage(*message_to_delete)) {
+  if (!command_manager_->deleteMessage(*message_to_delete)) {
     return std::make_pair(Config::StatusCodes::serverError, utils::details::formError("Error while saving"));
   }
 
@@ -242,7 +242,7 @@ Response Controller::deleteMessage(const RequestDTO &request_pack, const std::st
 }
 
 std::vector<MessageStatus> Controller::getReadedMessageStatuses(long long message_id) {
-  return manager_->getReadedMessageStatuses(message_id);
+  return query_manager_->getReadedMessageStatuses(message_id);
 }
 
 Response Controller::getMessageById(const std::string &message_id_str) {
@@ -250,7 +250,7 @@ Response Controller::getMessageById(const std::string &message_id_str) {
 
   std::optional<long long> message_id = utils::getIdFromStr(message_id_str);
   if (!message_id.has_value()) return std::make_pair(400, utils::details::formError("Invalid message_id"));
-  auto message_opt = manager_->getMessage(*message_id);
+  auto message_opt = query_manager_->getMessage(*message_id);
   return message_opt ? std::make_pair(200, nlohmann::json(*message_opt).dump())
                      : std::make_pair(404, utils::details::formError("Not found"));
 }
@@ -302,7 +302,7 @@ Response Controller::getMessagesFromChat(const RequestDTO &request_pack, const s
       }
     }
     user_message.read.read_by_me = is_read_by_me;
-    auto [reactions_map, my_reaction] = manager_->getReactions(message.id, user_id.value());
+    auto [reactions_map, my_reaction] = query_manager_->getReactions(message.id, user_id.value());
 
     user_message.reactions.counts = reactions_map;
     user_message.reactions.my_reaction = my_reaction;
@@ -341,7 +341,7 @@ void Controller::onDeleteMessageReaction(const std::string &payload) {
   std::optional<Reaction> reaction_to_delete = utils::parsePayload<Reaction>(payload);
   if (reaction_to_delete == std::nullopt) return;
 
-  if (!manager_->deleteMessageReaction(*reaction_to_delete)) {
+  if (!command_manager_->deleteMessageReaction(*reaction_to_delete)) {
     LOG_ERROR("Error deleting message_reaction id {}", reaction_to_delete->message_id);
     return;
   }
@@ -358,7 +358,7 @@ void Controller::onSaveMessageReaction(const std::string &payload) {
   std::optional<Reaction> reaction_to_save = utils::parsePayload<Reaction>(payload);
   if (reaction_to_save == std::nullopt) return;
 
-  if (!manager_->saveMessageReaction(*reaction_to_save)) {
+  if (!command_manager_->saveMessageReaction(*reaction_to_save)) {
     LOG_ERROR("Error saving message_reaction id {}", reaction_to_save->message_id);
     return;
   }
@@ -383,7 +383,7 @@ Response Controller::setup() {  // todo: here subscribers
     return std::make_pair(Config::StatusCodes::serverError, "Failed while loading reactions");
   }
 
-  if (!manager_->saveMessageReactionInfo(reactions.value())) {
+  if (!command_manager_->saveMessageReactionInfo(reactions.value())) {
     return std::make_pair(Config::StatusCodes::serverError, "Failed to save reactions");
   }
 
@@ -401,7 +401,7 @@ Response Controller::getReaction(const RequestDTO &request_pack, const std::stri
   auto reaction_id_opt = utils::getIdFromStr(reaction_id_str);
   if (!reaction_id_opt.has_value()) return std::make_pair(Config::StatusCodes::badRequest, "Invalid id");
 
-  auto res = manager_->getReactionInfo(reaction_id_opt.value());
+  auto res = query_manager_->getReactionInfo(reaction_id_opt.value());
   if (!res.has_value()) return std::make_pair(Config::StatusCodes::notFound, "Not found such reaction");
   return std::make_pair(Config::StatusCodes::success, nlohmann::json(res).dump());
 }
