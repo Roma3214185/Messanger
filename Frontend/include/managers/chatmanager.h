@@ -4,7 +4,6 @@
 #include <QFuture>
 #include <QList>
 #include <QObject>
-#include <QUrl>
 
 #include "managers/BaseManager.h"
 
@@ -13,11 +12,10 @@ using ChatPtr = std::shared_ptr<ChatBase>;
 class INetworkAccessManager;
 class QNetworkReply;
 class IChatJsonService;
+class QUrl;
 
 class ChatManager : public BaseManager {
   Q_OBJECT
-  IChatJsonService *entity_factory_;
-
  public:
   ChatManager(IChatJsonService *, INetworkAccessManager *network_manager, const QUrl &base_url,
               std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
@@ -30,6 +28,9 @@ class ChatManager : public BaseManager {
   QList<ChatPtr> onLoadChats(const QByteArray &responce_data);
   ChatPtr onChatLoaded(const QByteArray &responce_data);
   ChatPtr onCreatePrivateChat(const QByteArray &responce_data);
+
+  private:
+    IChatJsonService *entity_factory_;
 };
 
 #endif  // CHATMANAGER_H

@@ -12,17 +12,6 @@
 #include "dto/User.h"
 #include "interfaces/INetworkAccessManager.h"
 
-namespace {
-
-auto getRequestWithToken(const QUrl &endpoint, const QString &current_token) -> QNetworkRequest {
-  auto request = QNetworkRequest(endpoint);
-  request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-  request.setRawHeader("Authorization", current_token.toUtf8());
-  return request;
-}
-
-}  // namespace
-
 SessionManager::SessionManager(IUserJsonService *entity_factory, INetworkAccessManager *network_manager,
                                const QUrl &base_url, std::chrono::milliseconds timeout_ms, QObject *parent)
     : entity_factory_(entity_factory), BaseManager(network_manager, base_url, timeout_ms, parent) {}
@@ -44,12 +33,11 @@ void SessionManager::signIn(const LogInRequest &login_request) {
 
 void SessionManager::onReplyFinished(const QByteArray &responce) {
   PROFILE_SCOPE("SessionManager::onReplyFinished");
-  // if(!checkReply(reply)) return;
-  // QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> guard(reply);
-  LOG_INFO("Raw responce: {}", responce.toStdString());
   auto jsonResponse = QJsonDocument::fromJson(responce);
+  if(!jsonResponse.isObject()) return;
+
   auto responseObj = jsonResponse.object();
-  if (!responseObj.contains("user")) {  // TODO(roma): common checkField(responseObj, "user") function;
+  if (!responseObj.contains("user")) {
     LOG_ERROR("Reply doen't contain 'user' filed");
     return;
   }
@@ -63,14 +51,12 @@ void SessionManager::onReplyFinished(const QByteArray &responce) {
   QString current_token = responseObj["token"].toString();
 
   LOG_INFO("[onReplyFinished] User created. User: '{}', Token: '{}'", createdUser.name.toStdString(),
-           current_token.toStdString());  // TODO(roma): debug(createdUser);
+           current_token.toStdString());
   Q_EMIT userCreated(createdUser, current_token);
 }
 
 void SessionManager::signUp(const SignUpRequest &signup_request) {
-  PROFILE_SCOPE("Model::signUp");
-  LOG_INFO("[signUp] Registering new user: '{}'", signup_request.email.toStdString());
-
+  PROFILE_SCOPE();
   QUrl endpoint = url_.resolved(QUrl("/auth/register"));
   QNetworkRequest req(endpoint);
   req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");

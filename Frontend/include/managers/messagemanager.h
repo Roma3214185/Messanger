@@ -17,8 +17,6 @@ class QNetworkReply;
 
 class MessageManager : public BaseManager {
   Q_OBJECT
-  IMessageJsonService *entity_factory_;
-
  public:
   MessageManager(IMessageJsonService *, INetworkAccessManager *network_manager, const QUrl &base_url,
                  std::chrono::milliseconds timeout_ms = std::chrono::milliseconds{500}, QObject *parent = nullptr);
@@ -29,11 +27,14 @@ class MessageManager : public BaseManager {
   QFuture<QList<Message>> getChatMessages(const QString &current_token, long long chat_id, long long before_id,
                                           long long limit);
 
+ Q_SIGNALS:
+  void saveReactionInfo(const ReactionInfo &reaction_info);
+
  protected:
   QList<Message> onGetChatMessages(const QByteArray &responce_data);
 
- Q_SIGNALS:
-  void saveReactionInfo(const ReactionInfo &reaction_info);
+ private:
+    IMessageJsonService *entity_factory_;
 };
 
 #endif  // MESSAGEMANAGER_H
