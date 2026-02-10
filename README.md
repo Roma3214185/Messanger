@@ -51,8 +51,7 @@ cmake --build build --parallel
 The following diagrams illustrate the architecture of the **Messenger** project, showing the main services, their interactions, and internal structure.
 
 ### High-Level Overview
-![Messenger System Overview](https://roma3214185.github.io/Messenger/architecture/system.svg)  
-*A top-level view of all services and their interactions.*
+![Messenger System Overview](https://roma3214185.github.io/Messenger/architecture/deployment_diagram.svg)  
 
 ### Service-Specific Architectures
 - **Gateway Service**  
