@@ -64,7 +64,7 @@ The following diagrams illustrate the architecture of the **Messenger** project,
   ![Chat Service](https://roma3214185.github.io/Messenger/architecture/services/chatservice.svg)
 
 - **Frontend**  
-  ![Frontend](https://roma3214185.github.io/Messanger/architecture/services/frontend.svg)
+  ![Frontend](https://roma3214185.github.io/Messenger/architecture/services/frontend.svg)
 
 - **Message Service**  
   ![Message Service](https://roma3214185.github.io/Messenger/architecture/services/messageservice.svg)
