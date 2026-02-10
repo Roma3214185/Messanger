@@ -21,6 +21,11 @@ endif
 if (User online?) then (Yes)
   :Send message to socket;
   :Persist message;
+  if (Message saved?) then (No)
+  stop
+  else(Yes)
+  endif
+
   :Notify chat members;
   :Mark message as delivered;
 else (No)
