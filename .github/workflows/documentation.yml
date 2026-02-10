@@ -1,4 +1,4 @@
-name: OpenAPI Docs CI/CD
+name: Documentation
 
 on:
   push:
