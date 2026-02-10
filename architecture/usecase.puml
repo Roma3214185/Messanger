@@ -1,0 +1,28 @@
+@startuml
+left to right direction
+
+actor Guest
+actor User
+
+User --|> Guest
+
+
+package Messanger {
+  usecase "Send message" as send_message
+  usecase "Search users" as search_users
+  usecase "Set reactions" as reactions
+  usecase "Create chats with users" as private_chats
+  usecase "SignIn"
+  usecase "SignUp"
+}
+
+
+Guest --> "SignIn"
+Guest --> "SignUp"
+
+User --> send_message
+User --> search_users
+User --> reactions
+User --> private_chats
+
+@enduml

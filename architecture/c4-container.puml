@@ -1,0 +1,50 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+
+Person(user, "User", "End user of Messenger")
+
+System_Boundary(backend, "Backend") {
+
+  Container(gateway, "Gateway", "C++", "API Gateway routing requests to microservices")
+  Container(auth, "AuthService", "C++", "User accounts, authentication, credentials")
+
+  Container(chat, "ChatService", "C++", "Chats, groups, members, private chats")
+
+  Container(message, "MessageService", "C++", "Message persistence, reactions, delivery status")
+
+  Container(notification, "NotificationService", "C++", "Push and realtime notifications")
+
+    ContainerDb(authDb, "Auth DB", "SQLite", "Users, credentials")
+
+    ContainerDb(chatDb, "Chat DB", "SQLite", "Chats, chat members, private chats")
+
+    ContainerDb(messageDb, "Message DB", "SQLite", "Messages, reactions, read status, outbox")
+
+    Container(redis, "Redis", "Redis", "Session cache, presence, hot data")
+
+    ContainerQueue(rabbit, "RabbitMQ", "AMQP", "Event broker for async communication")
+}
+
+Rel(user, gateway, "Uses", "HTTPS / WebSocket")
+
+Rel(gateway, auth, "Auth requests", "HTTP")
+Rel(gateway, chat, "Chat operations", "HTTP")
+Rel(gateway, message, "Send/receive messages", "HTTP/WebSocket")
+Rel(gateway, notification, "Realtime delivery", "WebSocket")
+
+Rel(auth, authDb, "Reads/Writes")
+Rel(chat, chatDb, "Reads/Writes")
+Rel(message, messageDb, "Reads/Writes")
+
+Rel(auth, redis, "Session cache")
+Rel(gateway, redis, "Session lookup / rate limiting")
+Rel(chat, redis, "Presence / chat cache")
+Rel(message, redis, "Recent messages cache")
+
+Rel(message, rabbit, "Publishes message events (outbox)", "AMQP")
+
+Rel(notification, rabbit, "Consumes events", "AMQP")
+
+@enduml

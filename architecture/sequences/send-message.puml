@@ -2,16 +2,24 @@
 actor User
 participant Frontend
 participant Gateway
-participant ChatService
 participant MessageService
-participant RabbitMQ
+queue RabbitMQ
 participant NotificationService
+participant ChatService
 
 User -> Frontend: Send message
-Frontend -> Gateway: POST /message
-Gateway -> ChatService: validateChat()
-ChatService -> MessageService: createMessage()
+Frontend -> Frontend : Save message offline
+Frontend -> User : show offline saved message
+Frontend -> Gateway: Send via socket
+Gateway -> NotificationService: Send via socket
+NotificationService -> RabbitMQ: push saveMessage()
+MessageService -> RabbitMQ: subscribe saveMessage()
 MessageService -> RabbitMQ: publish MessageCreated
-RabbitMQ -> NotificationService: consume
-NotificationService -> User: push notification
+NotificationService -> RabbitMQ: subscribe saved message
+NotificationService -> ChatService: get chat members
+ChatService -> NotificationService: receive chat members
+NotificationService -> Gateway: push notification
+Gateway -> Frontend: push notification
+Frontend -> Frontend: save message
+Frontend -> User : show saved message
 @enduml

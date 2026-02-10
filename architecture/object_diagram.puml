@@ -1,0 +1,89 @@
+@startuml
+
+object user1 {
+    id = 1
+    name = "Alice"
+    email = "alice@gmail.com"
+    tag = "alice_2291"
+}
+
+object user2 {
+    id = 2
+    name = "Roma"
+    email = "roma@gmail.com"
+    tag = "r_131_eqq1"
+}
+
+object credentials1 {
+    email = "alice@gmail.com"
+    password = "12345678"
+}
+
+object credentials2 {
+    email = "roma@gmail.com"
+    password = "12332112345678"
+}
+
+object chat1 {
+    chat_id = 101
+    title = "Private Chat"
+    type = "private"
+    last_message = "Hello Alice!"
+}
+
+object chatMember1 {
+    user_id = 1
+    chat_id = 101
+    added_at = "2026-02-10 09:15"
+    role = "member"
+}
+
+object chatMember2 {
+    user_id = 2
+    chat_id = 101
+    added_at = "2026-02-10 09:16"
+    role = "member"
+}
+
+object msg1 {
+    message_id = 1
+    text = "Hi Roma!"
+    timestamp = "2026-02-10 10:15"
+}
+
+object msg2 {
+    message_id = 2
+    text = "Hello Alice!"
+    timestamp = "2026-02-10 10:16"
+}
+
+object reaction1 {
+    reaction_id = 134
+}
+
+object reactionInfo1 {
+    id = 134
+    name = "like"
+    image = "path/to/like.png"
+}
+
+credentials1 *-- user1 : belongs to
+credentials2 *-- user2 : belongs to
+
+chatMember1 --> user1 : represents
+chatMember1 *--> chat1 : member of
+
+chatMember2 --> user2 : represents
+chatMember2 *--> chat1 : member of
+
+msg1 *--> chat1 : sent in
+msg1 --> user1 : sent by
+
+msg2 *--> chat1 : sent in
+msg2 --> user2 : sent by
+
+reaction1 *--> msg2 : reacts to
+reaction1 --> user1 : made by
+reaction1 --> reactionInfo1 : type
+
+@enduml
