@@ -1,0 +1,38 @@
+@startuml
+start
+
+:User types and sends message;
+
+if (User is unauthorized?) then (Yes)
+  :Throw exception;
+  stop
+else (No)
+endif
+
+if (Message is empty?) then (Yes)
+  :Skip sending;
+  stop
+else (No)
+endif
+
+:Save message locally (pending);
+:Show message offline saved to user;
+
+if (User online?) then (Yes)
+  :Send message to socket;
+  :Persist message;
+  if (Message saved?) then (No)
+  stop
+  else(Yes)
+  endif
+
+  :Notify chat members;
+  :Mark message as delivered;
+else (No)
+  :Keep message offline;
+  stop
+endif
+
+:Show message status to user;
+stop
+@enduml

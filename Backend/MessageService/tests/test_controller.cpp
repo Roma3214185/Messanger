@@ -28,13 +28,13 @@ struct SharedFixture {
   SharedFixture() : rep(&executor, cache, &pool), command_manager(&rep, &generator), query_manager(&executor, cache) {}
 };
 
-TEST_CASE("Test cotroller works with rabitMQ") {
+TEST_CASE("Test QueueSubscriber") {
   SharedFixture fix;
-  TestController controller(&fix.rabit_client, &fix.command_manager, &fix.query_manager, &fix.pool);
+  QueueSubscriber subcriber(&fix.rabit_client);
 
   SECTION("Subscrive on message to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.setup();
+    subcriber.subscribeToSaveMessage([](std::string){});
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
@@ -47,19 +47,24 @@ TEST_CASE("Test cotroller works with rabitMQ") {
   SECTION("Subscrive on message to save expected call valid callback function") {
     Message test_message;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.setup();
+    int call_save_message = 0;
+    std::string last_payload;
+    subcriber.subscribeToSaveMessage([&](std::string payload){
+        ++call_save_message;
+        last_payload = payload;
+    });
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
-    int before_callback_call = controller.call_save_message;
+    int before_callback_call = call_save_message;
 
     fix.rabit_client.callLastCallback(nlohmann::json(test_message).dump());
-    REQUIRE(controller.call_save_message == before_callback_call + 1);
-    REQUIRE(controller.last_payload == nlohmann::json(test_message).dump());
+    REQUIRE(call_save_message == before_callback_call + 1);
+    REQUIRE(last_payload == nlohmann::json(test_message).dump());
   }
 
   SECTION("Subscrive on message_status to save expected valid data") {
     int before = fix.rabit_client.subscribe_cnt;
-    controller.setup();
+    subcriber.subscribeToSaveMessageStatus([](std::string){});
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before + 1);
     auto last_subscribe_data = fix.rabit_client.last_subscribe_request;
@@ -74,34 +79,25 @@ TEST_CASE("Test cotroller works with rabitMQ") {
       "function") {
     MessageStatus test_message_status;
     int before_subscribe_call = fix.rabit_client.subscribe_cnt;
-    controller.setup();
+    int call_save_message_status = 0;
+    std::string last_payload;
+    subcriber.subscribeToSaveMessageStatus([&](std::string payload){
+        ++call_save_message_status;
+        last_payload = payload;
+    });
 
     REQUIRE(fix.rabit_client.subscribe_cnt == before_subscribe_call + 1);
-    int before_callback_call = controller.call_save_message_status;
+    int before_callback_call = call_save_message_status;
 
     fix.rabit_client.callLastCallback(nlohmann::json(test_message_status).dump());
-    REQUIRE(controller.call_save_message_status == before_callback_call + 1);
-    REQUIRE(controller.last_payload == nlohmann::json(test_message_status).dump());
+    REQUIRE(call_save_message_status == before_callback_call + 1);
+    REQUIRE(last_payload == nlohmann::json(test_message_status).dump());
   }
 }
 
 TEST_CASE("Test controller handles saved enitites") {
   SharedFixture fix;
   SecondTestController controller(&fix.rabit_client, &fix.command_manager, &fix.query_manager, &fix.pool);
-
-  // SECTION("handleSaveMessage expected call to pool and publish to rabitMQ") {
-  //   Message message{.id = 2, .local_id = "121", .sender_id = 12};
-  //   int     before_publish_call = fix.rabit_client.publish_cnt;
-  //   int     before_pool_cnt     = fix.pool.call_count;
-
-  //   controller.handleSaveMessage(nlohmann::json(message).dump());
-
-  //   REQUIRE(fix.pool.call_count == before_pool_cnt + 1);
-  //   REQUIRE(fix.rabit_client.publish_cnt == before_publish_call + 1);
-
-  //   auto last_publish_request = fix.rabit_client.last_publish_request;
-  //   REQUIRE(last_publish_request.message == nlohmann::json(message).dump());
-  // }
 
   SECTION(
       "handleSaveMessage receive invalid payload expected no call to pool "

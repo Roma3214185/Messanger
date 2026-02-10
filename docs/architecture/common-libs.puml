@@ -5,12 +5,35 @@ package "common" {
   [RabbitMQClient]
   [RedisCache]
   [Metrics]
+  [ThreadPool]
 }
 
 [Gateway] --> [Network]
+[AuthService] --> [Network]
+[MessageService] --> [Network]
+[ChatService] --> [Network]
+[NotificationService] --> [Network]
+
 [AuthService] --> [Persistence]
-[ChatService] --> [RabbitMQClient]
-[MessageService] --> [RedisCache]
+[MessageService] --> [Persistence]
+[ChatService] --> [Persistence]
+
+[MessageService] --> [RabbitMQClient]
+[NotificationService] --> [RabbitMQClient]
+
+[Persistence] --> [RedisCache]
+[Gateway] --> [RedisCache]
+
+[Persistence] --> [ThreadPool]
+[Gateway] --> [ThreadPool]
+
+[Frontend] --> [Metrics]
+[Gateway] --> [Metrics]
+[AuthService] --> [Metrics]
+[MessageService] --> [Metrics]
+[ChatService] --> [Metrics]
 [NotificationService] --> [Metrics]
+
+
 
 @enduml

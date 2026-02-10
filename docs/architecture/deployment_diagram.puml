@@ -1,0 +1,49 @@
+@startuml
+
+node "User Device\n(Dekstop)" {
+  artifact "Messenger App"
+}
+
+node "API Gateway Server" {
+  artifact "Gateway Service"
+}
+
+node "Backend Server" {
+  artifact "Auth Service"
+  artifact "Chat Service"
+  artifact "Message Service"
+  artifact "Notification Service"
+}
+
+node "Database Server" {
+  artifact "Auth DB"
+  artifact "Chat DB"
+  artifact "Message DB"
+}
+
+node "Cache Server" {
+  artifact "Redis"
+}
+
+node "Message Broker" {
+  artifact "RabbitMQ"
+}
+
+"Messenger App" --> "Gateway Service" : HTTPS / WebSocket
+"Gateway Service" --> "Auth Service" : HTTP
+"Gateway Service" --> "Chat Service" : HTTP
+"Gateway Service" --> "Message Service" : HTTP
+"Gateway Service" --> "Notification Service" :  WebSocket
+
+"Auth Service" --> "Auth DB"
+"Chat Service" --> "Chat DB"
+"Message Service" --> "Message DB"
+
+"Auth Service" --> "Redis"
+"Chat Service" --> "Redis"
+"Message Service" --> "Redis"
+
+"Message Service" --> "RabbitMQ"
+"Notification Service" --> "RabbitMQ"
+
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+concise "Sender" as Sender
+concise "Server" as Server
+concise "Receiver" as Receiver
+concise "Message" as Message
+
+@0
+Sender is Idle
+Server is Waiting
+Receiver is Idle
+Message is Created
+
+@1
+Sender is Sending
+Message is Sent
+
+@2
+Server is Processing
+Message is Saved
+Sender is Idle
+
+@3
+Server is Waiting
+Message is Delivered
+
+@4
+Receiver is Reading
+Message is Read
+
+@enduml

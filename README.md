@@ -51,30 +51,29 @@ cmake --build build --parallel
 The following diagrams illustrate the architecture of the **Messenger** project, showing the main services, their interactions, and internal structure.
 
 ### High-Level Overview
-![Messenger System Overview](https://roma3214185.github.io/Messanger/architecture/system.svg)  
-*A top-level view of all services and their interactions.*
+![Messenger System Overview](https://roma3214185.github.io/Messenger/architecture/deployment_diagram.svg)  
 
 ### Service-Specific Architectures
 - **Gateway Service**  
-  ![Gateway Service](https://roma3214185.github.io/Messanger/architecture/services/gateway.svg)
+  ![Gateway Service](https://roma3214185.github.io/Messenger/architecture/services/gateway.svg)
 
 - **Authentication Service (AuthService)**  
-  ![Auth Service](https://roma3214185.github.io/Messanger/architecture/services/authservice.svg)
+  ![Auth Service](https://roma3214185.github.io/Messenger/architecture/services/authservice.svg)
 
 - **Chat Service**  
-  ![Chat Service](https://roma3214185.github.io/Messanger/architecture/services/chatservice.svg)
+  ![Chat Service](https://roma3214185.github.io/Messenger/architecture/services/chatservice.svg)
 
 - **Frontend**  
   ![Frontend](https://roma3214185.github.io/Messanger/architecture/services/frontend.svg)
 
 - **Message Service**  
-  ![Message Service](https://roma3214185.github.io/Messanger/architecture/services/messageservice.svg)
+  ![Message Service](https://roma3214185.github.io/Messenger/architecture/services/messageservice.svg)
 
 - **Notification Service**  
-  ![Notification Service](https://roma3214185.github.io/Messanger/architecture/services/notificationservice.svg)
+  ![Notification Service](https://roma3214185.github.io/Messenger/architecture/services/notificationservice.svg)
 
 - **Persistence Layer**  
-  ![Persistence Layer](https://roma3214185.github.io/Messanger/architecture/services/persistence.svg)
+  ![Persistence Layer](https://roma3214185.github.io/Messenger/architecture/services/persistence.svg)
 
 
 ## 🐳 Docker Support & Persistence Benchmarks
@@ -142,7 +141,7 @@ docker-compose up --build
 
 ## Links
 
-- **C++ CI:** ![CI](https://github.com/roma3214185/Messanger/actions/workflows/ci.yml/badge.svg)  
-- **Code Coverage (Codecov):** [View on Codecov](https://app.codecov.io/github/roma3214185/Messanger)  
-- **Documentation (OpenAPI):** [View on GitHub Pages](https://roma3214185.github.io/Messanger/)
-- **SonarCloud:** [View on Sonar Cloud](https://sonarcloud.io/summary/overall?id=Roma3214185_Messanger&branch=main)  
+- **C++ CI:** ![CI](https://github.com/roma3214185/Messenger/actions/workflows/ci.yml/badge.svg)  
+- **Code Coverage (Codecov):** [View on Codecov](https://app.codecov.io/github/roma3214185/Messenger)  
+- **Documentation (OpenAPI):** [View on GitHub Pages](https://roma3214185.github.io/Messenger/)
+- **SonarCloud:** [View on Sonar Cloud](https://sonarcloud.io/summary/overall?id=Roma3214185_Messenger&branch=main)  
