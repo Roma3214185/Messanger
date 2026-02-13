@@ -1,0 +1,24 @@
+@startuml
+
+[*] --> Draft
+
+Draft --> Sending : press Send
+
+Sending --> Sent : success
+Sending --> Failed : error
+
+Failed --> Sending : retry
+Failed --> [*] : cancel
+
+Sent --> Delivered : delivered event
+Delivered --> Read : read event
+
+Read --> Liked : add like reaction
+Read --> Edited : edit message
+
+Delivered --> Deleted : delete
+Read --> Deleted : delete
+
+Deleted --> [*]
+
+@enduml
