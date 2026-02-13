@@ -75,6 +75,8 @@ jobs:
                 <li><a href="architecture/timing_send_message.svg">Timing send message diagram</a></li>
                 <li><a href="architecture/state_machine.svg">State machine diagram</a></li>
               </ul>
+              <h2>Report to big architecture refactor</h2>
+              <li><a href="architecture/Architecture_refactor_report.pdf">PDF report</a></li>
 
           </body>
           </html>
