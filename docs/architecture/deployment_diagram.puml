@@ -1,17 +1,26 @@
 @startuml
 
-node "User Device\n(Dekstop)" {
-  artifact "Messenger App"
+node "User Device\n(Desktop)" {
+  artifact "Frontend"
 }
 
-node "API Gateway Server" {
+node "API Gateway" {
   artifact "Gateway Service"
 }
 
-node "Backend Server" {
+node "Auth Service Cluster" {
   artifact "Auth Service"
+}
+
+node "Chat Service Cluster" {
   artifact "Chat Service"
+}
+
+node "Message Service Cluster" {
   artifact "Message Service"
+}
+
+node "Notification Service Cluster" {
   artifact "Notification Service"
 }
 
@@ -29,7 +38,7 @@ node "Message Broker" {
   artifact "RabbitMQ"
 }
 
-"Messenger App" --> "Gateway Service" : HTTPS / WebSocket
+"Frontend" --> "Gateway Service" : HTTPS / WebSocket
 "Gateway Service" --> "Auth Service" : HTTP
 "Gateway Service" --> "Chat Service" : HTTP
 "Gateway Service" --> "Message Service" : HTTP
